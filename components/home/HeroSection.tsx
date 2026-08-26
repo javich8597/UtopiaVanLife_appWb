@@ -53,11 +53,13 @@ export default function HeroSection() {
                 {/* Search Bar */}
                 <form className="hero__searchbar glass" onSubmit={handleSearch}>
                     <div className="hero__field">
-                        <label className="hero__field-label">
+                        <label htmlFor="hero-start-date" className="hero__field-label">
                             <Calendar size={14} />
                             {t('llegada')}
                         </label>
                         <input
+                            id="hero-start-date"
+                            name="from"
                             type="date"
                             className="hero__field-input"
                             value={startDate}
@@ -70,11 +72,13 @@ export default function HeroSection() {
                     <div className="hero__separator" />
 
                     <div className="hero__field">
-                        <label className="hero__field-label">
+                        <label htmlFor="hero-end-date" className="hero__field-label">
                             <Calendar size={14} />
                             {t('salida')}
                         </label>
                         <input
+                            id="hero-end-date"
+                            name="to"
                             type="date"
                             className="hero__field-input"
                             value={endDate}

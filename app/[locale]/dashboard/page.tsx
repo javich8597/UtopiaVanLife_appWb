@@ -22,6 +22,7 @@ export default async function DashboardPage({
 
     if (authError || !user) {
         redirect({ href: '/auth/login?redirect=/dashboard', locale })
+        return null
     }
 
     const { data: bookings } = await supabase

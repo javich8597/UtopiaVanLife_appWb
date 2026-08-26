@@ -75,29 +75,35 @@ export default function PriceCalculator({
             {/* Dates */}
             <div className="price-calc__dates">
                 <div className="form-group">
-                    <label className="form-label">
+                    <label htmlFor="calc-start-date" className="form-label">
                         <Calendar size={12} style={{ display: 'inline', marginRight: 4 }} />
                         Llegada
                     </label>
                     <input
+                        id="calc-start-date"
+                        name="start_date"
                         type="date"
                         className="form-input"
                         value={startDate}
                         min={new Date().toISOString().split('T')[0]}
                         onChange={e => setStartDate(e.target.value)}
+                        suppressHydrationWarning
                     />
                 </div>
                 <div className="form-group">
-                    <label className="form-label">
+                    <label htmlFor="calc-end-date" className="form-label">
                         <Calendar size={12} style={{ display: 'inline', marginRight: 4 }} />
                         Salida
                     </label>
                     <input
+                        id="calc-end-date"
+                        name="end_date"
                         type="date"
                         className="form-input"
                         value={endDate}
                         min={startDate || new Date().toISOString().split('T')[0]}
                         onChange={e => setEndDate(e.target.value)}
+                        suppressHydrationWarning
                     />
                 </div>
             </div>

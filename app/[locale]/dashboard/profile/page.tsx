@@ -13,6 +13,7 @@ export default async function ProfilePage({
 
     if (authError || !user) {
         redirect({ href: '/auth/login?redirect=/dashboard/profile', locale })
+        return null
     }
 
     const { data: profile } = await supabase

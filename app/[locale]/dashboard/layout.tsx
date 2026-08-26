@@ -17,6 +17,7 @@ export default async function DashboardLayout({
 
   if (authError || !user) {
     redirect({ href: '/auth/login?redirect=/dashboard', locale })
+    return null
   }
 
   // Get user profile data

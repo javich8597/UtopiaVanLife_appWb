@@ -47,6 +47,7 @@ export default function CamperCard({
                     className="camper-card__img"
                     style={{ objectFit: 'cover' }}
                     sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+                    priority
                 />
                 <div className="camper-card__overlay-gradient" />
 

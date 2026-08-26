@@ -16,6 +16,7 @@ export default async function AdminLayout({
 
     if (authError || !user) {
         redirect({ href: '/auth/login?redirect=/admin', locale })
+        return null
     }
 
     // Verifica el rol en la DB
@@ -30,6 +31,7 @@ export default async function AdminLayout({
 
     if (!isUserAdmin) {
         redirect({ href: '/dashboard', locale })
+        return null
     }
 
     const navItems = [

@@ -1,9 +1,8 @@
 'use client'
 
 import { useState } from 'react'
-import { useRouter } from 'next/navigation'
+import { useRouter } from '@/i18n/routing'
 import { Calendar, Users, Search } from 'lucide-react'
-
 import { useTranslations } from 'next-intl';
 
 export default function HeroSection() {
@@ -152,11 +151,12 @@ export default function HeroSection() {
           letter-spacing: 0.2em;
         }
         .hero__title {
-          font-size: clamp(3.5rem, 9vw, 7rem);
+          font-size: clamp(2.75rem, 7.5vw, 5.75rem);
           font-weight: 300;
-          letter-spacing: -0.04em;
-          line-height: 0.95;
+          letter-spacing: -0.03em;
+          line-height: 0.98;
           color: white;
+          text-wrap: balance;
         }
         .hero__title em {
           font-style: italic;

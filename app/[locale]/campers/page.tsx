@@ -2,10 +2,11 @@
 
 import { useEffect, useState, Suspense } from 'react'
 import { useSearchParams } from 'next/navigation'
+import { Link } from '@/i18n/routing'
 import Navbar from '@/components/layout/Navbar'
 import Footer from '@/components/layout/Footer'
 import CamperCard from '@/components/campers/CamperCard'
-import { Search, SlidersHorizontal } from 'lucide-react'
+import { Search, SlidersHorizontal, Sparkles } from 'lucide-react'
 import { useTranslations } from 'next-intl'
 
 const SEASON_PRICES: Record<string, number> = {
@@ -54,7 +55,6 @@ function CatalogContent() {
         fetch(`/api/availability?${params.toString()}`)
             .then(r => r.json())
             .then(data => {
-                // If no campers in DB yet, show demo
                 if (!data.campers || data.campers.length === 0) {
                     setCampers(getDemoCampers())
                 } else {
@@ -73,24 +73,24 @@ function CatalogContent() {
         <div className="catalog__content">
             {/* Search summary banner */}
             {from && to && (
-                <div className="catalog__search-info">
-                    <span>
+                <div className="catalog__search-info" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: 'var(--space-4) var(--space-6)', background: 'white', borderRadius: 'var(--radius-lg)', border: '1px solid var(--gray-200)', marginBottom: 'var(--space-8)' }}>
+                    <span style={{ fontWeight: 500, color: 'var(--black-matte)' }}>
                         {Number(pax) !== 1 ? 
                             tCatalog('showingAvailability', { from: formatDate(from), to: formatDate(to), pax }) :
                             tCatalog('showingAvailabilitySingular', { from: formatDate(from), to: formatDate(to), pax })}
                     </span>
-                    <a href="/campers" className="btn btn-ghost btn-sm">{tCatalog('viewAll')}</a>
+                    <Link href="/campers" className="btn btn-ghost btn-sm">{tCatalog('viewAll')}</Link>
                 </div>
             )}
 
             {loading ? (
-                <div className="catalog__grid">
+                <div className="catalog__grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(340px, 1fr))', gap: 'var(--space-8)' }}>
                     {[1, 2].map(i => (
-                        <div key={i} className="skeleton" style={{ height: 420, borderRadius: 'var(--radius-lg)' }} />
+                        <div key={i} className="skeleton" style={{ height: 440, borderRadius: 'var(--radius-xl)' }} />
                     ))}
                 </div>
             ) : (
-                <div className="catalog__grid">
+                <div className="catalog__grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(340px, 1fr))', gap: 'var(--space-8)' }}>
                     {sorted.map(c => (
                         <CamperCard
                             key={c.id}
@@ -114,20 +114,20 @@ export default function CampersPage() {
             <Navbar />
             <main style={{ paddingTop: 72 }}>
                 {/* Header */}
-                <section className="catalog-header" style={{ background: 'var(--black-matte)', padding: 'var(--space-16) 0' }}>
+                <section className="catalog-header" style={{ background: 'var(--black-matte)', padding: 'var(--space-16) 0', borderBottom: '1px solid rgba(255,255,255,0.08)' }}>
                     <div className="container">
                         <span className="text-label" style={{ color: 'var(--sand)' }}>{t('flota')}</span>
                         <h1 className="text-h1" style={{ color: 'white', marginTop: 'var(--space-2)' }}>
                             {t('title')}
                         </h1>
-                        <p className="text-body" style={{ color: 'rgba(255,255,255,0.65)', marginTop: 'var(--space-4)', maxWidth: 500 }}>
+                        <p className="text-body" style={{ color: 'rgba(255,255,255,0.7)', marginTop: 'var(--space-4)', maxWidth: 540, lineHeight: 1.7 }}>
                             {t('subtitle')}
                         </p>
                     </div>
                 </section>
 
                 {/* Catalog */}
-                <section className="section">
+                <section className="section" style={{ background: 'var(--white-broken)' }}>
                     <div className="container">
                         <Suspense fallback={<div className="skeleton" style={{ height: 420 }} />}>
                             <CatalogContent />

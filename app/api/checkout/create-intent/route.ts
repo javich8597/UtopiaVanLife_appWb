@@ -45,7 +45,7 @@ export async function POST(req: Request) {
         const { data: extras } = await supabase
             .from('extras')
             .select('*')
-            .in('id', extraIds && extraIds.length > 0 ? extraIds : ['__empty__']) // Prevent empty array error
+            .in('id', extraIds && extraIds.length > 0 ? extraIds : ['__empty__'])
 
         // 4. Calcular precio en el servidor as source of truth
         const startDate = new Date(from)
@@ -56,17 +56,32 @@ export async function POST(req: Request) {
             return NextResponse.json({ error: 'Fechas inválidas' }, { status: 400 })
         }
 
+        // Fetch user profile name and phone from public.users
+        const { data: userProfile } = await supabase
+            .from('users')
+            .select('full_name, phone')
+            .eq('id', user.id)
+            .maybeSingle()
+
+        const customerName = userProfile?.full_name || user.user_metadata?.full_name || 'Cliente Utopia'
+        const customerEmail = user.email || ''
+        const customerPhone = userProfile?.phone || user.user_metadata?.phone || ''
+
         // 5. Crear la reserva en BD como 'pending'
         const { data: booking, error: bookingErr } = await supabase
             .from('bookings')
             .insert({
                 camper_id: camper.id,
                 user_id: user.id,
+                customer_name: customerName,
+                customer_email: customerEmail,
+                customer_phone: customerPhone,
                 start_date: from,
                 end_date: to,
                 total_price: breakdown.totalWithoutDeposit,
                 deposit_amount: breakdown.deposit,
                 status: 'pending',
+                payment_status: 'unpaid'
             })
             .select('id')
             .single()
@@ -76,28 +91,31 @@ export async function POST(req: Request) {
             return NextResponse.json({ error: 'Error al procesar reserva' }, { status: 500 })
         }
 
-        // 6. Crear Stripe Payment Intent
-        // NOTA: Stripe cobra en céntimos (x100). El total incluye la fianza? 
-        // Depende del negocio. Asumiremos que se cobra el 100% por adelantado incluido fianza,
-        // o solo el total sin fianza y la fianza se bloquea luego. 
-        // Vamos a cobrar el grandTotal (Reserva + Extras + Fianza) para el MVP.
+        // 6. Crear Stripe Payment Intent si Stripe está configurado
         const amountInCents = Math.round(breakdown.grandTotal * 100)
+        let clientSecret = null
 
-        const paymentIntent = await stripe.paymentIntents.create({
-            amount: amountInCents,
-            currency: 'eur',
-            metadata: {
-                booking_id: booking.id,
-                camper_slug: camperSlug,
-                user_id: user.id,
-            },
-            automatic_payment_methods: { enabled: true },
-        })
+        if (process.env.STRIPE_SECRET_KEY && process.env.STRIPE_SECRET_KEY !== 'sk_test_placeholder') {
+            const paymentIntent = await stripe.paymentIntents.create({
+                amount: amountInCents,
+                currency: 'eur',
+                metadata: {
+                    booking_id: booking.id,
+                    camper_slug: camperSlug,
+                    user_id: user.id,
+                },
+                automatic_payment_methods: { enabled: true },
+            })
+            clientSecret = paymentIntent.client_secret
+        } else {
+            // Mock intent secret for preview/dev mode
+            clientSecret = `mock_pi_${booking.id}_secret_preview`
+        }
 
         return NextResponse.json({
-            clientSecret: paymentIntent.client_secret,
+            clientSecret,
             bookingId: booking.id,
-            breakdown, // Devolvemos el breakdown oficial del servidor
+            breakdown,
         })
 
     } catch (error: any) {

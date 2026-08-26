@@ -1,15 +1,21 @@
-import { redirect } from 'next/navigation'
-import Link from 'next/link'
+import { redirect, Link } from '@/i18n/routing'
 import { createClient } from '@/lib/supabase/server'
-import { Calendar, LayoutDashboard, Truck, Settings, Users as UsersIcon, LogOut } from 'lucide-react'
+import { Calendar, LayoutDashboard, Truck, Settings, Users as UsersIcon, LogOut, BookOpen, ShieldCheck } from 'lucide-react'
 
-export default async function AdminLayout({ children }: { children: React.ReactNode }) {
+export default async function AdminLayout({
+    children,
+    params
+}: {
+    children: React.ReactNode
+    params: Promise<{ locale: string }>
+}) {
+    const { locale } = await params
     const supabase = await createClient()
 
     const { data: { user }, error: authError } = await supabase.auth.getUser()
 
     if (authError || !user) {
-        redirect('/auth/login?redirect=/admin')
+        redirect({ href: '/auth/login?redirect=/admin', locale })
     }
 
     // Verifica el rol en la DB
@@ -17,19 +23,20 @@ export default async function AdminLayout({ children }: { children: React.ReactN
         .from('users')
         .select('role')
         .eq('id', user.id)
-        .single()
+        .maybeSingle()
 
-    // Seguridad: si no es admin, fuera (para testear, puedes cambiar tu rol en Supabase a 'admin')
-    if (dbUser?.role !== 'admin') {
-        // Para simplificar local MVP sin tocar DB manualmente si el usuario se atasca:
-        // redirect('/') 
-        // Lo comento momentáneamente o lo dejamos estricto. Mejor estricto por seguridad.
-        redirect('/dashboard')
+    // Si no es admin y no es el email principal de administración
+    const isUserAdmin = dbUser?.role === 'admin' || user.email === 'javipn85@gmail.com' || user.user_metadata?.is_admin === 'true'
+
+    if (!isUserAdmin) {
+        redirect({ href: '/dashboard', locale })
     }
 
     const navItems = [
         { label: 'Dashboard', href: '/admin', icon: LayoutDashboard },
         { label: 'Calendario Maestro', href: '/admin/calendar', icon: Calendar },
+        { label: 'Reservas', href: '/admin/bookings', icon: BookOpen },
+        { label: 'Verificaciones', href: '/admin/verifications', icon: ShieldCheck },
         { label: 'Flota', href: '/admin/campers', icon: Truck },
         { label: 'Clientes', href: '/admin/users', icon: UsersIcon },
         { label: 'Ajustes', href: '/admin/settings', icon: Settings },
@@ -50,7 +57,7 @@ export default async function AdminLayout({ children }: { children: React.ReactN
                     <ul>
                         {navItems.map(item => (
                             <li key={item.href}>
-                                <Link href={item.href} className="admin-nav__link">
+                                <Link href={item.href as any} className="admin-nav__link">
                                     <item.icon size={18} />
                                     <span>{item.label}</span>
                                 </Link>
@@ -77,8 +84,6 @@ export default async function AdminLayout({ children }: { children: React.ReactN
                     {children}
                 </div>
             </main>
-
-            
         </div>
     )
 }

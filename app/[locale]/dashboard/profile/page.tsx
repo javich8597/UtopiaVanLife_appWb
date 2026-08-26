@@ -1,13 +1,18 @@
 import { createClient } from '@/lib/supabase/server'
-import { redirect } from 'next/navigation'
+import { redirect } from '@/i18n/routing'
 import ProfileFormClient from './ProfileFormClient'
 
-export default async function ProfilePage() {
+export default async function ProfilePage({
+    params
+}: {
+    params: Promise<{ locale: string }>
+}) {
+    const { locale } = await params
     const supabase = await createClient()
     const { data: { user }, error: authError } = await supabase.auth.getUser()
 
     if (authError || !user) {
-        redirect('/auth/login?redirect=/dashboard/profile')
+        redirect({ href: '/auth/login?redirect=/dashboard/profile', locale })
     }
 
     const { data: profile } = await supabase
@@ -17,10 +22,10 @@ export default async function ProfilePage() {
         .maybeSingle()
 
     return (
-        <div>
-            <div className="dashboard-header" style={{ marginBottom: 'var(--space-8)' }}>
-                <h1 className="text-h2">Perfil & Documentación</h1>
-                <p className="text-body" style={{ color: 'var(--gray-600)', marginTop: 'var(--space-2)' }}>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-6)' }}>
+            <div className="dashboard-header" style={{ paddingBottom: 'var(--space-4)', borderBottom: '1px solid var(--gray-200)' }}>
+                <h1 className="text-h2" style={{ marginBottom: 'var(--space-1)' }}>Perfil & Documentación</h1>
+                <p className="text-body" style={{ color: 'var(--gray-600)' }}>
                     Para poder disfrutar de nuestras campers necesitamos validar tu carnet de conducir.
                 </p>
             </div>
@@ -38,7 +43,7 @@ export default async function ProfilePage() {
                     </div>
                     <div className="form-group info-row">
                         <span className="info-label">Teléfono</span>
-                        <span className="info-value">{profile?.phone_number || 'No especificado'}</span>
+                        <span className="info-value">{profile?.phone || 'No especificado'}</span>
                     </div>
                 </div>
 
@@ -47,8 +52,6 @@ export default async function ProfilePage() {
                     <ProfileFormClient initialStatus={profile?.verification_status || 'not_submitted'} />
                 </div>
             </div>
-
-            
         </div>
     )
 }

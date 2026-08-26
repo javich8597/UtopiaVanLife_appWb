@@ -1,6 +1,6 @@
 'use client'
 
-import Link from 'next/link'
+import { Link } from '@/i18n/routing'
 import { Instagram, MessageCircle, Mail, MapPin } from 'lucide-react'
 
 export default function Footer() {
@@ -34,7 +34,8 @@ export default function Footer() {
                         <h4 className="footer__col-title">Campers</h4>
                         <ul className="footer__links">
                             <li><Link href="/campers">Ver flota</Link></li>
-                            <li><Link href="/campers?season=alta">Temporada Alta</Link></li>
+                            <li><Link href="/campers/neo">Camper NEO</Link></li>
+                            <li><Link href="/campers/space">Camper SPACE</Link></li>
                             <li><Link href="/#faqs">FAQs</Link></li>
                         </ul>
                     </div>
@@ -53,13 +54,20 @@ export default function Footer() {
                         <h4 className="footer__col-title">Contacto</h4>
                         <ul className="footer__links">
                             <li>
-                                <a href="mailto:hola@utopiavanlife.com">
+                                <a href="mailto:info@utopiavanlife.com">
                                     <Mail size={14} style={{ display: 'inline', marginRight: 6 }} />
-                                    hola@utopiavanlife.com
+                                    info@utopiavanlife.com
                                 </a>
                             </li>
                             <li>
-                                <a href={`https://wa.me/34600000000`} target="_blank" rel="noopener noreferrer">
+                                <a href="tel:+34611560916">
+                                    <span style={{ display: 'inline-flex', alignItems: 'center' }}>
+                                        +34 611 560 916
+                                    </span>
+                                </a>
+                            </li>
+                            <li>
+                                <a href="https://wa.me/34611560916" target="_blank" rel="noopener noreferrer">
                                     <MessageCircle size={14} style={{ display: 'inline', marginRight: 6 }} />
                                     WhatsApp
                                 </a>
@@ -67,23 +75,31 @@ export default function Footer() {
                             <li>
                                 <span style={{ display: 'flex', alignItems: 'center', gap: 6, color: 'var(--gray-400)' }}>
                                     <MapPin size={14} />
-                                    Mallorca, Islas Baleares
+                                    Carrer Son Oms, Palma de Mallorca
                                 </span>
                             </li>
                         </ul>
                     </div>
                 </div>
 
-                {/* Instagram placeholder */}
+                {/* Instagram feed callout */}
                 <div className="footer__instagram">
                     <div className="footer__instagram-header">
                         <Instagram size={16} />
                         <span>@utopiavanlife</span>
-                        <span className="badge badge-gray" style={{ marginLeft: 'auto' }}>Próximamente</span>
+                        <a 
+                            href="https://www.instagram.com/utopiavanlife/" 
+                            target="_blank" 
+                            rel="noopener noreferrer" 
+                            className="badge badge-sand" 
+                            style={{ marginLeft: 'auto', textDecoration: 'none' }}
+                        >
+                            Seguir en Instagram
+                        </a>
                     </div>
                     <div className="footer__instagram-placeholder">
                         <p className="text-small" style={{ color: 'var(--gray-400)', textAlign: 'center' }}>
-                            ✨ Nuestro feed de Instagram llegará pronto. Síguenos para no perderte nada.
+                            ✨ Sigue nuestras rutas, calas secretas y puestas de sol en Mallorca.
                         </p>
                     </div>
                 </div>
@@ -120,13 +136,6 @@ export default function Footer() {
           flex-direction: column;
           margin-bottom: var(--space-4);
           gap: 2px;
-        }
-        .footer__logo-sub {
-          font-size: 0.7rem;
-          font-family: var(--font-sans);
-          letter-spacing: 0.18em;
-          text-transform: uppercase;
-          opacity: 0.5;
         }
         .footer__social {
           display: flex;
@@ -172,7 +181,6 @@ export default function Footer() {
         }
         .footer__links li a:hover { color: white; }
 
-        /* Instagram placeholder */
         .footer__instagram {
           margin-top: var(--space-12);
           border: 1px solid rgba(255,255,255,0.08);
@@ -189,11 +197,11 @@ export default function Footer() {
           color: rgba(255,255,255,0.7);
         }
         .footer__instagram-placeholder {
-          padding: var(--space-10);
+          padding: var(--space-6);
           display: flex;
           align-items: center;
           justify-content: center;
-          min-height: 100px;
+          min-height: 70px;
           background: rgba(255,255,255,0.02);
         }
         .footer__bottom {

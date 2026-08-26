@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { useSearchParams, useRouter } from 'next/navigation'
+import { useRouter } from '@/i18n/routing'
 import { Calendar, Users, Plus, Minus, CheckCircle } from 'lucide-react'
 import { calculatePrice, formatPrice } from '@/lib/pricing/engine'
 import type { Season, Extra } from '@/lib/pricing/engine'

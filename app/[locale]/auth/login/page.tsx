@@ -1,27 +1,54 @@
 'use client'
 
-import { useState } from 'react'
-import Link from 'next/link'
-import { useRouter } from 'next/navigation'
+import { useState, Suspense } from 'react'
+import { Link, useRouter } from '@/i18n/routing'
+import { useSearchParams } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import { Eye, EyeOff, LogIn } from 'lucide-react'
 
-export default function LoginPage() {
+function LoginForm() {
     const router = useRouter()
+    const searchParams = useSearchParams()
+    const redirectUrl = searchParams.get('redirect') || '/dashboard'
+
     const [email, setEmail] = useState('')
     const [password, setPassword] = useState('')
     const [showPwd, setShowPwd] = useState(false)
     const [loading, setLoading] = useState(false)
     const [error, setError] = useState('')
 
+    const formatError = (msg: string) => {
+        if (msg.includes('Invalid login credentials')) {
+            return 'Email o contraseña incorrectos. Por favor, verifica tus datos.'
+        }
+        if (msg.includes('Email not confirmed')) {
+            return 'Tu email aún no ha sido confirmado. Hemos activado la confirmación directa para nuevos accesos.'
+        }
+        if (msg.includes('User not found')) {
+            return 'No existe ninguna cuenta registrada con este email.'
+        }
+        return msg
+    }
+
     const handleLogin = async (e: React.FormEvent) => {
         e.preventDefault()
         setLoading(true)
         setError('')
         const supabase = createClient()
-        const { error: err } = await supabase.auth.signInWithPassword({ email, password })
-        if (err) { setError(err.message); setLoading(false); return }
-        router.push('/dashboard')
+        const { error: err } = await supabase.auth.signInWithPassword({
+            email: email.trim().toLowerCase(),
+            password
+        })
+
+        if (err) {
+            setError(formatError(err.message))
+            setLoading(false)
+            return
+        }
+
+        // Force a router refresh so server components get the fresh auth session
+        router.refresh()
+        router.push(redirectUrl)
     }
 
     return (
@@ -71,7 +98,11 @@ export default function LoginPage() {
                         </div>
                     </div>
 
-                    {error && <p className="form-error">{error}</p>}
+                    {error && (
+                        <div style={{ padding: '0.75rem', background: '#fef2f2', border: '1px solid #fecaca', borderRadius: '8px', color: '#b91c1c', fontSize: '0.875rem' }}>
+                            {error}
+                        </div>
+                    )}
 
                     <button type="submit" className="btn btn-forest btn-lg" style={{ width: '100%' }} disabled={loading}>
                         {loading ? (
@@ -132,5 +163,13 @@ export default function LoginPage() {
         }
       `}</style>
         </div>
+    )
+}
+
+export default function LoginPage() {
+    return (
+        <Suspense fallback={<div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>Cargando...</div>}>
+            <LoginForm />
+        </Suspense>
     )
 }

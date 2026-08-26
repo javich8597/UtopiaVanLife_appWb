@@ -1,18 +1,21 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { Link } from '@/i18n/routing'
+import { Link, usePathname } from '@/i18n/routing'
 import { Menu, X } from 'lucide-react'
 import { useTranslations } from 'next-intl'
 
 export default function Navbar() {
   const t = useTranslations('Navigation')
+  const pathname = usePathname()
+  const isHomePage = pathname === '/' || pathname === ''
+
   const [scrolled, setScrolled] = useState(false)
   const [menuOpen, setMenuOpen] = useState(false)
   const [user, setUser] = useState<any>(null)
 
   useEffect(() => {
-    const onScroll = () => setScrolled(window.scrollY > 60)
+    const onScroll = () => setScrolled(window.scrollY > 40)
     window.addEventListener('scroll', onScroll, { passive: true })
     return () => window.removeEventListener('scroll', onScroll)
   }, [])
@@ -32,14 +35,17 @@ export default function Navbar() {
     })
   }, [])
 
+  // If not on homepage, always apply solid/scrolled styling so it's clearly readable over light pages
+  const isSolid = scrolled || !isHomePage
+
   return (
     <>
-      <nav className={`navbar ${scrolled ? 'navbar--scrolled' : 'navbar--transparent'}`}>
+      <nav className={`navbar ${isSolid ? 'navbar--scrolled' : 'navbar--transparent'}`}>
         <div className="navbar__inner container">
           {/* Logo */}
           <Link href="/" className="navbar__logo">
             <img 
-              src={scrolled ? "/images/logo.png" : "/images/logo-white.png"} 
+              src={isSolid ? "/images/logo.png" : "/images/logo-white.png"} 
               alt="Utopia Van Life" 
               style={{ height: '32px', width: 'auto' }} 
             />
@@ -56,7 +62,7 @@ export default function Navbar() {
           {/* CTA + Menu */}
           <div className="navbar__actions">
             {user ? (
-              <Link href="/dashboard" className="btn btn-ghost btn-sm hide-mobile" style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+              <Link href="/dashboard" className="btn btn-ghost btn-sm hide-mobile" style={{ display: 'flex', alignItems: 'center', gap: 6, fontWeight: 600 }}>
                 Mi Aventura
               </Link>
             ) : (
@@ -92,7 +98,7 @@ export default function Navbar() {
               <li><Link href="/contacto" onClick={() => setMenuOpen(false)}>{t('contact')}</Link></li>
               <li><Link href="/#faqs" onClick={() => setMenuOpen(false)}>{t('faq')}</Link></li>
               {user ? (
-                <li><Link href="/dashboard" onClick={() => setMenuOpen(false)} style={{ color: 'var(--forest-green)' }}>Mi Aventura</Link></li>
+                <li><Link href="/dashboard" onClick={() => setMenuOpen(false)} style={{ color: 'var(--forest-green)', fontWeight: 600 }}>Mi Aventura</Link></li>
               ) : (
                 <li><Link href="/auth/login" onClick={() => setMenuOpen(false)}>{t('login')}</Link></li>
               )}
@@ -116,10 +122,11 @@ export default function Navbar() {
           background: transparent;
         }
         .navbar--scrolled {
-          background: rgba(245,245,243,0.88);
+          background: rgba(245,245,243,0.92);
           backdrop-filter: blur(16px);
           -webkit-backdrop-filter: blur(16px);
           box-shadow: 0 1px 24px rgba(26,26,26,0.08);
+          border-bottom: 1px solid rgba(0,0,0,0.04);
         }
         .navbar__inner {
           display: flex;
@@ -133,26 +140,6 @@ export default function Navbar() {
           line-height: 1;
           gap: 1px;
         }
-        .navbar__logo-text {
-          font-family: var(--font-display);
-          font-size: 1.4rem;
-          font-weight: 500;
-          letter-spacing: -0.02em;
-          color: var(--navbar--transparent) ? white : var(--black-matte);
-          transition: color var(--transition-base);
-        }
-        .navbar--transparent .navbar__logo-text { color: white; }
-        .navbar--scrolled .navbar__logo-text { color: var(--black-matte); }
-        .navbar__logo-sub {
-          font-family: var(--font-sans);
-          font-size: 0.6rem;
-          font-weight: 600;
-          letter-spacing: 0.18em;
-          text-transform: uppercase;
-          opacity: 0.65;
-        }
-        .navbar--transparent .navbar__logo-sub { color: rgba(255,255,255,0.8); }
-        .navbar--scrolled .navbar__logo-sub { color: var(--gray-600); }
         .navbar__links {
           display: flex;
           align-items: center;

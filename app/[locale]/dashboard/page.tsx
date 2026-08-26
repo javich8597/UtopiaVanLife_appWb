@@ -1,29 +1,35 @@
-import { redirect } from 'next/navigation'
+import { redirect, Link } from '@/i18n/routing'
 import { createClient } from '@/lib/supabase/server'
-import Link from 'next/link'
 import Image from 'next/image'
-import { Calendar, Euro, MapPin, Clock, BookOpen, ChevronRight } from 'lucide-react'
+import { Calendar, Euro, MapPin, Clock, BookOpen, ChevronRight, Sparkles } from 'lucide-react'
 import { formatPrice } from '@/lib/pricing/engine'
 
 const FALLBACK_IMAGES: Record<string, string> = {
+    neo: '/images/campers/neo/neo-ext.png',
+    space: '/images/campers/space/space-ext.png',
     aurora: 'https://nomade-nation.com/wp-content/uploads/2024/07/Comp-10-optimized.jpg',
     solara: 'https://nomade-nation.com/wp-content/uploads/2025/01/campero-neo-s-puerta-cerrada0-optimized.jpg'
 }
 
-export default async function DashboardPage() {
+export default async function DashboardPage({
+    params
+}: {
+    params: Promise<{ locale: string }>
+}) {
+    const { locale } = await params
     const supabase = await createClient()
     const { data: { user }, error: authError } = await supabase.auth.getUser()
 
     if (authError || !user) {
-        redirect('/auth/login?redirect=/dashboard')
+        redirect({ href: '/auth/login?redirect=/dashboard', locale })
     }
 
     const { data: bookings } = await supabase
         .from('bookings')
         .select(`
-      *,
-      camper:campers (slug, name, thumbnail_url)
-    `)
+            *,
+            camper:campers (slug, name, thumbnail_url)
+        `)
         .eq('user_id', user.id)
         .order('start_date', { ascending: false })
 
@@ -32,44 +38,42 @@ export default async function DashboardPage() {
     const pendingBookings = bookings?.filter(b => b.status === 'pending') || []
 
     return (
-        <>
-            <div className="dashboard-header">
-                <h1 className="text-h2">Mis Reservas</h1>
-                <p className="text-body" style={{ color: 'var(--gray-600)', marginTop: 'var(--space-2)' }}>
-                    Gestiona tus aventuras y prepárate para explorar Mallorca.
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-6)' }}>
+            <div className="dashboard-header" style={{ paddingBottom: 'var(--space-4)', borderBottom: '1px solid var(--gray-200)' }}>
+                <h1 className="text-h2" style={{ marginBottom: 'var(--space-1)' }}>Mis Reservas</h1>
+                <p className="text-body" style={{ color: 'var(--gray-600)' }}>
+                    Gestiona tus aventuras y prepárate para explorar Mallorca con total libertad.
                 </p>
             </div>
 
-            <div className="dashboard-content" style={{ marginTop: 'var(--space-8)' }}>
+            <div>
                 {bookings && bookings.length === 0 ? (
                     <div className="empty-state">
-                        <div className="empty-state__icon text-h1">🚐</div>
+                        <div className="empty-state__icon">🚐</div>
                         <h2 className="text-h3" style={{ marginTop: 'var(--space-4)' }}>Aún no tienes aventuras</h2>
                         <p className="text-body" style={{ color: 'var(--gray-600)', marginTop: 'var(--space-2)' }}>
-                            ¿A qué esperas para descubrir la isla?
+                            ¿A qué esperas para descubrir las calas y carreteras de la isla?
                         </p>
-                        <Link href="/campers" className="btn btn-forest" style={{ marginTop: 'var(--space-6)', display: 'inline-flex' }}>
-                            Ver Flota
+                        <Link href="/campers" className="btn btn-forest" style={{ marginTop: 'var(--space-6)', display: 'inline-flex', gap: 'var(--space-2)' }}>
+                            <Sparkles size={18} /> Explorar Flota de Campers
                         </Link>
                     </div>
                 ) : (
-                    <div className="bookings-layout">
-                        <div className="bookings-section">
-                            <h3 className="text-h4" style={{ marginBottom: 'var(--space-4)' }}>Reservas Activas</h3>
-                            {activeBookings.length === 0 ? (
-                                <p className="text-body" style={{ color: 'var(--gray-500)', fontStyle: 'italic' }}>No hay aventuras en curso.</p>
-                            ) : (
+                    <div className="bookings-layout" style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-8)' }}>
+                        {activeBookings.length > 0 && (
+                            <div className="bookings-section">
+                                <h3 className="text-h4" style={{ marginBottom: 'var(--space-4)', color: 'var(--forest-green)' }}>Reservas Activas</h3>
                                 <div className="bookings-grid">
                                     {activeBookings.map(b => (
                                         <BookingCard key={b.id} booking={b} isActive={true} />
                                     ))}
                                 </div>
-                            )}
-                        </div>
+                            </div>
+                        )}
 
                         {pendingBookings.length > 0 && (
-                            <div className="bookings-section" style={{ marginTop: 'var(--space-12)' }}>
-                                <h3 className="text-h4" style={{ marginBottom: 'var(--space-4)' }}>Pendientes de Pago</h3>
+                            <div className="bookings-section">
+                                <h3 className="text-h4" style={{ marginBottom: 'var(--space-4)', color: 'var(--sand-dark)' }}>Pendientes de Pago</h3>
                                 <div className="bookings-grid">
                                     {pendingBookings.map(b => (
                                         <BookingCard key={b.id} booking={b} isPending={true} />
@@ -79,8 +83,8 @@ export default async function DashboardPage() {
                         )}
 
                         {pastBookings.length > 0 && (
-                            <div className="bookings-section" style={{ marginTop: 'var(--space-12)', opacity: 0.7 }}>
-                                <h3 className="text-h4" style={{ marginBottom: 'var(--space-4)' }}>Aventuras Pasadas</h3>
+                            <div className="bookings-section" style={{ opacity: 0.8 }}>
+                                <h3 className="text-h4" style={{ marginBottom: 'var(--space-4)', color: 'var(--gray-600)' }}>Aventuras Pasadas</h3>
                                 <div className="bookings-grid">
                                     {pastBookings.map(b => (
                                         <BookingCard key={b.id} booking={b} />
@@ -91,9 +95,7 @@ export default async function DashboardPage() {
                     </div>
                 )}
             </div>
-
-            
-        </>
+        </div>
     )
 }
 
@@ -116,9 +118,9 @@ function BookingCard({ booking, isActive = false, isPending = false }: { booking
     }
 
     const badge = statusLabels[booking.status] || { label: booking.status, color: 'var(--gray-500)' }
-    const totalAmount = booking.total_price + booking.deposit_amount
+    const totalAmount = Number(booking.total_price || 0) + Number(booking.deposit_amount || 0)
 
-    const imageUrl = booking.camper?.thumbnail_url || FALLBACK_IMAGES[booking.camper?.slug] || FALLBACK_IMAGES['aurora']
+    const imageUrl = booking.camper?.thumbnail_url || FALLBACK_IMAGES[booking.camper?.slug] || FALLBACK_IMAGES['neo']
 
     return (
         <div className="booking-card">
@@ -168,8 +170,6 @@ function BookingCard({ booking, isActive = false, isPending = false }: { booking
                     )}
                 </div>
             </div>
-
-            
         </div>
     )
 }

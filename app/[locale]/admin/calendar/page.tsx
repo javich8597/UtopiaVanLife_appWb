@@ -5,13 +5,18 @@ import { Calendar as CalendarIcon } from 'lucide-react'
 export default async function AdminCalendarPage() {
     const supabase = await createClient()
 
+    const { data: campers } = await supabase
+        .from('campers')
+        .select('id, name, slug')
+        .eq('is_active', true)
+
     const { data: bookings } = await supabase
         .from('bookings')
         .select(`
-      *,
-      campers (name),
-      users (full_name, email)
-    `)
+          *,
+          campers (id, name, slug),
+          users (id, email)
+        `)
         // Filtramos solo reservas que no estén canceladas para el master calendar
         .neq('status', 'cancelled')
         .order('start_date', { ascending: true })
@@ -25,7 +30,7 @@ export default async function AdminCalendarPage() {
                 <div>
                     <h1 className="text-h2" style={{ marginBottom: 'var(--space-1)' }}>Calendario Maestro</h1>
                     <p className="text-body" style={{ color: 'var(--gray-600)' }}>
-                        Línea temporal de la flota. Haz clic y arrastra para añadir bloqueos manuales.
+                        Línea temporal de la flota. Haz clic y arrastra para añadir bloqueos manuales o visualizar reservas.
                     </p>
                 </div>
             </div>
@@ -45,7 +50,7 @@ export default async function AdminCalendarPage() {
                 </div>
             </div>
 
-            <CalendarClient bookings={bookings || []} />
+            <CalendarClient bookings={bookings || []} campers={campers || []} />
         </div>
     )
 }

@@ -1,10 +1,12 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import Link from 'next/link'
+import { Link } from '@/i18n/routing'
 import { Menu, X } from 'lucide-react'
+import { useTranslations } from 'next-intl'
 
 export default function Navbar() {
+  const t = useTranslations('Navigation')
   const [scrolled, setScrolled] = useState(false)
   const [menuOpen, setMenuOpen] = useState(false)
   const [user, setUser] = useState<any>(null)
@@ -36,15 +38,19 @@ export default function Navbar() {
         <div className="navbar__inner container">
           {/* Logo */}
           <Link href="/" className="navbar__logo">
-            <span className="navbar__logo-text">Utopia</span>
-            <span className="navbar__logo-sub">Van Life</span>
+            <img 
+              src={scrolled ? "/images/logo.png" : "/images/logo-white.png"} 
+              alt="Utopia Van Life" 
+              style={{ height: '32px', width: 'auto' }} 
+            />
           </Link>
 
           {/* Desktop links */}
           <ul className="navbar__links hide-mobile">
-            <li><Link href="/campers" className="navbar__link">Campers</Link></li>
-            <li><Link href="/#experiences" className="navbar__link">Experiencias</Link></li>
-            <li><Link href="/#faqs" className="navbar__link">FAQs</Link></li>
+            <li><Link href="/campers" className="navbar__link">{t('campers')}</Link></li>
+            <li><Link href="/conocenos" className="navbar__link">{t('about')}</Link></li>
+            <li><Link href="/contacto" className="navbar__link">{t('contact')}</Link></li>
+            <li><Link href="/#faqs" className="navbar__link">{t('faq')}</Link></li>
           </ul>
 
           {/* CTA + Menu */}
@@ -55,7 +61,7 @@ export default function Navbar() {
               </Link>
             ) : (
               <Link href="/auth/login" className="btn btn-ghost btn-sm hide-mobile">
-                Entrar
+                {t('login')}
               </Link>
             )}
             <Link href="/campers" className="btn btn-forest btn-sm">
@@ -77,22 +83,23 @@ export default function Navbar() {
         <div className="mobile-menu" onClick={() => setMenuOpen(false)}>
           <nav className="mobile-menu__nav" onClick={e => e.stopPropagation()}>
             <div className="mobile-menu__header">
-              <span className="navbar__logo-text">Utopia Van Life</span>
+              <img src="/images/logo.png" alt="Utopia Van Life" style={{ height: '24px', width: 'auto' }} />
               <button onClick={() => setMenuOpen(false)} aria-label="Cerrar"><X size={22} /></button>
             </div>
             <ul className="mobile-menu__links">
-              <li><Link href="/campers" onClick={() => setMenuOpen(false)}>Campers</Link></li>
-              <li><Link href="/#experiences" onClick={() => setMenuOpen(false)}>Experiencias</Link></li>
-              <li><Link href="/#faqs" onClick={() => setMenuOpen(false)}>FAQs</Link></li>
+              <li><Link href="/campers" onClick={() => setMenuOpen(false)}>{t('campers')}</Link></li>
+              <li><Link href="/conocenos" onClick={() => setMenuOpen(false)}>{t('about')}</Link></li>
+              <li><Link href="/contacto" onClick={() => setMenuOpen(false)}>{t('contact')}</Link></li>
+              <li><Link href="/#faqs" onClick={() => setMenuOpen(false)}>{t('faq')}</Link></li>
               {user ? (
                 <li><Link href="/dashboard" onClick={() => setMenuOpen(false)} style={{ color: 'var(--forest-green)' }}>Mi Aventura</Link></li>
               ) : (
-                <li><Link href="/auth/login" onClick={() => setMenuOpen(false)}>Entrar</Link></li>
+                <li><Link href="/auth/login" onClick={() => setMenuOpen(false)}>{t('login')}</Link></li>
               )}
             </ul>
             <Link href="/campers" className="btn btn-forest btn-lg" style={{ width: '100%', marginTop: 'auto' }}
               onClick={() => setMenuOpen(false)}>
-              Reservar ahora
+              {t('bookNow')}
             </Link>
           </nav>
         </div>

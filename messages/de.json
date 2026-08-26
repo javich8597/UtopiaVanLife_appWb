@@ -1,0 +1,30 @@
+{
+  "HomePage": {
+    "Hero": {
+      "title": "Choose your way to travel",
+      "subtitle": "Discover Mallorca like never before. Rent a premium camper and live a unique experience of calm and luxurious adventure.",
+      "cta": "View campers"
+    },
+    "WhyUtopia": {
+      "title": "Why choose Utopia Van Life?",
+      "reason1_title": "Comprehensive insurance",
+      "reason1_desc": "Travel worry-free with our full coverage.",
+      "reason2_title": "Unlimited mileage",
+      "reason2_desc": "Explore the island without limits or surprises.",
+      "reason3_title": "Fully equipped",
+      "reason3_desc": "Includes everything you need for your premium adventure."
+    },
+    "FeaturedCampers": {
+      "title": "Our fleet",
+      "subtitle": "Designed for your comfort"
+    }
+  },
+  "Navigation": {
+    "home": "Home",
+    "campers": "Our Campers",
+    "about": "About Us",
+    "faq": "FAQ",
+    "contact": "Contact",
+    "bookNow": "Book Now"
+  }
+}

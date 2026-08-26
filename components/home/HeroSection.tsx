@@ -4,7 +4,10 @@ import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { Calendar, Users, Search } from 'lucide-react'
 
+import { useTranslations } from 'next-intl';
+
 export default function HeroSection() {
+    const t = useTranslations('HomePage.Hero');
     const router = useRouter()
     const [startDate, setStartDate] = useState('')
     const [endDate, setEndDate] = useState('')
@@ -29,23 +32,22 @@ export default function HeroSection() {
                     muted
                     loop
                     playsInline
-                    poster="/images/hero-poster.jpg"
+                    poster="/images/campers/neo/neo-ext.png"
                 >
-                    <source src="https://videos.pexels.com/video-files/2169880/2169880-uhd_2560_1440_30fps.mp4" type="video/mp4" />
+                    <source src="/videos/hero-bg.mov" type="video/mp4" />
                 </video>
                 <div className="hero__overlay" />
             </div>
 
             {/* Content */}
             <div className="hero__content">
-                <div className="hero__eyebrow text-label">Mallorca · Van Life · Libertad</div>
+                <div className="hero__eyebrow text-label">{t('eyebrow')}</div>
                 <h1 className="hero__title text-display">
                     Tu Utopía<br />
                     <em>te espera</em>
                 </h1>
                 <p className="hero__subtitle">
-                    Descubre la isla en tu propio ritmo. Campers premium,<br className="hide-mobile" />
-                    experiencias únicas, recuerdos eternos.
+                    {t('subtitle')}
                 </p>
 
                 {/* Search Bar */}
@@ -53,7 +55,7 @@ export default function HeroSection() {
                     <div className="hero__field">
                         <label className="hero__field-label">
                             <Calendar size={14} />
-                            Llegada
+                            {t('llegada')}
                         </label>
                         <input
                             type="date"
@@ -69,7 +71,7 @@ export default function HeroSection() {
                     <div className="hero__field">
                         <label className="hero__field-label">
                             <Calendar size={14} />
-                            Salida
+                            {t('salida')}
                         </label>
                         <input
                             type="date"
@@ -85,7 +87,7 @@ export default function HeroSection() {
                     <div className="hero__field">
                         <label className="hero__field-label">
                             <Users size={14} />
-                            Viajeros
+                            {t('viajeros')}
                         </label>
                         <div className="hero__pax-control">
                             <button type="button" onClick={() => setPax(p => Math.max(1, p - 1))} className="hero__pax-btn">−</button>
@@ -96,13 +98,13 @@ export default function HeroSection() {
 
                     <button type="submit" className="hero__search-btn btn btn-forest btn-lg">
                         <Search size={18} />
-                        <span>Buscar mi Utopía</span>
+                        <span>{t('buscar')}</span>
                     </button>
                 </form>
 
                 {/* Scroll indicator */}
                 <div className="hero__scroll-indicator">
-                    <span>Explorar</span>
+                    <span>{t('explorar')}</span>
                     <div className="hero__scroll-line" />
                 </div>
             </div>

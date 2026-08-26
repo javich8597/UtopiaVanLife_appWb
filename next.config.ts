@@ -1,4 +1,7 @@
-import type { NextConfig } from 'next'
+import type { NextConfig } from 'next';
+import createNextIntlPlugin from 'next-intl/plugin';
+
+const withNextIntl = createNextIntlPlugin('./i18n.ts');
 
 const nextConfig: NextConfig = {
   images: {
@@ -8,9 +11,10 @@ const nextConfig: NextConfig = {
       { protocol: 'https', hostname: 'videos.pexels.com' },
       { protocol: 'https', hostname: '**.pexels.com' },
       { protocol: 'https', hostname: 'nomade-nation.com' },
+      { protocol: 'https', hostname: 'www.utopiavanlife.com' }
     ],
   },
-}
+};
 
-export default nextConfig
+export default withNextIntl(nextConfig);
 

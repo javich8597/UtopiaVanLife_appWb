@@ -1,41 +1,44 @@
 'use client'
 
 import { Compass, Shield, Headphones, Leaf } from 'lucide-react'
-
-const reasons = [
-    {
-        icon: Compass,
-        title: 'Libertad Total',
-        desc: 'Sin itinerarios fijos. Tú decides cuándo parar, cuándo avanzar. Mallorca a tu ritmo.',
-    },
-    {
-        icon: Shield,
-        title: 'Campers Premium',
-        desc: 'Vehículos impecables, equipados con todo lo necesario para una experiencia de lujo sobre ruedas.',
-    },
-    {
-        icon: Headphones,
-        title: 'Soporte 24/7',
-        desc: 'Nuestro equipo está disponible en todo momento para que tu aventura sea perfecta.',
-    },
-    {
-        icon: Leaf,
-        title: 'Viaje Consciente',
-        desc: 'Compensamos las emisiones de CO₂ de cada alquiler. Disfruta sin culpa.',
-    },
-]
+import { useTranslations } from 'next-intl';
 
 export default function WhyUtopia() {
+    const t = useTranslations('HomePage.WhyUtopia');
+
+    const reasons = [
+        {
+            icon: Compass,
+            title: t('reason1_title'),
+            desc: t('reason1_desc'),
+        },
+        {
+            icon: Shield,
+            title: t('reason2_title'),
+            desc: t('reason2_desc'),
+        },
+        {
+            icon: Headphones,
+            title: t('reason3_title'),
+            desc: t('reason3_desc'),
+        },
+        {
+            icon: Leaf,
+            title: t('reason4_title'),
+            desc: t('reason4_desc'),
+        },
+    ]
+
     return (
         <section className="why" id="experiences">
             <div className="container">
                 <div className="why__header">
-                    <span className="text-label" style={{ color: 'var(--sand-dark)' }}>Por qué elegirnos</span>
+                    <span className="text-label" style={{ color: 'var(--sand-dark)' }}>{t('eyebrow')}</span>
                     <h2 className="text-h2" style={{ marginTop: 'var(--space-2)' }}>
-                        La experiencia <em style={{ fontFamily: 'var(--font-display)', fontStyle: 'italic' }}>Utopia</em>
+                        {t('title')}
                     </h2>
                     <p className="text-body" style={{ maxWidth: 520, color: 'var(--gray-600)', marginTop: 'var(--space-4)' }}>
-                        Cada detalle ha sido cuidado para que tu único trabajo sea disfrutar.
+                        {t('subtitle')}
                     </p>
                 </div>
 

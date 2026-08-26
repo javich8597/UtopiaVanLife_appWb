@@ -11,14 +11,13 @@ export default function Footer() {
                     {/* Brand */}
                     <div className="footer__brand">
                         <div className="footer__logo">
-                            <span>Utopia</span>
-                            <span className="footer__logo-sub">Van Life</span>
+                            <img src="/images/logo-white.png" alt="Utopia Van Life" style={{ height: '36px', width: 'auto' }} />
                         </div>
                         <p className="text-small" style={{ color: 'var(--gray-400)', maxWidth: 260, lineHeight: 1.7 }}>
                             Alquiler de campers premium en Mallorca. Tu aventura de lujo empieza aquí.
                         </p>
                         <div className="footer__social">
-                            <a href="https://instagram.com" target="_blank" rel="noopener noreferrer" className="footer__social-btn" aria-label="Instagram">
+                            <a href="https://www.instagram.com/utopiavanlife/" target="_blank" rel="noopener noreferrer" className="footer__social-btn" aria-label="Instagram">
                                 <Instagram size={18} />
                             </a>
                             <a href={`https://wa.me/${process.env.NEXT_PUBLIC_WHATSAPP_NUMBER || '34600000000'}`} target="_blank" rel="noopener noreferrer" className="footer__social-btn" aria-label="WhatsApp">

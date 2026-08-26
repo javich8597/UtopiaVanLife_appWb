@@ -1,0 +1,154 @@
+{
+  "HomePage": {
+    "Hero": {
+      "title": "Elige tu forma de viajar",
+      "subtitle": "Descubre Mallorca como nunca antes. Alquila una camper premium y vive una experiencia única de calma y aventura lujosa.",
+      "cta": "Ver campers",
+      "eyebrow": "Mallorca · Van Life · Libertad",
+      "llegada": "Llegada",
+      "salida": "Salida",
+      "viajeros": "Viajeros",
+      "buscar": "Buscar mi Utopía",
+      "explorar": "Explorar"
+    },
+    "WhyUtopia": {
+      "eyebrow": "Por qué elegirnos",
+      "title": "La experiencia Utopia",
+      "subtitle": "Cada detalle ha sido cuidado para que tu único trabajo sea disfrutar.",
+      "reason1_title": "Libertad Total",
+      "reason1_desc": "Sin itinerarios fijos. Tú decides cuándo parar, cuándo avanzar. Mallorca a tu ritmo.",
+      "reason2_title": "Campers Premium",
+      "reason2_desc": "Vehículos impecables, equipados con todo lo necesario para una experiencia de lujo sobre ruedas.",
+      "reason3_title": "Soporte 24/7",
+      "reason3_desc": "Nuestro equipo está disponible en todo momento para que tu aventura sea perfecta.",
+      "reason4_title": "Viaje Consciente",
+      "reason4_desc": "Compensamos las emisiones de CO2 de cada alquiler. Disfruta sin culpa."
+    },
+    "FeaturedCampers": {
+      "title": "Nuestra flota",
+      "subtitle": "Campers que inspiran"
+    },
+    "Experiences": {
+      "eyebrow": "Lo que te espera",
+      "title": "Experiencias",
+      "subtitle": "Vive Mallorca de forma diferente.",
+      "exp1_title": "Calas Secretas",
+      "exp1_desc": "Accede a calas vírgenes que solo se pueden alcanzar con tu camper. Sin aglomeraciones, solo tú y el Mediterráneo.",
+      "exp2_title": "Rutas Épicas",
+      "exp2_desc": "Cap de Formentor, Serra de Tramuntana, los pueblos de interior. Cada curva es un nuevo descubrimiento.",
+      "exp3_title": "Gastronomía Local",
+      "exp3_desc": "Mercados, restaurantes de barrio, pa amb oli al atardecer. Mallorca se vive mejor con el estómago feliz.",
+      "exp4_title": "Noches de Estrella",
+      "exp4_desc": "Aparca donde la noche es más oscura y el cielo más brillante. Las mejores áreas de pernocta, seleccionadas."
+    },
+    "FAQ": {
+      "title": "Preguntas frecuentes",
+      "subtitle": "Resolvemos tus dudas.",
+      "q1_question": "¿Cuántos años debo tener para alquilar?",
+      "q1_answer": "Debes tener al menos 25 años y llevar más de 3 años con el carnet de conducir en vigor.",
+      "q2_question": "¿Está incluido el GPS?",
+      "q2_answer": "Sí, todas nuestras campers incluyen GPS integrado y conexión Bluetooth con tu smartphone.",
+      "q3_question": "¿Puedo llevar mascotas?",
+      "q3_answer": "Aceptamos mascotas pequeñas previo aviso, con un cargo adicional de limpieza al final del alquiler.",
+      "q4_question": "¿Qué pasa si hay una avería?",
+      "q4_answer": "Disponemos de asistencia en carretera 24/7. Contacta con nuestro número de emergencias y gestionamos todo.",
+      "q5_question": "¿Cómo funciona la fianza?",
+      "q5_answer": "La fianza se bloquea temporalmente en tu tarjeta al inicio del alquiler y se libera en los 7 días posteriores a la devolución del vehículo en perfecto estado.",
+      "q6_question": "¿Puedo cancelar mi reserva?",
+      "q6_answer": "Sí. Las cancelaciones con más de 30 días de antelación reciben un reembolso del 100%. (De 29 a 15 días: 50%. Menos de 14 días: 0%)."
+    }
+  },
+  "Navigation": {
+    "home": "Inicio",
+    "campers": "Nuestras Campers",
+    "about": "Nosotros",
+    "faq": "FAQ",
+    "contact": "Contacto",
+    "login": "Entrar",
+    "bookNow": "Reservar Ahora"
+  },
+  "Campers": {
+    "neo": {
+      "name": "NEO",
+      "description": "NEO es la camper más polivalente de nuestra flota. Diseñada para viajar y dormir hasta 3 personas con la máxima comodidad. Su distribución inteligente aprovecha cada centímetro para ofrecerte un salón amplio, cocina completa y ducha interior, haciéndote sentir como en casa en cualquier rincón de Mallorca.\n\nEquipada con claraboya panorámica para dormir viendo las estrellas, calefacción estacionaria y acabados de madera natural de alta calidad.",
+      "beds": "3 camas",
+      "seats": "3 plazas",
+      "length": "5.4m",
+      "engine": "Diésel 2.0L (140 CV)",
+      "transmission": "Manual/Automático"
+    },
+    "space": {
+      "name": "SPACE",
+      "description": "SPACE representa la máxima amplitud y libertad de movimiento. Pensada para quienes buscan una experiencia espaciosa y sin limitaciones. Cuenta con un diseño interior optimizado que permite viajar a 4 personas y dormir hasta 3, ideal para familias o grupos de amigos que quieren la máxima comodidad durante su aventura en la isla.\n\nIncluye baño completo con ducha de agua caliente, cocina de dos fuegos, gran volumen de almacenaje para equipaje y claraboya panorámica.",
+      "beds": "3 camas",
+      "seats": "4 plazas",
+      "length": "6.0m",
+      "engine": "Diésel 2.2L (140 CV)",
+      "transmission": "Manual/Automático"
+    }
+  },
+  "CamperDetail": {
+    "specs": "Especificaciones",
+    "beds": "Camas",
+    "seats": "Plazas",
+    "length": "Longitud",
+    "engine": "Motor",
+    "transmission": "Cambio",
+    "year": "Año",
+    "experienceMap": "Mapa de Experiencias",
+    "experienceMapDesc": "Lugares destacados para tu ruta por Mallorca con esta camper.",
+    "galleryTab": "Galería",
+    "tourTab": "Tour Virtual 360º",
+    "vibeTab": "Ambiente",
+    "vibeDay": "Día ☀️",
+    "vibeNight": "Noche 🌙",
+    "vibeRelax": "Relax 🌅",
+    "highlightedEquipment": "Equipamiento Destacado",
+    "proElectricalSystem": "Sistema Eléctrico Pro",
+    "proElectricalDesc": "Autonomía e independencia energética absoluta en cualquier rincón."
+  },
+  "CampersPage": {
+    "title": "Elige tu camper",
+    "subtitle": "Dos joyas sobre ruedas, diseñadas para la libertad. Cada una lista para convertirse en tu hogar en Mallorca.",
+    "showingAvailability": "Mostrando disponibilidad: {from} → {to} · {pax} viajeros",
+    "showingAvailabilitySingular": "Mostrando disponibilidad: {from} → {to} · {pax} viajero",
+    "viewAll": "Ver todas",
+    "flota": "Flota Utopia"
+  },
+  "AboutPage": {
+    "heroTitle": "Más que campers. Una forma de viajar.",
+    "heroSubtitle": "Creamos espacios para moverte con libertad y vivir el viaje a tu manera.",
+    "whoTitle": "Quiénes somos",
+    "whoText1": "Utopia Van Life nace con una idea clara: hacer que viajar en camper sea sencillo, cómodo y realmente disfrutable.",
+    "whoText2": "Sin complicaciones. Sin excesos. Solo lo que importa.",
+    "whoText3": "Diseñamos y seleccionamos cada modelo pensando en cómo se vive dentro, no solo en cómo se ve por fuera.",
+    "methodTitle": "Nuestra forma de hacerlo",
+    "methodText1": "No creemos en hacer más. Creemos en hacerlo mejor.",
+    "methodText2": "Cuidamos cada detalle del interior y apostamos por materiales duraderos y funcionales. Diseñamos espacios pensados para usarse de verdad, buscando siempre el equilibrio entre diseño y practicidad.",
+    "philosophyTitle": "Nuestra Filosofía",
+    "philosophyText1": "Viajar no debería ser complicado.",
+    "philosophyText2": "Debería ser sencillo: arrancar, moverte, parar cuando te apetezca.",
+    "philosophyText3": "Dormir bien. Estar cómodo. Y disfrutar del camino.",
+    "philosophyText4": "Eso es lo que buscamos con cada modelo."
+  },
+  "ContactPage": {
+    "title": "Contacta con nosotros",
+    "subtitle": "Si estás interesado en adquirir una camper, te acompañamos a dar el paso.",
+    "phone": "Teléfono",
+    "email": "Correo electrónico",
+    "address": "Dirección",
+    "name": "Nombre",
+    "lastName": "Apellidos",
+    "howHelp": "¿Cómo podemos ayudarte?",
+    "helpOption1": "Quiero recibir información para comprar una camper",
+    "helpOption2": "Quiero alquilar",
+    "helpOption3": "Tengo otras dudas",
+    "submit": "Enviar",
+    "sending": "Enviando...",
+    "successMsg": "¡Gracias! Tu mensaje ha sido enviado correctamente.",
+    "newsletterTitle": "Suscríbete a nuestra Newsletter",
+    "newsletterSubtitle": "Recibe ideas de rutas, nuevos destinos y todo lo que necesitas para viajar en camper por Mallorca sin complicaciones.",
+    "newsletterPlaceholder": "Tu correo electrónico",
+    "newsletterSubmit": "Quiero unirme"
+  }
+}

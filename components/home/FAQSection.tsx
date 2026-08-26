@@ -2,33 +2,7 @@
 
 import { useState } from 'react'
 import { ChevronDown } from 'lucide-react'
-
-const faqs = [
-    {
-        q: '¿Cuántos años debo tener para alquilar?',
-        a: 'Debes tener al menos 25 años y llevar más de 3 años con el carnet de conducir en vigor.',
-    },
-    {
-        q: 'Está incluido el GPS?',
-        a: 'Sí, todas nuestras campers incluyen GPS integrado y conexión Bluetooth con tu smartphone.',
-    },
-    {
-        q: '¿Puedo llevar mascotas?',
-        a: 'Aceptamos mascotas pequeñas previo aviso, con un cargo adicional de limpieza al final del alquiler.',
-    },
-    {
-        q: '¿Qué pasa si hay una avería?',
-        a: 'Disponemos de asistencia en carretera 24/7. Contacta con nuestro número de emergencias y gestionamos todo.',
-    },
-    {
-        q: '¿Cómo funciona la fianza?',
-        a: 'La fianza se bloquea temporalmente en tu tarjeta al inicio del alquiler y se libera en los 7 días posteriores a la devolución del vehículo en perfecto estado.',
-    },
-    {
-        q: '¿Puedo cancelar mi reserva?',
-        a: 'Sí. Las cancelaciones con más de 7 días de antelación reciben un reembolso del 100%. Consulta nuestra política completa.',
-    },
-]
+import { useTranslations } from 'next-intl';
 
 function FAQItem({ q, a }: { q: string; a: string }) {
     const [open, setOpen] = useState(false)
@@ -76,12 +50,23 @@ function FAQItem({ q, a }: { q: string; a: string }) {
 }
 
 export default function FAQSection() {
+    const t = useTranslations('HomePage.FAQ');
+
+    const faqs = [
+        { q: t('q1_question'), a: t('q1_answer') },
+        { q: t('q2_question'), a: t('q2_answer') },
+        { q: t('q3_question'), a: t('q3_answer') },
+        { q: t('q4_question'), a: t('q4_answer') },
+        { q: t('q5_question'), a: t('q5_answer') },
+        { q: t('q6_question'), a: t('q6_answer') },
+    ]
+
     return (
         <section className="faq-section section" id="faqs">
             <div className="container-narrow">
                 <div style={{ marginBottom: 'var(--space-12)' }}>
-                    <span className="text-label" style={{ color: 'var(--sand-dark)' }}>Preguntas Frecuentes</span>
-                    <h2 className="text-h2" style={{ marginTop: 'var(--space-2)' }}>Todo lo que necesitas saber</h2>
+                    <span className="text-label" style={{ color: 'var(--sand-dark)' }}>{t('title')}</span>
+                    <h2 className="text-h2" style={{ marginTop: 'var(--space-2)' }}>{t('subtitle')}</h2>
                 </div>
                 <div className="faq-list">
                     {faqs.map((f, i) => <FAQItem key={i} q={f.q} a={f.a} />)}

@@ -1,0 +1,291 @@
+{
+  "camper_models": {
+    "NEO": {
+      "model_name": "NEO",
+      "url": "https://nomade-nation.com/campers/neo/",
+      "title": "NEO | La camper Nomade más polivalente",
+      "description": "El modelo que lidera la revolución camper. Una sola estancia preparada para comer, trabajar, relajarse, jugar y dormir hasta 3 personas. Dispone de cama fija con colchón viscoelástico, ideal para quienes ponen el confort por encima de todo.",
+      "key_highlights": [
+        "Claraboya panorámica (El doble de estrellas)",
+        "1 espacio, 4 ambientes para hasta 3 personas",
+        "2.230 L. de almacenaje total",
+        "Cama fija de 192x130 cm con colchón viscoelástico",
+        "Cocina completa y espaciosa",
+        "Ducha interior con agua caliente y WC químico fijo",
+        "Autonomía eléctrica total con centralita CBE PC 180",
+        "Iluminación flotante personalizable (Modo día, noche, relax)"
+      ],
+      "technical_specifications": {
+        "base_vehicle": "Fiat Ducato",
+        "engine": "Motor 140 CV (cambio manual) o 180 CV (cambio automático)",
+        "traction": "Tracción delantera",
+        "fuel_type": "Diesel",
+        "consumption": "8L/100 km",
+        "dimensions": {
+          "interior_length": "3.66 m",
+          "interior_width": "1.90 m",
+          "interior_height": "1.93 m",
+          "max_weight_mma": "3.500 kg",
+          "wheel_size": "15\"",
+          "cargo_volume": "8.0 m³"
+        },
+        "standard_equipment": [
+          "CarPlay / Android Auto",
+          "Cámara trasera y sensores de aparcamiento",
+          "Radio de 10\" con navegador",
+          "Control de crucero",
+          "Ducha interior estanca con agua caliente",
+          "WC químico fijo",
+          "Centralita central CBE PC 180"
+        ]
+      },
+      "media": {
+        "images": [
+          {
+            "description": "Logo NEO",
+            "url": "https://nomade-nation.com/wp-content/uploads/2024/07/logo-neo-simple.svg"
+          },
+          {
+            "description": "Video frame/Poster",
+            "url": "https://nomade-nation.com/wp-content/uploads/2024/07/videoframe_1200-1-optimized.webp"
+          },
+          {
+            "description": "Interior camper luz natural (Día)",
+            "url": "https://nomade-nation.com/wp-content/uploads/2024/07/2-3-optimized.png"
+          },
+          {
+            "description": "Interior camper de noche",
+            "url": "https://nomade-nation.com/wp-content/uploads/2024/07/3-3-optimized.png"
+          },
+          {
+            "description": "Interior camper luces relax",
+            "url": "https://nomade-nation.com/wp-content/uploads/2024/07/4-3-optimized.png"
+          },
+          {
+            "description": "Cama / Configuración 2 personas",
+            "url": "https://nomade-nation.com/wp-content/uploads/2024/07/1-8-optimized.png"
+          },
+          {
+            "description": "Cama / Configuración 3 personas",
+            "url": "https://nomade-nation.com/wp-content/uploads/2024/07/2-9-optimized.png"
+          },
+          {
+            "description": "Exterior Neo Fiat Ducato",
+            "url": "https://nomade-nation.com/wp-content/uploads/2024/07/Fotos-cuadradas-web-Neo-2-1024x1024-optimized.png"
+          },
+          {
+            "description": "Motor camper Neo",
+            "url": "https://nomade-nation.com/wp-content/uploads/2024/07/Fotos-cuadradas-web-Neo-3-1024x1024-optimized.png"
+          },
+          {
+            "description": "Tracción delantera esquema 1",
+            "url": "https://nomade-nation.com/wp-content/uploads/2024/07/traccion_01-scaled-optimized.jpg"
+          },
+          {
+            "description": "Tracción delantera esquema 2",
+            "url": "https://nomade-nation.com/wp-content/uploads/2024/07/traccion_02-scaled-optimized.jpg"
+          },
+          {
+            "description": "Carroussel Neo",
+            "url": "https://nomade-nation.com/wp-content/uploads/2024/07/carroussel-Neo-web-optimized.png"
+          },
+          {
+            "description": "Logos partners",
+            "url": "https://nomade-nation.com/wp-content/uploads/2024/07/Logos-optimized.png"
+          }
+        ],
+        "videos": [
+          {
+            "description": "Vídeo principal NEO",
+            "url": "https://nomade-nation.com/wp-content/uploads/2024/07/Video-Neo.mp4#t=,1",
+            "poster": "https://nomade-nation.com/wp-content/uploads/2024/07/Comp-10-optimized.jpg"
+          },
+          {
+            "description": "Vídeo Modo Día",
+            "url": "https://nomade-nation.com/wp-content/uploads/2024/07/video_dia_min.mp4",
+            "poster": "https://nomade-nation.com/wp-content/uploads/2024/10/Dia-optimized.jpg"
+          },
+          {
+            "description": "Vídeo Modo Noche",
+            "url": "https://nomade-nation.com/wp-content/uploads/2024/07/video_noche_min.mp4",
+            "poster": "https://nomade-nation.com/wp-content/uploads/2024/10/Oscuro-optimized.jpg"
+          },
+          {
+            "description": "Vídeo CarPlay",
+            "url": "https://nomade-nation.com/wp-content/uploads/2024/07/carplay_min.mp4"
+          },
+          {
+            "description": "Vídeo Cámara Marcha Atrás",
+            "url": "https://nomade-nation.com/wp-content/uploads/2024/07/ANIMACION-MARCHA-ATRAS_OK-FINAL.mp4"
+          },
+          {
+            "description": "Vídeo Pantalla Multimedia",
+            "url": "https://nomade-nation.com/wp-content/uploads/2024/07/pantalla_min.mp4"
+          },
+          {
+            "description": "Vídeo Control de Crucero",
+            "url": "https://nomade-nation.com/wp-content/uploads/2024/07/crucero_min.mp4"
+          }
+        ],
+        "virtual_tour_360": {
+          "panorama_image_url": "https://nomade-nation.com/wp-content/uploads/2024/07/NEO_31-2-optimized.png",
+          "viewer_library": "Photo Sphere Viewer (Three.js module)",
+          "element_id": "viewer",
+          "container_section_id": "vista360"
+        }
+      }
+    },
+    "SPACE": {
+      "model_name": "SPACE",
+      "url": "https://nomade-nation.com/campers/space/",
+      "title": "SPACE | La camper Nomade más amplia",
+      "description": "Nomade Space: vivir más amplio, viajar más libre. Ofrece un espacio muy versátil y cómodo gracias a su salón trasero que se convierte en dormitorio en segundos con una cama elevable automática. Ideal para quienes priorizan el espacio interior durante el día.",
+      "key_highlights": [
+        "Claraboya panorámica (El doble de estrellas)",
+        "Salón-comedor convertible en dormitorio en segundos (Versatilidad sin límites)",
+        "Cama elevable automática de 185x135 cm (salón de día, dormitorio de noche)",
+        "Escalón plegable inteligente integrado en cajón para acceso a cama",
+        "Nevera Indel B 86L de compresor 12V con congelador (opcional 140L)",
+        "Fregadero con grifo negro mate y encimera extensible en L",
+        "Ducha estanca desarrollada a medida con panelado gris cemento (hasta 160L de agua)",
+        "Sistema eléctrico Pro centralizado con Victron Cerbo GX",
+        "Iluminación flotante personalizable (Modo día, noche, relax)"
+      ],
+      "technical_specifications": {
+        "base_vehicle": "Fiat Ducato",
+        "engine": "Motor 140 CV (cambio manual) o 180 CV (cambio automático)",
+        "traction": "Tracción delantera",
+        "fuel_type": "Diesel",
+        "consumption": "8L/100 km",
+        "dimensions": {
+          "interior_length": "3.66 m",
+          "interior_width": "1.90 m",
+          "interior_height": "1.93 m",
+          "max_weight_mma": "3.500 kg",
+          "wheel_size": "15\"",
+          "cargo_volume": "8.0 m³"
+        },
+        "standard_equipment": [
+          "CarPlay / Android Auto",
+          "Cámara trasera y sensores de aparcamiento",
+          "Radio de 10\" con navegador",
+          "Control de crucero",
+          "Ducha interior estanca con panelado gris cemento y agua caliente",
+          "Salón trasero convertible",
+          "Cama elevable automática (185x135 cm)",
+          "Escalón plegable inteligente",
+          "Cocina con 2 fogones de gas (tapa cristal oscuro) o placa de inducción Dometic",
+          "Nevera Indel B 86L",
+          "Centralita central Victron Cerbo GX"
+        ],
+        "extras_upgrades": [
+          "Nevera ampliada de 140L",
+          "Microondas",
+          "Cafetera Nespresso"
+        ]
+      },
+      "media": {
+        "images": [
+          {
+            "description": "Logo SPACE",
+            "url": "https://nomade-nation.com/wp-content/uploads/2026/04/space_logo-optimized.webp"
+          },
+          {
+            "description": "Interior camper modo día",
+            "url": "https://nomade-nation.com/wp-content/uploads/2026/04/Fotos-carroussels-web-Space-2-optimized.png"
+          },
+          {
+            "description": "Interior camper modo noche",
+            "url": "https://nomade-nation.com/wp-content/uploads/2026/04/2-1-optimized.png"
+          },
+          {
+            "description": "Interior camper modo relax",
+            "url": "https://nomade-nation.com/wp-content/uploads/2026/04/3-1-optimized.png"
+          },
+          {
+            "description": "Space modo dormitorio (cama elevable bajada)",
+            "url": "https://nomade-nation.com/wp-content/uploads/2026/02/1-5-optimized.png"
+          },
+          {
+            "description": "Space modo salón-comedor (cama elevable subida)",
+            "url": "https://nomade-nation.com/wp-content/uploads/2026/02/2-5-optimized.png"
+          },
+          {
+            "description": "Detalle interior 1",
+            "url": "https://nomade-nation.com/wp-content/uploads/2025/12/9-optimized.png"
+          },
+          {
+            "description": "Detalle interior 2",
+            "url": "https://nomade-nation.com/wp-content/uploads/2025/12/3-2-optimized.png"
+          },
+          {
+            "description": "Detalle interior 3",
+            "url": "https://nomade-nation.com/wp-content/uploads/2025/12/7-optimized.png"
+          },
+          {
+            "description": "Detalle interior 4",
+            "url": "https://nomade-nation.com/wp-content/uploads/2025/12/5-3-optimized.png"
+          },
+          {
+            "description": "Exterior Space Fiat Ducato",
+            "url": "https://nomade-nation.com/wp-content/uploads/2024/07/Fotos-cuadradas-web-Neo-2-1024x1024-optimized.png"
+          },
+          {
+            "description": "Motor camper Space",
+            "url": "https://nomade-nation.com/wp-content/uploads/2024/07/Fotos-cuadradas-web-Neo-3-1024x1024-optimized.png"
+          },
+          {
+            "description": "Tracción delantera esquema 1",
+            "url": "https://nomade-nation.com/wp-content/uploads/2024/07/traccion_01-scaled-optimized.jpg"
+          },
+          {
+            "description": "Tracción delantera esquema 2",
+            "url": "https://nomade-nation.com/wp-content/uploads/2024/07/traccion_02-scaled-optimized.jpg"
+          },
+          {
+            "description": "Carroussel Space",
+            "url": "https://nomade-nation.com/wp-content/uploads/2024/07/carroussel-Neo-web-optimized.png"
+          },
+          {
+            "description": "Logos partners",
+            "url": "https://nomade-nation.com/wp-content/uploads/2024/07/Logos-optimized.png"
+          }
+        ],
+        "videos": [
+          {
+            "description": "Vídeo Modo Día",
+            "url": "https://nomade-nation.com/wp-content/uploads/2024/07/video_dia_min.mp4",
+            "poster": "https://nomade-nation.com/wp-content/uploads/2024/10/Dia-optimized.jpg"
+          },
+          {
+            "description": "Vídeo Modo Noche",
+            "url": "https://nomade-nation.com/wp-content/uploads/2024/07/video_noche_min.mp4",
+            "poster": "https://nomade-nation.com/wp-content/uploads/2024/10/Oscuro-optimized.jpg"
+          },
+          {
+            "description": "Vídeo CarPlay",
+            "url": "https://nomade-nation.com/wp-content/uploads/2024/07/carplay_min.mp4"
+          },
+          {
+            "description": "Vídeo Cámara Marcha Atrás",
+            "url": "https://nomade-nation.com/wp-content/uploads/2024/07/ANIMACION-MARCHA-ATRAS_OK-FINAL.mp4"
+          },
+          {
+            "description": "Vídeo Pantalla Multimedia",
+            "url": "https://nomade-nation.com/wp-content/uploads/2024/07/pantalla_min.mp4"
+          },
+          {
+            "description": "Vídeo Control de Crucero",
+            "url": "https://nomade-nation.com/wp-content/uploads/2024/07/crucero_min.mp4"
+          }
+        ],
+        "virtual_tour_360": {
+          "panorama_image_url": "https://nomade-nation.com/wp-content/uploads/2026/02/State360-1-optimized.png",
+          "viewer_library": "Photo Sphere Viewer (Three.js module)",
+          "element_id": "viewer",
+          "container_section_id": "vista360"
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,154 @@
+{
+  "HomePage": {
+    "Hero": {
+      "title": "Choose your way to travel",
+      "subtitle": "Discover Mallorca like never before. Rent a premium camper and live a unique experience of calm and luxurious adventure.",
+      "cta": "View campers",
+      "eyebrow": "Mallorca · Van Life · Freedom",
+      "llegada": "Pickup",
+      "salida": "Dropoff",
+      "viajeros": "Guests",
+      "buscar": "Find my Utopia",
+      "explorar": "Explore"
+    },
+    "WhyUtopia": {
+      "eyebrow": "Why choose us",
+      "title": "The Utopia Experience",
+      "subtitle": "Every detail has been taken care of so that your only job is to enjoy.",
+      "reason1_title": "Total Freedom",
+      "reason1_desc": "No fixed itineraries. You decide when to stop, when to move on. Mallorca at your own pace.",
+      "reason2_title": "Premium Campers",
+      "reason2_desc": "Impeccable vehicles, equipped with everything you need for a luxury experience on wheels.",
+      "reason3_title": "24/7 Support",
+      "reason3_desc": "Our team is available at all times to make sure your adventure is perfect.",
+      "reason4_title": "Conscious Travel",
+      "reason4_desc": "We offset the CO2 emissions of every rental. Enjoy guilt-free."
+    },
+    "FeaturedCampers": {
+      "title": "Our fleet",
+      "subtitle": "Campers that inspire"
+    },
+    "Experiences": {
+      "eyebrow": "What awaits you",
+      "title": "Experiences",
+      "subtitle": "Experience Mallorca differently.",
+      "exp1_title": "Secret Coves",
+      "exp1_desc": "Access pristine coves that can only be reached with your camper. No crowds, just you and the Mediterranean.",
+      "exp2_title": "Epic Routes",
+      "exp2_desc": "Cap de Formentor, Serra de Tramuntana, the inland villages. Every curve is a new discovery.",
+      "exp3_title": "Local Gastronomy",
+      "exp3_desc": "Markets, neighborhood restaurants, pa amb oli at sunset. Mallorca is best experienced with a happy stomach.",
+      "exp4_title": "Starry Nights",
+      "exp4_desc": "Park where the night is darkest and the sky is brightest. The best overnight areas, selected for you."
+    },
+    "FAQ": {
+      "title": "Frequently Asked Questions",
+      "subtitle": "We answer your questions.",
+      "q1_question": "How old do I need to be to rent?",
+      "q1_answer": "You must be at least 25 years old and have had a valid driver's license for more than 3 years.",
+      "q2_question": "Is GPS included?",
+      "q2_answer": "Yes, all our campers include integrated GPS and Bluetooth connection with your smartphone.",
+      "q3_question": "Can I bring pets?",
+      "q3_answer": "We accept small pets with prior notice, for an additional cleaning fee at the end of the rental.",
+      "q4_question": "What happens if there is a breakdown?",
+      "q4_answer": "We have 24/7 roadside assistance. Contact our emergency number and we will handle everything.",
+      "q5_question": "How does the deposit work?",
+      "q5_answer": "The deposit is temporarily blocked on your card at the start of the rental and is released within 7 days after returning the vehicle in perfect condition.",
+      "q6_question": "Can I cancel my reservation?",
+      "q6_answer": "Yes. Cancellations more than 30 days in advance receive a 100% refund. (From 29 to 15 days: 50%. Less than 14 days: 0%)."
+    }
+  },
+  "Navigation": {
+    "home": "Home",
+    "campers": "Our Campers",
+    "about": "About Us",
+    "faq": "FAQ",
+    "contact": "Contact",
+    "login": "Login",
+    "bookNow": "Book Now"
+  },
+  "Campers": {
+    "neo": {
+      "name": "NEO",
+      "description": "NEO is the most versatile camper in our fleet. Designed to travel and sleep up to 3 people with maximum comfort. Its smart layout makes the most of every inch to offer you a spacious living area, fully equipped kitchen, and indoor shower, making you feel at home in any corner of Mallorca.\n\nEquipped with a panoramic skylight to sleep watching the stars, stationary heating, and high-quality natural wood finishes.",
+      "beds": "3 beds",
+      "seats": "3 seats",
+      "length": "5.4m",
+      "engine": "Diesel 2.0L (140 HP)",
+      "transmission": "Manual/Automatic"
+    },
+    "space": {
+      "name": "SPACE",
+      "description": "SPACE represents the ultimate amplitude and freedom of movement. Designed for those seeking a spacious and limitless experience. It features an optimized interior layout that allows 4 people to travel and up to 3 to sleep, ideal for families or groups of friends who want maximum comfort during their adventure on the island.\n\nIncludes a full bathroom with hot water shower, two-burner stove, large storage volume for luggage, and panoramic skylight.",
+      "beds": "3 beds",
+      "seats": "4 seats",
+      "length": "6.0m",
+      "engine": "Diesel 2.2L (140 HP)",
+      "transmission": "Manual/Automatic"
+    }
+  },
+  "CamperDetail": {
+    "specs": "Specifications",
+    "beds": "Beds",
+    "seats": "Seats",
+    "length": "Length",
+    "engine": "Engine",
+    "transmission": "Transmission",
+    "year": "Year",
+    "experienceMap": "Experience Map",
+    "experienceMapDesc": "Highlighted spots for your route around Mallorca with this camper.",
+    "galleryTab": "Gallery",
+    "tourTab": "360º Virtual Tour",
+    "vibeTab": "Vibe",
+    "vibeDay": "Day ☀️",
+    "vibeNight": "Night 🌙",
+    "vibeRelax": "Relax 🌅",
+    "highlightedEquipment": "Highlighted Equipment",
+    "proElectricalSystem": "Pro Electrical System",
+    "proElectricalDesc": "Absolute energy autonomy and independence in any corner."
+  },
+  "CampersPage": {
+    "title": "Choose your camper",
+    "subtitle": "Two gems on wheels, designed for freedom. Each ready to become your home in Mallorca.",
+    "showingAvailability": "Showing availability: {from} → {to} · {pax} guests",
+    "showingAvailabilitySingular": "Showing availability: {from} → {to} · {pax} guest",
+    "viewAll": "View all",
+    "flota": "Utopia Fleet"
+  },
+  "AboutPage": {
+    "heroTitle": "More than campers. A way to travel.",
+    "heroSubtitle": "We create spaces to move with freedom and live the journey your own way.",
+    "whoTitle": "Who we are",
+    "whoText1": "Utopia Van Life is born with a clear idea: making camper travel simple, comfortable and truly enjoyable.",
+    "whoText2": "No complications. No excesses. Only what matters.",
+    "whoText3": "We design and select each model thinking about how life is lived inside, not just how it looks from the outside.",
+    "methodTitle": "Our way of doing it",
+    "methodText1": "We don't believe in doing more. We believe in doing it better.",
+    "methodText2": "We take care of every detail of the interior and bet on durable and functional materials. We design spaces meant to be actually used, always looking for the balance between design and practicality.",
+    "philosophyTitle": "Our Philosophy",
+    "philosophyText1": "Traveling shouldn't be complicated.",
+    "philosophyText2": "It should be simple: start up, move, stop when you feel like it.",
+    "philosophyText3": "Sleep well. Be comfortable. And enjoy the road.",
+    "philosophyText4": "That is what we look for with each model."
+  },
+  "ContactPage": {
+    "title": "Contact Us",
+    "subtitle": "If you are interested in acquiring a camper, we support you in taking the step.",
+    "phone": "Phone",
+    "email": "Email",
+    "address": "Address",
+    "name": "First Name",
+    "lastName": "Last Name",
+    "howHelp": "How can we help you?",
+    "helpOption1": "I want to receive information to buy a camper",
+    "helpOption2": "I want to rent",
+    "helpOption3": "I have other questions",
+    "submit": "Send",
+    "sending": "Sending...",
+    "successMsg": "Thank you! Your message has been sent successfully.",
+    "newsletterTitle": "Subscribe to our Newsletter",
+    "newsletterSubtitle": "Receive route ideas, new destinations and everything you need to travel by camper in Mallorca without complications.",
+    "newsletterPlaceholder": "Your email address",
+    "newsletterSubmit": "I want to join"
+  }
+}

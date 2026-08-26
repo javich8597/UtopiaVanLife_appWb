@@ -4,17 +4,18 @@ import { useEffect, useState } from 'react'
 import CamperCard from '@/components/campers/CamperCard'
 import { ArrowRight } from 'lucide-react'
 import Link from 'next/link'
+import { useTranslations } from 'next-intl';
 
 const CAMPER_IMAGES = [
-    'https://images.unsplash.com/photo-1523987355523-c7b5b0dd90a7?w=800&q=80',
-    'https://images.unsplash.com/photo-1612865547334-09cb8cb455da?w=800&q=80',
+    '/images/campers/neo/neo-ext.png',
+    '/images/campers/space/space-ext.png',
 ]
 
 // Static demo campers — replaced by live Supabase data once campers are added
 const demoCampers = [
     {
-        id: '1', slug: 'aurora', name: 'Aurora',
-        description_es: 'La perfecta compañera para parejas. Elegante, cómoda y lista para explorar cada rincón de Mallorca.',
+        id: '1', slug: 'neo', name: 'NEO',
+        description_es: 'La camper perfecta para parejas. Compacta, fácil de conducir y equipada para explorar Mallorca con total libertad.',
         thumbnail_url: CAMPER_IMAGES[0],
         specs: { beds: 2, seats: 2, length_m: 5.4 },
         deposit_amount: 500,
@@ -23,10 +24,10 @@ const demoCampers = [
         isAvailable: true,
     },
     {
-        id: '2', slug: 'solara', name: 'Solara',
-        description_es: 'Espaciosa y familiar. Diseñada para aventureros que no quieren renunciar a ninguna comodidad.',
+        id: '2', slug: 'space', name: 'SPACE',
+        description_es: 'Espaciosa y familiar. Diseñada para los que buscan el máximo espacio y confort sin renunciar a la aventura.',
         thumbnail_url: CAMPER_IMAGES[1],
-        specs: { beds: 2, seats: 4, length_m: 6.2 },
+        specs: { beds: 4, seats: 4, length_m: 6.0 },
         deposit_amount: 600,
         pricePerNight: 150,
         seasonName: 'Temporada Media',
@@ -35,6 +36,7 @@ const demoCampers = [
 ]
 
 export default function FeaturedCampers() {
+    const t = useTranslations('HomePage.FeaturedCampers');
     const [campers, setCampers] = useState(demoCampers)
 
     useEffect(() => {
@@ -50,9 +52,9 @@ export default function FeaturedCampers() {
             <div className="container">
                 <div className="featured__header">
                     <div>
-                        <span className="text-label" style={{ color: 'var(--sand-dark)' }}>Nuestra Flota</span>
+                        <span className="text-label" style={{ color: 'var(--sand-dark)' }}>{t('title')}</span>
                         <h2 className="text-h2" style={{ marginTop: 'var(--space-2)' }}>
-                            Campers que inspiran
+                            {t('subtitle')}
                         </h2>
                     </div>
                     <Link href="/campers" className="btn btn-outline btn-sm hide-mobile">

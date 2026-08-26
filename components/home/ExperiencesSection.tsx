@@ -1,43 +1,49 @@
 'use client'
 
 import { Map, Route, Utensils, Tent } from 'lucide-react'
-
-const experiences = [
-    {
-        icon: Map,
-        title: 'Calas Secretas',
-        desc: 'Accede a calas vírgenes que solo se pueden alcanzar con tu camper. Sin aglomeraciones, solo tú y el Mediterráneo.',
-        img: 'https://nomade-nation.com/wp-content/uploads/2025/07/nomade-nation-rental-neo-camper-activans-3-optimized.jpeg',
-    },
-    {
-        icon: Route,
-        title: 'Rutas Épicas',
-        desc: 'Cap de Formentor, Serra de Tramuntana, los pueblos de interior. Cada curva es un nuevo descubrimiento.',
-        img: 'https://nomade-nation.com/wp-content/uploads/2026/02/1-optimized.png',
-    },
-    {
-        icon: Utensils,
-        title: 'Gastronomía Local',
-        desc: 'Mercados, restaurantes de barrio, pa amb oli al atardecer. Mallorca se vive mejor con el estómago feliz.',
-        img: 'https://nomade-nation.com/wp-content/uploads/2025/07/2-1.png',
-    },
-    {
-        icon: Tent,
-        title: 'Noches de Estrella',
-        desc: 'Aparca donde la noche es más oscura y el cielo más brillante. Las mejores áreas de pernocta, seleccionadas.',
-        img: 'https://nomade-nation.com/wp-content/uploads/2026/02/2-optimized.png',
-    },
-]
+import { useTranslations } from 'next-intl';
 
 export default function ExperiencesSection() {
+    const t = useTranslations('HomePage.Experiences');
+
+    const experiences = [
+        {
+            icon: Map,
+            title: t('exp1_title'),
+            desc: t('exp1_desc'),
+            img: '/images/campers/neo-s.webp',
+        },
+        {
+            icon: Route,
+            title: t('exp2_title'),
+            desc: t('exp2_desc'),
+            img: '/images/campers/neo-s-b.jpg',
+        },
+        {
+            icon: Utensils,
+            title: t('exp3_title'),
+            desc: t('exp3_desc'),
+            img: '/images/campers/neo/neo-top.webp',
+        },
+        {
+            icon: Tent,
+            title: t('exp4_title'),
+            desc: t('exp4_desc'),
+            img: '/images/campers/neo-s-cutout.png',
+        },
+    ]
+
     return (
         <section className="experiences section" style={{ background: 'var(--forest-green)' }}>
             <div className="container">
                 <div style={{ marginBottom: 'var(--space-16)', color: 'white' }}>
-                    <span className="text-label" style={{ color: 'var(--sand)', opacity: 0.85 }}>Experiencias</span>
+                    <span className="text-label" style={{ color: 'var(--sand)', opacity: 0.85 }}>{t('eyebrow')}</span>
                     <h2 className="text-h2" style={{ marginTop: 'var(--space-2)', color: 'white' }}>
-                        Lo que te espera
+                        {t('title')}
                     </h2>
+                    <p className="text-body" style={{ maxWidth: 520, color: 'rgba(255,255,255,0.8)', marginTop: 'var(--space-4)' }}>
+                        {t('subtitle')}
+                    </p>
                 </div>
 
                 <div className="experiences__grid">

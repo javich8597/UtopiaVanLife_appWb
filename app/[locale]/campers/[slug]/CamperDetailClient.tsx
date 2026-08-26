@@ -235,6 +235,7 @@ export default function CamperDetailClient({ camper, seasons, extras, initialFro
                   muted
                   loop
                   playsInline
+                  suppressHydrationWarning
                   className="vibe-media"
                 />
               )}
@@ -247,6 +248,7 @@ export default function CamperDetailClient({ camper, seasons, extras, initialFro
                   muted
                   loop
                   playsInline
+                  suppressHydrationWarning
                   className="vibe-media"
                 />
               )}

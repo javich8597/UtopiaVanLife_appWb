@@ -19,6 +19,7 @@ export default async function AboutPage() {
                             muted
                             loop
                             playsInline
+                            suppressHydrationWarning
                         >
                             <source src="/videos/video_noche_min.mp4" type="video/mp4" />
                         </video>

@@ -32,6 +32,7 @@ export default function HeroSection() {
                     loop
                     playsInline
                     poster="/images/campers/neo/neo-ext.png"
+                    suppressHydrationWarning
                 >
                     <source src="/videos/hero-bg.mov" type="video/mp4" />
                 </video>
@@ -62,6 +63,7 @@ export default function HeroSection() {
                             value={startDate}
                             min={new Date().toISOString().split('T')[0]}
                             onChange={e => setStartDate(e.target.value)}
+                            suppressHydrationWarning
                         />
                     </div>
 
@@ -78,6 +80,7 @@ export default function HeroSection() {
                             value={endDate}
                             min={startDate || new Date().toISOString().split('T')[0]}
                             onChange={e => setEndDate(e.target.value)}
+                            suppressHydrationWarning
                         />
                     </div>
 

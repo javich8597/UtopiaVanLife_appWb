@@ -45,15 +45,15 @@
       "title": "Frequently Asked Questions",
       "subtitle": "We answer your questions.",
       "q1_question": "How old do I need to be to rent?",
-      "q1_answer": "You must be at least 25 years old and have had a valid driver's license for more than 3 years.",
+      "q1_answer": "You must be at least 25 years old and have had a valid driver's license for more than 2 years.",
       "q2_question": "Is GPS included?",
       "q2_answer": "Yes, all our campers include integrated GPS and Bluetooth connection with your smartphone.",
       "q3_question": "Can I bring pets?",
       "q3_answer": "We accept small pets with prior notice, for an additional cleaning fee at the end of the rental.",
       "q4_question": "What happens if there is a breakdown?",
       "q4_answer": "We have 24/7 roadside assistance. Contact our emergency number and we will handle everything.",
-      "q5_question": "How does the deposit work?",
-      "q5_answer": "The deposit is temporarily blocked on your card at the start of the rental and is released within 7 days after returning the vehicle in perfect condition.",
+      "q5_question": "How does the deposit and insurance work?",
+      "q5_answer": "All our campers feature comprehensive insurance with a €1,000 security deposit. The deposit is temporarily held on your card and released after returning the vehicle in perfect condition.",
       "q6_question": "Can I cancel my reservation?",
       "q6_answer": "Yes. Cancellations more than 30 days in advance receive a 100% refund. (From 29 to 15 days: 50%. Less than 14 days: 0%)."
     }
@@ -62,6 +62,7 @@
     "home": "Home",
     "campers": "Our Campers",
     "about": "About Us",
+    "venta": "Sales",
     "faq": "FAQ",
     "contact": "Contact",
     "login": "Login",
@@ -70,21 +71,21 @@
   "Campers": {
     "neo": {
       "name": "NEO",
-      "description": "NEO is the most versatile camper in our fleet. Designed to travel and sleep up to 3 people with maximum comfort. Its smart layout makes the most of every inch to offer you a spacious living area, fully equipped kitchen, and indoor shower, making you feel at home in any corner of Mallorca.\n\nEquipped with a panoramic skylight to sleep watching the stars, stationary heating, and high-quality natural wood finishes.",
-      "beds": "3 beds",
+      "description": "NEO is the most versatile camper with superior cargo space. 2,230 liters of garage storage to carry all your adventure gear. Features complete cabin separation for maximum thermal and acoustic insulation, fixed memory foam bed (192x130 cm) plus auxiliary lounge bed, Victron PRO electrical system with 540Ah Lithium, 400W Solar, and 12V Dometic Air Conditioning.",
+      "beds": "2-3 beds",
       "seats": "3 seats",
-      "length": "5.4m",
-      "engine": "Diesel 2.0L (140 HP)",
-      "transmission": "Manual/Automatic"
+      "length": "6.0m",
+      "engine": "Diesel 2.2L Multijet (140 HP)",
+      "transmission": "Manual / Automatic"
     },
     "space": {
       "name": "SPACE",
-      "description": "SPACE represents the ultimate amplitude and freedom of movement. Designed for those seeking a spacious and limitless experience. It features an optimized interior layout that allows 4 people to travel and up to 3 to sleep, ideal for families or groups of friends who want maximum comfort during their adventure on the island.\n\nIncludes a full bathroom with hot water shower, two-burner stove, large storage volume for luggage, and panoramic skylight.",
-      "beds": "3 beds",
-      "seats": "4 seats",
+      "description": "SPACE redefines camper luxury with a 100% open concept layout (7m² 'The biggest 7m²'). Its electric drop-down roof bed elevates during the day, revealing a panoramic U-shaped lounge with a 360° swivel table for remote work or relaxation. Includes 160L fresh water tank, 540Ah Victron Lithium, 400W Solar, 12V Dometic AC, and Cinema Pack with HD projector.",
+      "beds": "2 beds",
+      "seats": "2 seats",
       "length": "6.0m",
-      "engine": "Diesel 2.2L (140 HP)",
-      "transmission": "Manual/Automatic"
+      "engine": "Diesel 2.2L Multijet (140 HP)",
+      "transmission": "Manual / Automatic"
     }
   },
   "CamperDetail": {

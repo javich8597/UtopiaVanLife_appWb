@@ -23,14 +23,14 @@ export default function TermsPage() {
                             <section>
                                 <h2 className="text-h4" style={{ color: 'var(--black-matte)', marginBottom: 'var(--space-2)' }}>1. Requisitos del Conductor</h2>
                                 <p>
-                                    El arrendatario y los conductores autorizados deben tener al menos 23 años de edad y estar en posesión de un permiso de conducir de clase B en vigor con al menos 2 años de antigüedad.
+                                    El arrendatario y los conductores autorizados deben tener al menos 25 años de edad y estar en posesión de un permiso de conducir de clase B en vigor con al menos 2 años de antigüedad.
                                 </p>
                             </section>
 
                             <section>
                                 <h2 className="text-h4" style={{ color: 'var(--black-matte)', marginBottom: 'var(--space-2)' }}>2. Fianza y Seguro</h2>
                                 <p>
-                                    Se retendrá una fianza reembolsable (según el modelo de camper contratado: 500€ para NEO y 600€ para SPACE) en el momento de la entrega o check-in online para responder de posibles daños no cubiertos o desperfectos. La fianza será liberada en un plazo máximo de 48-72h tras la devolución del vehículo en las mismas condiciones de entrega.
+                                    Todas nuestras campers cuentan con seguro a todo riesgo con una fianza reembolsable de 1.000€ en el momento de la entrega o check-in online para responder de posibles daños no cubiertos o desperfectos. La fianza será liberada tras la devolución del vehículo en las mismas condiciones de entrega.
                                 </p>
                             </section>
 

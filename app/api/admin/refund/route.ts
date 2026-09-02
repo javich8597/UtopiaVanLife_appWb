@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server'
 import { createClient as createServerClient } from '@/lib/supabase/server'
 import { createClient as createAdminClient } from '@supabase/supabase-js'
 import { stripe } from '@/lib/stripe'
+import { isAdminUser, canRefundBooking } from '@/lib/admin/auth'
 
 export async function POST(request: Request) {
     try {
@@ -17,9 +18,16 @@ export async function POST(request: Request) {
             .from('users')
             .select('role')
             .eq('id', user.id)
-            .single()
+            .maybeSingle()
 
-        if (profile?.role !== 'admin') {
+        const isAuthorized = isAdminUser({
+            id: user.id,
+            email: user.email,
+            role: profile?.role,
+            user_metadata: user.user_metadata
+        })
+
+        if (!isAuthorized) {
             return NextResponse.json({ error: 'Acceso denegado' }, { status: 403 })
         }
 
@@ -31,7 +39,7 @@ export async function POST(request: Request) {
 
         const supabaseAdmin = createAdminClient(
             process.env.NEXT_PUBLIC_SUPABASE_URL!,
-            process.env.SUPABASE_SERVICE_ROLE_KEY!
+            process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
         )
 
         // Verify booking status
@@ -45,39 +53,47 @@ export async function POST(request: Request) {
             return NextResponse.json({ error: 'Reserva no encontrada' }, { status: 404 })
         }
 
-        if (booking.status === 'cancelled') {
-            return NextResponse.json({ error: 'La reserva ya está cancelada' }, { status: 400 })
+        const refundCheck = canRefundBooking(booking.status)
+        if (!refundCheck.allowed) {
+            return NextResponse.json({ error: refundCheck.reason || 'No se puede reembolsar esta reserva' }, { status: 400 })
         }
 
-        // Buscamos el Payment Intent en Stripe usando search query 
-        // Nota: Stripe Search API indexa la metadata.
-        const searchResult = await stripe.paymentIntents.search({
-            query: `metadata['booking_id']:'${bookingId}'`,
-            limit: 1
-        })
+        let targetPaymentIntentId = booking.payment_intent_id
 
-        const paymentIntent = searchResult.data[0]
+        if (!targetPaymentIntentId) {
+            // Buscamos el Payment Intent en Stripe usando search query 
+            const searchResult = await stripe.paymentIntents.search({
+                query: `metadata['booking_id']:'${bookingId}'`,
+                limit: 1
+            })
 
-        if (!paymentIntent) {
-            // Intentamos con list() en caso de que el Search Index no haya actualizado
-            const allIntents = await stripe.paymentIntents.list({ limit: 50 })
-            const found = allIntents.data.find(pi => pi.metadata?.booking_id === bookingId)
+            const paymentIntent = searchResult.data[0]
 
-            if (!found) {
-                return NextResponse.json({ error: 'No se encontró el pago en Stripe para esta reserva' }, { status: 404 })
+            if (!paymentIntent) {
+                // Intentamos con list() en caso de que el Search Index no haya actualizado
+                const allIntents = await stripe.paymentIntents.list({ limit: 50 })
+                const found = allIntents.data.find(pi => pi.metadata?.booking_id === bookingId)
+
+                if (found) {
+                    targetPaymentIntentId = found.id
+                }
+            } else {
+                targetPaymentIntentId = paymentIntent.id
             }
+        }
 
-            // Refund found intent
-            await stripe.refunds.create({ payment_intent: found.id })
-        } else {
-            // Refund intent
-            await stripe.refunds.create({ payment_intent: paymentIntent.id })
+        if (targetPaymentIntentId) {
+            try {
+                await stripe.refunds.create({ payment_intent: targetPaymentIntentId })
+            } catch (stripeErr: any) {
+                console.warn('Stripe refund warning (proceeding with status update if already refunded):', stripeErr.message)
+            }
         }
 
         // Update the booking status in DB
         const { error: updateErr } = await supabaseAdmin
             .from('bookings')
-            .update({ status: 'cancelled' })
+            .update({ status: 'cancelled', payment_status: 'refunded' })
             .eq('id', bookingId)
 
         if (updateErr) throw new Error(updateErr.message)

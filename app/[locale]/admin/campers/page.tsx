@@ -1,6 +1,6 @@
 import { createClient } from '@/lib/supabase/server'
 import Image from 'next/image'
-import Link from 'next/link'
+import { Link } from '@/i18n/routing'
 import { Plus, Edit3, Trash2, CheckCircle2, XCircle } from 'lucide-react'
 import { formatPrice } from '@/lib/pricing/engine'
 
@@ -42,7 +42,7 @@ export default async function AdminCampersPage() {
                                     <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-4)' }}>
                                         <div style={{ width: 64, height: 48, position: 'relative', borderRadius: 'var(--radius-sm)', overflow: 'hidden', background: 'var(--gray-100)' }}>
                                             {camper.thumbnail_url && (
-                                                <Image src={camper.thumbnail_url} alt={camper.name} fill style={{ objectFit: 'cover' }} />
+                                                <Image src={camper.thumbnail_url} alt={camper.name} fill unoptimized style={{ objectFit: 'cover' }} />
                                             )}
                                         </div>
                                         <div>

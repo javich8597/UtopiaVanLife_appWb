@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server'
 import { createClient as createServerClient } from '@/lib/supabase/server'
 import { createClient as createAdminClient } from '@supabase/supabase-js'
+import { isAdminUser } from '@/lib/admin/auth'
 
 export async function POST(request: Request) {
     try {
@@ -16,9 +17,16 @@ export async function POST(request: Request) {
             .from('users')
             .select('role')
             .eq('id', user.id)
-            .single()
+            .maybeSingle()
 
-        if (profile?.role !== 'admin') {
+        const isAuthorized = isAdminUser({
+            id: user.id,
+            email: user.email,
+            role: profile?.role,
+            user_metadata: user.user_metadata
+        })
+
+        if (!isAuthorized) {
             return NextResponse.json({ error: 'Acceso denegado' }, { status: 403 })
         }
 
@@ -30,7 +38,7 @@ export async function POST(request: Request) {
 
         const supabaseAdmin = createAdminClient(
             process.env.NEXT_PUBLIC_SUPABASE_URL!,
-            process.env.SUPABASE_SERVICE_ROLE_KEY!
+            process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
         )
 
         const newStatus = action === 'approve' ? 'verified' : 'rejected'

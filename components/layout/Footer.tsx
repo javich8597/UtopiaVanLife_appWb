@@ -11,7 +11,7 @@ export default function Footer() {
                     {/* Brand */}
                     <div className="footer__brand">
                         <div className="footer__logo">
-                            <img src="/images/logo-white.png" alt="Utopia Van Life" style={{ height: '36px', width: 'auto' }} />
+                            <img src="/images/logo-white.png" alt="Utopia Van Life" style={{ height: '48px', width: 'auto', objectFit: 'contain' }} />
                         </div>
                         <p className="text-small" style={{ color: 'var(--gray-400)', maxWidth: 260, lineHeight: 1.7 }}>
                             Alquiler de campers premium en Mallorca. Tu aventura de lujo empieza aquí.

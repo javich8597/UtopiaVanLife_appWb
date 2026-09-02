@@ -2,52 +2,78 @@
   "camper_models": {
     "NEO": {
       "model_name": "NEO",
-      "url": "https://nomade-nation.com/campers/neo/",
-      "title": "NEO | La camper Nomade más polivalente",
-      "description": "El modelo que lidera la revolución camper. Una sola estancia preparada para comer, trabajar, relajarse, jugar y dormir hasta 3 personas. Dispone de cama fija con colchón viscoelástico, ideal para quienes ponen el confort por encima de todo.",
+      "url": "https://nomade-nation.com/es-es/models/neo",
+      "utopia_url": "https://www.utopiavanlife.com/neo/",
+      "title": "NEO | Lo esencial, bien hecho — Utopia Van Life",
+      "tagline": "Espacio, diseño y libertad en su forma más simple.",
+      "description": "La NEO ofrece más espacio, más capacidad y más libertad gracias a su gran maletero de 2.230 litros. Equipada con el sistema eléctrico PRO Victron más avanzado del mercado con 540Ah de litio, 400W solares y aire acondicionado 12V Dometic. Habitáculo con separación total de cabina para máximo aislamiento térmico, acústico e intimidad. Ideal para 2 personas, adaptable a 3.",
       "key_highlights": [
         "Claraboya panorámica (El doble de estrellas)",
-        "1 espacio, 4 ambientes para hasta 3 personas",
-        "2.230 L. de almacenaje total",
-        "Cama fija de 192x130 cm con colchón viscoelástico",
-        "Cocina completa y espaciosa",
-        "Ducha interior con agua caliente y WC químico fijo",
-        "Autonomía eléctrica total con centralita CBE PC 180",
-        "Iluminación flotante personalizable (Modo día, noche, relax)"
+        "Separación total de cabina: hogar íntimo y mejor aislado de frío, calor y ruido",
+        "2.230 Litros de maletero de gran capacidad bajo la cama fija",
+        "Cama doble fija trasera (192 x 130 cm) con colchón viscoelástico + cama auxiliar de salón",
+        "Sistema Eléctrico PRO Victron con 2 baterías de litio (540Ah) y 2 placas solares (400W)",
+        "Inversor Victron Multiplus 2.000W y cargador Orion XS 12/12-50A",
+        "Pantalla táctil Garmin SERV con app móvil Garmin RV Controls",
+        "Aire acondicionado 12V Dometic CoolAir RTX 2000 / FreshJet 2200",
+        "Calefacción y agua caliente diésel Truma Combi 4D + E con aislamiento Kaiflex 360º",
+        "Cocina completa con 2 fogones, nevera de compresor 86L y gas GLP con alarma",
+        "Ducha interior con agua caliente, WC químico y ducha exterior",
+        "Depósitos de 113L de aguas limpias y 90L de aguas grises",
+        "Sistema de sonido JBL con 4 altavoces coaxiales y pantalla táctil de 10\" con Apple CarPlay / Android Auto"
       ],
       "technical_specifications": {
-        "base_vehicle": "Fiat Ducato",
-        "engine": "Motor 140 CV (cambio manual) o 180 CV (cambio automático)",
+        "base_vehicle": "Fiat Ducato L3H2",
+        "engine": "Motor Multijet 140 CV (cambio manual) / 180 CV (cambio automático)",
         "traction": "Tracción delantera",
         "fuel_type": "Diesel",
         "consumption": "8L/100 km",
         "dimensions": {
-          "interior_length": "3.66 m",
-          "interior_width": "1.90 m",
-          "interior_height": "1.93 m",
-          "max_weight_mma": "3.500 kg",
-          "wheel_size": "15\"",
-          "cargo_volume": "8.0 m³"
+          "total_length": "5.998 mm (5.99 m)",
+          "total_height": "2.524 mm (2.58 m con claraboya)",
+          "total_width": "2.050 mm (2.690 mm con retrovisores)",
+          "wheelbase": "3.800 mm",
+          "cargo_storage_liters": "2.230 L",
+          "max_weight_mma": "3.500 kg"
+        },
+        "water_system": {
+          "fresh_water_liters": 113,
+          "gray_water_liters": 90,
+          "hot_water_boiler": "Truma Combi 4D + E"
+        },
+        "electrical_system": {
+          "lithium_battery_capacity": "540 Ah (2x Victron)",
+          "solar_panels": "400 W (2x monocristalinas)",
+          "inverter": "Victron Multiplus 2000W",
+          "charger": "Orion XS 12/12-50A",
+          "solar_regulator": "SmartSolar MPPT 100/30",
+          "control_screen": "Garmin SERV con app Garmin RV Controls"
+        },
+        "climate_system": {
+          "air_conditioning": "Dometic 12V (CoolAir RTX 2000 / FreshJet 2200)",
+          "heating": "Truma Combi 4D + E diésel",
+          "insulation": "Kaiflex 360º integral"
         },
         "standard_equipment": [
-          "CarPlay / Android Auto",
-          "Cámara trasera y sensores de aparcamiento",
-          "Radio de 10\" con navegador",
-          "Control de crucero",
+          "Pantalla multimedia táctil de 10\" con Apple CarPlay / Android Auto",
+          "Cámara trasera de aparcamiento con rejilla dinámica",
+          "Control de crucero y limitador de velocidad",
           "Ducha interior estanca con agua caliente",
-          "WC químico fijo",
-          "Centralita central CBE PC 180"
+          "WC químico",
+          "Ducha exterior",
+          "Aire acondicionado 12V Dometic",
+          "Calefacción y agua caliente diésel Truma Combi 4D + E",
+          "Nevera compresor 86L",
+          "4 Altavoces coaxiales JBL",
+          "Mosquiteras integradas en puertas y ventanas",
+          "Oscurecedores térmicos integrados"
         ]
       },
       "media": {
         "images": [
           {
             "description": "Logo NEO",
-            "url": "https://nomade-nation.com/wp-content/uploads/2024/07/logo-neo-simple.svg"
-          },
-          {
-            "description": "Video frame/Poster",
-            "url": "https://nomade-nation.com/wp-content/uploads/2024/07/videoframe_1200-1-optimized.webp"
+            "url": "https://nomade-nation.com/models/neo/neo-logo-black.svg"
           },
           {
             "description": "Interior camper luz natural (Día)",
@@ -72,26 +98,6 @@
           {
             "description": "Exterior Neo Fiat Ducato",
             "url": "https://nomade-nation.com/wp-content/uploads/2024/07/Fotos-cuadradas-web-Neo-2-1024x1024-optimized.png"
-          },
-          {
-            "description": "Motor camper Neo",
-            "url": "https://nomade-nation.com/wp-content/uploads/2024/07/Fotos-cuadradas-web-Neo-3-1024x1024-optimized.png"
-          },
-          {
-            "description": "Tracción delantera esquema 1",
-            "url": "https://nomade-nation.com/wp-content/uploads/2024/07/traccion_01-scaled-optimized.jpg"
-          },
-          {
-            "description": "Tracción delantera esquema 2",
-            "url": "https://nomade-nation.com/wp-content/uploads/2024/07/traccion_02-scaled-optimized.jpg"
-          },
-          {
-            "description": "Carroussel Neo",
-            "url": "https://nomade-nation.com/wp-content/uploads/2024/07/carroussel-Neo-web-optimized.png"
-          },
-          {
-            "description": "Logos partners",
-            "url": "https://nomade-nation.com/wp-content/uploads/2024/07/Logos-optimized.png"
           }
         ],
         "videos": [
@@ -109,22 +115,6 @@
             "description": "Vídeo Modo Noche",
             "url": "https://nomade-nation.com/wp-content/uploads/2024/07/video_noche_min.mp4",
             "poster": "https://nomade-nation.com/wp-content/uploads/2024/10/Oscuro-optimized.jpg"
-          },
-          {
-            "description": "Vídeo CarPlay",
-            "url": "https://nomade-nation.com/wp-content/uploads/2024/07/carplay_min.mp4"
-          },
-          {
-            "description": "Vídeo Cámara Marcha Atrás",
-            "url": "https://nomade-nation.com/wp-content/uploads/2024/07/ANIMACION-MARCHA-ATRAS_OK-FINAL.mp4"
-          },
-          {
-            "description": "Vídeo Pantalla Multimedia",
-            "url": "https://nomade-nation.com/wp-content/uploads/2024/07/pantalla_min.mp4"
-          },
-          {
-            "description": "Vídeo Control de Crucero",
-            "url": "https://nomade-nation.com/wp-content/uploads/2024/07/crucero_min.mp4"
           }
         ],
         "virtual_tour_360": {
@@ -137,51 +127,70 @@
     },
     "SPACE": {
       "model_name": "SPACE",
-      "url": "https://nomade-nation.com/campers/space/",
-      "title": "SPACE | La camper Nomade más amplia",
-      "description": "Nomade Space: vivir más amplio, viajar más libre. Ofrece un espacio muy versátil y cómodo gracias a su salón trasero que se convierte en dormitorio en segundos con una cama elevable automática. Ideal para quienes priorizan el espacio interior durante el día.",
+      "url": "https://nomade-nation.com/es-es/models/space",
+      "utopia_url": "https://www.utopiavanlife.com/space/",
+      "title": "SPACE | La camper Nomade más amplia — Utopia Van Life",
+      "tagline": "Máximo confort en una camper. El espacio que se adapta a ti.",
+      "description": "SPACE redefine el confort sobre ruedas con una distribución completamente abierta de 7m² ('The biggest 7m²'). Gracias a su cama elevable eléctrica de techo (hasta 600kg de carga), durante el día disfrutas de un impresionante salón panorámico en U con mesa giratoria 360° para teletrabajo o relax. Equipada con 160L de agua limpia, 540Ah de litio Victron, 400W solares, aire acondicionado 12V Dometic y Pack Cine con proyector.",
       "key_highlights": [
-        "Claraboya panorámica (El doble de estrellas)",
-        "Salón-comedor convertible en dormitorio en segundos (Versatilidad sin límites)",
-        "Cama elevable automática de 185x135 cm (salón de día, dormitorio de noche)",
-        "Escalón plegable inteligente integrado en cajón para acceso a cama",
-        "Nevera Indel B 86L de compresor 12V con congelador (opcional 140L)",
-        "Fregadero con grifo negro mate y encimera extensible en L",
-        "Ducha estanca desarrollada a medida con panelado gris cemento (hasta 160L de agua)",
-        "Sistema eléctrico Pro centralizado con Victron Cerbo GX",
-        "Iluminación flotante personalizable (Modo día, noche, relax)"
+        "Distribución abierta 'Open Concept' (7m² sin divisiones)",
+        "Cama elevable eléctrica de techo (185 x 135 cm, soporte 600kg) que sube al techo",
+        "Salón panorámico trasero en U con mesa giratoria 360° para teletrabajo",
+        "5 Ventanas correderas y hasta 3 claraboyas para máxima luminosidad",
+        "Depósito de aguas limpias de gran autonomía de 160 Litros",
+        "Sistema Eléctrico PRO Victron con 2 baterías de litio (540Ah) y 2 placas solares (400W)",
+        "Inversor Victron Multiplus 2.000W y cargador Orion XS 12/12-50A",
+        "Pantalla táctil Garmin SERV con app móvil Garmin RV Controls",
+        "Aire acondicionado 12V Dometic y calefacción diésel Truma Combi 4D + E",
+        "Cocina con encimera en L, 2 fogones, nevera de compresor 86L y gas GLP",
+        "Baño completo tipo spa con ducha interior caliente, WC químico y ducha exterior",
+        "Sonido envolvente JBL con 4 altavoces coaxiales + amplificador y Pack Cine con proyector HD",
+        "Pantalla multimedia táctil de 10\" con Apple CarPlay / Android Auto y cámara dinámica trasera"
       ],
       "technical_specifications": {
-        "base_vehicle": "Fiat Ducato",
-        "engine": "Motor 140 CV (cambio manual) o 180 CV (cambio automático)",
+        "base_vehicle": "Fiat Ducato L3H2",
+        "engine": "Motor Multijet 140 CV (cambio manual) / 180 CV (cambio automático)",
         "traction": "Tracción delantera",
         "fuel_type": "Diesel",
         "consumption": "8L/100 km",
         "dimensions": {
-          "interior_length": "3.66 m",
-          "interior_width": "1.90 m",
-          "interior_height": "1.93 m",
-          "max_weight_mma": "3.500 kg",
-          "wheel_size": "15\"",
-          "cargo_volume": "8.0 m³"
+          "total_length": "5.998 mm (5.99 m)",
+          "total_height": "2.524 mm (2.58 m con claraboyas)",
+          "total_width": "2.050 mm (2.690 mm con retrovisores)",
+          "wheelbase": "3.800 mm",
+          "max_weight_mma": "3.500 kg"
+        },
+        "water_system": {
+          "fresh_water_liters": 160,
+          "gray_water_liters": 93,
+          "hot_water_boiler": "Truma Combi 4D + E"
+        },
+        "electrical_system": {
+          "lithium_battery_capacity": "540 Ah (2x Victron)",
+          "solar_panels": "400 W (2x monocristalinas)",
+          "inverter": "Victron Multiplus 2000W",
+          "charger": "Orion XS 12/12-50A",
+          "solar_regulator": "SmartSolar MPPT 100/30",
+          "control_screen": "Garmin SERV con app Garmin RV Controls"
+        },
+        "climate_system": {
+          "air_conditioning": "Dometic 12V",
+          "heating": "Truma Combi 4D + E diésel",
+          "insulation": "Kaiflex 360º integral"
         },
         "standard_equipment": [
-          "CarPlay / Android Auto",
-          "Cámara trasera y sensores de aparcamiento",
-          "Radio de 10\" con navegador",
-          "Control de crucero",
-          "Ducha interior estanca con panelado gris cemento y agua caliente",
-          "Salón trasero convertible",
-          "Cama elevable automática (185x135 cm)",
-          "Escalón plegable inteligente",
-          "Cocina con 2 fogones de gas (tapa cristal oscuro) o placa de inducción Dometic",
-          "Nevera Indel B 86L",
-          "Centralita central Victron Cerbo GX"
-        ],
-        "extras_upgrades": [
-          "Nevera ampliada de 140L",
-          "Microondas",
-          "Cafetera Nespresso"
+          "Pantalla multimedia de 10\" con Apple CarPlay y Android Auto",
+          "Cámara trasera y sensores de aparcamiento con rejilla dinámica",
+          "Control de crucero y limitador de velocidad",
+          "Cama elevable eléctrica automática (185 x 135 cm, soporte 600kg)",
+          "Salón panorámico trasero en U con mesa 360°",
+          "Ducha interior estanca con panelado tipo spa y agua caliente",
+          "WC químico",
+          "Ducha exterior",
+          "Aire acondicionado 12V Dometic",
+          "Nevera compresor 86L con congelador",
+          "Pack Cine con proyector de alta calidad",
+          "4 Altavoces coaxiales JBL con amplificador"
         ]
       },
       "media": {
@@ -209,46 +218,6 @@
           {
             "description": "Space modo salón-comedor (cama elevable subida)",
             "url": "https://nomade-nation.com/wp-content/uploads/2026/02/2-5-optimized.png"
-          },
-          {
-            "description": "Detalle interior 1",
-            "url": "https://nomade-nation.com/wp-content/uploads/2025/12/9-optimized.png"
-          },
-          {
-            "description": "Detalle interior 2",
-            "url": "https://nomade-nation.com/wp-content/uploads/2025/12/3-2-optimized.png"
-          },
-          {
-            "description": "Detalle interior 3",
-            "url": "https://nomade-nation.com/wp-content/uploads/2025/12/7-optimized.png"
-          },
-          {
-            "description": "Detalle interior 4",
-            "url": "https://nomade-nation.com/wp-content/uploads/2025/12/5-3-optimized.png"
-          },
-          {
-            "description": "Exterior Space Fiat Ducato",
-            "url": "https://nomade-nation.com/wp-content/uploads/2024/07/Fotos-cuadradas-web-Neo-2-1024x1024-optimized.png"
-          },
-          {
-            "description": "Motor camper Space",
-            "url": "https://nomade-nation.com/wp-content/uploads/2024/07/Fotos-cuadradas-web-Neo-3-1024x1024-optimized.png"
-          },
-          {
-            "description": "Tracción delantera esquema 1",
-            "url": "https://nomade-nation.com/wp-content/uploads/2024/07/traccion_01-scaled-optimized.jpg"
-          },
-          {
-            "description": "Tracción delantera esquema 2",
-            "url": "https://nomade-nation.com/wp-content/uploads/2024/07/traccion_02-scaled-optimized.jpg"
-          },
-          {
-            "description": "Carroussel Space",
-            "url": "https://nomade-nation.com/wp-content/uploads/2024/07/carroussel-Neo-web-optimized.png"
-          },
-          {
-            "description": "Logos partners",
-            "url": "https://nomade-nation.com/wp-content/uploads/2024/07/Logos-optimized.png"
           }
         ],
         "videos": [
@@ -261,22 +230,6 @@
             "description": "Vídeo Modo Noche",
             "url": "https://nomade-nation.com/wp-content/uploads/2024/07/video_noche_min.mp4",
             "poster": "https://nomade-nation.com/wp-content/uploads/2024/10/Oscuro-optimized.jpg"
-          },
-          {
-            "description": "Vídeo CarPlay",
-            "url": "https://nomade-nation.com/wp-content/uploads/2024/07/carplay_min.mp4"
-          },
-          {
-            "description": "Vídeo Cámara Marcha Atrás",
-            "url": "https://nomade-nation.com/wp-content/uploads/2024/07/ANIMACION-MARCHA-ATRAS_OK-FINAL.mp4"
-          },
-          {
-            "description": "Vídeo Pantalla Multimedia",
-            "url": "https://nomade-nation.com/wp-content/uploads/2024/07/pantalla_min.mp4"
-          },
-          {
-            "description": "Vídeo Control de Crucero",
-            "url": "https://nomade-nation.com/wp-content/uploads/2024/07/crucero_min.mp4"
           }
         ],
         "virtual_tour_360": {

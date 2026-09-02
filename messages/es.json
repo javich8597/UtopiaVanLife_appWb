@@ -45,15 +45,15 @@
       "title": "Preguntas frecuentes",
       "subtitle": "Resolvemos tus dudas.",
       "q1_question": "¿Cuántos años debo tener para alquilar?",
-      "q1_answer": "Debes tener al menos 25 años y llevar más de 3 años con el carnet de conducir en vigor.",
+      "q1_answer": "Debes tener al menos 25 años y llevar más de 2 años con el carnet de conducir en vigor.",
       "q2_question": "¿Está incluido el GPS?",
       "q2_answer": "Sí, todas nuestras campers incluyen GPS integrado y conexión Bluetooth con tu smartphone.",
       "q3_question": "¿Puedo llevar mascotas?",
       "q3_answer": "Aceptamos mascotas pequeñas previo aviso, con un cargo adicional de limpieza al final del alquiler.",
       "q4_question": "¿Qué pasa si hay una avería?",
       "q4_answer": "Disponemos de asistencia en carretera 24/7. Contacta con nuestro número de emergencias y gestionamos todo.",
-      "q5_question": "¿Cómo funciona la fianza?",
-      "q5_answer": "La fianza se bloquea temporalmente en tu tarjeta al inicio del alquiler y se libera en los 7 días posteriores a la devolución del vehículo en perfecto estado.",
+      "q5_question": "¿Cómo funciona la fianza y el seguro?",
+      "q5_answer": "Todas nuestras campers cuentan con seguro a todo riesgo con fianza de 1.000 €. La fianza se bloquea temporalmente en tu tarjeta al inicio del alquiler y se libera tras la devolución del vehículo en perfecto estado.",
       "q6_question": "¿Puedo cancelar mi reserva?",
       "q6_answer": "Sí. Las cancelaciones con más de 30 días de antelación reciben un reembolso del 100%. (De 29 a 15 días: 50%. Menos de 14 días: 0%)."
     }
@@ -62,6 +62,7 @@
     "home": "Inicio",
     "campers": "Nuestras Campers",
     "about": "Nosotros",
+    "venta": "Venta",
     "faq": "FAQ",
     "contact": "Contacto",
     "login": "Entrar",
@@ -70,21 +71,21 @@
   "Campers": {
     "neo": {
       "name": "NEO",
-      "description": "NEO es la camper más polivalente de nuestra flota. Diseñada para viajar y dormir hasta 3 personas con la máxima comodidad. Su distribución inteligente aprovecha cada centímetro para ofrecerte un salón amplio, cocina completa y ducha interior, haciéndote sentir como en casa en cualquier rincón de Mallorca.\n\nEquipada con claraboya panorámica para dormir viendo las estrellas, calefacción estacionaria y acabados de madera natural de alta calidad.",
-      "beds": "3 camas",
+      "description": "NEO es la camper más polivalente y con mayor almacenaje. 2.230 litros de maletero para llevar todo tu equipo. Cuenta con separación total de cabina para máximo aislamiento térmico y privacidad, cama fija viscoelástica (192x130 cm) más cama auxiliar, y el sistema eléctrico PRO Victron con 540Ah de litio, 400W solares y aire acondicionado 12V Dometic.",
+      "beds": "2-3 camas",
       "seats": "3 plazas",
-      "length": "5.4m",
-      "engine": "Diésel 2.0L (140 CV)",
-      "transmission": "Manual/Automático"
+      "length": "6.0m",
+      "engine": "Diésel 2.2L Multijet (140 CV)",
+      "transmission": "Manual / Automático"
     },
     "space": {
       "name": "SPACE",
-      "description": "SPACE representa la máxima amplitud y libertad de movimiento. Pensada para quienes buscan una experiencia espaciosa y sin limitaciones. Cuenta con un diseño interior optimizado que permite viajar a 4 personas y dormir hasta 3, ideal para familias o grupos de amigos que quieren la máxima comodidad durante su aventura en la isla.\n\nIncluye baño completo con ducha de agua caliente, cocina de dos fuegos, gran volumen de almacenaje para equipaje y claraboya panorámica.",
-      "beds": "3 camas",
-      "seats": "4 plazas",
+      "description": "SPACE redefine el confort con una distribución completamente abierta de 7m² ('The biggest 7m²'). Su cama elevable eléctrica de techo sube durante el día dejando libre un gran salón panorámico en U con mesa giratoria 360° para teletrabajo o relax. Incluye 160L de agua limpia, 540Ah de litio Victron, 400W solares, aire acondicionado 12V Dometic y Pack Cine con proyector.",
+      "beds": "2 camas",
+      "seats": "2 plazas",
       "length": "6.0m",
-      "engine": "Diésel 2.2L (140 CV)",
-      "transmission": "Manual/Automático"
+      "engine": "Diésel 2.2L Multijet (140 CV)",
+      "transmission": "Manual / Automático"
     }
   },
   "CamperDetail": {

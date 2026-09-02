@@ -11,8 +11,8 @@ const DEMO_CAMPERS: Record<string, any> = {
     neo: {
         id: 'demo-1', slug: 'neo', name: 'NEO',
         description_es: '',
-        specs: { beds: 3, seats: 3, length_m: 5.4, width_m: 2.05, height_m: 2.65, year: 2024, engine: 'Diésel 2.0L (140 CV)', transmission: 'Manual/Automático' },
-        deposit_amount: 500,
+        specs: { beds: 3, seats: 3, length_m: 6.0, width_m: 2.05, height_m: 2.58, year: 2025, engine: 'Diésel 2.2L Multijet (140 CV)', transmission: 'Manual / Automático' },
+        deposit_amount: 1000,
         images: [
             '/images/campers/neo/neo-ext.png',
             '/images/campers/neo/neo-interior.png',
@@ -23,8 +23,8 @@ const DEMO_CAMPERS: Record<string, any> = {
     space: {
         id: 'demo-2', slug: 'space', name: 'SPACE',
         description_es: '',
-        specs: { beds: 3, seats: 4, length_m: 6.0, width_m: 2.05, height_m: 2.65, year: 2024, engine: 'Diésel 2.2L (140 CV)', transmission: 'Manual/Automático' },
-        deposit_amount: 600,
+        specs: { beds: 2, seats: 2, length_m: 6.0, width_m: 2.05, height_m: 2.58, year: 2025, engine: 'Diésel 2.2L Multijet (140 CV)', transmission: 'Manual / Automático' },
+        deposit_amount: 1000,
         images: [
             '/images/campers/space/space-ext.png',
             '/images/campers/space/space-interior.png',

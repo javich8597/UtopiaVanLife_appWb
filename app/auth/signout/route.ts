@@ -5,7 +5,7 @@ async function handleSignOut(request: Request) {
   const supabase = await createClient()
   await supabase.auth.signOut()
   const { origin } = new URL(request.url)
-  return NextResponse.redirect(`${origin}/es/auth/login`, { status: 303 })
+  return NextResponse.redirect(`${origin}/es`, { status: 303 })
 }
 
 export async function POST(request: Request) {

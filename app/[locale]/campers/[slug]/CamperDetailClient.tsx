@@ -53,37 +53,43 @@ const PREMIUM_MEDIA_DATA: Record<string, {
     relaxImg: "https://nomade-nation.com/wp-content/uploads/2024/07/4-3-optimized.png",
     highlights_es: [
       "Claraboya panorámica (El doble de estrellas)",
-      "1 espacio, 4 ambientes para hasta 3 personas",
-      "2.230 Litros de almacenaje total",
-      "Cama fija de 192x130 cm con colchón viscoelástico",
-      "Ducha interior con agua caliente y WC químico fijo",
-      "Autonomía eléctrica total con centralita CBE PC 180"
+      "Separación total de cabina para máximo aislamiento e intimidad",
+      "2.230 Litros de maletero de gran capacidad bajo la cama fija",
+      "Cama fija de 192x130 cm con colchón viscoelástico + cama auxiliar",
+      "Ducha interior con agua caliente, WC químico y ducha exterior",
+      "Sistema Eléctrico PRO Victron (540Ah Litio + 400W Solar + Inversor 2000W)",
+      "Aire acondicionado 12V Dometic y calefacción diésel Truma Combi 4D + E"
     ],
     highlights_en: [
       "Panoramic skylight (Double the stars)",
-      "1 space, 4 environments for up to 3 people",
-      "2,230 Liters of total cargo storage",
-      "Fixed 192x130 cm bed with memory foam mattress",
-      "Indoor shower with hot water and fixed chemical toilet",
-      "Full electrical autonomy with CBE PC 180 control unit"
+      "Complete cabin separation for maximum thermal and acoustic insulation",
+      "2,230 Liters of cargo storage under the fixed bed",
+      "Fixed 192x130 cm bed with memory foam mattress + extra lounge bed",
+      "Indoor shower with hot water, chemical toilet, and outdoor shower",
+      "Victron PRO Electrical System (540Ah Lithium + 400W Solar + 2000W Inverter)",
+      "12V Dometic Air Conditioning and Truma Combi 4D + E diesel heating"
     ],
     techDetails_es: [
-      "Vehículo base: Fiat Ducato L2H2",
-      "Consumo promedio: 8L / 100 km",
-      "Cámara trasera y sensores de aparcamiento",
-      "Pantalla multimedia de 10 pulgadas con CarPlay y Android Auto",
-      "Control de crucero y limitador de velocidad",
-      "Depósito de aguas limpias de 113L y grises de 90L",
-      "Calefacción diésel integrada en el habitáculo"
+      "Vehículo base: Fiat Ducato L3H2 (5.99m longitud)",
+      "Motor Multijet 140 CV Diésel (8L/100 km) con cambio manual",
+      "Aire acondicionado 12V Dometic CoolAir y calefacción Truma Combi 4D + E",
+      "2 Baterías de Litio Victron (540Ah) y 2 Placas Solares (400W)",
+      "Inversor Victron Multiplus 2000W y cargador Orion XS 12/12-50A",
+      "Pantalla táctil Garmin SERV y app Garmin RV Controls",
+      "Depósito de aguas limpias de 113L y aguas grises de 90L",
+      "Pantalla táctil de 10 pulgadas con CarPlay/Android Auto y cámara trasera",
+      "Sonido envolvente con 4 altavoces coaxiales JBL"
     ],
     techDetails_en: [
-      "Base vehicle: Fiat Ducato L2H2",
-      "Average consumption: 8L / 100 km",
-      "Rear camera and parking sensors",
-      "10-inch multimedia display with CarPlay and Android Auto",
-      "Cruise control and speed limiter",
+      "Base vehicle: Fiat Ducato L3H2 (5.99m length)",
+      "Multijet 140 HP Diesel engine (8L/100 km) with manual transmission",
+      "12V Dometic CoolAir AC and Truma Combi 4D + E diesel heating",
+      "2 Victron Lithium batteries (540Ah) and 2 Solar Panels (400W)",
+      "Victron Multiplus 2000W Inverter and Orion XS 12/12-50A charger",
+      "Garmin SERV touchscreen and Garmin RV Controls mobile app",
       "113L fresh water tank and 90L gray water tank",
-      "Integrated cabin diesel heating"
+      "10-inch touchscreen with CarPlay/Android Auto and rear camera",
+      "Surround sound with 4 JBL coaxial speakers"
     ]
   },
   space: {
@@ -94,38 +100,44 @@ const PREMIUM_MEDIA_DATA: Record<string, {
     nightPoster: "https://nomade-nation.com/wp-content/uploads/2024/10/Oscuro-optimized.jpg",
     relaxImg: "https://nomade-nation.com/wp-content/uploads/2026/04/3-1-optimized.png",
     highlights_es: [
-      "Salón-comedor convertible en dormitorio en segundos",
-      "Cama elevable automática de 185x135 cm (salón de día, dormitorio de noche)",
-      "Nevera Indel B 86L de compresor 12V con congelador",
-      "Fregadero con grifo negro mate y encimera extensible en L",
-      "Ducha estanca desarrollada a medida con panelado gris cemento",
-      "Escalón plegable inteligente integrado para acceso a la cama"
+      "Distribución diurna 100% abierta (7m² sin divisiones)",
+      "Cama elevable eléctrica de 185x135 cm (salón de día, dormitorio de noche)",
+      "Salón panorámico trasero en U con mesa giratoria 360° para teletrabajo",
+      "5 Ventanas correderas y hasta 3 claraboyas para máxima luminosidad",
+      "Depósito de aguas limpias de gran capacidad (160 Litros)",
+      "Nevera de compresor 86L a 12V con congelador y encimera en L",
+      "Pack Cine con proyector HD y sistema de sonido JBL con amplificador"
     ],
     highlights_en: [
-      "Living-dining room convertible to bedroom in seconds",
-      "Automatic drop-down 185x135 cm bed (lounge by day, bedroom by night)",
-      "12V compressor Indel B 86L refrigerator with freezer",
-      "Sink with matte black faucet and L-shaped extendable countertop",
-      "Custom leakproof shower with concrete-gray paneling",
-      "Smart integrated folding step to access the bed easily"
+      "100% Open day layout (7m² without barriers)",
+      "Electric drop-down 185x135 cm bed (lounge by day, bedroom by night)",
+      "Panoramic U-shaped lounge with 360° swivel table for remote work",
+      "5 Sliding windows and up to 3 skylights for maximum natural light",
+      "Extra large 160-Liter fresh water tank for superior autonomy",
+      "12V compressor 86L refrigerator with freezer and L-shaped countertop",
+      "Cinema Pack with HD projector and amplified JBL sound system"
     ],
     techDetails_es: [
-      "Vehículo base: Fiat Ducato L3H2",
-      "Aire acondicionado Dometic de 12V en habitáculo",
-      "2 Baterías de Litio de alta capacidad (540Ah totales)",
-      "2 Placas solares premium de 400W (800W totales)",
-      "Inversor Victron Multiplus 2000W",
-      "Centralita inteligente Victron Cerbo GX",
-      "Calefacción diésel y aislamiento térmico 360 grados"
+      "Vehículo base: Fiat Ducato L3H2 (5.99m longitud)",
+      "Motor Multijet 140 CV Diésel (8L/100 km) con cambio manual",
+      "Aire acondicionado Dometic 12V y calefacción Truma Combi 4D + E",
+      "2 Baterías de Litio Victron (540Ah) y 2 Placas Solares (400W)",
+      "Inversor Victron Multiplus 2000W y cargador Orion XS 12/12-50A",
+      "Pantalla táctil Garmin SERV con domótica integral y app móvil",
+      "Depósito de aguas limpias de 160L y aguas grises de 93L",
+      "Ducha interior spa con agua caliente, WC químico y ducha exterior",
+      "Pantalla táctil 10\" con CarPlay/Android Auto y cámara dinámica"
     ],
     techDetails_en: [
-      "Base vehicle: Fiat Ducato L3H2",
-      "12V Dometic air conditioning in cabin",
-      "2 High-capacity Lithium batteries (540Ah total)",
-      "2 Premium 400W solar panels (800W total)",
-      "Victron Multiplus 2000W inverter",
-      "Victron Cerbo GX smart controller system",
-      "Diesel heating and 360-degree thermal insulation"
+      "Base vehicle: Fiat Ducato L3H2 (5.99m length)",
+      "Multijet 140 HP Diesel engine (8L/100 km) with manual transmission",
+      "12V Dometic AC and Truma Combi 4D + E diesel heating",
+      "2 Victron Lithium batteries (540Ah) and 2 Solar Panels (400W)",
+      "Victron Multiplus 2000W Inverter and Orion XS 12/12-50A charger",
+      "Garmin SERV touchscreen with home automation and mobile app",
+      "160L fresh water tank and 93L gray water tank",
+      "Indoor spa shower with hot water, chemical toilet, and outdoor shower",
+      "10-inch touchscreen with CarPlay/Android Auto and dynamic camera"
     ]
   }
 }

@@ -1,7 +1,7 @@
 import { createClient } from '@/lib/supabase/server'
 import { formatPrice } from '@/lib/pricing/engine'
 import { Calendar, Euro, Tent, Users } from 'lucide-react'
-import Link from 'next/link'
+import { Link } from '@/i18n/routing'
 
 export default async function AdminDashboardPage() {
     const supabase = await createClient()
@@ -21,11 +21,22 @@ export default async function AdminDashboardPage() {
         .from('campers')
         .select('*', { count: 'exact', head: true })
 
+    const { count: usersCount } = await supabase
+        .from('users')
+        .select('*', { count: 'exact', head: true })
+
+    const { data: revenueData } = await supabase
+        .from('bookings')
+        .select('total_price')
+        .in('status', ['confirmed', 'active', 'completed'])
+
+    const totalRevenue = revenueData?.reduce((sum, b) => sum + (Number(b.total_price) || 0), 0) || 0
+
     // Ultimas 5 reservas
     const { data: recentBookings } = await supabase
         .from('bookings')
         .select(`
-      id, start_date, end_date, total_price, status, created_at,
+      id, start_date, end_date, total_price, status, created_at, customer_name, customer_email,
       campers (name),
       users (full_name, email)
     `)
@@ -33,17 +44,17 @@ export default async function AdminDashboardPage() {
         .limit(5)
 
     const kpis = [
-        { label: 'Reservas Pendientes', value: pendingCount || 0, icon: Euro, color: 'var(--sand-dark)' },
+        { label: 'Facturación Confirmada', value: formatPrice(totalRevenue), icon: Euro, color: 'var(--forest-green)' },
         { label: 'Reservas Activas', value: activeCount || 0, icon: Calendar, color: 'var(--success)' },
-        { label: 'Campers en Flota', value: campersCount || 2, icon: Tent, color: 'var(--forest-green)' },
-        { label: 'Nuevos Clientes', value: '-', icon: Users, color: 'var(--gray-500)' },
+        { label: 'Pendientes de Pago', value: pendingCount || 0, icon: Euro, color: 'var(--sand-dark)' },
+        { label: 'Clientes Registrados', value: usersCount || 0, icon: Users, color: 'var(--gray-600)' },
     ]
 
     return (
         <div>
             <h1 className="text-h2" style={{ marginBottom: 'var(--space-2)' }}>Dashboard</h1>
             <p className="text-body" style={{ color: 'var(--gray-600)', marginBottom: 'var(--space-8)' }}>
-                Hola Administrador. Este es el estado actual de Utopia Van Life.
+                Hola Administrador. Este es el estado actual del negocio y flota de Utopia Van Life.
             </p>
 
             {/* KPI Grid */}
@@ -56,7 +67,7 @@ export default async function AdminDashboardPage() {
                                 <kpi.icon size={18} />
                             </div>
                         </div>
-                        <div className="text-h2" style={{ marginTop: 'var(--space-2)' }}>{kpi.value}</div>
+                        <div className="text-h2" style={{ marginTop: 'var(--space-2)', fontSize: typeof kpi.value === 'string' && kpi.value.length > 6 ? '1.5rem' : undefined }}>{kpi.value}</div>
                     </div>
                 ))}
             </div>
@@ -65,7 +76,7 @@ export default async function AdminDashboardPage() {
             <div style={{ marginTop: 'var(--space-12)' }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 'var(--space-4)' }}>
                     <h2 className="text-h3">Últimas Reservas</h2>
-                    <Link href="/admin/bookings" className="text-small" style={{ color: 'var(--forest-green)', fontWeight: 500 }}>Ver todas</Link>
+                    <Link href="/admin/bookings" className="text-small" style={{ color: 'var(--forest-green)', fontWeight: 500 }}>Ver todas →</Link>
                 </div>
 
                 <div className="table-container">
@@ -81,31 +92,40 @@ export default async function AdminDashboardPage() {
                             </tr>
                         </thead>
                         <tbody>
-                            {recentBookings?.map((b: any) => (
-                                <tr key={b.id}>
-                                    <td className="text-xs" style={{ fontFamily: 'monospace', color: 'var(--gray-500)' }}>
-                                        {b.id.split('-')[0]}
-                                    </td>
-                                    <td>
-                                        <div style={{ fontWeight: 500 }}>{b.users?.full_name || 'Cliente'}</div>
-                                        <div className="text-xs" style={{ color: 'var(--gray-500)' }}>{b.users?.email}</div>
-                                    </td>
-                                    <td>{b.campers?.name}</td>
-                                    <td className="text-small">
-                                        {new Date(b.start_date).toLocaleDateString('es-ES')} → {new Date(b.end_date).toLocaleDateString('es-ES')}
-                                    </td>
-                                    <td>{formatPrice(b.total_price)}</td>
-                                    <td>
-                                        <span className={`status-badge status-${b.status}`}>
-                                            {b.status}
-                                        </span>
-                                    </td>
-                                </tr>
-                            ))}
+                            {recentBookings?.map((b: any) => {
+                                const clientName = b.customer_name || b.users?.full_name || 'Viajero Utopia'
+                                const clientEmail = b.customer_email || b.users?.email || '-'
+                                const statusLabel = b.status === 'confirmed' ? 'Confirmada' :
+                                    b.status === 'active' ? 'En Curso' :
+                                    b.status === 'pending' ? 'Pendiente' :
+                                    b.status === 'completed' ? 'Completada' : 'Cancelada'
+
+                                return (
+                                    <tr key={b.id}>
+                                        <td className="text-xs" style={{ fontFamily: 'monospace', color: 'var(--gray-500)' }}>
+                                            {b.id.split('-')[0]}
+                                        </td>
+                                        <td>
+                                            <div style={{ fontWeight: 500 }}>{clientName}</div>
+                                            <div className="text-xs" style={{ color: 'var(--gray-500)' }}>{clientEmail}</div>
+                                        </td>
+                                        <td>{b.campers?.name}</td>
+                                        <td className="text-small">
+                                            {new Date(b.start_date).toLocaleDateString('es-ES')} → {new Date(b.end_date).toLocaleDateString('es-ES')}
+                                        </td>
+                                        <td style={{ fontWeight: 600 }}>{formatPrice(b.total_price)}</td>
+                                        <td>
+                                            <span className={`status-badge status-${b.status}`}>
+                                                {statusLabel}
+                                            </span>
+                                        </td>
+                                    </tr>
+                                )
+                            })}
                             {(!recentBookings || recentBookings.length === 0) && (
                                 <tr>
                                     <td colSpan={6} style={{ textAlign: 'center', padding: 'var(--space-8)', color: 'var(--gray-500)' }}>
-                                        No hay reservas todavía.
+                                        No hay reservas registradas todavía.
                                     </td>
                                 </tr>
                             )}

@@ -2,19 +2,19 @@
 INSERT INTO public.campers (slug, name, description_es, description_en, thumbnail_url, images, specs, deposit_amount, is_active)
 VALUES
 ('neo', 'NEO', 
- 'NEO es la camper más polivalente de nuestra flota. Diseñada para viajar y dormir hasta 3 personas con la máxima comodidad. Su distribución inteligente aprovecha cada centímetro para ofrecerte un salón amplio, cocina completa y ducha interior, haciéndote sentir como en casa en cualquier rincón de Mallorca.',
- 'NEO is the most versatile camper in our fleet. Designed for up to 3 people to travel and sleep with maximum comfort. Its smart layout makes the most of every inch to offer you a spacious living room, fully equipped kitchen, and indoor shower.',
+ 'NEO ofrece más espacio, capacidad y libertad con un maletero de 2.230 litros. Equipada con el sistema eléctrico PRO Victron (540Ah litio, 400W solar, inversor 2000W) y aire acondicionado 12V Dometic. Habitáculo independiente con separación total de cabina para máximo confort e intimidad.',
+ 'NEO offers more space, capacity and freedom with 2,230L cargo storage. Equipped with Victron PRO electrical system (540Ah lithium, 400W solar, 2000W inverter) and 12V Dometic AC. Completely separated living cabin for ultimate insulation and privacy.',
  '/images/campers/neo/neo-ext.png',
  ARRAY['/images/campers/neo/neo-ext.png', '/images/campers/neo/neo-interior.png'],
- '{"beds": 3, "seats": 3, "length_m": 5.4, "year": 2024}'::jsonb,
- 500, true),
+ '{"beds": 3, "seats": 3, "length_m": 6.0, "fresh_water_l": 113, "lithium_ah": 540, "solar_w": 400, "ac": "Dometic 12V", "year": 2025}'::jsonb,
+ 1000, true),
 ('space', 'SPACE', 
- 'SPACE representa la máxima amplitud y libertad de movimiento. Pensada para quienes buscan una experiencia espaciosa y sin limitaciones. Cuenta con un diseño interior optimizado que permite viajar a 4 personas y dormir hasta 3, ideal para familias o grupos de amigos.',
- 'SPACE represents the ultimate spaciousness and freedom of movement. Designed for those seeking a spacious and limitless experience. It features an optimized interior design that accommodates up to 4 travelers and sleeps 3.',
+ 'SPACE redefine el lujo camper con una distribución abierta de 7m² (Open Concept) y cama elevable eléctrica de techo sobre un salón panorámico en U con mesa 360°. Equipada con 160L de agua limpia, 540Ah de litio Victron, 400W solares, aire acondicionado 12V Dometic y Pack Cine.',
+ 'SPACE redefines camper luxury with a 7m² open concept layout and an electric drop-down roof bed over a panoramic U-lounge with a 360° table. Equipped with 160L fresh water, 540Ah Victron lithium, 400W solar, 12V Dometic AC, and Cinema Pack.',
  '/images/campers/space/space-ext.png',
  ARRAY['/images/campers/space/space-ext.png', '/images/campers/space/space-interior.png'],
- '{"beds": 3, "seats": 4, "length_m": 6.0, "year": 2024}'::jsonb,
- 600, true)
+ '{"beds": 3, "seats": 3, "length_m": 6.0, "fresh_water_l": 160, "lithium_ah": 540, "solar_w": 400, "ac": "Dometic 12V", "year": 2025}'::jsonb,
+ 1000, true)
 ON CONFLICT (slug) DO NOTHING;
 
 -- Insert seasons (dates are for 2025 and 2026)

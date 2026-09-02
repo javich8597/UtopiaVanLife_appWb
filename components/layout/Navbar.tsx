@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react'
 import { Link, usePathname } from '@/i18n/routing'
 import { Menu, X } from 'lucide-react'
 import { useTranslations } from 'next-intl'
+import LanguageSwitcher from './LanguageSwitcher'
 
 export default function Navbar() {
   const t = useTranslations('Navigation')
@@ -13,6 +14,7 @@ export default function Navbar() {
   const [scrolled, setScrolled] = useState(false)
   const [menuOpen, setMenuOpen] = useState(false)
   const [user, setUser] = useState<any>(null)
+  const [isAdmin, setIsAdmin] = useState(false)
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 40)
@@ -23,31 +25,46 @@ export default function Navbar() {
   useEffect(() => {
     import('@/lib/supabase/client').then(({ createClient }) => {
       const supabase = createClient()
+
+      const checkUser = async (u: any) => {
+        setUser(u)
+        if (!u) {
+          setIsAdmin(false)
+          return
+        }
+        if (u.email === 'javipn85@gmail.com' || u.user_metadata?.is_admin === 'true') {
+          setIsAdmin(true)
+          return
+        }
+        const { data: dbUser } = await supabase.from('users').select('role').eq('id', u.id).maybeSingle()
+        setIsAdmin(dbUser?.role === 'admin')
+      }
+
       supabase.auth.getUser().then(({ data }) => {
-        if (data?.user) setUser(data.user)
+        checkUser(data?.user || null)
       })
 
       const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
-        setUser(session?.user || null)
+        checkUser(session?.user || null)
       })
 
       return () => subscription.unsubscribe()
     })
   }, [])
 
-  // If not on homepage, always apply solid/scrolled styling so it's clearly readable over light pages
-  const isSolid = scrolled || !isHomePage
+  // Top navbar is always solid white for maximum readability and brand visibility
+  const isSolid = true
 
   return (
     <>
-      <nav className={`navbar ${isSolid ? 'navbar--scrolled' : 'navbar--transparent'}`}>
+      <nav className="navbar navbar--scrolled">
         <div className="navbar__inner container">
           {/* Logo */}
           <Link href="/" className="navbar__logo">
             <img 
-              src={isSolid ? "/images/logo.png" : "/images/logo-white.png"} 
+              src="/images/logo.png" 
               alt="Utopia Van Life" 
-              style={{ height: '32px', width: 'auto' }} 
+              style={{ height: '42px', width: 'auto', objectFit: 'contain', display: 'block' }} 
             />
           </Link>
 
@@ -55,12 +72,21 @@ export default function Navbar() {
           <ul className="navbar__links hide-mobile">
             <li><Link href="/campers" className="navbar__link">{t('campers')}</Link></li>
             <li><Link href="/conocenos" className="navbar__link">{t('about')}</Link></li>
+            <li><Link href="/venta" className="navbar__link">{t('venta')}</Link></li>
             <li><Link href="/contacto" className="navbar__link">{t('contact')}</Link></li>
             <li><Link href="/#faqs" className="navbar__link">{t('faq')}</Link></li>
           </ul>
 
           {/* CTA + Menu */}
           <div className="navbar__actions">
+            {/* Discreet Language Switcher */}
+            <LanguageSwitcher isSolid={true} />
+
+            {isAdmin && (
+              <Link href="/admin" className="btn btn-outline btn-sm hide-mobile" style={{ borderColor: 'var(--forest-green)', color: 'var(--forest-green)', fontWeight: 700 }}>
+                Panel Admin
+              </Link>
+            )}
             {user ? (
               <Link href="/dashboard" className="btn btn-ghost btn-sm hide-mobile" style={{ display: 'flex', alignItems: 'center', gap: 6, fontWeight: 600 }}>
                 Mi Aventura
@@ -89,21 +115,29 @@ export default function Navbar() {
         <div className="mobile-menu" onClick={() => setMenuOpen(false)}>
           <nav className="mobile-menu__nav" onClick={e => e.stopPropagation()}>
             <div className="mobile-menu__header">
-              <img src="/images/logo.png" alt="Utopia Van Life" style={{ height: '24px', width: 'auto' }} />
+              <img src="/images/logo.png" alt="Utopia Van Life" style={{ height: '34px', width: 'auto', objectFit: 'contain' }} />
               <button onClick={() => setMenuOpen(false)} aria-label="Cerrar"><X size={22} /></button>
             </div>
             <ul className="mobile-menu__links">
               <li><Link href="/campers" onClick={() => setMenuOpen(false)}>{t('campers')}</Link></li>
               <li><Link href="/conocenos" onClick={() => setMenuOpen(false)}>{t('about')}</Link></li>
+              <li><Link href="/venta" onClick={() => setMenuOpen(false)}>{t('venta')}</Link></li>
               <li><Link href="/contacto" onClick={() => setMenuOpen(false)}>{t('contact')}</Link></li>
               <li><Link href="/#faqs" onClick={() => setMenuOpen(false)}>{t('faq')}</Link></li>
+              {isAdmin && (
+                <li><Link href="/admin" onClick={() => setMenuOpen(false)} style={{ color: 'var(--forest-green)', fontWeight: 700 }}>🛡️ Panel Admin</Link></li>
+              )}
               {user ? (
                 <li><Link href="/dashboard" onClick={() => setMenuOpen(false)} style={{ color: 'var(--forest-green)', fontWeight: 600 }}>Mi Aventura</Link></li>
               ) : (
                 <li><Link href="/auth/login" onClick={() => setMenuOpen(false)}>{t('login')}</Link></li>
               )}
             </ul>
-            <Link href="/campers" className="btn btn-forest btn-lg" style={{ width: '100%', marginTop: 'auto' }}
+
+            {/* Mobile language switcher */}
+            <LanguageSwitcher isMobile />
+
+            <Link href="/campers" className="btn btn-forest btn-lg" style={{ width: '100%', marginTop: 8 }}
               onClick={() => setMenuOpen(false)}>
               {t('bookNow')}
             </Link>
@@ -116,17 +150,19 @@ export default function Navbar() {
           position: fixed;
           top: 0; left: 0; right: 0;
           z-index: var(--z-navbar);
-          transition: background var(--transition-base), box-shadow var(--transition-base);
-        }
-        .navbar--transparent {
-          background: transparent;
-        }
-        .navbar--scrolled {
-          background: rgba(245,245,243,0.92);
+          background: rgba(255, 255, 255, 0.96);
           backdrop-filter: blur(16px);
           -webkit-backdrop-filter: blur(16px);
-          box-shadow: 0 1px 24px rgba(26,26,26,0.08);
-          border-bottom: 1px solid rgba(0,0,0,0.04);
+          box-shadow: 0 1px 20px rgba(26, 26, 26, 0.06);
+          border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+          transition: background var(--transition-base), box-shadow var(--transition-base);
+        }
+        .navbar--scrolled {
+          background: rgba(255, 255, 255, 0.96);
+          backdrop-filter: blur(16px);
+          -webkit-backdrop-filter: blur(16px);
+          box-shadow: 0 1px 20px rgba(26, 26, 26, 0.06);
+          border-bottom: 1px solid rgba(0, 0, 0, 0.05);
         }
         .navbar__inner {
           display: flex;
@@ -149,12 +185,14 @@ export default function Navbar() {
           font-size: 0.9rem;
           font-weight: 500;
           letter-spacing: 0.02em;
-          transition: opacity var(--transition-fast);
-          opacity: 0.85;
+          color: var(--black-matte);
+          transition: opacity var(--transition-fast), color var(--transition-fast);
+          opacity: 0.9;
         }
-        .navbar__link:hover { opacity: 1; }
-        .navbar--transparent .navbar__link { color: rgba(255,255,255,0.9); }
-        .navbar--scrolled .navbar__link { color: var(--black-matte); }
+        .navbar__link:hover { 
+          opacity: 1; 
+          color: var(--forest-green);
+        }
         .navbar__actions {
           display: flex;
           align-items: center;
@@ -167,11 +205,9 @@ export default function Navbar() {
           width: 40px; height: 40px;
           border-radius: var(--radius-md);
           transition: background var(--transition-fast);
-          color: white;
+          color: var(--black-matte);
         }
-        .navbar--scrolled .navbar__burger { color: var(--black-matte); }
-        .navbar__burger:hover { background: rgba(255,255,255,0.15); }
-        .navbar--scrolled .navbar__burger:hover { background: var(--gray-100); }
+        .navbar__burger:hover { background: var(--gray-100); }
 
         /* Mobile menu */
         .mobile-menu {

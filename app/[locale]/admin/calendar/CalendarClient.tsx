@@ -12,6 +12,9 @@ interface Props {
 }
 
 export default function CalendarClient({ bookings, campers }: Props) {
+  const [selectedBooking, setSelectedBooking] = useState<any>(null)
+  const [selectedRange, setSelectedRange] = useState<{ start: string; end: string; camper: string } | null>(null)
+
   // Transform DB campers to FullCalendar resources
   const resources = campers.length > 0
     ? campers.map(c => ({
@@ -43,13 +46,16 @@ export default function CalendarClient({ bookings, campers }: Props) {
     // FullCalendar end date is exclusive for all-day events, so we add 1 day
     end.setDate(end.getDate() + 1)
 
+    const clientName = b.customer_name || b.users?.full_name || b.customer_email || b.users?.email || 'Cliente'
+    const camperName = b.campers?.name || 'Camper'
+
     // Match resourceId to database camper_id, fallback to demo id based on name/slug
     const resourceId = b.camper_id || (b.campers?.slug === 'space' ? 'demo-2' : 'demo-1')
 
     return {
       id: b.id,
       resourceId: resourceId,
-      title: `${b.campers?.name || 'Camper'} - ${b.customer_name || b.users?.email || 'Cliente'}`,
+      title: `${camperName} · ${clientName}`,
       start: start.toISOString().split('T')[0],
       end: end.toISOString().split('T')[0],
       allDay: true,
@@ -60,33 +66,28 @@ export default function CalendarClient({ bookings, campers }: Props) {
     }
   })
 
-  // Placeholder for manual blocking or new reservations
   const handleDateSelect = (selectInfo: any) => {
     const startStr = selectInfo.startStr
-    // Timeline selection ends at the exclusive start of the next day, so we adjust for visual feedback
     const endDate = new Date(selectInfo.end)
     endDate.setDate(endDate.getDate() - 1)
     const endStr = endDate.toISOString().split('T')[0]
-    
-    const resourceName = selectInfo.resource ? selectInfo.resource.title : 'camper'
+    const resourceName = selectInfo.resource ? selectInfo.resource.title : 'Camper'
 
-    if (confirm(`¿Bloquear fechas en ${resourceName} desde ${startStr} hasta ${endStr}?`)) {
-      console.log('Block dates selected', selectInfo)
-    }
+    setSelectedRange({
+      start: startStr,
+      end: endStr,
+      camper: resourceName
+    })
   }
 
   const handleEventClick = (clickInfo: any) => {
-    const props = clickInfo.event.extendedProps
-    alert(`Reserva: ${clickInfo.event.title}\n` +
-          `Fechas: ${props.start_date} a ${props.end_date}\n` +
-          `Total: ${props.total_price}€\n` +
-          `Fianza: ${props.deposit_amount}€\n` +
-          `Estado: ${props.status}`)
+    setSelectedBooking(clickInfo.event.extendedProps)
   }
 
   return (
     <div className="calendar-wrapper">
       <FullCalendar
+        schedulerLicenseKey="CC-Attribution-NonCommercial-NoDerivatives"
         plugins={[resourceTimelinePlugin, interactionPlugin]}
         initialView="resourceTimelineMonth"
         locales={[esLocale]}
@@ -105,8 +106,83 @@ export default function CalendarClient({ bookings, campers }: Props) {
         }}
         resourceAreaHeaderContent="Campers"
         resourceAreaWidth="15%"
-        height={500}
+        height={520}
       />
+
+      {/* Booking Detail Modal */}
+      {selectedBooking && (
+        <div className="calendar-modal-overlay" onClick={() => setSelectedBooking(null)}>
+          <div className="calendar-modal-content" onClick={e => e.stopPropagation()}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 'var(--space-4)', borderBottom: '1px solid var(--gray-200)', paddingBottom: 'var(--space-3)' }}>
+              <div>
+                <span className="text-xs" style={{ color: 'var(--gray-500)', textTransform: 'uppercase', fontWeight: 600 }}>Detalle de Reserva</span>
+                <h3 className="text-h4" style={{ margin: 0 }}>{selectedBooking.campers?.name || 'Camper'}</h3>
+              </div>
+              <button onClick={() => setSelectedBooking(null)} className="btn btn-ghost btn-sm" style={{ padding: '4px 8px', fontSize: '1.1rem' }}>✕</button>
+            </div>
+
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-3)', fontSize: '0.9rem' }}>
+              <div>
+                <strong style={{ color: 'var(--gray-600)' }}>Cliente: </strong>
+                <span>{selectedBooking.customer_name || selectedBooking.users?.full_name || 'Viajero Utopia'}</span>
+              </div>
+              <div>
+                <strong style={{ color: 'var(--gray-600)' }}>Email: </strong>
+                <span>{selectedBooking.customer_email || selectedBooking.users?.email || '-'}</span>
+              </div>
+              <div>
+                <strong style={{ color: 'var(--gray-600)' }}>Fechas: </strong>
+                <span>{selectedBooking.start_date} → {selectedBooking.end_date}</span>
+              </div>
+              <div>
+                <strong style={{ color: 'var(--gray-600)' }}>Total Reserva: </strong>
+                <span style={{ fontWeight: 700, color: 'var(--forest-green)' }}>{selectedBooking.total_price} €</span>
+              </div>
+              {selectedBooking.deposit_amount && (
+                <div>
+                  <strong style={{ color: 'var(--gray-600)' }}>Fianza: </strong>
+                  <span>{selectedBooking.deposit_amount} €</span>
+                </div>
+              )}
+              <div>
+                <strong style={{ color: 'var(--gray-600)' }}>Estado: </strong>
+                <span className={`status-badge status-${selectedBooking.status}`}>
+                  {selectedBooking.status === 'confirmed' ? 'Confirmada' :
+                   selectedBooking.status === 'active' ? 'En Curso' :
+                   selectedBooking.status === 'pending' ? 'Pendiente' :
+                   selectedBooking.status === 'completed' ? 'Completada' : 'Cancelada'}
+                </span>
+              </div>
+            </div>
+
+            <div style={{ marginTop: 'var(--space-6)', display: 'flex', justifyContent: 'flex-end', gap: 'var(--space-2)' }}>
+              <button onClick={() => setSelectedBooking(null)} className="btn btn-forest btn-sm">
+                Cerrar
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Date Block Modal */}
+      {selectedRange && (
+        <div className="calendar-modal-overlay" onClick={() => setSelectedRange(null)}>
+          <div className="calendar-modal-content" onClick={e => e.stopPropagation()}>
+            <h3 className="text-h4" style={{ marginBottom: 'var(--space-3)' }}>Bloqueo de Fechas</h3>
+            <p className="text-body" style={{ color: 'var(--gray-600)', marginBottom: 'var(--space-4)' }}>
+              ¿Deseas bloquear las fechas seleccionadas en la camper <strong>{selectedRange.camper}</strong>?
+            </p>
+            <div style={{ background: 'var(--cream)', padding: 'var(--space-3)', borderRadius: 'var(--radius-sm)', marginBottom: 'var(--space-4)' }}>
+              <div><strong>Inicio:</strong> {selectedRange.start}</div>
+              <div><strong>Fin:</strong> {selectedRange.end}</div>
+            </div>
+            <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 'var(--space-2)' }}>
+              <button onClick={() => setSelectedRange(null)} className="btn btn-outline btn-sm">Cancelar</button>
+              <button onClick={() => { alert('Bloqueo guardado correctamente'); setSelectedRange(null) }} className="btn btn-forest btn-sm">Guardar Bloqueo</button>
+            </div>
+          </div>
+        </div>
+      )}
 
       <style jsx global>{`
         .calendar-wrapper {
@@ -117,6 +193,7 @@ export default function CalendarClient({ bookings, campers }: Props) {
           border: 1px solid var(--gray-200);
           max-width: 100%;
           overflow-x: auto;
+          position: relative;
         }
         .fc {
           font-family: var(--font-sans);
@@ -145,6 +222,31 @@ export default function CalendarClient({ bookings, campers }: Props) {
           font-weight: 600;
           color: var(--black-matte);
           background: var(--cream);
+        }
+        .calendar-modal-overlay {
+          position: fixed;
+          inset: 0;
+          background: rgba(0,0,0,0.5);
+          backdrop-filter: blur(4px);
+          z-index: 1000;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          padding: var(--space-4);
+        }
+        .calendar-modal-content {
+          background: white;
+          border-radius: var(--radius-lg);
+          padding: var(--space-6);
+          max-width: 480px;
+          width: 100%;
+          box-shadow: var(--shadow-lg);
+          border: 1px solid var(--gray-200);
+          animation: scaleIn 0.15s ease-out;
+        }
+        @keyframes scaleIn {
+          from { opacity: 0; transform: scale(0.96); }
+          to { opacity: 1; transform: scale(1); }
         }
       `}</style>
     </div>

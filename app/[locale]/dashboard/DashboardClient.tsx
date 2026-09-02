@@ -1,8 +1,8 @@
-﻿'use client'
+'use client'
 
 import Image from 'next/image'
 import { Link } from '@/i18n/routing'
-import { Calendar, Euro, MapPin, Clock, BookOpen, ChevronRight, Sparkles, ShieldCheck, Compass, Users, AlertCircle, CheckCircle, Navigation } from 'lucide-react'
+import { Calendar, Euro, MapPin, Clock, BookOpen, ChevronRight, Sparkles, ShieldCheck, Compass, Users, AlertCircle, CheckCircle, Navigation, Zap, FileDown, Phone, PhoneCall, LifeBuoy, MessageCircle } from 'lucide-react'
 import { formatPrice } from '@/lib/pricing/engine'
 
 const FALLBACK_IMAGES: Record<string, string> = {
@@ -27,39 +27,39 @@ export default function DashboardClient({ bookings, profile, user }: Props) {
     const isPendingDoc = profile?.verification_status === 'pending'
 
     let daysToTrip = -1
+    let nightsCount = 7
     if (nextBooking) {
         const from = new Date(nextBooking.start_date)
+        const to = new Date(nextBooking.end_date)
         const now = new Date()
         daysToTrip = Math.ceil((from.getTime() - now.getTime()) / (1000 * 3600 * 24))
+        nightsCount = Math.max(1, Math.round((to.getTime() - from.getTime()) / (1000 * 3600 * 24)))
     }
+
+    const camperSlug = nextBooking?.camper?.slug || 'neo'
+    const camperName = nextBooking?.camper?.name || (camperSlug === 'space' ? 'SPACE' : 'NEO')
+    const camperImg = nextBooking?.camper?.thumbnail_url || FALLBACK_IMAGES[camperSlug] || FALLBACK_IMAGES['neo']
 
     return (
         <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-6)' }}>
-            {/* Header Greeting */}
-            <div className="dashboard-header">
+            {/* Page Header Section */}
+            <div className="dash-header">
                 <div>
-                    <div style={{ display: 'inline-flex', alignItems: 'center', gap: 6, marginBottom: 6 }}>
-                        <span className="text-xs" style={{ fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', color: 'var(--sand-dark)' }}>
-                            Área de Cliente
-                        </span>
-                    </div>
-                    <h1 className="text-h2" style={{ textWrap: 'balance' }}>
-                        ¡Hola, {userName}! Tu aventura en Mallorca te espera
+                    <h1 className="dash-title">
+                        ¡Hola, {userName}!<br />
+                        <span className="dash-title-sub">Tu aventura en Mallorca te espera</span>
                     </h1>
-                    <p className="text-body" style={{ color: 'var(--gray-600)', marginTop: 4 }}>
-                        Consulta los detalles de tu viaje, completa tu check-in y accede a las guías exclusivas de la isla.
-                    </p>
                 </div>
 
                 {daysToTrip > 0 && (
-                    <div className="trip-countdown-badge">
+                    <div className="countdown-pill">
                         <Clock size={16} style={{ color: 'var(--sand-dark)' }} />
                         <span>Faltan <strong>{daysToTrip} días</strong> para la recogida</span>
                     </div>
                 )}
                 {daysToTrip === 0 && (
-                    <div className="trip-countdown-badge trip-countdown-badge--today">
-                        <Sparkles size={16} style={{ color: 'var(--sand)' }} />
+                    <div className="countdown-pill countdown-pill--today">
+                        <Sparkles size={16} />
                         <span>¡Hoy comienza tu aventura!</span>
                     </div>
                 )}
@@ -67,169 +67,287 @@ export default function DashboardClient({ bookings, profile, user }: Props) {
 
             {/* If has an active or pending booking */}
             {nextBooking && (
-                <div className="adventure-grid">
-                    {/* Main Booking Hero Card */}
-                    <div className="active-trip-card">
-                        <div className="active-trip-card__img-wrap">
+                <div className="bento-layout">
+                    {/* Hero Booking Card */}
+                    <div className="booking-hero-card">
+                        <div className="booking-hero-card__img-wrap">
                             <Image 
-                                src={nextBooking.camper?.thumbnail_url || FALLBACK_IMAGES[nextBooking.camper?.slug] || FALLBACK_IMAGES['neo']}
-                                alt={nextBooking.camper?.name || 'Camper'}
+                                src={camperImg}
+                                alt={camperName}
                                 fill
                                 style={{ objectFit: 'cover' }}
                                 priority
                             />
-                            <div className="active-trip-card__overlay-badge">
-                                <span className={`status-pill status-pill--${nextBooking.status}`}>
-                                    {nextBooking.status === 'confirmed' ? 'Reserva Confirmada ✅' : 'Pendiente de Pago ⏳'}
-                                </span>
+                            <div className="booking-hero-card__img-overlay" />
+                            <div className="booking-hero-card__img-content">
+                                <span className="tier-tag">PREMIUM TIER</span>
+                                <h2 className="camper-overlay-title">Camper {camperName}</h2>
+                                <p className="camper-overlay-sub">Nomade Nation</p>
                             </div>
                         </div>
 
-                        <div className="active-trip-card__body">
-                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: 8 }}>
-                                <div>
-                                    <span className="text-xs" style={{ color: 'var(--sand-dark)', fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase' }}>
-                                        Vehículo Asignado
+                        <div className="booking-hero-card__body">
+                            <div>
+                                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 'var(--space-4)', flexWrap: 'wrap', gap: 8 }}>
+                                    <div>
+                                        <h3 className="text-h3" style={{ color: 'var(--forest-green)' }}>Detalles del Viaje</h3>
+                                        <p className="text-small" style={{ color: 'var(--gray-600)' }}>
+                                            {nightsCount} Noches • {nextBooking.guests_count || 2} Viajeros
+                                        </p>
+                                    </div>
+                                    <span className={`status-badge status-badge--${nextBooking.status}`}>
+                                        {nextBooking.status === 'confirmed' ? 'Confirmada' : 'Pendiente de Pago'}
                                     </span>
-                                    <h2 className="text-h3" style={{ marginTop: 2 }}>
-                                        Camper {nextBooking.camper?.name || 'NEO'} — Nomade Nation
-                                    </h2>
+                                </div>
+
+                                <div className="trip-dates-grid">
+                                    <div className="date-block">
+                                        <span className="date-label">Recogida</span>
+                                        <p className="date-val">
+                                            {new Date(nextBooking.start_date).toLocaleDateString('es-ES', { day: 'numeric', month: 'short', year: 'numeric' })}
+                                        </p>
+                                        <span className="date-time">14:00 - 18:00</span>
+                                    </div>
+                                    <div className="date-block">
+                                        <span className="date-label">Devolución</span>
+                                        <p className="date-val">
+                                            {new Date(nextBooking.end_date).toLocaleDateString('es-ES', { day: 'numeric', month: 'short', year: 'numeric' })}
+                                        </p>
+                                        <span className="date-time">10:00 - 12:00</span>
+                                    </div>
+                                </div>
+
+                                {/* Extras */}
+                                <div className="extras-section">
+                                    <span className="date-label" style={{ marginBottom: 6, display: 'block' }}>Extras Incluidos</span>
+                                    <div className="extras-chips">
+                                        <span className="extra-chip">🛏️ Pack Ropa de Cama</span>
+                                        <span className="extra-chip">🤿 Kit Snorkel Utopia</span>
+                                        <span className="extra-chip">⚡ Autonomía Solar Victron</span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div className="price-summary-bar">
+                                <div>
+                                    <span className="text-xs" style={{ color: 'var(--gray-500)', textTransform: 'uppercase' }}>Total Alquiler</span>
+                                    <div style={{ fontWeight: 700, fontSize: '1.25rem', color: 'var(--forest-green)' }}>
+                                        {formatPrice(Number(nextBooking.total_price || 0))}
+                                    </div>
                                 </div>
                                 <div style={{ textAlign: 'right' }}>
-                                    <span className="text-h4" style={{ color: 'var(--forest-green)' }}>
-                                        {formatPrice(Number(nextBooking.total_price || 0))}
-                                    </span>
-                                    <span className="text-xs" style={{ color: 'var(--gray-500)', display: 'block' }}>
-                                        +{formatPrice(Number(nextBooking.deposit_amount || 0))} fianza
-                                    </span>
-                                </div>
-                            </div>
-
-                            {/* Trip Metadata Specs */}
-                            <div className="trip-meta-grid">
-                                <div className="meta-cell">
-                                    <Calendar size={16} style={{ color: 'var(--forest-green)' }} />
-                                    <div>
-                                        <span className="meta-label">Fechas del viaje</span>
-                                        <span className="meta-val">
-                                            {new Date(nextBooking.start_date).toLocaleDateString('es-ES', { day: 'numeric', month: 'short' })} → {new Date(nextBooking.end_date).toLocaleDateString('es-ES', { day: 'numeric', month: 'short', year: 'numeric' })}
-                                        </span>
+                                    <span className="text-xs" style={{ color: 'var(--gray-500)', textTransform: 'uppercase' }}>Fianza Reembolsable</span>
+                                    <div style={{ fontWeight: 600, fontSize: '1rem', color: 'var(--black-matte)' }}>
+                                        {formatPrice(Number(nextBooking.deposit_amount || 0))}
                                     </div>
                                 </div>
-
-                                <div className="meta-cell">
-                                    <Users size={16} style={{ color: 'var(--forest-green)' }} />
-                                    <div>
-                                        <span className="meta-label">Viajeros</span>
-                                        <span className="meta-val">{nextBooking.guests_count || 2} personas</span>
-                                    </div>
-                                </div>
-
-                                <div className="meta-cell">
-                                    <MapPin size={16} style={{ color: 'var(--forest-green)' }} />
-                                    <div>
-                                        <span className="meta-label">Punto de Entrega</span>
-                                        <span className="meta-val">Carrer Son Oms, Palma</span>
-                                    </div>
-                                </div>
-                            </div>
-
-                            {/* Location & GPS pickup */}
-                            <div className="pickup-box">
-                                <div>
-                                    <strong style={{ display: 'block', fontSize: '0.85rem', color: 'var(--black-matte)' }}>
-                                        Punto de recogida & Devolución
-                                    </strong>
-                                    <p className="text-xs" style={{ color: 'var(--gray-600)', marginTop: 2 }}>
-                                        Carrer Son Oms, Palma de Mallorca (a 5 min del aeropuerto con transfer rápido)
-                                    </p>
-                                </div>
-                                <a 
-                                    href="https://maps.google.com/?q=Carrer+Son+Oms+Palma+de+Mallorca" 
-                                    target="_blank" 
-                                    rel="noopener noreferrer"
-                                    className="btn btn-outline btn-sm"
-                                    style={{ gap: 6, flexShrink: 0 }}
-                                >
-                                    <Navigation size={14} />
-                                    <span>Abrir en GPS</span>
-                                </a>
                             </div>
                         </div>
                     </div>
 
-                    {/* Driver Verification Checklist Card */}
-                    <div className="checklist-card">
-                        <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 'var(--space-3)' }}>
-                            <ShieldCheck size={20} style={{ color: isVerified ? 'var(--success)' : 'var(--sand-dark)' }} />
-                            <h3 className="text-h4">Check-in & Carnet de Conducir</h3>
-                        </div>
-                        <p className="text-small" style={{ color: 'var(--gray-600)', lineHeight: 1.5, marginBottom: 'var(--space-4)' }}>
-                            Requisito obligatorio antes de la recogida: tener al menos 25 años y más de 3 años de carnet de conducir en vigor.
-                        </p>
-
-                        <div className="driver-status-box">
-                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                                <div>
-                                    <span style={{ fontWeight: 600, fontSize: '0.9rem', color: 'var(--black-matte)', display: 'block' }}>
-                                        Conductor Principal
-                                    </span>
-                                    <span className="text-xs" style={{ color: 'var(--gray-500)' }}>
-                                        {profile?.full_name || user.email}
-                                    </span>
+                    {/* Right Column: Pick-up Location & Driver Validation */}
+                    <div className="bento-side-col">
+                        {/* Pick-up Location Card */}
+                        <div className="side-card">
+                            <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 'var(--space-3)' }}>
+                                <div className="side-card__icon-wrap">
+                                    <MapPin size={18} style={{ color: 'var(--forest-green)' }} />
                                 </div>
-
-                                {isVerified && (
-                                    <span className="doc-pill doc-pill--verified">
-                                        <CheckCircle size={14} /> Verificado
-                                    </span>
-                                )}
-                                {isPendingDoc && (
-                                    <span className="doc-pill doc-pill--pending">
-                                        <Clock size={14} /> En revisión
-                                    </span>
-                                )}
-                                {!isVerified && !isPendingDoc && (
-                                    <span className="doc-pill doc-pill--unsubmitted">
-                                        <AlertCircle size={14} /> Pendiente
-                                    </span>
-                                )}
+                                <h3 className="text-h4">Punto de Recogida</h3>
                             </div>
 
-                            {!isVerified && (
-                                <Link 
-                                    href="/dashboard/profile"
-                                    className="btn btn-forest btn-sm"
-                                    style={{ marginTop: 'var(--space-3)', width: '100%', justifyContent: 'center' }}
-                                >
-                                    {isPendingDoc ? 'Ver estado de validación' : 'Subir Carnet de Conducir'}
-                                </Link>
-                            )}
+                            <div style={{ position: 'relative', borderRadius: 'var(--radius-md)', overflow: 'hidden', height: 110, background: 'var(--gray-100)', marginBottom: 'var(--space-3)' }}>
+                                <Image 
+                                    src="/images/experiences/exp2.png" 
+                                    alt="Palma de Mallorca" 
+                                    fill 
+                                    style={{ objectFit: 'cover' }} 
+                                />
+                                <div style={{ position: 'absolute', inset: 0, background: 'rgba(45,58,45,0.4)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                                    <span style={{ color: 'white', fontWeight: 600, fontSize: '0.8rem', background: 'rgba(0,0,0,0.4)', padding: '4px 10px', borderRadius: 'var(--radius-full)' }}>
+                                        Palma de Mallorca
+                                    </span>
+                                </div>
+                            </div>
+
+                            <p style={{ fontWeight: 600, fontSize: '0.88rem', color: 'var(--black-matte)' }}>
+                                Carrer Son Oms, Palma de Mallorca
+                            </p>
+                            <p className="text-xs" style={{ color: 'var(--gray-600)', marginTop: 2, marginBottom: 'var(--space-4)' }}>
+                                (a 5 min del aeropuerto con transfer rápido)
+                            </p>
+
+                            <a 
+                                href="https://maps.google.com/?q=Carrer+Son+Oms+Palma+de+Mallorca" 
+                                target="_blank" 
+                                rel="noopener noreferrer"
+                                className="btn btn-outline btn-sm"
+                                style={{ width: '100%', justifyContent: 'center', gap: 6 }}
+                            >
+                                <Navigation size={14} />
+                                <span>Abrir en GPS</span>
+                            </a>
                         </div>
 
-                        {/* Quick Navigation Cards */}
-                        <div className="quick-nav-boxes" style={{ marginTop: 'var(--space-4)' }}>
-                            <Link href="/dashboard/guia" className="quick-box">
-                                <Compass size={18} style={{ color: 'var(--forest-green)' }} />
-                                <div>
-                                    <strong style={{ fontSize: '0.85rem', display: 'block' }}>Guía de Mallorca</strong>
-                                    <span className="text-xs" style={{ color: 'var(--gray-500)' }}>+45 calas y pernoctas</span>
+                        {/* Driver Validation Card */}
+                        <div className="side-card side-card--accent">
+                            <div style={{ display: 'flex', alignItems: 'flex-start', gap: 10, marginBottom: 'var(--space-3)' }}>
+                                <div className="side-card__icon-wrap side-card__icon-wrap--sand">
+                                    <ShieldCheck size={18} style={{ color: 'var(--sand-dark)' }} />
                                 </div>
-                                <ChevronRight size={16} style={{ marginLeft: 'auto', color: 'var(--gray-400)' }} />
-                            </Link>
+                                <div>
+                                    <h3 className="text-h4" style={{ lineHeight: 1.2 }}>Validación de Carnet</h3>
+                                    <p className="text-xs" style={{ color: 'var(--gray-500)', marginTop: 2 }}>
+                                        Paso obligatorio antes de la recogida
+                                    </p>
+                                </div>
+                            </div>
 
-                            <Link href="/dashboard/manual" className="quick-box">
-                                <BookOpen size={18} style={{ color: 'var(--forest-green)' }} />
-                                <div>
-                                    <strong style={{ fontSize: '0.85rem', display: 'block' }}>Manual de la Camper</strong>
-                                    <span className="text-xs" style={{ color: 'var(--gray-500)' }}>Batería Victron, aguas, cama</span>
+                            <div className="driver-rows">
+                                {/* Main Driver */}
+                                <div className="driver-row">
+                                    <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                                        <div className="driver-avatar-mini">
+                                            {userName.charAt(0)}
+                                        </div>
+                                        <div>
+                                            <span style={{ fontWeight: 600, fontSize: '0.82rem', display: 'block', color: 'var(--black-matte)' }}>
+                                                Conductor Principal
+                                            </span>
+                                            <span className="text-xs" style={{ color: 'var(--gray-500)' }}>
+                                                {profile?.full_name || user.email}
+                                            </span>
+                                        </div>
+                                    </div>
+
+                                    {isVerified && (
+                                        <span className="doc-chip doc-chip--verified">
+                                            <CheckCircle size={12} /> Verificado
+                                        </span>
+                                    )}
+                                    {isPendingDoc && (
+                                        <span className="doc-chip doc-chip--pending">
+                                            <Clock size={12} /> En revisión
+                                        </span>
+                                    )}
+                                    {!isVerified && !isPendingDoc && (
+                                        <Link href="/dashboard/profile" className="btn btn-forest btn-sm" style={{ padding: '4px 10px', fontSize: '0.75rem' }}>
+                                            Subir Carnet
+                                        </Link>
+                                    )}
                                 </div>
-                                <ChevronRight size={16} style={{ marginLeft: 'auto', color: 'var(--gray-400)' }} />
-                            </Link>
+
+                                {/* Second Driver */}
+                                <div className="driver-row driver-row--dashed">
+                                    <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                                        <div className="driver-avatar-mini driver-avatar-mini--dashed">
+                                            <ShieldCheck size={14} style={{ color: 'var(--gray-400)' }} />
+                                        </div>
+                                        <div>
+                                            <span style={{ fontWeight: 500, fontSize: '0.82rem', display: 'block', color: 'var(--gray-700)' }}>
+                                                Segundo Conductor
+                                            </span>
+                                            <span className="text-xs" style={{ color: 'var(--gray-400)' }}>Opcional</span>
+                                        </div>
+                                    </div>
+                                    <Link href="/dashboard/profile" className="text-xs font-semibold" style={{ color: 'var(--sand-dark)' }}>
+                                        Añadir
+                                    </Link>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>
             )}
+
+            {/* Quick Actions Bar */}
+            <div className="quick-actions-section">
+                <h3 className="text-h3" style={{ marginBottom: 'var(--space-4)', color: 'var(--forest-green)' }}>
+                    Acciones Rápidas
+                </h3>
+                <div className="quick-actions-grid">
+                    <Link href="/dashboard/guia" className="action-tile group">
+                        <div className="action-tile__icon">
+                            <Compass size={22} style={{ color: 'var(--forest-green)' }} />
+                        </div>
+                        <div>
+                            <strong className="action-tile__title">Ver Guía de Mallorca</strong>
+                            <span className="action-tile__desc">Calas vírgenes y pernoctas</span>
+                        </div>
+                        <ChevronRight size={18} className="action-tile__chevron" />
+                    </Link>
+
+                    <Link href="/dashboard/manual" className="action-tile group">
+                        <div className="action-tile__icon">
+                            <Zap size={22} style={{ color: 'var(--forest-green)' }} />
+                        </div>
+                        <div>
+                            <strong className="action-tile__title">Manual de la Camper</strong>
+                            <span className="action-tile__desc">Videotutoriales y sistemas</span>
+                        </div>
+                        <ChevronRight size={18} className="action-tile__chevron" />
+                    </Link>
+
+                    <Link href="/dashboard/documentos" className="action-tile group">
+                        <div className="action-tile__icon">
+                            <FileDown size={22} style={{ color: 'var(--forest-green)' }} />
+                        </div>
+                        <div>
+                            <strong className="action-tile__title">Documentos & Facturas</strong>
+                            <span className="action-tile__desc">Contratos, pólizas y PDF</span>
+                        </div>
+                        <ChevronRight size={18} className="action-tile__chevron" />
+                    </Link>
+                </div>
+            </div>
+
+            {/* Emergency & 24h Assistance Section */}
+            <div className="emergency-section">
+                <div className="emergency-card">
+                    <div className="emergency-card__header">
+                        <div className="emergency-badge">
+                            <span className="emergency-dot" />
+                            <PhoneCall size={16} />
+                            <span>Contacto & Asistencia 24h</span>
+                        </div>
+                        <p className="emergency-subtitle">
+                            Disponibles antes, durante y después de tu viaje para cualquier consulta, incidencia o asistencia en carretera.
+                        </p>
+                    </div>
+
+                    <div className="emergency-grid">
+                        {/* Utopia Van Life */}
+                        <a href="tel:+34611560916" className="emergency-item emergency-item--utopia">
+                            <div className="emergency-item__icon-wrap">
+                                <Phone size={20} />
+                            </div>
+                            <div className="emergency-item__details">
+                                <span className="emergency-item__title">UTOPIA VAN LIFE</span>
+                                <span className="emergency-item__desc">Atención al cliente, dudas y soporte camper</span>
+                                <span className="emergency-item__phone">+34 611 560 916</span>
+                            </div>
+                            <div className="emergency-item__btn">
+                                <span>Llamar</span>
+                            </div>
+                        </a>
+
+                        {/* ARAG Asistencia en Viaje 24h */}
+                        <a href="tel:+34662992060" className="emergency-item emergency-item--arag">
+                            <div className="emergency-item__icon-wrap">
+                                <LifeBuoy size={20} />
+                            </div>
+                            <div className="emergency-item__details">
+                                <span className="emergency-item__title">ARAG · ASISTENCIA EN VIAJE 24H</span>
+                                <span className="emergency-item__desc">Grúa, pinchazos, rescate mecánico y averías en ruta</span>
+                                <span className="emergency-item__phone">+34 662 992 060</span>
+                            </div>
+                            <div className="emergency-item__btn emergency-item__btn--arag">
+                                <span>Llamar 24h</span>
+                            </div>
+                        </a>
+                    </div>
+                </div>
+            </div>
 
             {/* Empty State if NO bookings */}
             {(!bookings || bookings.length === 0) && (
@@ -283,7 +401,7 @@ export default function DashboardClient({ bookings, profile, user }: Props) {
             )}
 
             <style jsx>{`
-                .dashboard-header {
+                .dash-header {
                     display: flex;
                     justify-content: space-between;
                     align-items: flex-end;
@@ -292,30 +410,42 @@ export default function DashboardClient({ bookings, profile, user }: Props) {
                     padding-bottom: var(--space-4);
                     border-bottom: 1px solid var(--gray-200);
                 }
-                .trip-countdown-badge {
+                .dash-title {
+                    font-family: var(--font-heading);
+                    font-size: clamp(1.75rem, 4vw, 2.5rem);
+                    font-weight: 700;
+                    line-height: 1.15;
+                    color: var(--forest-green);
+                }
+                .dash-title-sub {
+                    color: var(--black-matte);
+                    font-weight: 600;
+                    font-size: 0.85em;
+                }
+                .countdown-pill {
                     display: inline-flex;
                     align-items: center;
                     gap: 8px;
                     background: rgba(200, 168, 130, 0.15);
-                    border: 1px solid rgba(200, 168, 130, 0.35);
+                    border: 1px solid rgba(200, 168, 130, 0.4);
                     color: var(--black-matte);
                     padding: 8px 16px;
                     border-radius: var(--radius-full);
                     font-size: 0.85rem;
                 }
-                .trip-countdown-badge--today {
+                .countdown-pill--today {
                     background: var(--forest-green);
                     color: var(--sand);
                     border-color: var(--forest-green);
                 }
 
-                .adventure-grid {
+                .bento-layout {
                     display: grid;
-                    grid-template-columns: 1.4fr 1fr;
+                    grid-template-columns: 1.45fr 1fr;
                     gap: var(--space-6);
                 }
 
-                .active-trip-card {
+                .booking-hero-card {
                     background: white;
                     border: 1px solid var(--gray-200);
                     border-radius: var(--radius-lg);
@@ -323,142 +453,280 @@ export default function DashboardClient({ bookings, profile, user }: Props) {
                     box-shadow: var(--shadow-sm);
                     display: flex;
                     flex-direction: column;
+                    transition: transform 0.3s ease, box-shadow 0.3s ease;
                 }
-                .active-trip-card__img-wrap {
+                .booking-hero-card:hover {
+                    transform: translateY(-2px);
+                    box-shadow: 0 8px 30px rgba(45, 58, 45, 0.08);
+                }
+                .booking-hero-card__img-wrap {
                     position: relative;
                     aspect-ratio: 16/9;
                     background: var(--gray-100);
                 }
-                .active-trip-card__overlay-badge {
+                .booking-hero-card__img-overlay {
                     position: absolute;
-                    top: var(--space-3);
-                    left: var(--space-3);
-                    z-index: 1;
+                    inset: 0;
+                    background: linear-gradient(to top, rgba(0, 0, 0, 0.65) 0%, transparent 60%);
                 }
-                .active-trip-card__body {
-                    padding: var(--space-6);
-                    display: flex;
-                    flex-direction: column;
-                    gap: var(--space-4);
+                .booking-hero-card__img-content {
+                    position: absolute;
+                    bottom: var(--space-4);
+                    left: var(--space-4);
+                    right: var(--space-4);
+                    color: white;
                 }
-
-                .trip-meta-grid {
-                    display: grid;
-                    grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
-                    gap: var(--space-3);
-                    background: var(--gray-50);
-                    border: 1px solid var(--gray-200);
-                    border-radius: var(--radius-md);
-                    padding: var(--space-4);
-                }
-                .meta-cell {
-                    display: flex;
-                    gap: 8px;
-                    align-items: flex-start;
-                }
-                .meta-label {
-                    display: block;
-                    font-size: 0.7rem;
-                    color: var(--gray-500);
-                    font-weight: 500;
+                .tier-tag {
+                    display: inline-block;
+                    background: rgba(255, 255, 255, 0.9);
+                    color: var(--forest-green);
+                    font-size: 0.65rem;
+                    font-weight: 700;
+                    letter-spacing: 0.1em;
                     text-transform: uppercase;
+                    padding: 2px 8px;
+                    border-radius: var(--radius-sm);
+                    margin-bottom: 4px;
                 }
-                .meta-val {
-                    display: block;
+                .camper-overlay-title {
+                    font-family: var(--font-heading);
+                    font-size: 1.75rem;
+                    font-weight: 700;
+                    color: white;
+                    margin: 0;
+                }
+                .camper-overlay-sub {
                     font-size: 0.85rem;
-                    color: var(--black-matte);
-                    font-weight: 600;
+                    color: rgba(255, 255, 255, 0.85);
+                    margin: 0;
                 }
 
-                .pickup-box {
-                    display: flex;
-                    justify-content: space-between;
-                    align-items: center;
-                    gap: var(--space-3);
-                    background: rgba(45, 58, 45, 0.04);
-                    border: 1px solid rgba(45, 58, 45, 0.1);
-                    border-radius: var(--radius-md);
-                    padding: var(--space-3) var(--space-4);
-                }
-
-                .checklist-card {
-                    background: white;
-                    border: 1px solid var(--gray-200);
-                    border-radius: var(--radius-lg);
+                .booking-hero-card__body {
                     padding: var(--space-6);
-                    box-shadow: var(--shadow-sm);
                     display: flex;
                     flex-direction: column;
-                }
-                .driver-status-box {
-                    background: var(--gray-50);
-                    border: 1px solid var(--gray-200);
-                    border-radius: var(--radius-md);
-                    padding: var(--space-4);
-                }
-                .doc-pill {
-                    display: inline-flex;
-                    align-items: center;
-                    gap: 5px;
-                    font-size: 0.75rem;
-                    font-weight: 600;
-                    padding: 4px 10px;
-                    border-radius: var(--radius-full);
-                }
-                .doc-pill--verified {
-                    background: rgba(39, 174, 96, 0.15);
-                    color: var(--success);
-                }
-                .doc-pill--pending {
-                    background: rgba(52, 152, 219, 0.15);
-                    color: #2980b9;
-                }
-                .doc-pill--unsubmitted {
-                    background: rgba(230, 126, 34, 0.15);
-                    color: var(--warning);
+                    justify-content: space-between;
+                    flex: 1;
+                    gap: var(--space-5);
                 }
 
-                .quick-nav-boxes {
-                    display: flex;
-                    flex-direction: column;
-                    gap: var(--space-2);
-                }
-                .quick-box {
-                    display: flex;
-                    align-items: center;
-                    gap: var(--space-3);
-                    padding: var(--space-3) var(--space-4);
-                    border: 1px solid var(--gray-200);
-                    border-radius: var(--radius-md);
-                    text-decoration: none;
-                    color: var(--black-matte);
-                    transition: all var(--transition-fast);
-                }
-                .quick-box:hover {
-                    border-color: var(--forest-green);
-                    background: rgba(45, 58, 45, 0.03);
-                }
-
-                .status-pill {
+                .status-badge {
                     padding: 4px 12px;
                     border-radius: var(--radius-full);
                     font-size: 0.75rem;
                     font-weight: 600;
                 }
-                .status-pill--confirmed {
-                    background: rgba(39, 174, 96, 0.95);
-                    color: white;
+                .status-badge--confirmed {
+                    background: var(--forest-green);
+                    color: var(--sand);
                 }
-                .status-pill--pending {
-                    background: rgba(230, 126, 34, 0.95);
-                    color: white;
+                .status-badge--pending {
+                    background: rgba(230, 126, 34, 0.15);
+                    color: var(--warning);
                 }
-                .status-pill--completed {
+                .status-badge--completed {
                     background: var(--gray-200);
                     color: var(--gray-700);
                 }
 
-                .empty-state-card {
+                .trip-dates-grid {
+                    display: grid;
+                    grid-template-columns: 1fr 1fr;
+                    gap: var(--space-4);
+                    background: var(--gray-50);
+                    border: 1px solid var(--gray-200);
+                    border-radius: var(--radius-md);
+                    padding: var(--space-4);
+                    margin-bottom: var(--space-4);
+                }
+                .date-block {
+                    display: flex;
+                    flex-direction: column;
+                }
+                .date-label {
+                    font-size: 0.7rem;
+                    font-weight: 700;
+                    letter-spacing: 0.06em;
+                    text-transform: uppercase;
+                    color: var(--gray-500);
+                }
+                .date-val {
+                    font-weight: 700;
+                    font-size: 0.95rem;
+                    color: var(--forest-green);
+                    margin: 2px 0;
+                }
+                .date-time {
+                    font-size: 0.75rem;
+                    color: var(--gray-600);
+                }
+
+                .extras-section {
+                    border-top: 1px solid var(--gray-100);
+                    padding-top: var(--space-3);
+                }
+                .extras-chips {
+                    display: flex;
+                    gap: 6px;
+                    flex-wrap: wrap;
+                }
+                .extra-chip {
+                    font-size: 0.75rem;
+                    font-weight: 500;
+                    padding: 3px 10px;
+                    border-radius: var(--radius-sm);
+                    background: var(--gray-100);
+                    color: var(--gray-800);
+                }
+
+                .price-summary-bar {
+                    display: flex;
+                    justify-content: space-between;
+                    align-items: center;
+                    border-top: 1px solid var(--gray-200);
+                    padding-top: var(--space-4);
+                }
+
+                .bento-side-col {
+                    display: flex;
+                    flex-direction: column;
+                    gap: var(--space-6);
+                }
+                .side-card {
+                    background: white;
+                    border: 1px solid var(--gray-200);
+                    border-radius: var(--radius-lg);
+                    padding: var(--space-6);
+                    box-shadow: var(--shadow-sm);
+                }
+                .side-card--accent {
+                    border-color: rgba(200, 168, 130, 0.4);
+                }
+                .side-card__icon-wrap {
+                    width: 36px;
+                    height: 36px;
+                    border-radius: var(--radius-md);
+                    background: rgba(45, 58, 45, 0.08);
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                }
+                .side-card__icon-wrap--sand {
+                    background: rgba(200, 168, 130, 0.2);
+                }
+
+                .driver-rows {
+                    display: flex;
+                    flex-direction: column;
+                    gap: var(--space-3);
+                }
+                .driver-row {
+                    display: flex;
+                    justify-content: space-between;
+                    align-items: center;
+                    padding: 10px 12px;
+                    background: var(--gray-50);
+                    border: 1px solid var(--gray-200);
+                    border-radius: var(--radius-md);
+                }
+                .driver-row--dashed {
+                    background: transparent;
+                    border-style: dashed;
+                }
+                .driver-avatar-mini {
+                    width: 28px;
+                    height: 28px;
+                    border-radius: 50%;
+                    background: var(--forest-green);
+                    color: var(--sand);
+                    font-size: 0.75rem;
+                    font-weight: 700;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                }
+                .driver-avatar-mini--dashed {
+                    background: var(--gray-100);
+                }
+                .doc-chip {
+                    display: inline-flex;
+                    align-items: center;
+                    gap: 4px;
+                    font-size: 0.72rem;
+                    font-weight: 600;
+                    padding: 3px 8px;
+                    border-radius: var(--radius-full);
+                }
+                .doc-chip--verified {
+                    background: rgba(39, 174, 96, 0.15);
+                    color: var(--success);
+                }
+                .doc-chip--pending {
+                    background: rgba(52, 152, 219, 0.15);
+                    color: #2980b9;
+                }
+
+                .quick-actions-section {
+                    margin-top: var(--space-4);
+                }
+                .quick-actions-grid {
+                    display: grid;
+                    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+                    gap: var(--space-4);
+                }
+                .action-tile {
+                    display: flex;
+                    align-items: center;
+                    gap: var(--space-4);
+                    padding: var(--space-5);
+                    background: white;
+                    border: 1px solid var(--gray-200);
+                    border-radius: var(--radius-lg);
+                    box-shadow: var(--shadow-sm);
+                    text-decoration: none;
+                    color: var(--black-matte);
+                    transition: border-color 0.25s ease, transform 0.25s ease;
+                }
+                .action-tile:hover {
+                    border-color: var(--forest-green);
+                    transform: translateY(-2px);
+                }
+                .action-tile__icon {
+                    width: 48px;
+                    height: 48px;
+                    border-radius: 50%;
+                    background: rgba(45, 58, 45, 0.06);
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    flex-shrink: 0;
+                    transition: background-color 0.25s ease;
+                }
+                .action-tile:hover .action-tile__icon {
+                    background: rgba(200, 168, 130, 0.25);
+                }
+                .action-tile__title {
+                    display: block;
+                    font-size: 0.95rem;
+                    color: var(--black-matte);
+                }
+                .action-tile__desc {
+                    display: block;
+                    font-size: 0.75rem;
+                    color: var(--gray-500);
+                    margin-top: 2px;
+                }
+                .action-tile__chevron {
+                    margin-left: auto;
+                    color: var(--gray-400);
+                    transition: transform 0.25s ease, color 0.25s ease;
+                }
+                .action-tile:hover .action-tile__chevron {
+                    transform: translateX(3px);
+                    color: var(--forest-green);
+                }
+
+                .empty-adventure-card {
                     background: white;
                     border: 1px solid var(--gray-200);
                     border-radius: var(--radius-lg);
@@ -466,7 +734,7 @@ export default function DashboardClient({ bookings, profile, user }: Props) {
                     text-align: center;
                     box-shadow: var(--shadow-sm);
                 }
-                .empty-state__graphic {
+                .empty-icon {
                     font-size: 3.5rem;
                     line-height: 1;
                 }
@@ -484,8 +752,141 @@ export default function DashboardClient({ bookings, profile, user }: Props) {
                     box-shadow: var(--shadow-sm);
                 }
 
-                @media (max-width: 900px) {
-                    .adventure-grid {
+                .emergency-section {
+                    margin-top: var(--space-4);
+                }
+                .emergency-card {
+                    background: linear-gradient(135deg, #F8FAF8 0%, #FFFFFF 100%);
+                    border: 1px solid rgba(45, 58, 45, 0.15);
+                    border-radius: var(--radius-xl);
+                    padding: clamp(18px, 3vw, 24px);
+                    box-shadow: var(--shadow-sm);
+                }
+                .emergency-card__header {
+                    margin-bottom: var(--space-4);
+                }
+                .emergency-badge {
+                    display: inline-flex;
+                    align-items: center;
+                    gap: 8px;
+                    background: rgba(45, 58, 45, 0.08);
+                    color: var(--forest-green);
+                    font-size: 0.82rem;
+                    font-weight: 700;
+                    letter-spacing: 0.04em;
+                    text-transform: uppercase;
+                    padding: 5px 12px;
+                    border-radius: var(--radius-full);
+                    margin-bottom: 6px;
+                }
+                .emergency-dot {
+                    width: 8px;
+                    height: 8px;
+                    border-radius: 50%;
+                    background: #16a34a;
+                    box-shadow: 0 0 0 2px rgba(22, 163, 74, 0.2);
+                    animation: pulseDot 2s infinite;
+                }
+                @keyframes pulseDot {
+                    0%, 100% { transform: scale(1); opacity: 1; }
+                    50% { transform: scale(1.3); opacity: 0.7; }
+                }
+                .emergency-subtitle {
+                    font-size: 0.85rem;
+                    color: var(--gray-600);
+                    line-height: 1.4;
+                }
+                .emergency-grid {
+                    display: grid;
+                    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+                    gap: var(--space-3);
+                }
+                .emergency-item {
+                    display: flex;
+                    align-items: center;
+                    gap: var(--space-4);
+                    padding: var(--space-4);
+                    background: white;
+                    border: 1px solid var(--gray-200);
+                    border-radius: var(--radius-lg);
+                    text-decoration: none;
+                    transition: all 0.25s ease;
+                    box-shadow: 0 1px 3px rgba(0,0,0,0.03);
+                }
+                .emergency-item:hover {
+                    transform: translateY(-2px);
+                    box-shadow: var(--shadow-md);
+                }
+                .emergency-item--utopia:hover {
+                    border-color: var(--forest-green);
+                }
+                .emergency-item--arag:hover {
+                    border-color: #dc2626;
+                }
+                .emergency-item__icon-wrap {
+                    width: 44px;
+                    height: 44px;
+                    border-radius: 12px;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    flex-shrink: 0;
+                    background: rgba(45, 58, 45, 0.08);
+                    color: var(--forest-green);
+                }
+                .emergency-item--arag .emergency-item__icon-wrap {
+                    background: rgba(220, 38, 38, 0.08);
+                    color: #dc2626;
+                }
+                .emergency-item__details {
+                    flex: 1;
+                    min-width: 0;
+                }
+                .emergency-item__title {
+                    display: block;
+                    font-size: 0.88rem;
+                    font-weight: 700;
+                    letter-spacing: 0.02em;
+                    color: var(--black-matte);
+                }
+                .emergency-item__desc {
+                    display: block;
+                    font-size: 0.72rem;
+                    color: var(--gray-500);
+                    margin-top: 1px;
+                    margin-bottom: 3px;
+                }
+                .emergency-item__phone {
+                    display: block;
+                    font-size: 1rem;
+                    font-weight: 800;
+                    color: var(--forest-green);
+                    letter-spacing: 0.03em;
+                }
+                .emergency-item--arag .emergency-item__phone {
+                    color: #dc2626;
+                }
+                .emergency-item__btn {
+                    padding: 8px 16px;
+                    background: var(--forest-green);
+                    color: white;
+                    border-radius: var(--radius-md);
+                    font-size: 0.78rem;
+                    font-weight: 700;
+                    letter-spacing: 0.03em;
+                    text-transform: uppercase;
+                    flex-shrink: 0;
+                    transition: background 0.2s ease;
+                }
+                .emergency-item__btn--arag {
+                    background: #dc2626;
+                }
+                .emergency-item:hover .emergency-item__btn {
+                    filter: brightness(1.1);
+                }
+
+                @media (max-width: 992px) {
+                    .bento-layout {
                         grid-template-columns: 1fr;
                     }
                 }

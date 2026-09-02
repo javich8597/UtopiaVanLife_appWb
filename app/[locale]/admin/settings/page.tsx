@@ -58,6 +58,13 @@ export default async function AdminSettingsPage() {
                                         </td>
                                     </tr>
                                 ))}
+                                {(!seasons || seasons.length === 0) && (
+                                    <tr>
+                                        <td colSpan={3} style={{ textAlign: 'center', padding: 'var(--space-6)', color: 'var(--gray-500)' }}>
+                                            No hay temporadas configuradas.
+                                        </td>
+                                    </tr>
+                                )}
                             </tbody>
                         </table>
                     </div>
@@ -89,6 +96,13 @@ export default async function AdminSettingsPage() {
                                         </td>
                                     </tr>
                                 ))}
+                                {(!extras || extras.length === 0) && (
+                                    <tr>
+                                        <td colSpan={3} style={{ textAlign: 'center', padding: 'var(--space-6)', color: 'var(--gray-500)' }}>
+                                            No hay extras configurados.
+                                        </td>
+                                    </tr>
+                                )}
                             </tbody>
                         </table>
                     </div>

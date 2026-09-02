@@ -1,5 +1,6 @@
 import { createClient } from '@/lib/supabase/server'
-import { Users as UsersIcon, ShieldCheck, Clock, AlertCircle } from 'lucide-react'
+import { Users as UsersIcon, ShieldCheck, Clock, AlertCircle, XCircle } from 'lucide-react'
+import { normalizeVerificationStatus } from '@/lib/admin/auth'
 
 export default async function AdminUsersPage() {
     const supabase = await createClient()
@@ -31,41 +32,51 @@ export default async function AdminUsersPage() {
                             <th>Email</th>
                             <th>Teléfono</th>
                             <th>Rol</th>
-                            <th>Carnet</th>
+                            <th>Estado Carnet</th>
                             <th>Registro</th>
                         </tr>
                     </thead>
                     <tbody>
-                        {users?.map((u: any) => (
-                            <tr key={u.id}>
-                                <td style={{ fontWeight: 600 }}>{u.full_name || 'Sin nombre'}</td>
-                                <td className="text-small">{u.email}</td>
-                                <td className="text-small" style={{ color: 'var(--gray-600)' }}>{u.phone || '-'}</td>
-                                <td>
-                                    <span className="badge badge-sand" style={{ textTransform: 'capitalize' }}>
-                                        {u.role || 'customer'}
-                                    </span>
-                                </td>
-                                <td>
-                                    {u.verification_status === 'approved' ? (
-                                        <span className="flex-center-gap text-xs" style={{ color: 'var(--success)' }}>
-                                            <ShieldCheck size={14} /> Validado
+                        {users?.map((u: any) => {
+                            const status = normalizeVerificationStatus(u.verification_status)
+                            return (
+                                <tr key={u.id}>
+                                    <td style={{ fontWeight: 600 }}>{u.full_name || 'Sin nombre'}</td>
+                                    <td className="text-small">{u.email}</td>
+                                    <td className="text-small" style={{ color: 'var(--gray-600)' }}>{u.phone || u.phone_number || '-'}</td>
+                                    <td>
+                                        <span className="badge badge-sand" style={{ textTransform: 'capitalize' }}>
+                                            {u.role || 'customer'}
                                         </span>
-                                    ) : u.verification_status === 'pending_validation' ? (
-                                        <span className="flex-center-gap text-xs" style={{ color: 'var(--sand-dark)' }}>
-                                            <Clock size={14} /> Pendiente
-                                        </span>
-                                    ) : (
-                                        <span className="flex-center-gap text-xs" style={{ color: 'var(--gray-400)' }}>
-                                            <AlertCircle size={14} /> Sin enviar
-                                        </span>
-                                    )}
-                                </td>
-                                <td className="text-xs" style={{ color: 'var(--gray-500)' }}>
-                                    {new Date(u.created_at).toLocaleDateString('es-ES')}
-                                </td>
-                            </tr>
-                        ))}
+                                    </td>
+                                    <td>
+                                        {status === 'verified' && (
+                                            <span className="flex-center-gap text-xs" style={{ color: 'var(--success)' }}>
+                                                <ShieldCheck size={14} /> Validado
+                                            </span>
+                                        )}
+                                        {status === 'pending' && (
+                                            <span className="flex-center-gap text-xs" style={{ color: 'var(--sand-dark)' }}>
+                                                <Clock size={14} /> Pendiente
+                                            </span>
+                                        )}
+                                        {status === 'rejected' && (
+                                            <span className="flex-center-gap text-xs" style={{ color: 'var(--error)' }}>
+                                                <XCircle size={14} /> Rechazado
+                                            </span>
+                                        )}
+                                        {status === 'not_submitted' && (
+                                            <span className="flex-center-gap text-xs" style={{ color: 'var(--gray-400)' }}>
+                                                <AlertCircle size={14} /> Sin enviar
+                                            </span>
+                                        )}
+                                    </td>
+                                    <td className="text-xs" style={{ color: 'var(--gray-500)' }}>
+                                        {new Date(u.created_at).toLocaleDateString('es-ES')}
+                                    </td>
+                                </tr>
+                            )
+                        })}
                         {(!users || users.length === 0) && (
                             <tr>
                                 <td colSpan={6} style={{ textAlign: 'center', padding: 'var(--space-8)', color: 'var(--gray-500)' }}>

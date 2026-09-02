@@ -1,6 +1,8 @@
 import { redirect, Link } from '@/i18n/routing'
 import { createClient } from '@/lib/supabase/server'
-import { Calendar, LayoutDashboard, Truck, Settings, Users as UsersIcon, LogOut, BookOpen, ShieldCheck } from 'lucide-react'
+import AdminNavClient from './AdminNavClient'
+import AdminSidebarFooterClient from './AdminSidebarFooterClient'
+import { isAdminUser } from '@/lib/admin/auth'
 
 export default async function AdminLayout({
     children,
@@ -26,23 +28,17 @@ export default async function AdminLayout({
         .eq('id', user.id)
         .maybeSingle()
 
-    // Si no es admin y no es el email principal de administración
-    const isUserAdmin = dbUser?.role === 'admin' || user.email === 'javipn85@gmail.com' || user.user_metadata?.is_admin === 'true'
+    const isAuthorized = isAdminUser({
+        id: user.id,
+        email: user.email,
+        role: dbUser?.role,
+        user_metadata: user.user_metadata
+    })
 
-    if (!isUserAdmin) {
+    if (!isAuthorized) {
         redirect({ href: '/dashboard', locale })
         return null
     }
-
-    const navItems = [
-        { label: 'Dashboard', href: '/admin', icon: LayoutDashboard },
-        { label: 'Calendario Maestro', href: '/admin/calendar', icon: Calendar },
-        { label: 'Reservas', href: '/admin/bookings', icon: BookOpen },
-        { label: 'Verificaciones', href: '/admin/verifications', icon: ShieldCheck },
-        { label: 'Flota', href: '/admin/campers', icon: Truck },
-        { label: 'Clientes', href: '/admin/users', icon: UsersIcon },
-        { label: 'Ajustes', href: '/admin/settings', icon: Settings },
-    ]
 
     return (
         <div className="admin-layout">
@@ -55,29 +51,9 @@ export default async function AdminLayout({
                     </Link>
                 </div>
 
-                <nav className="admin-nav">
-                    <ul>
-                        {navItems.map(item => (
-                            <li key={item.href}>
-                                <Link href={item.href as any} className="admin-nav__link">
-                                    <item.icon size={18} />
-                                    <span>{item.label}</span>
-                                </Link>
-                            </li>
-                        ))}
-                    </ul>
-                </nav>
+                <AdminNavClient />
 
-                <div className="admin-sidebar__footer">
-                    <div className="admin-user-info">
-                        <span className="text-small" style={{ fontWeight: 600 }}>{user.email}</span>
-                        <span className="text-xs" style={{ color: 'var(--gray-400)' }}>Administrator</span>
-                    </div>
-                    <Link href="/" className="admin-nav__link" style={{ color: 'var(--gray-400)', marginTop: 'var(--space-2)' }}>
-                        <LogOut size={18} />
-                        <span>Volver a la Web</span>
-                    </Link>
-                </div>
+                <AdminSidebarFooterClient email={user.email} />
             </aside>
 
             {/* Main Content */}

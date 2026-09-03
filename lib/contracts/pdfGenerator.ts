@@ -68,214 +68,199 @@ export async function generateOfficialContractPdfBlob(
   }
 
   // ─────────────────────────────────────────────────────────────
-  // PÁGINA 1: CARÁTULA FORMAL Y CONDICIONES ESPECÍFICAS
+  // PÁGINA 1: ENCABEZAMIENTO NOTARIAL Y CONDICIONES PARTICULARES
   // ─────────────────────────────────────────────────────────────
   drawPageHeader(1)
 
   let yPos = 34
 
-  // Main Contract Title
+  // Título Principal Formal
   pdf.setFont('helvetica', 'bold')
-  pdf.setFontSize(11.5)
+  pdf.setFontSize(11)
   pdf.setTextColor(...primaryColor)
   pdf.text('CONTRATO DE ARRENDAMIENTO DE VEHÍCULO VIVIENDA SIN CONDUCTOR', 105, yPos, { align: 'center' })
 
-  yPos += 5
-  pdf.setFont('helvetica', 'normal')
-  pdf.setFontSize(7.5)
-  pdf.setTextColor(...slateMuted)
-  pdf.text('Suscrito entre Utopia Van Life S.L. y la parte Arrendataria en Palma de Mallorca', 105, yPos, { align: 'center' })
-
-  yPos += 7
-
-  // Bloque 1: Arrendador (Izquierda) & Arrendatario (Derecha)
-  const boxWidth = 84
-  const boxHeight = 44
-
-  // Caja Arrendador
-  pdf.setFillColor(...bgSoft)
-  pdf.setDrawColor(...borderLight)
-  pdf.roundedRect(18, yPos, boxWidth, boxHeight, 2, 2, 'FD')
-
+  yPos += 4.5
   pdf.setFont('helvetica', 'bold')
-  pdf.setFontSize(7.5)
+  pdf.setFontSize(8)
   pdf.setTextColor(...slateMuted)
-  pdf.text('1. PARTE ARRENDADORA (UTOPIA)', 22, yPos + 6)
+  pdf.text('CONDICIONES PARTICULARES DE LA CONTRATACIÓN', 105, yPos, { align: 'center' })
 
-  pdf.setFont('helvetica', 'normal')
+  yPos += 3
+  pdf.setDrawColor(...primaryColor)
+  pdf.setLineWidth(0.4)
+  pdf.line(18, yPos, 192, yPos)
+
+  yPos += 6
+
+  // 1. REUNIDOS / INTERVINIENTES
+  pdf.setFont('helvetica', 'bold')
+  pdf.setFontSize(8)
+  pdf.setTextColor(...primaryColor)
+  pdf.text('I. INTERVINIENTES (REUNIDOS)', 18, yPos)
+
+  yPos += 4.5
+
+  // Arrendador
+  pdf.setFont('helvetica', 'bold')
   pdf.setFontSize(7.5)
   pdf.setTextColor(...slateDark)
-  pdf.text('Razón Social:', 22, yPos + 12)
-  pdf.setFont('helvetica', 'bold')
-  pdf.text(data.lessor.companyName, 43, yPos + 12)
+  pdf.text('DE UNA PARTE, COMO ARRENDADOR:', 18, yPos)
+  yPos += 3.8
 
   pdf.setFont('helvetica', 'normal')
-  pdf.text('CIF / NIF:', 22, yPos + 17)
+  pdf.setFontSize(7.2)
+  const lessorLegalText = `${data.lessor.companyName}, con CIF ${data.lessor.cif}, domicilio social en ${data.lessor.address}, ${data.lessor.city} (España), con actividad de arrendamiento de vehículos vivienda sin conductor en la isla de Mallorca, debidamente representada en este acto por su representante legal D. ${data.lessor.representative} (Contacto: ${data.lessor.email} | ${data.lessor.phone}).`
+  const lessorLines = pdf.splitTextToSize(lessorLegalText, 174)
+  pdf.text(lessorLines, 18, yPos)
+  yPos += lessorLines.length * 3.4 + 2.5
+
+  // Arrendatario
   pdf.setFont('helvetica', 'bold')
-  pdf.text(data.lessor.cif, 43, yPos + 17)
-
-  pdf.setFont('helvetica', 'normal')
-  pdf.text('Domicilio:', 22, yPos + 22)
-  const lessorAddr = pdf.splitTextToSize(`${data.lessor.address}, ${data.lessor.city}`, 58)
-  pdf.text(lessorAddr, 43, yPos + 22)
-
-  pdf.text('Representante:', 22, yPos + 32)
-  pdf.setFont('helvetica', 'bold')
-  pdf.text(data.lessor.representative, 43, yPos + 32)
-
-  pdf.setFont('helvetica', 'normal')
-  pdf.text('Contacto:', 22, yPos + 38)
-  pdf.text(`${data.lessor.email} | ${data.lessor.phone}`, 43, yPos + 38)
-
-  // Caja Arrendatario
-  pdf.setFillColor(...bgSoft)
-  pdf.roundedRect(108, yPos, boxWidth, boxHeight, 2, 2, 'FD')
-
-  pdf.setFont('helvetica', 'bold')
-  pdf.setFontSize(7.5)
-  pdf.setTextColor(...slateMuted)
-  pdf.text('2. PARTE ARRENDATARIA (CLIENTE)', 112, yPos + 6)
-
-  pdf.setFont('helvetica', 'normal')
   pdf.setFontSize(7.5)
   pdf.setTextColor(...slateDark)
-  pdf.text('Nombre:', 112, yPos + 12)
-  pdf.setFont('helvetica', 'bold')
-  pdf.text(data.lessee.fullName, 133, yPos + 12)
+  pdf.text('DE OTRA PARTE, COMO ARRENDATARIO (CONDUCTOR PRINCIPAL):', 18, yPos)
+  yPos += 3.8
 
   pdf.setFont('helvetica', 'normal')
-  pdf.text('DNI / Pasaporte:', 112, yPos + 17)
-  pdf.setFont('helvetica', 'bold')
-  pdf.text(data.lessee.dniNie, 133, yPos + 17)
+  pdf.setFontSize(7.2)
+  const lesseeLegalText = `D./Dña. ${data.lessee.fullName}, con documento identificativo DNI/NIE/Pasaporte nº ${data.lessee.dniNie}, titular de permiso de conducción de clase B en vigor nº ${data.lessee.driverLicenseId} (${data.lessee.yearsHeld} años de antigüedad de carné), con domicilio formal a efectos de notificaciones en ${data.lessee.address}, teléfono de contacto ${data.lessee.phone} y correo electrónico ${data.lessee.email}.`
+  const lesseeLines = pdf.splitTextToSize(lesseeLegalText, 174)
+  pdf.text(lesseeLines, 18, yPos)
+  yPos += lesseeLines.length * 3.4 + 2.5
 
-  pdf.setFont('helvetica', 'normal')
-  pdf.text('Carné Conducir:', 112, yPos + 22)
-  pdf.text(`${data.lessee.driverLicenseId} (${data.lessee.yearsHeld} años antig.)`, 133, yPos + 22)
-
-  pdf.text('Domicilio:', 112, yPos + 27)
-  const clientAddr = pdf.splitTextToSize(data.lessee.address, 58)
-  pdf.text(clientAddr, 133, yPos + 27)
-
-  pdf.text('Teléfono:', 112, yPos + 34)
-  pdf.text(data.lessee.phone, 133, yPos + 34)
-
-  pdf.text('Email:', 112, yPos + 39)
-  pdf.text(data.lessee.email, 133, yPos + 39)
-
-  yPos += boxHeight + 6
-
-  // Segundo conductor si aplica
+  // Segundo conductor si existe
   if (data.secondDriver) {
-    pdf.setFillColor(...bgSoft)
-    pdf.roundedRect(18, yPos, 174, 16, 2, 2, 'FD')
     pdf.setFont('helvetica', 'bold')
     pdf.setFontSize(7.5)
-    pdf.setTextColor(...slateMuted)
-    pdf.text('SEGUNDO CONDUCTOR AUTORIZADO / OTROS OCUPANTES', 22, yPos + 5.5)
+    pdf.setTextColor(...slateDark)
+    pdf.text('SEGUNDO CONDUCTOR AUTORIZADO:', 18, yPos)
+    yPos += 3.8
 
     pdf.setFont('helvetica', 'normal')
-    pdf.setFontSize(7.5)
-    pdf.setTextColor(...slateDark)
-    pdf.text(`Nombre: ${data.secondDriver.fullName}`, 22, yPos + 11)
-    pdf.text(`DNI/NIE: ${data.secondDriver.dniNie}`, 90, yPos + 11)
-    pdf.text(`Nº Carnet: ${data.secondDriver.driverLicenseId}`, 145, yPos + 11)
-
-    yPos += 21
+    pdf.setFontSize(7.2)
+    const secondDriverText = `D./Dña. ${data.secondDriver.fullName}, con DNI/NIE nº ${data.secondDriver.dniNie} y permiso de conducción nº ${data.secondDriver.driverLicenseId}, facultado como conductor adicional bajo los mismos términos, garantías y coberturas.`
+    const secondDriverLines = pdf.splitTextToSize(secondDriverText, 174)
+    pdf.text(secondDriverLines, 18, yPos)
+    yPos += secondDriverLines.length * 3.4 + 2.5
   }
 
-  // Bloque 3: Vehículo y Fechas / Precio
-  const row2H = 46
-
-  // Vehículo
-  pdf.setFillColor(...bgSoft)
-  pdf.roundedRect(18, yPos, boxWidth, row2H, 2, 2, 'FD')
-
-  pdf.setFont('helvetica', 'bold')
-  pdf.setFontSize(7.5)
-  pdf.setTextColor(...slateMuted)
-  pdf.text('3. VEHÍCULO ARRENDADO', 22, yPos + 6)
-
-  pdf.setFont('helvetica', 'normal')
-  pdf.setFontSize(7.5)
-  pdf.setTextColor(...slateDark)
-  pdf.text('Modelo:', 22, yPos + 12)
-  pdf.setFont('helvetica', 'bold')
-  pdf.text(data.vehicle.modelName, 43, yPos + 12)
-
-  pdf.setFont('helvetica', 'normal')
-  pdf.text('Matrícula:', 22, yPos + 17.5)
-  pdf.setFont('helvetica', 'bold')
-  pdf.text(data.vehicle.plateNumber, 43, yPos + 17.5)
-
-  pdf.setFont('helvetica', 'normal')
-  pdf.text('Tipo Chasis:', 22, yPos + 23)
-  pdf.text(data.vehicle.vehicleType, 43, yPos + 23)
-
-  pdf.text('Capacidad:', 22, yPos + 28.5)
-  pdf.text(data.vehicle.capacity, 43, yPos + 28.5)
-
-  pdf.text('Sistemas:', 22, yPos + 34)
-  const sysText = pdf.splitTextToSize('Litio Victron 540Ah, Placas 400W, A/A 12V Dometic, Calefacción Truma', 58)
-  pdf.text(sysText, 43, yPos + 34)
-
-  // Duración, Precio y Fianza
-  pdf.setFillColor(...bgSoft)
-  pdf.roundedRect(108, yPos, boxWidth, row2H, 2, 2, 'FD')
-
-  pdf.setFont('helvetica', 'bold')
-  pdf.setFontSize(7.5)
-  pdf.setTextColor(...slateMuted)
-  pdf.text('4. CONDICIONES DE RESERVA Y FIANZA', 112, yPos + 6)
-
-  pdf.setFont('helvetica', 'normal')
-  pdf.setFontSize(7.5)
-  pdf.setTextColor(...slateDark)
-  pdf.text('Inicio alquiler:', 112, yPos + 12)
-  pdf.setFont('helvetica', 'bold')
-  pdf.text(`${data.booking.startDate} (desde las ${data.booking.pickupTime})`, 135, yPos + 12)
-
-  pdf.setFont('helvetica', 'normal')
-  pdf.text('Fin alquiler:', 112, yPos + 17.5)
-  pdf.setFont('helvetica', 'bold')
-  pdf.text(`${data.booking.endDate} (antes de las ${data.booking.dropoffTime})`, 135, yPos + 17.5)
-
-  pdf.setFont('helvetica', 'normal')
-  pdf.text('Lugar Entrega:', 112, yPos + 23)
-  const locText = pdf.splitTextToSize(data.booking.pickupLocation, 56)
-  pdf.text(locText, 135, yPos + 23)
-
-  pdf.setFont('helvetica', 'bold')
-  pdf.text('PRECIO TOTAL:', 112, yPos + 34)
-  pdf.setTextColor(...primaryColor)
-  pdf.setFontSize(9)
-  pdf.text(`${data.pricing.totalPrice.toFixed(2)} € (IVA inc.)`, 140, yPos + 34)
-
-  pdf.setFontSize(7.5)
-  pdf.setTextColor(...slateDark)
-  pdf.text('FIANZA OBLIGATORIA:', 112, yPos + 40)
-  pdf.setFont('helvetica', 'bold')
-  pdf.setTextColor(180, 83, 9) // Amber
-  pdf.text(`${data.pricing.depositAmount.toFixed(2)} € (Tarjeta)`, 145, yPos + 40)
-
-  yPos += row2H + 8
-
-  // Resumen de aceptación preliminar en página 1
-  pdf.setFillColor(240, 253, 244)
-  pdf.setDrawColor(187, 247, 208)
-  pdf.roundedRect(18, yPos, 174, 20, 2, 2, 'FD')
-
-  pdf.setFont('helvetica', 'bold')
-  pdf.setFontSize(7.5)
-  pdf.setTextColor(22, 101, 52)
-  pdf.text('✓ DECLARACIÓN EXPRESA DE CONFORMIDAD Y VALIDEZ CONTRACTUAL', 22, yPos + 6)
-
-  pdf.setFont('helvetica', 'normal')
+  // Párrafo de reconocimiento mutuo
+  pdf.setFont('helvetica', 'italic')
   pdf.setFontSize(7)
-  pdf.setTextColor(21, 128, 61)
-  const declText =
-    'Ambas partes acuerdan formalizar el presente contrato de alquiler, declarando el arrendatario haber recibido información previa, conocer los requisitos del conductor y aceptar íntegramente las Condiciones Generales detalladas en los siguientes capítulos.'
-  const declLines = pdf.splitTextToSize(declText, 166)
-  pdf.text(declLines, 22, yPos + 10.5)
+  pdf.setTextColor(...slateMuted)
+  const capacityText = 'Ambas partes se reconocen mutuamente plena capacidad jurídica y de obrar suficiente para el otorgamiento del presente contrato de arrendamiento mercantil y, a tal fin, convienen las siguientes:'
+  const capacityLines = pdf.splitTextToSize(capacityText, 174)
+  pdf.text(capacityLines, 18, yPos)
+  yPos += capacityLines.length * 3.2 + 4.5
+
+  // 2. CONDICIONES PARTICULARES
+  pdf.setFont('helvetica', 'bold')
+  pdf.setFontSize(8)
+  pdf.setTextColor(...primaryColor)
+  pdf.text('II. CONDICIONES PARTICULARES Y ECONÓMICAS DEL ARRENDAMIENTO', 18, yPos)
+
+  yPos += 4.5
+
+  const particulars: Array<{ label: string; value: string; boldValue?: boolean; highlight?: boolean }> = [
+    {
+      label: 'Vehículo Arrendado:',
+      value: `${data.vehicle.modelName} (Matrícula: ${data.vehicle.plateNumber} · Chasis: ${data.vehicle.vehicleType})`,
+      boldValue: true
+    },
+    {
+      label: 'Capacidad & Sistemas:',
+      value: `${data.vehicle.capacity} · Sistema eléctrico Victron Litio 540Ah, Placas 400W, A/A Dometic, Calefacción Truma`
+    },
+    {
+      label: 'Periodo de Arrendamiento:',
+      value: `Del ${data.booking.startDate} (${data.booking.pickupTime}) hasta el ${data.booking.endDate} (${data.booking.dropoffTime})`,
+      boldValue: true
+    },
+    {
+      label: 'Lugar Entrega / Devolución:',
+      value: `${data.booking.pickupLocation} · Palma de Mallorca (Illes Balears)`
+    },
+    {
+      label: 'Precio Total del Alquiler:',
+      value: `${data.pricing.totalPrice.toFixed(2)} € (IVA e impuestos incluidos)`,
+      boldValue: true,
+      highlight: true
+    },
+    {
+      label: 'Fianza Obligatoria:',
+      value: `${data.pricing.depositAmount.toFixed(2)} € (Bloqueo en tarjeta bancaria previa a la entrega física)`,
+      boldValue: true
+    },
+    {
+      label: 'Póliza de Seguro & Franquicia:',
+      value: `Seguro a todo riesgo con franquicia de ${data.pricing.depositAmount.toFixed(2)} € por siniestro y asistencia 24h en Mallorca`
+    },
+    {
+      label: 'Kilometraje & Territorio:',
+      value: '150 km diarios acumulables · Ámbito territorial exclusivo en la isla de Mallorca (prohibido embarque marítimo)'
+    }
+  ]
+
+  // Línea superior de la tabla
+  pdf.setDrawColor(...primaryColor)
+  pdf.setLineWidth(0.4)
+  pdf.line(18, yPos, 192, yPos)
+  yPos += 1.5
+
+  const colLabelX = 20
+  const colValX = 68
+  const colValW = 122
+
+  for (const row of particulars) {
+    const rowYStart = yPos + 2.8
+    pdf.setFont('helvetica', 'bold')
+    pdf.setFontSize(7.2)
+    pdf.setTextColor(...slateDark)
+    pdf.text(row.label, colLabelX, rowYStart)
+
+    if (row.boldValue) {
+      pdf.setFont('helvetica', 'bold')
+    } else {
+      pdf.setFont('helvetica', 'normal')
+    }
+
+    if (row.highlight) {
+      pdf.setTextColor(...primaryColor)
+      pdf.setFontSize(7.6)
+    } else {
+      pdf.setTextColor(...slateDark)
+      pdf.setFontSize(7.2)
+    }
+
+    const valLines = pdf.splitTextToSize(row.value, colValW)
+    pdf.text(valLines, colValX, rowYStart)
+
+    const rowHeight = Math.max(5.2, valLines.length * 3.3 + 1.8)
+    yPos += rowHeight
+
+    // Línea sutil horizontal divisoria
+    pdf.setDrawColor(...borderLight)
+    pdf.setLineWidth(0.2)
+    pdf.line(18, yPos, 192, yPos)
+  }
+
+  yPos += 5.5
+
+  // 3. DISPOSICIÓN GENERAL
+  pdf.setFont('helvetica', 'bold')
+  pdf.setFontSize(7.5)
+  pdf.setTextColor(...primaryColor)
+  pdf.text('III. DISPOSICIÓN GENERAL Y CONFORMIDAD CONTRACTUAL', 18, yPos)
+
+  yPos += 3.8
+  pdf.setFont('helvetica', 'normal')
+  pdf.setFontSize(6.9)
+  pdf.setTextColor(...slateDark)
+  const agreementText =
+    'Las partes contratantes convienen libremente someter el presente arrendamiento a las Condiciones Particulares precedentemente expuestas y a las Condiciones Generales que se desarrollan de manera correlativa y exhaustiva en las páginas siguientes (Artículos 1 al 17 inclusive y cláusula de Protección de Datos de Carácter Personal), las cuales el Arrendatario declara haber examinado con carácter previo a la formalización del presente contrato, comprendiendo y aceptando expresamente todos sus términos y efectos jurídicos.'
+  const agreementLines = pdf.splitTextToSize(agreementText, 174)
+  pdf.text(agreementLines, 18, yPos)
 
   // ─────────────────────────────────────────────────────────────
   // PÁGINAS 2+: ARTÍCULOS LEGALES ÍNTEGROS (1 al 17)

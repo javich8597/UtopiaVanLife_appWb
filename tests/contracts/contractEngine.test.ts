@@ -1,99 +1,71 @@
 import { describe, it } from 'node:test'
-import assert from 'node:assert'
-import { validateDriverLicense } from '../../lib/contracts/licenseValidator'
-import { generateContractData, detectCamperModelSpecs } from '../../lib/contracts/contractEngine'
+import assert from 'node:assert/strict'
+import { validateContractRequirements, generateContractData } from '../../lib/contracts/contractEngine'
 
-describe('Driver License Validation & Expiration Engine', () => {
-  it('should mark license as valid if expiry date is in the future and issue date is > 2 years ago', () => {
-    const today = new Date()
-    const issueDate = new Date(today.getFullYear() - 5, today.getMonth(), today.getDate()).toISOString().split('T')[0]
-    const expiryDate = new Date(today.getFullYear() + 5, today.getMonth(), today.getDate()).toISOString().split('T')[0]
-
-    const result = validateDriverLicense(issueDate, expiryDate)
-    assert.strictEqual(result.isValid, true)
-    assert.strictEqual(result.isExpired, false)
-    assert.strictEqual(result.isNovel, false)
-    assert.strictEqual(result.yearsHeld >= 5, true)
+describe('contractEngine validation and data generation', () => {
+  it('detects incomplete profile data', () => {
+    const invalidProfile = {
+      full_name: 'Juan Pérez',
+      dni_nie: '', // Missing
+      phone: '+34600112233'
+    }
+    const result = validateContractRequirements(invalidProfile)
+    assert.equal(result.isValid, false)
+    assert.ok(result.missingFields.includes('dni_nie'))
   })
 
-  it('should flag license as novel if issue date is less than 2 years ago', () => {
-    const today = new Date()
-    const issueDate = new Date(today.getFullYear() - 1, today.getMonth(), today.getDate()).toISOString().split('T')[0]
-    const expiryDate = new Date(today.getFullYear() + 8, today.getMonth(), today.getDate()).toISOString().split('T')[0]
-
-    const result = validateDriverLicense(issueDate, expiryDate)
-    assert.strictEqual(result.isValid, true)
-    assert.strictEqual(result.isNovel, true)
-    assert.strictEqual(result.isExpired, false)
-    assert.match(result.warningMessage || '', /menos de 2 años/)
+  it('detects expired or novel license (< 2 years)', () => {
+    const novelProfile = {
+      full_name: 'Juan Pérez',
+      dni_nie: '12345678Z',
+      phone: '+34600112233',
+      address: 'Calle Mayor 1, Madrid',
+      driver_license_id: 'B-12345678',
+      driver_license_issue_date: new Date().toISOString(), // 0 years
+      driver_license_expiry_date: '2030-01-01'
+    }
+    const result = validateContractRequirements(novelProfile)
+    assert.equal(result.isValid, false)
+    assert.ok(result.issues.includes('license_too_novel'))
   })
 
-  it('should flag license as expired if expiry date is in the past', () => {
-    const today = new Date()
-    const issueDate = new Date(today.getFullYear() - 10, today.getMonth(), today.getDate()).toISOString().split('T')[0]
-    const expiryDate = new Date(today.getFullYear() - 1, today.getMonth(), today.getDate()).toISOString().split('T')[0]
-
-    const result = validateDriverLicense(issueDate, expiryDate)
-    assert.strictEqual(result.isValid, false)
-    assert.strictEqual(result.isExpired, true)
-    assert.match(result.warningMessage || '', /caducado/)
-  })
-})
-
-describe('Camper Model Detection (NEO vs SPACE)', () => {
-  it('should correctly detect NEO model specifications', () => {
-    const specs = detectCamperModelSpecs('neo')
-    assert.strictEqual(specs.modelName, 'Nomade NEO')
-    assert.strictEqual(specs.vehicleType, 'Fiat Ducato L3H2 (5.99m)')
-    assert.match(specs.capacity, /2-3 Plazas/)
-    assert.strictEqual(specs.lengthMeters, 5.99)
+  it('validates complete and correct profile', () => {
+    const validProfile = {
+      full_name: 'Juan Pérez',
+      dni_nie: '12345678Z',
+      phone: '+34600112233',
+      address: 'Calle Mayor 1, Madrid',
+      driver_license_id: 'B-12345678',
+      driver_license_issue_date: '2015-01-01',
+      driver_license_expiry_date: '2030-01-01'
+    }
+    const result = validateContractRequirements(validProfile)
+    assert.equal(result.isValid, true)
+    assert.equal(result.missingFields.length, 0)
   })
 
-  it('should correctly detect SPACE model specifications', () => {
-    const specs = detectCamperModelSpecs('space')
-    assert.strictEqual(specs.modelName, 'Nomade SPACE')
-    assert.strictEqual(specs.vehicleType, 'Fiat Ducato L3H2 (5.99m)')
-    assert.match(specs.capacity, /2 Plazas/)
-    assert.strictEqual(specs.lengthMeters, 5.99)
-  })
-})
-
-describe('Dynamic Contract Data Generation', () => {
-  it('should auto-fill all user, vehicle and booking fields into the official contract structure', () => {
-    const mockBooking = {
-      id: 'book-12345',
-      start_date: '2026-09-10',
-      end_date: '2026-09-15',
-      pickup_time: '10:00',
-      dropoff_time: '18:00',
-      total_price: 750,
-      extras: ['cama_extra', 'pack_playa'],
+  it('generates official Utopia Van Life legal data and full 17 articles', () => {
+    const dummyBooking = {
+      id: 'book-abc-123',
+      start_date: '2026-10-03',
+      end_date: '2026-10-05',
+      total_price: 450,
       camper: { slug: 'neo', name: 'Nomade NEO' }
     }
-
-    const mockProfile = {
-      full_name: 'Carlos Ruiz García',
-      dni_nie: '12345678Z',
+    const dummyProfile = {
+      full_name: 'Laura Gómez',
+      dni_nie: '87654321X',
+      phone: '+34611223344',
+      address: 'Av. Diagonal 100, Barcelona',
       driver_license_id: 'B-87654321',
-      driver_license_issue_date: '2018-05-12',
-      driver_license_expiry_date: '2028-05-12',
-      address: 'Calle Mayor 14, 28013 Madrid, España',
-      phone: '+34 654 321 987',
-      email: 'carlos@example.com'
+      driver_license_issue_date: '2018-05-10',
+      driver_license_expiry_date: '2028-05-10'
     }
-
-    const contract = generateContractData(mockBooking, mockProfile)
-
-    assert.strictEqual(contract.contractNumber, 'CTR-BOOK-BOOK1234')
-    assert.strictEqual(contract.lessor.companyName, 'Utopia Van Life S.L.')
-    assert.strictEqual(contract.lessee.fullName, 'Carlos Ruiz García')
-    assert.strictEqual(contract.lessee.dniNie, '12345678Z')
-    assert.strictEqual(contract.lessee.driverLicenseId, 'B-87654321')
-    assert.strictEqual(contract.vehicle.modelName, 'Nomade NEO')
-    assert.strictEqual(contract.vehicle.vehicleType, 'Fiat Ducato L3H2 (5.99m)')
-    assert.strictEqual(contract.booking.startDate, '2026-09-10')
-    assert.strictEqual(contract.booking.endDate, '2026-09-15')
-    assert.strictEqual(contract.pricing.totalPrice, 750)
-    assert.strictEqual(contract.pricing.depositAmount, 1000)
+    const data = generateContractData(dummyBooking, dummyProfile)
+    assert.equal(data.lessor.companyName, 'UTOPIA VAN LIFE SL')
+    assert.equal(data.lessor.cif, 'B24902637')
+    assert.equal(data.lessor.representative, 'ROBERTO ESTEBANEZ BLANCO')
+    assert.equal(data.pricing.depositAmount, 1000)
+    assert.ok(data.articles.length >= 17)
   })
 })

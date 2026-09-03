@@ -1,3 +1,5 @@
+import { validateDriverLicense } from './licenseValidator'
+
 export interface CamperModelSpecs {
   modelKey: 'neo' | 'space' | 'general'
   modelName: string
@@ -6,6 +8,13 @@ export interface CamperModelSpecs {
   capacity: string
   layoutDescription: string
   specsList: string[]
+}
+
+export interface ContractArticle {
+  number: number
+  title: string
+  chapter: string
+  content: string[]
 }
 
 export interface ContractData {
@@ -18,6 +27,8 @@ export interface ContractData {
     city: string
     phone: string
     email: string
+    representative: string
+    activity: string
   }
   lessee: {
     fullName: string
@@ -25,9 +36,15 @@ export interface ContractData {
     driverLicenseId: string
     driverLicenseIssueDate: string
     driverLicenseExpiryDate: string
+    yearsHeld: number
     address: string
     phone: string
     email: string
+  }
+  secondDriver?: {
+    fullName: string
+    dniNie: string
+    driverLicenseId: string
   }
   vehicle: {
     modelName: string
@@ -50,7 +67,67 @@ export interface ContractData {
     depositAmount: number
     extras: string[]
   }
+  articles: ContractArticle[]
+  rgpdText: {
+    responsable: string
+    finalidad: string
+    legitimacion: string
+    conservacion: string
+    destinatarios: string
+    derechos: string
+    contacto: string
+  }
   clauses: string[]
+}
+
+export interface ContractValidationResult {
+  isValid: boolean
+  missingFields: string[]
+  issues: string[]
+  errorMessage?: string
+}
+
+export function validateContractRequirements(profile: any): ContractValidationResult {
+  const missingFields: string[] = []
+  const issues: string[] = []
+
+  if (!profile?.full_name?.trim()) missingFields.push('full_name')
+  if (!profile?.dni_nie?.trim()) missingFields.push('dni_nie')
+  if (!profile?.phone?.trim()) missingFields.push('phone')
+  if (!profile?.address?.trim()) missingFields.push('address')
+  if (!profile?.driver_license_id?.trim()) missingFields.push('driver_license_id')
+  if (!profile?.driver_license_issue_date?.trim()) missingFields.push('driver_license_issue_date')
+  if (!profile?.driver_license_expiry_date?.trim()) missingFields.push('driver_license_expiry_date')
+
+  if (profile?.driver_license_issue_date && profile?.driver_license_expiry_date) {
+    const licenseCheck = validateDriverLicense(
+      profile.driver_license_issue_date,
+      profile.driver_license_expiry_date
+    )
+
+    if (licenseCheck.isExpired) {
+      issues.push('license_expired')
+    }
+    if (licenseCheck.yearsHeld < 2) {
+      issues.push('license_too_novel')
+    }
+  }
+
+  let errorMessage: string | undefined
+  if (missingFields.length > 0) {
+    errorMessage = 'Faltan datos obligatorios en tu perfil para formalizar el contrato.'
+  } else if (issues.includes('license_expired')) {
+    errorMessage = 'El carnet de conducir registrado se encuentra caducado.'
+  } else if (issues.includes('license_too_novel')) {
+    errorMessage = 'El carnet de conducir debe tener un mínimo de 2 años de antigüedad según los términos de seguro.'
+  }
+
+  return {
+    isValid: missingFields.length === 0 && issues.length === 0,
+    missingFields,
+    issues,
+    errorMessage
+  }
 }
 
 export function detectCamperModelSpecs(slugOrName?: string | null): CamperModelSpecs {
@@ -104,6 +181,186 @@ export function detectCamperModelSpecs(slugOrName?: string | null): CamperModelS
   }
 }
 
+export function getOfficialContractArticles(): ContractArticle[] {
+  return [
+    {
+      number: 1,
+      title: 'Identificación del Arrendador',
+      chapter: 'CAPÍTULO I – DISPOSICIONES GENERALES',
+      content: [
+        'UTOPIA VAN LIFE SL, CIF B24902637, con domicilio social en C\\ Cristo de los remedios, nº2, Planta 0, Puerta 2, CP.: 28703 San Sebastián de los Reyes, Madrid, España, en adelante "el ARRENDADOR", desarrolla la actividad de arrendamiento de vehículos vivienda sin conductor en la isla de Mallorca.',
+        'Las presentes Condiciones Generales regulan íntegramente la reserva y el contrato de arrendamiento formalizado con el cliente (en adelante, el "ARRENDATARIO").'
+      ]
+    },
+    {
+      number: 2,
+      title: 'Proceso de reserva',
+      chapter: 'CAPÍTULO II – RESERVA Y PERFECCIONAMIENTO CONTRACTUAL',
+      content: [
+        'Para confirmar la reserva, será necesario abonar el 100% del importe total del alquiler en el momento de la solicitud y firmar el presente contrato de forma digital y remitirlo a UTOPIA VAN LIFE SL.'
+      ]
+    },
+    {
+      number: 3,
+      title: 'Precio, cancelación y cambio de fechas',
+      chapter: 'CAPÍTULO II – RESERVA Y PERFECCIONAMIENTO CONTRACTUAL',
+      content: [
+        'El precio será el vigente en el momento de la reserva.',
+        'Condiciones de Cancelación:',
+        '• Más de 30 días antes del inicio del alquiler: Se devolverá íntegramente el importe abonado en concepto de reserva.',
+        '• Entre 29 y 15 días antes del inicio del alquiler: Se retendrá el 50% del importe de la reserva.',
+        '• 14 días o menos antes del inicio del alquiler: Se retendrá el 100% del importe de la reserva.',
+        'En caso de no presentación del cliente en la fecha y hora acordadas, se aplicará la misma condición que para cancelaciones de menos de 14 días.',
+        'Cambio de fechas: Podrás solicitar un único cambio de fechas sin coste con más de 15 días de antelación, sujeto a disponibilidad. Importante: el cambio de fechas no modifica ni reinicia las condiciones de cancelación originales de la reserva.'
+      ]
+    },
+    {
+      number: 4,
+      title: 'Conductores autorizados',
+      chapter: 'CAPÍTULO III – CONDUCTORES Y USO',
+      content: [
+        'El conductor deberá cumplir obligatoriamente los siguientes requisitos:',
+        '• Edad mínima: 25 años.',
+        '• Permiso de conducir tipo B en vigor.',
+        '• Antigüedad mínima de carné: 2 años.',
+        'Solo podrán conducir las personas expresamente autorizadas e identificadas en el contrato. El incumplimiento de estos requisitos implicará la pérdida de cobertura del seguro en daños propios, siendo el arrendatario responsable de la totalidad de los daños ocasionados.'
+      ]
+    },
+    {
+      number: 5,
+      title: 'Usos permitidos y prohibidos',
+      chapter: 'CAPÍTULO III – CONDUCTORES Y USO',
+      content: [
+        'El vehículo deberá utilizarse de forma responsable y conforme a la normativa vigente.',
+        'Queda expresamente prohibido:',
+        '• Circular por playas, arena o dunas.',
+        '• Circular por caminos no asfaltados no aptos para turismos o de riesgo evidente.',
+        '• Acceder a pistas forestales, agrícolas o zonas de difícil acceso.',
+        '• Circular fuera de vías accesibles a servicios de asistencia en carretera.',
+        '• Transportar más ocupantes de los homologados y autorizados.',
+        '• Subarrendar el vehículo o destinarlo a actividades comerciales o ilícitas.',
+        'El incumplimiento de estas condiciones implicará la asunción total de daños, costes de rescate y responsabilidades por parte del arrendatario.'
+      ]
+    },
+    {
+      number: 6,
+      title: 'Entrega y verificación inicial',
+      chapter: 'CAPÍTULO IV – ENTREGA, FIANZA Y DEVOLUCIÓN',
+      content: [
+        'El arrendatario deberá recibir instrucciones de uso del vehículo. Para ello se pondrá a disposición del ARRENDATARIO videos explicativos detallados de cada accesorio integrado en el vehículo, quien con la firma de este contrato da fe de su visualización y comprensión previa a la entrega.',
+        'Participar activamente en el checklist de entrega y devolución.',
+        'Aceptación de un video del estado del vehículo in situ, tanto interior como exterior, que será válido como prueba documental.',
+        'El arrendatario declara recibir el vehículo en perfecto estado, salvo incidencias reflejadas en el checklist, renunciando a reclamaciones posteriores no comunicadas en el momento de la entrega.',
+        'Para la retirada del vehículo será obligatorio presentar DNI/pasaporte original y permiso de conducir original en vigor.'
+      ]
+    },
+    {
+      number: 7,
+      title: 'Fianza',
+      chapter: 'CAPÍTULO IV – ENTREGA, FIANZA Y DEVOLUCIÓN',
+      content: [
+        'A la firma del contrato, previo a la retirada del vehículo, se depositará una fianza mediante tarjeta bancaria por importe de 1.000 €.',
+        'La fianza garantiza la franquicia del seguro, posibles daños causados durante el alquiler, multas o sanciones atribuibles al arrendatario, combustible faltante, limpieza especial o retraso en la devolución.',
+        'La fianza se devolverá tras la revisión completa del vehículo en un plazo máximo de 48 horas hábiles tras la finalización del alquiler.'
+      ]
+    },
+    {
+      number: 8,
+      title: 'Devolución del vehículo',
+      chapter: 'CAPÍTULO IV – ENTREGA, FIANZA Y DEVOLUCIÓN',
+      content: [
+        'El vehículo se devolverá en el mismo estado en el que fue entregado, con el depósito de combustible lleno y depósitos de aguas grises y WC químico vaciados y limpios.',
+        'Horario de devolución: La entrega posterior a la hora acordada sin autorización previa conllevará una penalización económica de 30 €/hora o fracción.',
+        'Limpieza: El vehículo debe devolverse en condiciones razonables de limpieza. En caso de suciedad extraordinaria, barro severo, manchas en tapicería o residuos no retirados, se aplicará un recargo de limpieza de 80 € a 150 € deducible de la fianza.'
+      ]
+    },
+    {
+      number: 9,
+      title: 'Kilometraje y ámbito territorial',
+      chapter: 'CAPÍTULO V – CONDICIONES DE CIRCULACIÓN',
+      content: [
+        'El alquiler incluye 150 km diarios acumulables durante todo el periodo contratado.',
+        'Ámbito territorial: El vehículo únicamente podrá circular dentro de la isla de Mallorca (Illes Balears). Queda terminantemente prohibido el traslado marítimo en ferry o embarque a otras islas o a la península sin autorización expresa y por escrito de UTOPIA VAN LIFE SL.',
+        'El coste del kilómetro adicional no incluido se facturará a 0,30 €/km.'
+      ]
+    },
+    {
+      number: 10,
+      title: 'Seguro y coberturas',
+      chapter: 'CAPÍTULO VI – SEGURO Y COBERTURAS',
+      content: [
+        'El vehículo dispone de seguro a todo riesgo con franquicia de 1.000 € por siniestro.',
+        'El seguro cubre responsabilidad civil obligatoria, daños propios al vehículo con franquicia y asistencia en carretera 24 horas en Mallorca.',
+        'Exclusiones del seguro: Daños producidos por conducción temeraria o bajo los efectos de alcohol, drogas o estupefacientes; daños derivados de circular por pistas no asfaltadas, arena o agua de mar; pinchazos o daños en neumáticos no atribuibles a defecto; pérdida o rotura de llaves; y errores en el repostaje de combustible.'
+      ]
+    },
+    {
+      number: 11,
+      title: 'Infracciones de tráfico y responsabilidades',
+      chapter: 'CAPÍTULO VII – RESPONSABILIDADES',
+      content: [
+        'El arrendatario es el único responsable de todas las infracciones de tráfico cometidas durante el periodo de alquiler (velocidad, estacionamiento, accesos restringidos ACIRE, etc.).',
+        'UTOPIA VAN LIFE SL identificará formalmente al conductor ante las autoridades competentes. Por la gestión administrativa de cada notificación de sanción se aplicará un cargo de 25 € en concepto de gastos de tramitación.'
+      ]
+    },
+    {
+      number: 12,
+      title: 'Prohibición expresa de fumar, fiestas y mascotas',
+      chapter: 'CAPÍTULO VIII – NORMAS DE CONVIVENCIA Y VEHÍCULO',
+      content: [
+        'Queda terminantemente prohibido fumar o vapear en el interior del vehículo. El incumplimiento supondrá una penalización directa de 200 € para higienización con generador de ozono y tratamiento de tapicerías.',
+        'Queda prohibido el uso del vehículo para fiestas, despedidas de soltero, macroeventos o cualquier actividad que comprometa la integridad del vehículo.',
+        'Mascotas: Solo se permiten animales de compañía bajo solicitud previa y autorización expresa por escrito, con suplemento de limpieza.'
+      ]
+    },
+    {
+      number: 13,
+      title: 'Averías mecánicas y asistencia',
+      chapter: 'CAPÍTULO IX – ASISTENCIA Y MANTENIMIENTO',
+      content: [
+        'En caso de avería, luz de advertencia en el cuadro de mandos o accidente, el cliente debe detener el vehículo en lugar seguro y avisar inmediatamente a UTOPIA VAN LIFE SL y al teléfono de asistencia 24h facilitado.',
+        'Queda prohibida cualquier reparación o intervención mecánica por cuenta propia sin autorización previa de la empresa.'
+      ]
+    },
+    {
+      number: 14,
+      title: 'Resolución anticipada',
+      chapter: 'CAPÍTULO X – RESOLUCIÓN CONTRACTUAL',
+      content: [
+        'El arrendador se reserva el derecho a rescindir el contrato de forma inmediata y retirar el vehículo sin reembolso en caso de uso negligente grave, conducción no autorizada, embriaguez o reiterado incumplimiento de las normas de circulación y del presente contrato.'
+      ]
+    },
+    {
+      number: 15,
+      title: 'Legislación aplicable y jurisdicción',
+      chapter: 'CAPÍTULO XI – JURISDICCIÓN',
+      content: [
+        'El presente contrato se rige por la legislación española. Para cualquier controversia derivada del mismo, las partes se someten expresamente a los Juzgados y Tribunales de Palma de Mallorca (Illes Balears), con renuncia a cualquier otro fuero que pudiera corresponderles.'
+      ]
+    },
+    {
+      number: 16,
+      title: 'Validez y perfección del contrato',
+      chapter: 'CAPÍTULO XII – FORMALIZACIÓN',
+      content: [
+        'La firma digital estampada en el presente documento, unida a los registros electrónicos de confirmación, tiene plena validez jurídica vinculante conforme a la Ley 6/2020 de servicios electrónicos de confianza y el Reglamento (UE) 910/2014 (eIDAS).'
+      ]
+    },
+    {
+      number: 17,
+      title: 'Protección de Datos de Carácter Personal (RGPD)',
+      chapter: 'CAPÍTULO XIII – PRIVACIDAD Y PROTECCIÓN DE DATOS',
+      content: [
+        'Responsable del tratamiento: UTOPIA VAN LIFE SL, CIF B24902637, C\\ Cristo de los remedios, nº2, Planta 0, Puerta 2, 28703 San Sebastián de los Reyes, Madrid.',
+        'Finalidad: Gestión integral de la relación contractual, emisión de facturación, cumplimiento legal y seguro del vehículo.',
+        'Legitimación: Ejecución de contrato de arrendamiento y cumplimiento de obligaciones legales.',
+        'Conservación: Durante la vigencia del contrato y plazos legales tributarios y de tráfico.',
+        'Derechos: Acceso, rectificación, supresión, limitación y portabilidad a través de administracion@utopiavanlife.com.'
+      ]
+    }
+  ]
+}
+
 export function generateContractData(booking: any, userProfile?: any, camperOverride?: any): ContractData {
   const camperData = camperOverride || booking?.camper || booking?.campers || {}
   const camperSlug = camperData?.slug || camperData?.name || booking?.camper_slug || 'neo'
@@ -114,12 +371,24 @@ export function generateContractData(booking: any, userProfile?: any, camperOver
   const contractNumber = `CTR-BOOK-${shortId}`
 
   const lessor = {
-    companyName: 'Utopia Van Life S.L.',
-    cif: 'B-72891245',
-    address: 'Carrer Son Oms, s/n',
-    city: '07610 Palma de Mallorca, Illes Balears (España)',
+    companyName: 'UTOPIA VAN LIFE SL',
+    cif: 'B24902637',
+    address: 'C\\ Cristo de los remedios, nº2, Planta 0, Puerta 2',
+    city: '28703 San Sebastián de los Reyes, Madrid, España',
     phone: '+34 611 560 916',
-    email: 'administracion@utopiavanlife.com'
+    email: 'administracion@utopiavanlife.com',
+    representative: 'ROBERTO ESTEBANEZ BLANCO',
+    activity: 'Arrendamiento de vehículos vivienda sin conductor en la isla de Mallorca'
+  }
+
+  // Calculate years held for lessee
+  let yearsHeld = 2
+  if (userProfile?.driver_license_issue_date) {
+    const issueDate = new Date(userProfile.driver_license_issue_date)
+    if (!isNaN(issueDate.getTime())) {
+      const diffMs = Date.now() - issueDate.getTime()
+      yearsHeld = Math.max(0, Math.floor(diffMs / (1000 * 60 * 60 * 24 * 365.25)))
+    }
   }
 
   const lessee = {
@@ -128,9 +397,19 @@ export function generateContractData(booking: any, userProfile?: any, camperOver
     driverLicenseId: userProfile?.driver_license_id || 'Pendiente',
     driverLicenseIssueDate: userProfile?.driver_license_issue_date || '',
     driverLicenseExpiryDate: userProfile?.driver_license_expiry_date || '',
+    yearsHeld,
     address: userProfile?.address || 'No especificada',
     phone: userProfile?.phone || booking?.customer_phone || '+34 000 000 000',
     email: userProfile?.email || booking?.customer_email || 'cliente@ejemplo.com'
+  }
+
+  let secondDriver: { fullName: string; dniNie: string; driverLicenseId: string } | undefined
+  if (userProfile?.has_second_driver && userProfile?.second_driver_name) {
+    secondDriver = {
+      fullName: userProfile.second_driver_name,
+      dniNie: userProfile.second_driver_dni || 'Pendiente',
+      driverLicenseId: userProfile.second_driver_license || 'Pendiente'
+    }
   }
 
   const vehicle = {
@@ -159,15 +438,19 @@ export function generateContractData(booking: any, userProfile?: any, camperOver
       : (typeof booking?.extras === 'string' ? [booking.extras] : ['Seguro a todo riesgo', 'Menaje completo premium', 'Kit de cama y toallas', '2 Máscaras de snorkel'])
   }
 
-  const clauses = [
-    '1. OBJETO DEL CONTRATO: La parte arrendadora cede en régimen de arrendamiento de temporada sin conductor el vehículo camper detallado en las condiciones particulares, en perfecto estado de funcionamiento, limpieza y conservación.',
-    '2. FIANZA Y COBERTURA: El arrendatario deposita una fianza obligatoria de 1.000 € antes de la entrega del vehículo mediante tarjeta bancaria o Bizum. Dicha fianza responderá de posibles daños, franquicia del seguro, multas o desperfectos imputables al arrendatario.',
-    '3. KILOMETRAJE Y ÁMBITO TERRITORIAL: El alquiler incluye 150 km diarios acumulables durante el periodo contratado. El vehículo únicamente podrá circular dentro de la isla de Mallorca (Illes Balears). Queda expresamente prohibido el traslado marítimo o embarque a otras islas o península sin autorización previa por escrito.',
-    '4. REQUISITOS DEL CONDUCTOR: El conductor debe disponer de carnet de conducir clase B vigente con al menos 2 años de antigüedad y ser mayor de 23 años. Los conductores noveles requerirán autorización y validación expresa.',
-    '5. EQUIPAMIENTO Y SISTEMAS: El vehículo se entrega equipado con sistema eléctrico Victron de litio (540Ah), energía solar 400W, aire acondicionado 12V Dometic, calefacción diésel y depósitos de agua (limpias y grises). El arrendatario se compromete a vaciar las aguas grises y negras exclusivamente en puntos autorizados.',
-    '6. PROHIBICIONES EXPRESAS: Queda terminantemente prohibido fumar en el interior del vehículo, circular por caminos no asfaltados de riesgo o pistas forestales no aptas, subarrendar el vehículo o transportar sustancias peligrosas.',
-    '7. DEVOLUCIÓN DEL VEHÍCULO: La camper se devolverá en el mismo estado de limpieza y con el mismo nivel de combustible con el que fue entregada. El retraso no autorizado en la entrega conllevará una penalización económica según las tarifas vigentes.'
-  ]
+  const articles = getOfficialContractArticles()
+
+  const rgpdText = {
+    responsable: 'UTOPIA VAN LIFE SL (CIF B24902637)',
+    finalidad: 'Ejecución del contrato de alquiler de autocaravana, gestión de seguro, facturación y contacto.',
+    legitimacion: 'Ejecución de contrato de arrendamiento y cumplimiento de obligaciones legales aplicables.',
+    conservacion: 'Durante la relación contractual y los plazos legales tributarios y de responsabilidades administrativas.',
+    destinatarios: 'Compañía aseguradora Allianz, entidades financieras y autoridades públicas cuando sea legalmente exigible.',
+    derechos: 'Acceso, rectificación, supresión, limitación y oposición dirigiendo escrito a administracion@utopiavanlife.com.',
+    contacto: 'administracion@utopiavanlife.com'
+  }
+
+  const clauses = articles.map(a => `${a.number}. ${a.title.toUpperCase()}: ${a.content.join(' ')}`)
 
   return {
     contractNumber,
@@ -178,9 +461,12 @@ export function generateContractData(booking: any, userProfile?: any, camperOver
     }),
     lessor,
     lessee,
+    secondDriver,
     vehicle,
     booking: bookingDetails,
     pricing,
+    articles,
+    rgpdText,
     clauses
   }
 }

@@ -1,24 +1,26 @@
 'use client'
 
 import { useState, ChangeEvent } from 'react'
+import { useSearchParams } from 'next/navigation'
 import Image from 'next/image'
 import { 
   ShieldCheck, 
   Clock, 
   AlertTriangle, 
+  AlertCircle,
   CheckCircle2, 
   UploadCloud, 
   Trash2, 
-  Lock,
-  User,
-  CreditCard,
-  Calendar,
-  MapPin,
-  Phone,
-  Mail,
-  FileCheck2,
-  Check,
-  FolderOpen
+  Lock, 
+  User, 
+  CreditCard, 
+  Calendar, 
+  MapPin, 
+  Phone, 
+  Mail, 
+  FileCheck2, 
+  Check, 
+  FolderOpen 
 } from 'lucide-react'
 import { validateDriverLicense } from '@/lib/contracts/licenseValidator'
 
@@ -33,6 +35,9 @@ interface UploadedFilePreview {
 }
 
 export default function ProfileClient({ user, profile }: Props) {
+  const searchParams = useSearchParams()
+  const isMissingContractData = searchParams.get('reason') === 'missing_contract_data'
+
   // Datos personales y de conductor principal
   const [fullName, setFullName] = useState(profile?.full_name || user?.user_metadata?.full_name || '')
   const [dniNie, setDniNie] = useState(profile?.dni_nie || '')
@@ -208,6 +213,35 @@ export default function ProfileClient({ user, profile }: Props) {
           </div>
         </div>
       </div>
+
+      {/* Aviso de datos requeridos para el contrato */}
+      {isMissingContractData && (
+        <div 
+          className="alert-box alert-box--warning" 
+          style={{ 
+            background: '#FFFBEB', 
+            borderColor: '#FDE68A', 
+            color: '#92400E', 
+            padding: '16px 20px', 
+            borderRadius: '12px', 
+            marginBottom: '24px', 
+            display: 'flex', 
+            gap: '14px', 
+            alignItems: 'flex-start', 
+            border: '1px solid #FCD34D' 
+          }}
+        >
+          <AlertCircle size={24} style={{ color: '#D97706', flexShrink: 0, marginTop: '2px' }} />
+          <div>
+            <strong style={{ fontSize: '1rem', color: '#78350F', display: 'block', marginBottom: '4px' }}>
+              Datos obligatorios pendientes para tu contrato de alquiler
+            </strong>
+            <p style={{ margin: 0, fontSize: '0.88rem', color: '#92400E', lineHeight: 1.5 }}>
+              Para poder generar y firmar el contrato oficial de tu reserva en la sección de Documentos, es imprescindible completar tu nombre completo, DNI/NIE, teléfono, dirección y las fechas de expedición y caducidad de tu carnet de conducir (en vigor y con al menos 2 años de antigüedad).
+            </p>
+          </div>
+        </div>
+      )}
 
       {/* Feedback Alerts */}
       {saveSuccess && (

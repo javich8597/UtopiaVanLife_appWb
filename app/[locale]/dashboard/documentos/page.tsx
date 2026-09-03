@@ -1,6 +1,7 @@
 import { redirect } from '@/i18n/routing'
 import { createClient } from '@/lib/supabase/server'
 import DocumentsClient from './DocumentsClient'
+import { validateContractRequirements } from '@/lib/contracts/contractEngine'
 
 export const metadata = {
   title: 'Documentos & Facturas | Utopia Van Life',
@@ -31,10 +32,20 @@ export default async function DocumentsPage({
     .from('bookings')
     .select(`
       *,
-      camper:campers (slug, name, thumbnail_url, specs)
+      camper:campers (slug, name, thumbnail_url, specs, plate_number)
     `)
     .eq('user_id', user.id)
     .order('start_date', { ascending: false })
+
+  // Comprobar si el usuario tiene reservas activas o confirmadas y le faltan datos clave para el contrato
+  const relevantBookings = bookings?.filter(b => b.status === 'confirmed' || b.status === 'active' || b.status === 'pending') || []
+  if (relevantBookings.length > 0) {
+    const validation = validateContractRequirements(profile)
+    if (!validation.isValid) {
+      redirect({ href: '/dashboard/profile?redirect=documentos&reason=missing_contract_data', locale })
+      return null
+    }
+  }
 
   return <DocumentsClient bookings={bookings || []} profile={profile} user={user} />
 }

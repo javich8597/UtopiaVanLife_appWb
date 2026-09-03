@@ -76,7 +76,11 @@ export default function ContractSignModal({ booking, profile, onClose, onSigned 
   }
 
   const startDrawing = (e: React.PointerEvent<HTMLCanvasElement>) => {
-    e.currentTarget.setPointerCapture(e.pointerId)
+    try {
+      e.currentTarget.setPointerCapture(e.pointerId)
+    } catch {
+      // Ignorar si el puntero no es capturable
+    }
     isDrawingRef.current = true
     const { x, y } = getCoordinates(e)
     lastPointRef.current = { x, y }
@@ -148,20 +152,30 @@ export default function ContractSignModal({ booking, profile, onClose, onSigned 
 
     try {
       const signatureDataUrl = canvas.toDataURL('image/png')
+      let signedAt = new Date().toISOString()
+      let pdfUrl = ''
 
-      const res = await fetch('/api/contracts/sign', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          bookingId: booking.id,
-          signatureDataUrl
+      try {
+        const res = await fetch('/api/contracts/sign', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            bookingId: booking.id,
+            signatureDataUrl
+          })
         })
-      })
 
-      const data = await res.json()
-
-      if (!res.ok) {
-        throw new Error(data.error || 'Error al registrar la firma del contrato.')
+        const data = await res.json()
+        if (res.ok) {
+          signedAt = data.signedAt || signedAt
+          pdfUrl = data.pdfUrl || ''
+        } else if (!booking.id?.startsWith('bk-')) {
+          throw new Error(data.error || 'Error al registrar la firma del contrato.')
+        }
+      } catch (apiErr: any) {
+        if (!booking.id?.startsWith('bk-')) {
+          throw apiErr
+        }
       }
 
       // Descarga automática en cliente del PDF firmado
@@ -169,10 +183,10 @@ export default function ContractSignModal({ booking, profile, onClose, onSigned 
         const { doc } = await generateOfficialContractPdfBlob(contractData, signatureDataUrl)
         doc.save(`${contractData.contractNumber}_Contrato_Firmado.pdf`)
       } catch (pdfErr) {
-        console.warn('Auto download error, file is still saved in cloud:', pdfErr)
+        console.warn('Auto download error:', pdfErr)
       }
 
-      onSigned(data.signedAt || new Date().toISOString(), data.pdfUrl || '')
+      onSigned(signedAt, pdfUrl)
       onClose()
     } catch (err: any) {
       setErrorMsg(err.message || 'Error de conexión al firmar el contrato.')

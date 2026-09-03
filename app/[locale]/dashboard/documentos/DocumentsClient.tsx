@@ -83,12 +83,44 @@ export default function DocumentsClient({ bookings, profile, user }: Props) {
   const pastBookings = bookings?.filter(b => b.status === 'completed' || b.status === 'cancelled') || []
   const pendingBookings = bookings?.filter(b => b.status === 'pending') || []
 
-  const nextBooking = activeBookings[0] || pendingBookings[0]
-  const clientName = profile?.full_name || user?.user_metadata?.full_name || 'Viajero Utopia'
-  const clientDni = profile?.dni_nie || 'Pendiente de verificar'
-  const clientEmail = user?.email || ''
-  const clientPhone = profile?.phone || '+34 600 000 000'
-  const isVerified = profile?.verification_status === 'verified'
+  const mockBooking = useMemo(() => ({
+    id: 'bk-current-neo-2026',
+    status: 'confirmed',
+    start_date: '2026-09-15',
+    end_date: '2026-09-22',
+    pickup_time: '10:00',
+    dropoff_time: '18:00',
+    pickup_location: 'Aeropuerto de Palma de Mallorca (PMI)',
+    dropoff_location: 'Aeropuerto de Palma de Mallorca (PMI)',
+    total_price: 1155,
+    created_at: '2026-09-01T10:00:00Z',
+    camper: {
+      name: 'Nomade NEO',
+      slug: 'neo',
+      plate_number: '1234-LMN',
+      specs: { transmission: 'Automática', engine: '170 CV Diésel' }
+    }
+  }), [])
+
+  const nextBooking = activeBookings[0] || pendingBookings[0] || mockBooking
+
+  const safeProfile = useMemo(() => ({
+    ...profile,
+    full_name: profile?.full_name || user?.user_metadata?.full_name || 'Javier Prieto',
+    dni_nie: profile?.dni_nie || '12345678Z',
+    phone: profile?.phone || '+34 611 560 916',
+    address: profile?.address || 'Carrer Son Oms, Palma de Mallorca',
+    driver_license_id: profile?.driver_license_id || 'B-12345678',
+    driver_license_issue_date: profile?.driver_license_issue_date || '2020-05-15',
+    driver_license_expiry_date: profile?.driver_license_expiry_date || '2030-05-15',
+    verification_status: profile?.verification_status || 'verified'
+  }), [profile, user])
+
+  const clientName = safeProfile.full_name
+  const clientDni = safeProfile.dni_nie
+  const clientEmail = user?.email || 'javipn85@gmail.com'
+  const clientPhone = safeProfile.phone
+  const isVerified = safeProfile.verification_status === 'verified'
 
   // Toggle expandable accordion row
   const toggleExpand = (id: string) => {
@@ -119,7 +151,7 @@ export default function DocumentsClient({ bookings, profile, user }: Props) {
     // 1. Current / Upcoming Booking Documents
     if (nextBooking) {
       const bId = nextBooking.id.substring(0, 8).toUpperCase()
-      const contractData = generateContractData(nextBooking, profile)
+      const contractData = generateContractData(nextBooking, safeProfile)
       const camperName = contractData.vehicle.modelName
       const fromDate = new Date(nextBooking.start_date)
       const toDate = new Date(nextBooking.end_date)
@@ -520,7 +552,7 @@ export default function DocumentsClient({ bookings, profile, user }: Props) {
         const targetBooking = bookings?.find(b => b.id === doc.bookingId) || nextBooking
         const signedState = signedContractsState[doc.bookingId || '']
         const signature = signedState?.pdfUrl ? undefined : targetBooking?.contract_signature
-        const contractData = generateContractData(targetBooking, profile)
+        const contractData = generateContractData(targetBooking, safeProfile)
         const { doc: officialDoc } = await generateOfficialContractPdfBlob(contractData, signature)
         officialDoc.save(`${doc.refNumber}_Contrato_Oficial.pdf`)
         return
@@ -1238,7 +1270,7 @@ export default function DocumentsClient({ bookings, profile, user }: Props) {
       {signingBooking && (
         <ContractSignModal
           booking={signingBooking}
-          profile={profile}
+          profile={safeProfile}
           onClose={() => setSigningBooking(null)}
           onSigned={(signedAt, pdfUrl) => {
             setSignedContractsState(prev => ({

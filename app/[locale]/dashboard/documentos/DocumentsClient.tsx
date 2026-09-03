@@ -22,9 +22,12 @@ import {
   Truck,
   Sparkles,
   Search,
+  PenTool,
 } from 'lucide-react'
 import { formatPrice } from '@/lib/pricing/engine'
 import { generateContractData, detectCamperModelSpecs } from '@/lib/contracts/contractEngine'
+import { generateOfficialContractPdfBlob } from '@/lib/contracts/pdfGenerator'
+import ContractSignModal from './ContractSignModal'
 
 interface Props {
   bookings: any[]
@@ -73,6 +76,8 @@ export default function DocumentsClient({ bookings, profile, user }: Props) {
   const [downloadingId, setDownloadingId] = useState<string | null>(null)
   const [expandedIds, setExpandedIds] = useState<Set<string>>(new Set(['ctr-main']))
   const [searchQuery, setSearchQuery] = useState('')
+  const [signingBooking, setSigningBooking] = useState<any | null>(null)
+  const [signedContractsState, setSignedContractsState] = useState<Record<string, { signedAt: string; pdfUrl: string }>>({})
 
   const activeBookings = bookings?.filter(b => b.status === 'confirmed' || b.status === 'active') || []
   const pastBookings = bookings?.filter(b => b.status === 'completed' || b.status === 'cancelled') || []
@@ -123,6 +128,14 @@ export default function DocumentsClient({ bookings, profile, user }: Props) {
       const creationDate = new Date(nextBooking.created_at || Date.now()).toLocaleDateString('es-ES', { day: '2-digit', month: 'long', year: 'numeric' })
       const priceTotal = nextBooking.total_price || 1155
 
+      const isContractSigned = Boolean(
+        signedContractsState[nextBooking.id] || nextBooking.contract_signed_at
+      )
+      const signedDate = signedContractsState[nextBooking.id]?.signedAt || nextBooking.contract_signed_at
+      const formattedSignedDate = signedDate
+        ? new Date(signedDate).toLocaleDateString('es-ES', { day: '2-digit', month: 'long', year: 'numeric' })
+        : null
+
       // Contract
       list.push({
         id: 'ctr-main',
@@ -130,15 +143,17 @@ export default function DocumentsClient({ bookings, profile, user }: Props) {
         category: 'contract',
         typeLabel: 'Contrato Oficial',
         refNumber: contractData.contractNumber,
-        date: creationDate,
-        isoDate: nextBooking.created_at || '2026-08-24',
-        status: nextBooking.status === 'confirmed' || nextBooking.status === 'active' ? 'valid' : 'pending',
-        statusLabel: nextBooking.status === 'confirmed' || nextBooking.status === 'active' ? 'Aprobado & En Vigor' : 'Pendiente Aprobación Admin',
-        fileFormat: 'PDF (2.4 MB)',
+        date: formattedSignedDate ? `Firmado el ${formattedSignedDate}` : creationDate,
+        isoDate: signedDate || nextBooking.created_at || '2026-08-24',
+        status: isContractSigned ? 'valid' : 'pending',
+        statusLabel: isContractSigned ? '✓ Contrato Oficial Firmado' : 'Pendiente de Firma Digital',
+        fileFormat: isContractSigned ? 'PDF Oficial Firmado' : 'Borrador Oficial',
         isPast: false,
         tripName: `Reserva · ${contractData.vehicle.modelName}`,
         bookingId: nextBooking.id,
-        summary: `Contrato de arrendamiento sin conductor para ${contractData.vehicle.vehicleType}, fianza estándar de 1.000€, kilometraje ilimitado y normativa de uso en Mallorca.`,
+        summary: isContractSigned
+          ? `Contrato de arrendamiento formalizado y firmado digitalmente para ${contractData.vehicle.vehicleType} (${contractData.vehicle.plateNumber}). Custodiado con validez legal eIDAS.`
+          : `Contrato oficial de arrendamiento sin conductor para ${contractData.vehicle.vehicleType}, fianza estándar de 1.000€, kilometraje ilimitado y normativa de uso en Mallorca. Pendiente de firma digital del titular.`,
         contentDetails: {
           issuer: contractData.lessor.companyName,
           cif: contractData.lessor.cif,
@@ -500,6 +515,17 @@ export default function DocumentsClient({ bookings, profile, user }: Props) {
   const handleDownload = async (doc: DocumentItem) => {
     setDownloadingId(doc.id)
     try {
+      // Si es un contrato, generar el PDF oficial multipágina completo
+      if (doc.category === 'contract') {
+        const targetBooking = bookings?.find(b => b.id === doc.bookingId) || nextBooking
+        const signedState = signedContractsState[doc.bookingId || '']
+        const signature = signedState?.pdfUrl ? undefined : targetBooking?.contract_signature
+        const contractData = generateContractData(targetBooking, profile)
+        const { doc: officialDoc } = await generateOfficialContractPdfBlob(contractData, signature)
+        officialDoc.save(`${doc.refNumber}_Contrato_Oficial.pdf`)
+        return
+      }
+
       const { jsPDF } = await import('jspdf')
       const pdf = new jsPDF({
         orientation: 'portrait',
@@ -848,6 +874,48 @@ export default function DocumentsClient({ bookings, profile, user }: Props) {
 
                   {/* Right: Actions & Toggle */}
                   <div className="accordion-header__actions" onClick={(e) => e.stopPropagation()}>
+                    {doc.category === 'contract' && (
+                      (() => {
+                        const targetBooking = bookings?.find(b => b.id === doc.bookingId) || nextBooking
+                        const isSigned = Boolean(
+                          signedContractsState[doc.bookingId || ''] || targetBooking?.contract_signed_at
+                        )
+                        return !isSigned ? (
+                          <button
+                            onClick={() => setSigningBooking(targetBooking)}
+                            className="btn-action"
+                            style={{
+                              background: '#1A2B21',
+                              color: '#ffffff',
+                              border: '1px solid #1A2B21',
+                              fontWeight: 600
+                            }}
+                            title="Firmar digitalmente este contrato oficial"
+                          >
+                            <PenTool size={13} />
+                            <span>Firmar Contrato</span>
+                          </button>
+                        ) : (
+                          <span
+                            style={{
+                              display: 'inline-flex',
+                              alignItems: 'center',
+                              gap: '4px',
+                              background: '#DCFCE7',
+                              color: '#15803D',
+                              padding: '5px 10px',
+                              borderRadius: '6px',
+                              fontSize: '0.78rem',
+                              fontWeight: 600
+                            }}
+                          >
+                            <CheckCircle2 size={13} />
+                            <span>Firmado</span>
+                          </span>
+                        )
+                      })()
+                    )}
+
                     <button
                       onClick={() => setActivePreviewDoc(doc)}
                       className="btn-action btn-action--view"
@@ -981,6 +1049,29 @@ export default function DocumentsClient({ bookings, profile, user }: Props) {
                         </div>
 
                         <div className="drawer-actions">
+                          {doc.category === 'contract' && (
+                            (() => {
+                              const targetBooking = bookings?.find(b => b.id === doc.bookingId) || nextBooking
+                              const isSigned = Boolean(
+                                signedContractsState[doc.bookingId || ''] || targetBooking?.contract_signed_at
+                              )
+                              return !isSigned ? (
+                                <button
+                                  onClick={() => setSigningBooking(targetBooking)}
+                                  className="btn-action"
+                                  style={{
+                                    background: '#1A2B21',
+                                    color: '#ffffff',
+                                    border: '1px solid #1A2B21',
+                                    fontWeight: 600
+                                  }}
+                                >
+                                  <PenTool size={13} />
+                                  <span>Firmar Contrato</span>
+                                </button>
+                              ) : null
+                            })()
+                          )}
                           <button
                             onClick={() => setActivePreviewDoc(doc)}
                             className="btn-action btn-action--view"
@@ -1017,6 +1108,27 @@ export default function DocumentsClient({ bookings, profile, user }: Props) {
                 <h2 className="modal-heading">{activePreviewDoc.title}</h2>
               </div>
               <div className="modal-buttons">
+                {activePreviewDoc.category === 'contract' && (
+                  (() => {
+                    const targetBooking = bookings?.find(b => b.id === activePreviewDoc.bookingId) || nextBooking
+                    const isSigned = Boolean(
+                      signedContractsState[activePreviewDoc.bookingId || ''] || targetBooking?.contract_signed_at
+                    )
+                    return !isSigned ? (
+                      <button
+                        onClick={() => {
+                          setActivePreviewDoc(null)
+                          setSigningBooking(targetBooking)
+                        }}
+                        className="btn-action"
+                        style={{ background: '#1A2B21', color: '#ffffff', border: '1px solid #1A2B21', fontWeight: 600 }}
+                      >
+                        <PenTool size={14} />
+                        <span>Firmar Ahora</span>
+                      </button>
+                    ) : null
+                  })()
+                )}
                 <button
                   onClick={() => handleDownload(activePreviewDoc)}
                   className="btn-action btn-action--download"
@@ -1120,6 +1232,21 @@ export default function DocumentsClient({ bookings, profile, user }: Props) {
             </div>
           </div>
         </div>
+      )}
+
+      {/* ─── Modal de Lectura y Firma Digital del Contrato ─── */}
+      {signingBooking && (
+        <ContractSignModal
+          booking={signingBooking}
+          profile={profile}
+          onClose={() => setSigningBooking(null)}
+          onSigned={(signedAt, pdfUrl) => {
+            setSignedContractsState(prev => ({
+              ...prev,
+              [signingBooking.id]: { signedAt, pdfUrl }
+            }))
+          }}
+        />
       )}
 
       {/* ─── Scoped Minimalist Styles ─── */}

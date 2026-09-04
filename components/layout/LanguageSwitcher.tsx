@@ -3,14 +3,86 @@
 import { useState, useRef, useEffect } from 'react'
 import { usePathname, useRouter } from '@/i18n/routing'
 import { useLocale } from 'next-intl'
-import { Globe, Check } from 'lucide-react'
+import { Check } from 'lucide-react'
 
 const LOCALES = [
-  { code: 'es', label: 'Español', flag: '🇪🇸', short: 'ES' },
-  { code: 'en', label: 'English', flag: '🇬🇧', short: 'EN' },
-  { code: 'de', label: 'Deutsch', flag: '🇩🇪', short: 'DE' },
-  { code: 'fr', label: 'Français', flag: '🇫🇷', short: 'FR' }
+  { code: 'es', label: 'Español', short: 'ES' },
+  { code: 'en', label: 'English', short: 'EN' },
+  { code: 'de', label: 'Deutsch', short: 'DE' },
+  { code: 'fr', label: 'Français', short: 'FR' }
 ]
+
+function FlagIcon({ code, size = 15 }: { code: string; size?: number }) {
+  const width = Math.round(size * 1.35)
+  const height = size
+
+  if (code === 'es') {
+    return (
+      <svg
+        width={width}
+        height={height}
+        viewBox="0 0 750 500"
+        style={{ borderRadius: 2, overflow: 'hidden', display: 'inline-block', verticalAlign: 'middle', flexShrink: 0, boxShadow: '0 0 1px rgba(0,0,0,0.2)' }}
+      >
+        <rect width="750" height="500" fill="#AA151B" />
+        <rect y="125" width="750" height="250" fill="#F1BF00" />
+      </svg>
+    )
+  }
+
+  if (code === 'en') {
+    return (
+      <svg
+        width={width}
+        height={height}
+        viewBox="0 0 60 30"
+        style={{ borderRadius: 2, overflow: 'hidden', display: 'inline-block', verticalAlign: 'middle', flexShrink: 0, boxShadow: '0 0 1px rgba(0,0,0,0.2)' }}
+      >
+        <clipPath id="s-en"><path d="M0,0 v30 h60 v-30 z"/></clipPath>
+        <clipPath id="t-en"><path d="M30,15 h30 v15 z v15 h-30 z h-30 v-15 z v-15 h30 z"/></clipPath>
+        <g clipPath="url(#s-en)">
+          <path d="M0,0 v30 h60 v-30 z" fill="#012169"/>
+          <path d="M0,0 L60,30 M60,0 L0,30" stroke="#fff" strokeWidth="6"/>
+          <path d="M0,0 L60,30 M60,0 L0,30" clipPath="url(#t-en)" stroke="#C8102E" strokeWidth="4"/>
+          <path d="M30,0 v30 M0,15 h60" stroke="#fff" strokeWidth="10"/>
+          <path d="M30,0 v30 M0,15 h60" stroke="#C8102E" strokeWidth="6"/>
+        </g>
+      </svg>
+    )
+  }
+
+  if (code === 'de') {
+    return (
+      <svg
+        width={width}
+        height={height}
+        viewBox="0 0 5 3"
+        style={{ borderRadius: 2, overflow: 'hidden', display: 'inline-block', verticalAlign: 'middle', flexShrink: 0, boxShadow: '0 0 1px rgba(0,0,0,0.2)' }}
+      >
+        <rect width="5" height="1" y="0" x="0" fill="#000000"/>
+        <rect width="5" height="1" y="1" x="0" fill="#DD0000"/>
+        <rect width="5" height="1" y="2" x="0" fill="#FFCE00"/>
+      </svg>
+    )
+  }
+
+  if (code === 'fr') {
+    return (
+      <svg
+        width={width}
+        height={height}
+        viewBox="0 0 3 2"
+        style={{ borderRadius: 2, overflow: 'hidden', display: 'inline-block', verticalAlign: 'middle', flexShrink: 0, boxShadow: '0 0 1px rgba(0,0,0,0.2)' }}
+      >
+        <rect width="1" height="2" x="0" fill="#002654"/>
+        <rect width="1" height="2" x="1" fill="#FFFFFF"/>
+        <rect width="1" height="2" x="2" fill="#ED2939"/>
+      </svg>
+    )
+  }
+
+  return null
+}
 
 interface Props {
   isSolid?: boolean
@@ -61,7 +133,7 @@ export default function LanguageSwitcher({ isSolid = true, isMobile = false }: P
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
-                  gap: 4,
+                  gap: 6,
                   padding: '8px 4px',
                   borderRadius: 'var(--radius-md)',
                   border: isSelected ? '1.5px solid var(--forest-green)' : '1px solid var(--gray-200)',
@@ -72,7 +144,7 @@ export default function LanguageSwitcher({ isSolid = true, isMobile = false }: P
                   cursor: 'pointer'
                 }}
               >
-                <span>{loc.flag}</span>
+                <FlagIcon code={loc.code} size={13} />
                 <span>{loc.short}</span>
               </button>
             )
@@ -107,7 +179,7 @@ export default function LanguageSwitcher({ isSolid = true, isMobile = false }: P
         }}
         className="lang-trigger-btn"
       >
-        <span style={{ fontSize: '0.95rem', lineHeight: 1 }}>{currentObj.flag}</span>
+        <FlagIcon code={currentObj.code} size={13} />
         <span>{currentObj.short}</span>
       </button>
 
@@ -156,8 +228,8 @@ export default function LanguageSwitcher({ isSolid = true, isMobile = false }: P
                   if (!isSelected) e.currentTarget.style.background = 'transparent'
                 }}
               >
-                <span style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-                  <span>{loc.flag}</span>
+                <span style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                  <FlagIcon code={loc.code} size={13} />
                   <span>{loc.label}</span>
                 </span>
                 {isSelected && <Check size={14} style={{ color: 'var(--forest-green)' }} />}

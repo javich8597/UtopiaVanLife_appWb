@@ -36,14 +36,14 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'Parámetros de reserva inválidos' }, { status: 400 })
     }
 
-    const supabaseAdmin = createAdminClient(
-      process.env.NEXT_PUBLIC_SUPABASE_URL!,
-      process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-    )
+    // Use the authenticated supabase client or admin client with SUPABASE_SERVICE_ROLE_KEY
+    const clientToUse = process.env.SUPABASE_SERVICE_ROLE_KEY
+      ? createAdminClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.SUPABASE_SERVICE_ROLE_KEY)
+      : supabase
 
     const targetStatus = action === 'approve' ? 'confirmed' : 'cancelled'
 
-    const { error: updateErr } = await supabaseAdmin
+    const { error: updateErr } = await clientToUse
       .from('bookings')
       .update({
         status: targetStatus,

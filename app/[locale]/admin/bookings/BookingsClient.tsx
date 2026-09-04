@@ -1,10 +1,11 @@
 'use client'
 
 import { useState, useMemo } from 'react'
-import { Search, Filter, Calendar, User, Phone, Mail, Truck, Euro, ShieldCheck } from 'lucide-react'
+import { Search, Filter, Calendar, User, Phone, Mail, Truck, Euro, ShieldCheck, Eye, Moon } from 'lucide-react'
 import { formatPrice } from '@/lib/pricing/engine'
 import RefundActionClient from './RefundActionClient'
 import ApproveActionClient from './ApproveActionClient'
+import BookingDetailModal from './BookingDetailModal'
 
 interface Props {
   initialBookings: any[]
@@ -13,6 +14,7 @@ interface Props {
 export default function BookingsClient({ initialBookings }: Props) {
   const [searchTerm, setSearchTerm] = useState('')
   const [statusFilter, setStatusFilter] = useState<'all' | 'confirmed' | 'active' | 'pending' | 'completed' | 'cancelled'>('all')
+  const [selectedBooking, setSelectedBooking] = useState<any | null>(null)
 
   const filteredBookings = useMemo(() => {
     return initialBookings.filter(b => {
@@ -125,10 +127,10 @@ export default function BookingsClient({ initialBookings }: Props) {
               <th>ID</th>
               <th>Camper</th>
               <th>Cliente</th>
-              <th>Fechas</th>
+              <th>Fechas & Noches</th>
               <th>Total</th>
               <th>Estado</th>
-              <th>Acciones</th>
+              <th style={{ textAlign: 'right' }}>Acciones</th>
             </tr>
           </thead>
           <tbody>
@@ -136,6 +138,11 @@ export default function BookingsClient({ initialBookings }: Props) {
               const clientName = b.customer_name || b.users?.full_name || 'Viajero Utopia'
               const clientEmail = b.customer_email || b.users?.email || '-'
               const clientPhone = b.customer_phone || b.users?.phone || ''
+
+              const sDate = new Date(b.start_date)
+              const eDate = new Date(b.end_date)
+              const diffMs = Math.abs(eDate.getTime() - sDate.getTime())
+              const nightsCount = Math.max(1, Math.round(diffMs / (1000 * 60 * 60 * 24)))
 
               return (
                 <tr key={b.id}>
@@ -152,8 +159,24 @@ export default function BookingsClient({ initialBookings }: Props) {
                     {clientPhone && <div className="text-xs" style={{ color: 'var(--gray-400)' }}>{clientPhone}</div>}
                   </td>
                   <td className="text-small">
-                    {new Date(b.start_date).toLocaleDateString('es-ES')} <br />
-                    <span style={{ color: 'var(--gray-400)' }}>→</span> {new Date(b.end_date).toLocaleDateString('es-ES')}
+                    <div>
+                      {sDate.toLocaleDateString('es-ES')} <span style={{ color: 'var(--gray-400)' }}>→</span> {eDate.toLocaleDateString('es-ES')}
+                    </div>
+                    <div style={{ marginTop: 4 }}>
+                      <span style={{
+                        display: 'inline-flex',
+                        alignItems: 'center',
+                        gap: 4,
+                        fontSize: '0.72rem',
+                        fontWeight: 700,
+                        padding: '2px 8px',
+                        borderRadius: 12,
+                        background: '#DCFCE7',
+                        color: '#166534'
+                      }}>
+                        <Moon size={11} /> {nightsCount} {nightsCount === 1 ? 'noche' : 'noches'}
+                      </span>
+                    </div>
                   </td>
                   <td style={{ fontWeight: 600 }}>
                     {formatPrice(b.total_price)}
@@ -171,8 +194,23 @@ export default function BookingsClient({ initialBookings }: Props) {
                         b.status === 'completed' ? 'Completada' : 'Cancelada'}
                     </span>
                   </td>
-                  <td>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+                  <td style={{ textAlign: 'right' }}>
+                    <div style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}>
+                      <button
+                        onClick={() => setSelectedBooking(b)}
+                        className="btn btn-outline btn-sm"
+                        style={{
+                          display: 'inline-flex',
+                          alignItems: 'center',
+                          gap: 4,
+                          padding: '5px 10px',
+                          fontSize: '0.78rem',
+                          fontWeight: 600
+                        }}
+                        title="Ver desglose completo de la reserva y contrato"
+                      >
+                        <Eye size={13} /> Ver Detalle
+                      </button>
                       <ApproveActionClient bookingId={b.id} status={b.status} />
                       <RefundActionClient bookingId={b.id} status={b.status} />
                     </div>
@@ -190,6 +228,15 @@ export default function BookingsClient({ initialBookings }: Props) {
           </tbody>
         </table>
       </div>
+
+      {/* Booking Detail Modal */}
+      {selectedBooking && (
+        <BookingDetailModal
+          booking={selectedBooking}
+          onClose={() => setSelectedBooking(null)}
+        />
+      )}
     </div>
   )
 }
+

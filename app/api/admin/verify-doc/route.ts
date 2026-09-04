@@ -36,14 +36,13 @@ export async function POST(request: Request) {
             return NextResponse.json({ error: 'Parámetros inválidos' }, { status: 400 })
         }
 
-        const supabaseAdmin = createAdminClient(
-            process.env.NEXT_PUBLIC_SUPABASE_URL!,
-            process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-        )
+        const clientToUse = process.env.SUPABASE_SERVICE_ROLE_KEY
+            ? createAdminClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.SUPABASE_SERVICE_ROLE_KEY)
+            : supabase
 
         const newStatus = action === 'approve' ? 'verified' : 'rejected'
 
-        const { error: updateErr } = await supabaseAdmin
+        const { error: updateErr } = await clientToUse
             .from('users')
             .update({ verification_status: newStatus })
             .eq('id', userId)

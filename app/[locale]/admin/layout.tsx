@@ -12,12 +12,19 @@ export default async function AdminLayout({
     params: Promise<{ locale: string }>
 }) {
     const { locale } = await params
+
+    // El panel de administración solo existe y se gestiona en español
+    if (locale !== 'es') {
+        redirect({ href: '/admin', locale: 'es' })
+        return null
+    }
+
     const supabase = await createClient()
 
     const { data: { user }, error: authError } = await supabase.auth.getUser()
 
     if (authError || !user) {
-        redirect({ href: '/auth/login?redirect=/admin', locale })
+        redirect({ href: '/auth/login?redirect=/admin', locale: 'es' })
         return null
     }
 

@@ -57,3 +57,44 @@ export function canRefundBooking(status: string | null | undefined): {
 
   return { allowed: false, reason: `Estado '${status}' no permite reembolso` }
 }
+
+/**
+ * Validates driver license expiration and minimum seniority (2 years).
+ */
+export function validateDriverLicenseExpiration(
+  expiryDateStr?: string | null,
+  issueDateStr?: string | null
+): {
+  isValid: boolean
+  isExpired: boolean
+  isNovice: boolean
+  yearsOfExperience?: number
+} {
+  if (!expiryDateStr) {
+    return { isValid: false, isExpired: false, isNovice: false }
+  }
+
+  const now = new Date()
+  const expiry = new Date(expiryDateStr)
+  const isExpired = expiry < now
+
+  let isNovice = false
+  let yearsOfExperience = 0
+
+  if (issueDateStr) {
+    const issue = new Date(issueDateStr)
+    const diffYears = (now.getTime() - issue.getTime()) / (1000 * 60 * 60 * 24 * 365.25)
+    yearsOfExperience = Math.max(0, Math.floor(diffYears * 10) / 10)
+    isNovice = diffYears < 2
+  }
+
+  const isValid = !isExpired && !isNovice
+
+  return {
+    isValid,
+    isExpired,
+    isNovice,
+    yearsOfExperience
+  }
+}
+

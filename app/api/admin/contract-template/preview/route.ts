@@ -84,7 +84,7 @@ export async function POST(request: Request) {
     const contractData = generateContractData(mockBooking, mockProfile, mockCamper, templateOverride)
     const { buffer } = await generateOfficialContractPdfBlob(contractData)
 
-    return new Response(buffer, {
+    return new Response(new Uint8Array(buffer), {
       headers: {
         'Content-Type': 'application/pdf',
         'Content-Disposition': 'inline; filename="vista-previa-plantilla-contrato.pdf"',

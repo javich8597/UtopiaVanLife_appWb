@@ -158,8 +158,7 @@ La fianza podrá ser retenida total o parcialmente hasta la completa verificaci�
 La fianza será devuelta tras la positiva revisión del vehículo.  
 El arrendador podrá disponer de hasta 30 días para su devolución en caso de daños pendientes de valoración.
 
-###   
-Artículo 8. Combustible
+### Artículo 8. Combustible
 
 El vehículo se entrega con el depósito de **DIESEL** lleno y deberá devolverse en las mismas condiciones.  
 Penalización:

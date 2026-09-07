@@ -185,7 +185,7 @@ export default function DocumentsClient({ bookings, profile, user }: Props) {
         bookingId: nextBooking.id,
         summary: isContractSigned
           ? `Contrato de arrendamiento formalizado y firmado digitalmente para ${contractData.vehicle.vehicleType} (${contractData.vehicle.plateNumber}). Custodiado con validez legal eIDAS.`
-          : `Contrato oficial de arrendamiento sin conductor para ${contractData.vehicle.vehicleType}, fianza estándar de 1.000€, kilometraje ilimitado y normativa de uso en Mallorca. Pendiente de firma digital del titular.`,
+          : `Contrato oficial de arrendamiento sin conductor para ${contractData.vehicle.vehicleType}, fianza estándar de 1.000€, kilometraje de 150 km/día y normativa de uso en Mallorca. Pendiente de firma digital del titular.`,
         contentDetails: {
           issuer: contractData.lessor.companyName,
           cif: contractData.lessor.cif,
@@ -202,7 +202,7 @@ export default function DocumentsClient({ bookings, profile, user }: Props) {
             { label: 'Vehículo Arrendado', value: `${contractData.vehicle.modelName} · ${contractData.vehicle.capacity}` },
             { label: 'Periodo de Arrendamiento', value: `${rangeFormatted} (${contractData.booking.pickupTime}h a ${contractData.booking.dropoffTime}h)` },
             { label: 'Fianza de Seguridad', value: `${formatPrice(contractData.pricing.depositAmount)} (Depósito bloqueado)` },
-            { label: 'Kilometraje Autorizado', value: 'Ilimitado en la isla de Mallorca' },
+            { label: 'Kilometraje Autorizado', value: '150 km/día acumulables en la isla de Mallorca' },
             { label: 'Conductor Titular', value: `${contractData.lessee.fullName} (DNI: ${contractData.lessee.dniNie} | Carnet: ${contractData.lessee.driverLicenseId})` },
           ],
           legalClause: contractData.clauses.join('\n\n')
@@ -259,7 +259,7 @@ export default function DocumentsClient({ bookings, profile, user }: Props) {
         isPast: false,
         tripName: `Reserva Actual · Camper ${camperName}`,
         bookingId: nextBooking.id,
-        summary: 'Seguro a todo riesgo con franquicia de 800€, asistencia en carretera 24/7 en cualquier punto de Mallorca y vehículo de sustitución.',
+        summary: 'Seguro a todo riesgo con franquicia de 1.000€, asistencia en carretera 24/7 en cualquier punto de Mallorca y vehículo de sustitución.',
         contentDetails: {
           issuer: 'Allianz Seguros / Utopia Van Life',
           cif: 'W-0045819-A',
@@ -272,7 +272,7 @@ export default function DocumentsClient({ bookings, profile, user }: Props) {
           datesRange: rangeFormatted,
           coverageDetails: [
             'Responsabilidad Civil Obligatoria y Voluntaria hasta 50.000.000 €',
-            'Daños propios al vehículo a todo riesgo con franquicia de 800 €',
+            'Daños propios al vehículo a todo riesgo con franquicia de 1.000 €',
             'Asistencia en viaje y grúa rescate 24 horas en toda la isla de Mallorca',
             'Rotura de lunas, daños por fenómenos atmosféricos y robo de accesorios fijos',
             'Teléfono de Emergencia Exclusivo 24/7: +34 900 100 244 (Ref: Utopia)'

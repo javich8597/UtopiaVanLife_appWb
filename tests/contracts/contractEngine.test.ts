@@ -44,7 +44,7 @@ describe('contractEngine validation and data generation', () => {
     assert.equal(result.missingFields.length, 0)
   })
 
-  it('generates official Utopia Van Life legal data and full 17 articles', () => {
+  it('generates official Utopia Van Life legal data and full 31 articles', () => {
     const dummyBooking = {
       id: 'book-abc-123',
       start_date: '2026-10-03',
@@ -66,6 +66,6 @@ describe('contractEngine validation and data generation', () => {
     assert.equal(data.lessor.cif, 'B24902637')
     assert.equal(data.lessor.representative, 'ROBERTO ESTEBANEZ BLANCO')
     assert.equal(data.pricing.depositAmount, 1000)
-    assert.ok(data.articles.length >= 17)
+    assert.equal(data.articles.length, 31)
   })
 })

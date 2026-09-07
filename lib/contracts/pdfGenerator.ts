@@ -258,12 +258,12 @@ export async function generateOfficialContractPdfBlob(
   pdf.setFontSize(6.9)
   pdf.setTextColor(...slateDark)
   const agreementText =
-    'Las partes contratantes convienen libremente someter el presente arrendamiento a las Condiciones Particulares precedentemente expuestas y a las Condiciones Generales que se desarrollan de manera correlativa y exhaustiva en las páginas siguientes (Artículos 1 al 17 inclusive y cláusula de Protección de Datos de Carácter Personal), las cuales el Arrendatario declara haber examinado con carácter previo a la formalización del presente contrato, comprendiendo y aceptando expresamente todos sus términos y efectos jurídicos.'
+    'Las partes contratantes convienen libremente someter el presente arrendamiento a las Condiciones Particulares precedentemente expuestas y a las Condiciones Generales que se desarrollan de manera correlativa y exhaustiva en las páginas siguientes (Artículos 1 al 31 inclusive, incluyendo inventario, normas de seguridad y política de protección de datos), las cuales el Arrendatario declara haber examinado con carácter previo a la formalización del presente contrato, comprendiendo y aceptando expresamente todos sus términos y efectos jurídicos.'
   const agreementLines = pdf.splitTextToSize(agreementText, 174)
   pdf.text(agreementLines, 18, yPos)
 
   // ─────────────────────────────────────────────────────────────
-  // PÁGINAS 2+: ARTÍCULOS LEGALES ÍNTEGROS (1 al 17)
+  // PÁGINAS 2+: ARTÍCULOS LEGALES ÍNTEGROS (1 al 31)
   // ─────────────────────────────────────────────────────────────
   pdf.addPage()
   drawPageHeader(pdf.getNumberOfPages())
@@ -461,7 +461,7 @@ export async function generateOfficialContractPdfBlob(
     pdf.setFontSize(6.5)
     pdf.setTextColor(...slateMuted)
     pdf.text(
-      'Utopia Van Life S.L. · CIF B24902637 · C/ Cristo de los remedios, nº2 · San Sebastián de los Reyes · administracion@utopiavanlife.com',
+      'Utopia Van Life S.L. · CIF B24902637 · C/ Cristo de los remedios, nº2 · San Sebastián de los Reyes · info@utopiavanlife.com · 611 560 916',
       18,
       288
     )

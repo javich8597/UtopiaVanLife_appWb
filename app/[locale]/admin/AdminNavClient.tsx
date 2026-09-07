@@ -1,7 +1,7 @@
 'use client'
 
 import { Link, usePathname } from '@/i18n/routing'
-import { Calendar, LayoutDashboard, Truck, Settings, Users as UsersIcon, BookOpen, ShieldCheck } from 'lucide-react'
+import { Calendar, LayoutDashboard, Truck, Settings, Users as UsersIcon, BookOpen, ShieldCheck, FileText } from 'lucide-react'
 
 const navItems = [
   { label: 'Dashboard', href: '/admin', icon: LayoutDashboard, exact: true },
@@ -10,6 +10,7 @@ const navItems = [
   { label: 'Verificaciones', href: '/admin/verifications', icon: ShieldCheck, exact: false },
   { label: 'Flota', href: '/admin/campers', icon: Truck, exact: false },
   { label: 'Clientes', href: '/admin/users', icon: UsersIcon, exact: false },
+  { label: 'Plantilla Contrato', href: '/admin/contrato', icon: FileText, exact: false },
   { label: 'Ajustes', href: '/admin/settings', icon: Settings, exact: false },
 ]
 

@@ -548,7 +548,12 @@ export function getOfficialContractArticles(): ContractArticle[] {
   ]
 }
 
-export function generateContractData(booking: any, userProfile?: any, camperOverride?: any): ContractData {
+export function generateContractData(
+  booking: any,
+  userProfile?: any,
+  camperOverride?: any,
+  templateOverride?: any
+): ContractData {
   const camperData = camperOverride || booking?.camper || booking?.campers || {}
   const camperSlug = camperData?.slug || camperData?.name || booking?.camper_slug || 'neo'
   const specs = detectCamperModelSpecs(camperSlug)
@@ -557,14 +562,15 @@ export function generateContractData(booking: any, userProfile?: any, camperOver
   const shortId = rawBookingId.replace(/-/g, '').substring(0, 8).toUpperCase()
   const contractNumber = `CTR-BOOK-${shortId}`
 
+  const tLessor = templateOverride?.lessor || {}
   const lessor = {
-    companyName: 'UTOPIA VAN LIFE SL',
-    cif: 'B24902637',
-    address: 'C\\ Cristo de los remedios, nº2, Planta 0, Puerta 2',
-    city: '28703 San Sebastián de los Reyes, Madrid, España',
-    phone: '611 560 916',
-    email: 'info@utopiavanlife.com',
-    representative: 'ROBERTO ESTEBANEZ BLANCO',
+    companyName: tLessor.legalName || 'UTOPIA VAN LIFE SL',
+    cif: tLessor.cif || 'B24902637',
+    address: tLessor.address || 'C\\ Cristo de los remedios, nº2, Planta 0, Puerta 2',
+    city: tLessor.city || '28703 San Sebastián de los Reyes, Madrid, España',
+    phone: tLessor.contactPhone || '611 560 916',
+    email: tLessor.contactEmail || 'info@utopiavanlife.com',
+    representative: tLessor.legalRepresentative || 'ROBERTO ESTEBANEZ BLANCO',
     activity: 'Arrendamiento de vehículos vivienda sin conductor en la isla de Mallorca'
   }
 
@@ -617,31 +623,36 @@ export function generateContractData(booking: any, userProfile?: any, camperOver
     dropoffLocation: booking?.dropoff_location || 'Palma de Mallorca (Aeropuerto PMI / Base Utopia Son Oms)'
   }
 
+  const tTerms = templateOverride?.terms || {}
+  const depositAmount = tTerms.depositAmount !== undefined ? Number(tTerms.depositAmount) : 1000
+
   const pricing = {
     totalPrice: Number(booking?.total_price || 0),
-    depositAmount: 1000,
+    depositAmount,
     extras: Array.isArray(booking?.extras)
       ? booking.extras
       : (typeof booking?.extras === 'string' ? [booking.extras] : ['Seguro a todo riesgo', 'Menaje completo premium', 'Kit de cama y toallas', '2 Máscaras de snorkel'])
   }
 
-  const articles = getOfficialContractArticles()
+  const articles = Array.isArray(templateOverride?.articles) && templateOverride.articles.length > 0
+    ? templateOverride.articles
+    : getOfficialContractArticles()
 
   const rgpdText = {
-    responsable: 'UTOPIA VAN LIFE S.L.',
-    cif: 'B24902637',
-    domicilio: 'C/ Cristo de los Remedios nº2, Planta 0, Puerta 2, 28703, San Sebastián de los Reyes, Madrid, España',
-    email: 'info@utopiavanlife.com',
-    telefono: '611 560 916',
+    responsable: lessor.companyName,
+    cif: lessor.cif,
+    domicilio: lessor.address,
+    email: lessor.email,
+    telefono: lessor.phone,
     finalidad: 'Gestionar reservas, servicios contratados, facturación, comunicaciones del servicio y seguridad contractual.',
     legitimacion: 'Ejecución del contrato de alquiler, consentimiento, cumplimiento legal e interés legítimo.',
     conservacion: 'Durante la relación contractual y los plazos legales aplicables (fiscales, contables y de tráfico).',
     destinatarios: 'Entidades financieras (CaixaBank), proveedores tecnológicos (hosting, plataforma), analítica y autoridades públicas competentes.',
-    derechos: 'Acceso, rectificación, supresión, limitación, oposición y portabilidad dirigiéndose a info@utopiavanlife.com.',
-    contacto: 'info@utopiavanlife.com'
+    derechos: `Acceso, rectificación, supresión, limitación, oposición y portabilidad dirigiéndose a ${lessor.email}.`,
+    contacto: lessor.email
   }
 
-  const clauses = articles.map(a => `${a.number}. ${a.title.toUpperCase()}: ${a.content.join(' ')}`)
+  const clauses = articles.map((a: any) => `${a.number}. ${a.title.toUpperCase()}: ${Array.isArray(a.content) ? a.content.join(' ') : a.content}`)
 
   return {
     contractNumber,

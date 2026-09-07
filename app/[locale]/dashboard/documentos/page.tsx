@@ -47,5 +47,8 @@ export default async function DocumentsPage({
     }
   }
 
-  return <DocumentsClient bookings={bookings || []} profile={profile} user={user} />
+  const { getContractTemplate } = await import('@/lib/contracts/templateService')
+  const contractTemplate = await getContractTemplate()
+
+  return <DocumentsClient bookings={bookings || []} profile={profile} user={user} contractTemplate={contractTemplate} />
 }

@@ -62,8 +62,10 @@ export async function POST(request: Request) {
       )
     }
 
-    // 4. Generar datos oficiales del contrato y el PDF multipágina firmado
-    const contractData = generateContractData(booking, profile)
+    // 4. Obtener la plantilla activa (o fábrica de reserva) y generar datos del contrato
+    const { getContractTemplate } = await import('@/lib/contracts/templateService')
+    const activeTemplate = await getContractTemplate()
+    const contractData = generateContractData(booking, profile, undefined, activeTemplate)
     const { buffer, doc } = await generateOfficialContractPdfBlob(contractData, signatureDataUrl)
 
     // 5. Conexión de administración para almacenamiento y bypass RLS

@@ -33,6 +33,7 @@ interface Props {
   bookings: any[]
   profile: any
   user: any
+  contractTemplate?: any
 }
 
 export interface DocumentItem {
@@ -70,7 +71,7 @@ export interface DocumentItem {
   }
 }
 
-export default function DocumentsClient({ bookings, profile, user }: Props) {
+export default function DocumentsClient({ bookings, profile, user, contractTemplate }: Props) {
   const [selectedFilter, setSelectedFilter] = useState<'all' | 'current' | 'invoices' | 'past'>('all')
   const [activePreviewDoc, setActivePreviewDoc] = useState<DocumentItem | null>(null)
   const [downloadingId, setDownloadingId] = useState<string | null>(null)
@@ -151,7 +152,7 @@ export default function DocumentsClient({ bookings, profile, user }: Props) {
     // 1. Current / Upcoming Booking Documents
     if (nextBooking) {
       const bId = nextBooking.id.substring(0, 8).toUpperCase()
-      const contractData = generateContractData(nextBooking, safeProfile)
+      const contractData = generateContractData(nextBooking, safeProfile, undefined, contractTemplate)
       const camperName = contractData.vehicle.modelName
       const fromDate = new Date(nextBooking.start_date)
       const toDate = new Date(nextBooking.end_date)
@@ -552,7 +553,7 @@ export default function DocumentsClient({ bookings, profile, user }: Props) {
         const targetBooking = bookings?.find(b => b.id === doc.bookingId) || nextBooking
         const signedState = signedContractsState[doc.bookingId || '']
         const signature = signedState?.pdfUrl ? undefined : targetBooking?.contract_signature
-        const contractData = generateContractData(targetBooking, safeProfile)
+        const contractData = generateContractData(targetBooking, safeProfile, undefined, contractTemplate)
         const { doc: officialDoc } = await generateOfficialContractPdfBlob(contractData, signature)
         officialDoc.save(`${doc.refNumber}_Contrato_Oficial.pdf`)
         return
@@ -1271,6 +1272,7 @@ export default function DocumentsClient({ bookings, profile, user }: Props) {
         <ContractSignModal
           booking={signingBooking}
           profile={safeProfile}
+          contractTemplate={contractTemplate}
           onClose={() => setSigningBooking(null)}
           onSigned={(signedAt, pdfUrl) => {
             setSignedContractsState(prev => ({

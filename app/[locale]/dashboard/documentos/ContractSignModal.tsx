@@ -24,9 +24,10 @@ interface Props {
   profile: any
   onClose: () => void
   onSigned: (signedAt: string, pdfUrl: string) => void
+  contractTemplate?: any
 }
 
-export default function ContractSignModal({ booking, profile, onClose, onSigned }: Props) {
+export default function ContractSignModal({ booking, profile, onClose, onSigned, contractTemplate }: Props) {
   const [activeTab, setActiveTab] = useState<'read' | 'sign'>('read')
   const [hasDrawn, setHasDrawn] = useState(false)
   const [legalAccepted, setLegalAccepted] = useState(false)
@@ -38,8 +39,8 @@ export default function ContractSignModal({ booking, profile, onClose, onSigned 
   const lastPointRef = useRef<{ x: number; y: number } | null>(null)
 
   const contractData: ContractData = React.useMemo(() => {
-    return generateContractData(booking, profile)
-  }, [booking, profile])
+    return generateContractData(booking, profile, undefined, contractTemplate)
+  }, [booking, profile, contractTemplate])
 
   // Inicializar canvas con escalado Retina / Hi-DPI
   useEffect(() => {

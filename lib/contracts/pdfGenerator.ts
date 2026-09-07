@@ -124,7 +124,9 @@ export async function generateOfficialContractPdfBlob(
 
   pdf.setFont('helvetica', 'normal')
   pdf.setFontSize(7.2)
-  const lesseeLegalText = `D./Dña. ${data.lessee.fullName}, con documento identificativo DNI/NIE/Pasaporte nº ${data.lessee.dniNie}, titular de permiso de conducción de clase B en vigor nº ${data.lessee.driverLicenseId} (${data.lessee.yearsHeld} años de antigüedad de carné), con domicilio formal a efectos de notificaciones en ${data.lessee.address}, teléfono de contacto ${data.lessee.phone} y correo electrónico ${data.lessee.email}.`
+  const isTemplatePreview = data.contractNumber === 'CTR-PLANTILLA-MODELO' || data.lessee.fullName.includes('___')
+  const yearsHeldDisplay = isTemplatePreview ? '______' : `${data.lessee.yearsHeld}`
+  const lesseeLegalText = `D./Dña. ${data.lessee.fullName}, con documento identificativo DNI/NIE/Pasaporte nº ${data.lessee.dniNie}, titular de permiso de conducción de clase B en vigor nº ${data.lessee.driverLicenseId} (${yearsHeldDisplay} años de antigüedad de carné), con domicilio formal a efectos de notificaciones en ${data.lessee.address}, teléfono de contacto ${data.lessee.phone} y correo electrónico ${data.lessee.email}.`
   const lesseeLines = pdf.splitTextToSize(lesseeLegalText, 174)
   pdf.text(lesseeLines, 18, yPos)
   yPos += lesseeLines.length * 3.4 + 2.5
@@ -183,7 +185,9 @@ export async function generateOfficialContractPdfBlob(
     },
     {
       label: 'Precio Total del Alquiler:',
-      value: `${data.pricing.totalPrice.toFixed(2)} € (IVA e impuestos incluidos)`,
+      value: isTemplatePreview
+        ? '____________________ € (IVA e impuestos incluidos - Según reserva)'
+        : `${data.pricing.totalPrice.toFixed(2)} € (IVA e impuestos incluidos)`,
       boldValue: true,
       highlight: true
     },
@@ -423,8 +427,9 @@ export async function generateOfficialContractPdfBlob(
   pdf.setFont('helvetica', 'normal')
   pdf.setFontSize(7)
   pdf.setTextColor(...slateMuted)
+  const clientDateDisplay = isTemplatePreview ? '______/______/2026' : data.generatedAt
   pdf.text(`D./Dña. ${data.lessee.fullName}`, 112, yPos + 10.5)
-  pdf.text(`DNI/NIE: ${data.lessee.dniNie} · Fecha: ${data.generatedAt}`, 112, yPos + 14.5)
+  pdf.text(`DNI/NIE: ${data.lessee.dniNie} · Fecha: ${clientDateDisplay}`, 112, yPos + 14.5)
 
   // Si se ha proporcionado firma táctil / ratón en dataUrl
   if (clientSignatureDataUrl && clientSignatureDataUrl.startsWith('data:image/')) {

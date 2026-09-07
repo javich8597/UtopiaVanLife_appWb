@@ -43,45 +43,48 @@ export async function POST(request: Request) {
     const body = await request.json()
     const templateOverride: Partial<ContractTemplateData> = body?.template || body || {}
 
-    // Datos simulados realistas para la previsualización del administrador
+    // Datos en blanco con líneas de cumplimentación para la plantilla del contrato
+    const BLANK_LINE = '____________________________________'
+    const BLANK_SHORT = '____________________'
+
     const mockBooking = {
-      id: 'PREVIEW-SAMPLE-2026',
-      start_date: new Date(Date.now() + 86400000 * 5).toISOString().split('T')[0],
-      end_date: new Date(Date.now() + 86400000 * 12).toISOString().split('T')[0],
-      pickup_time: templateOverride.terms?.pickupWindow ? templateOverride.terms.pickupWindow.split('-')[0].trim() : '10:00',
-      dropoff_time: templateOverride.terms?.dropoffWindow ? templateOverride.terms.dropoffWindow.split('-')[0].trim() : '18:00',
-      pickup_location: 'Palma de Mallorca (Base Utopia Son Oms / Aeropuerto PMI)',
-      dropoff_location: 'Palma de Mallorca (Base Utopia Son Oms / Aeropuerto PMI)',
-      total_price: 1120,
-      extras: ['Seguro a todo riesgo', 'Menaje completo premium', 'Kit cama y toallas', '2 Máscaras de snorkel'],
-      customer_name: 'Alejandro Martínez Silva',
-      customer_email: 'alejandro.martinez@ejemplo.com',
-      customer_phone: '+34 622 334 455'
+      id: 'PLANTILLA-MODELO',
+      start_date: BLANK_SHORT,
+      end_date: BLANK_SHORT,
+      pickup_time: templateOverride.terms?.pickupWindow || '10:00 - 14:00',
+      dropoff_time: templateOverride.terms?.dropoffWindow || '16:00 - 20:00',
+      pickupLocation: 'Palma de Mallorca (Base Utopia Son Oms / Aeropuerto PMI)',
+      dropoffLocation: 'Palma de Mallorca (Base Utopia Son Oms / Aeropuerto PMI)',
+      total_price: 0,
+      extras: ['[ Según extras contratados en reserva ]'],
+      customer_name: BLANK_LINE,
+      customer_email: BLANK_SHORT,
+      customer_phone: BLANK_SHORT
     }
 
     const mockProfile = {
-      full_name: 'Alejandro Martínez Silva',
-      dni_nie: '48291038K',
-      driver_license_id: 'ES-48291038K',
-      driver_license_issue_date: '2016-04-12',
-      driver_license_expiry_date: '2031-04-12',
-      address: 'Calle Mayor 45, 3ºB, 28013 Madrid',
-      phone: '+34 622 334 455',
-      email: 'alejandro.martinez@ejemplo.com',
-      has_second_driver: true,
-      second_driver_name: 'Laura Gómez Santos',
-      second_driver_dni: '51928374M',
-      second_driver_license: 'ES-51928374M'
+      full_name: BLANK_LINE,
+      dni_nie: BLANK_SHORT,
+      driver_license_id: BLANK_SHORT,
+      driver_license_issue_date: '',
+      driver_license_expiry_date: '',
+      address: BLANK_LINE,
+      phone: BLANK_SHORT,
+      email: BLANK_SHORT,
+      has_second_driver: false
     }
 
     const mockCamper = {
-      slug: 'space',
-      name: 'Camper Utopia Nomade SPACE',
-      plate_number: '4182-MXP',
-      capacity: '4 Plazas viajar / 4 dormir'
+      slug: 'general',
+      name: '[ Vehículo según reserva: Utopia Neo / Space ]',
+      plate_number: BLANK_SHORT,
+      capacity: 'Hasta 4 Plazas viajar / 4 dormir'
     }
 
     const contractData = generateContractData(mockBooking, mockProfile, mockCamper, templateOverride)
+    // Personalizar contractNumber para indicar que es el modelo / plantilla base
+    contractData.contractNumber = 'CTR-PLANTILLA-MODELO'
+
     const { buffer } = await generateOfficialContractPdfBlob(contractData)
 
     return new Response(new Uint8Array(buffer), {

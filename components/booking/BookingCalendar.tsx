@@ -201,35 +201,39 @@ export default function BookingCalendar({
                 .booking-cal {
                     background: #FAF8F5;
                     border: 1px solid var(--gray-200);
-                    border-radius: var(--radius-lg);
-                    padding: var(--space-4);
+                    border-radius: var(--radius-md);
+                    padding: 12px 14px 10px;
                     user-select: none;
+                    max-width: 300px;
+                    margin: 0 auto;
                 }
                 .booking-cal__header {
                     display: flex;
                     align-items: center;
                     justify-content: space-between;
-                    margin-bottom: var(--space-3);
+                    margin-bottom: 8px;
                 }
                 .booking-cal__month-title {
                     font-family: var(--font-sans);
                     font-weight: 600;
                     text-transform: capitalize;
-                    font-size: 0.95rem;
+                    font-size: 0.85rem;
                     color: var(--black-matte);
+                    letter-spacing: -0.01em;
                 }
                 .booking-cal__nav-btn {
                     background: transparent;
                     border: 1px solid var(--gray-200);
                     border-radius: var(--radius-full);
-                    width: 30px;
-                    height: 30px;
+                    width: 26px;
+                    height: 26px;
                     display: flex;
                     align-items: center;
                     justify-content: center;
                     cursor: pointer;
                     color: var(--black-matte);
                     transition: all var(--transition-fast);
+                    padding: 0;
                 }
                 .booking-cal__nav-btn:hover:not(:disabled) {
                     background: white;
@@ -237,30 +241,31 @@ export default function BookingCalendar({
                     color: var(--forest-green);
                 }
                 .booking-cal__nav-btn:disabled {
-                    opacity: 0.3;
+                    opacity: 0.25;
                     cursor: not-allowed;
                 }
                 .booking-cal__weekdays {
                     display: grid;
                     grid-template-columns: repeat(7, 1fr);
                     text-align: center;
-                    margin-bottom: var(--space-2);
+                    margin-bottom: 4px;
                 }
                 .booking-cal__weekday {
-                    font-size: 0.75rem;
+                    font-size: 0.68rem;
                     font-weight: 600;
                     color: var(--gray-400);
+                    padding-bottom: 2px;
                 }
                 .booking-cal__grid {
                     display: grid;
                     grid-template-columns: repeat(7, 1fr);
-                    gap: 2px 0;
+                    gap: 1px 0;
                 }
                 .booking-cal__day {
                     aspect-ratio: 1;
                     background: transparent;
                     border: none;
-                    font-size: 0.85rem;
+                    font-size: 0.78rem;
                     font-weight: 500;
                     color: var(--black-matte);
                     cursor: pointer;
@@ -272,8 +277,8 @@ export default function BookingCalendar({
                     transition: all var(--transition-fast);
                 }
                 .booking-cal__day-number {
-                    width: 32px;
-                    height: 32px;
+                    width: 26px;
+                    height: 26px;
                     display: flex;
                     align-items: center;
                     justify-content: center;
@@ -282,13 +287,13 @@ export default function BookingCalendar({
                     z-index: 2;
                 }
                 .booking-cal__day--outside {
-                    opacity: 0.25;
+                    opacity: 0.2;
                 }
                 .booking-cal__day--disabled {
                     color: var(--gray-400);
                     text-decoration: line-through;
                     cursor: not-allowed;
-                    opacity: 0.45;
+                    opacity: 0.4;
                 }
                 .booking-cal__day:hover:not(.booking-cal__day--disabled):not(.booking-cal__day--start):not(.booking-cal__day--end) .booking-cal__day-number {
                     background: rgba(45, 58, 45, 0.08);
@@ -320,17 +325,18 @@ export default function BookingCalendar({
                     display: flex;
                     justify-content: space-between;
                     align-items: center;
-                    margin-top: var(--space-4);
-                    padding-top: var(--space-3);
+                    margin-top: 10px;
+                    padding-top: 8px;
                     border-top: 1px solid var(--gray-200);
                 }
                 .booking-cal__clear-btn {
                     background: none;
                     border: none;
-                    font-size: 0.8rem;
+                    font-size: 0.72rem;
                     text-decoration: underline;
                     color: var(--gray-600);
                     cursor: pointer;
+                    padding: 0;
                 }
                 .booking-cal__clear-btn:disabled {
                     opacity: 0.3;
@@ -342,8 +348,8 @@ export default function BookingCalendar({
                     color: #FAF8F5;
                     border: none;
                     border-radius: var(--radius-full);
-                    padding: 4px 14px;
-                    font-size: 0.8rem;
+                    padding: 3px 10px;
+                    font-size: 0.72rem;
                     font-weight: 500;
                     cursor: pointer;
                     transition: background var(--transition-fast);

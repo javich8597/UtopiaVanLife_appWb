@@ -265,14 +265,14 @@ export default function HeroSection() {
         }
         .hero__calendar-popover {
           position: absolute;
-          top: calc(100% + var(--space-3));
+          top: calc(100% + 8px);
           left: 50%;
           transform: translateX(-50%) !important;
           z-index: 50;
           width: 100%;
-          max-width: 360px;
-          box-shadow: var(--shadow-xl);
-          border-radius: var(--radius-lg);
+          max-width: 310px;
+          box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.2), 0 8px 10px -6px rgba(0, 0, 0, 0.1);
+          border-radius: var(--radius-md);
           overflow: hidden;
         }
 

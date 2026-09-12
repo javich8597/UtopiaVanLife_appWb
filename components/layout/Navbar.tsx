@@ -116,8 +116,33 @@ export default function Navbar() {
         <div className="mobile-menu" onClick={() => setMenuOpen(false)}>
           <nav className="mobile-menu__nav" onClick={e => e.stopPropagation()}>
             <div className="mobile-menu__header">
-              <img src="/images/logo.png" alt="Utopia Van Life" style={{ height: '34px', width: 'auto', objectFit: 'contain' }} />
-              <button onClick={() => setMenuOpen(false)} aria-label="Cerrar"><X size={22} /></button>
+              <Link href="/" onClick={() => setMenuOpen(false)} style={{ display: 'flex', alignItems: 'center', flex: 1 }}>
+                <img
+                  src="/images/logo.png"
+                  alt="Utopia Van Life"
+                  style={{
+                    height: '52px',
+                    width: 'auto',
+                    maxWidth: '190px',
+                    objectFit: 'contain',
+                    display: 'block'
+                  }}
+                />
+              </Link>
+              <button
+                onClick={() => setMenuOpen(false)}
+                aria-label="Cerrar"
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  padding: '6px',
+                  borderRadius: '8px',
+                  color: 'var(--black-matte)'
+                }}
+              >
+                <X size={24} />
+              </button>
             </div>
             <ul className="mobile-menu__links">
               <li><Link href="/" onClick={() => setMenuOpen(false)}>{t('home')}</Link></li>
@@ -226,7 +251,7 @@ export default function Navbar() {
           background: var(--white-broken);
           display: flex;
           flex-direction: column;
-          padding: var(--space-6);
+          padding: 0.75rem 1.25rem 1.5rem 1.25rem;
           gap: var(--space-4);
           animation: slideFromRight 0.25s ease;
         }
@@ -238,7 +263,8 @@ export default function Navbar() {
           display: flex;
           justify-content: space-between;
           align-items: center;
-          padding-bottom: var(--space-4);
+          padding: 0.5rem 0 0.65rem 0;
+          margin-bottom: 0.25rem;
           border-bottom: 1px solid var(--gray-200);
         }
         .mobile-menu__links {

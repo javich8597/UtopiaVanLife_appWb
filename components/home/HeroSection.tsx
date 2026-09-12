@@ -196,17 +196,18 @@ export default function HeroSection() {
             <style jsx>{`
         .hero {
           position: relative;
-          height: 100svh;
-          min-height: 640px;
+          min-height: 100svh;
+          height: auto;
+          padding: 80px 0 60px;
           display: flex;
           align-items: center;
           justify-content: center;
-          overflow: hidden;
         }
         .hero__video-wrap {
           position: absolute;
           inset: 0;
           z-index: 0;
+          overflow: hidden;
         }
         .hero__video {
           width: 100%;
@@ -265,15 +266,14 @@ export default function HeroSection() {
         }
         .hero__calendar-popover {
           position: absolute;
-          top: calc(100% + 8px);
+          top: calc(100% + 10px);
           left: 50%;
           transform: translateX(-50%) !important;
-          z-index: 50;
-          width: 100%;
-          max-width: 310px;
-          box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.2), 0 8px 10px -6px rgba(0, 0, 0, 0.1);
+          z-index: 100;
+          width: max-content;
+          max-width: calc(100vw - 32px);
+          box-shadow: 0 20px 30px -10px rgba(0, 0, 0, 0.25), 0 10px 10px -5px rgba(0, 0, 0, 0.05);
           border-radius: var(--radius-md);
-          overflow: hidden;
         }
 
         /* Search bar */
@@ -426,13 +426,14 @@ export default function HeroSection() {
           .hero__field { min-width: unset; }
           .hero__calendar-popover {
             position: fixed;
-            top: auto;
-            bottom: var(--space-4);
-            left: var(--space-4);
-            right: var(--space-4);
-            transform: none !important;
-            max-width: unset;
-            z-index: 100;
+            top: 50%;
+            bottom: auto;
+            left: 50%;
+            right: auto;
+            transform: translate(-50%, -50%) !important;
+            max-width: 310px;
+            width: 90vw;
+            z-index: 1000;
           }
         }
       `}</style>

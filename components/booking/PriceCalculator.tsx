@@ -2,9 +2,13 @@
 
 import { useState, useEffect } from 'react'
 import { useRouter } from '@/i18n/routing'
-import { Calendar, Users, Plus, Minus, CheckCircle } from 'lucide-react'
+import { Calendar as CalendarIcon, Users, Plus, Minus, CheckCircle, ChevronDown } from 'lucide-react'
 import { calculatePrice, formatPrice } from '@/lib/pricing/engine'
 import type { Season, Extra } from '@/lib/pricing/engine'
+import BookingCalendar, { BlockedRange } from './BookingCalendar'
+import { motion, AnimatePresence } from 'framer-motion'
+import { parseISO, format } from 'date-fns'
+import { es } from 'date-fns/locale'
 
 interface PriceCalculatorProps {
     camperSlug: string
@@ -27,9 +31,34 @@ export default function PriceCalculator({
     const [startDate, setStartDate] = useState(initialFrom || '')
     const [endDate, setEndDate] = useState(initialTo || '')
     const [pax, setPax] = useState(2)
+    const [isCalendarOpen, setIsCalendarOpen] = useState(false)
+    const [blockedRanges, setBlockedRanges] = useState<BlockedRange[]>([])
     const [selectedExtras, setSelectedExtras] = useState<Extra[]>([])
     const [breakdown, setBreakdown] = useState<ReturnType<typeof calculatePrice> | null>(null)
 
+    // Cargar fechas bloqueadas para esta furgoneta
+    useEffect(() => {
+        let isMounted = true
+        async function fetchAvailability() {
+            try {
+                const res = await fetch(`/api/campers/${camperSlug}/availability`)
+                if (res.ok) {
+                    const data = await res.json()
+                    if (isMounted && data.blockedRanges) {
+                        setBlockedRanges(data.blockedRanges)
+                    }
+                }
+            } catch {
+                // Silencioso si falla
+            }
+        }
+        fetchAvailability()
+        return () => {
+            isMounted = false
+        }
+    }, [camperSlug])
+
+    // Recalcular desglose de precio
     useEffect(() => {
         if (!startDate || !endDate) { setBreakdown(null); return }
         const start = new Date(startDate)
@@ -48,16 +77,34 @@ export default function PriceCalculator({
         )
     }
 
+    const handleDatesChange = (start: string, end: string) => {
+        setStartDate(start)
+        setEndDate(end)
+        if (start && end) {
+            // Cerramos el calendario suavemente al completar el rango
+            setIsCalendarOpen(false)
+        }
+    }
+
     const handleReserve = () => {
         if (!startDate || !endDate || !breakdown) return
         const params = new URLSearchParams({
             camper: camperSlug,
             from: startDate,
             to: endDate,
-            pax: String(pax),
+            pax: String(Math.min(3, Math.max(1, pax))),
             extras: selectedExtras.map(e => e.id).join(','),
         })
         router.push(`/checkout?${params.toString()}`)
+    }
+
+    const formatDisplayDate = (dateStr: string) => {
+        if (!dateStr) return null
+        try {
+            return format(parseISO(dateStr), "d 'de' MMM", { locale: es })
+        } catch {
+            return dateStr
+        }
     }
 
     return (
@@ -72,54 +119,94 @@ export default function PriceCalculator({
                 )}
             </div>
 
-            {/* Dates */}
-            <div className="price-calc__dates">
-                <div className="form-group">
-                    <label htmlFor="calc-start-date" className="form-label">
-                        <Calendar size={12} style={{ display: 'inline', marginRight: 4 }} />
-                        Llegada
-                    </label>
-                    <input
-                        id="calc-start-date"
-                        name="start_date"
-                        type="date"
-                        className="form-input"
-                        value={startDate}
-                        min={new Date().toISOString().split('T')[0]}
-                        onChange={e => setStartDate(e.target.value)}
-                        suppressHydrationWarning
-                    />
+            {/* Interactive Dates Selector */}
+            <div className="price-calc__dates-wrapper">
+                <div
+                    className={`price-calc__dates-card ${isCalendarOpen ? 'price-calc__dates-card--open' : ''}`}
+                    onClick={() => setIsCalendarOpen(prev => !prev)}
+                >
+                    <div className="price-calc__date-pill">
+                        <span className="price-calc__date-label">
+                            <CalendarIcon size={12} style={{ display: 'inline', marginRight: 5 }} />
+                            Llegada
+                        </span>
+                        <span className={`price-calc__date-val ${!startDate ? 'price-calc__date-val--placeholder' : ''}`}>
+                            {formatDisplayDate(startDate) || 'Añadir fecha'}
+                        </span>
+                    </div>
+
+                    <div className="price-calc__date-separator" />
+
+                    <div className="price-calc__date-pill">
+                        <span className="price-calc__date-label">
+                            <CalendarIcon size={12} style={{ display: 'inline', marginRight: 5 }} />
+                            Salida
+                        </span>
+                        <span className={`price-calc__date-val ${!endDate ? 'price-calc__date-val--placeholder' : ''}`}>
+                            {formatDisplayDate(endDate) || 'Añadir fecha'}
+                        </span>
+                    </div>
+
+                    <div className="price-calc__dates-caret">
+                        <ChevronDown
+                            size={16}
+                            style={{
+                                transform: isCalendarOpen ? 'rotate(180deg)' : 'rotate(0deg)',
+                                transition: 'transform var(--transition-fast)'
+                            }}
+                        />
+                    </div>
                 </div>
-                <div className="form-group">
-                    <label htmlFor="calc-end-date" className="form-label">
-                        <Calendar size={12} style={{ display: 'inline', marginRight: 4 }} />
-                        Salida
-                    </label>
-                    <input
-                        id="calc-end-date"
-                        name="end_date"
-                        type="date"
-                        className="form-input"
-                        value={endDate}
-                        min={startDate || new Date().toISOString().split('T')[0]}
-                        onChange={e => setEndDate(e.target.value)}
-                        suppressHydrationWarning
-                    />
-                </div>
+
+                {/* Animated Dropdown Calendar */}
+                <AnimatePresence>
+                    {isCalendarOpen && (
+                        <motion.div
+                            initial={{ opacity: 0, height: 0 }}
+                            animate={{ opacity: 1, height: 'auto' }}
+                            exit={{ opacity: 0, height: 0 }}
+                            transition={{ duration: 0.25, ease: 'easeInOut' }}
+                            className="price-calc__calendar-collapse"
+                        >
+                            <BookingCalendar
+                                startDate={startDate}
+                                endDate={endDate}
+                                onChange={handleDatesChange}
+                                blockedRanges={blockedRanges}
+                                onClose={() => setIsCalendarOpen(false)}
+                            />
+                        </motion.div>
+                    )}
+                </AnimatePresence>
             </div>
 
-            {/* Pax */}
+            {/* Pax (1 to 3 travellers max) */}
             <div className="form-group">
-                <label className="form-label">
-                    <Users size={12} style={{ display: 'inline', marginRight: 4 }} />
-                    Viajeros
-                </label>
+                <div className="price-calc__pax-header">
+                    <label className="form-label" style={{ marginBottom: 0 }}>
+                        <Users size={12} style={{ display: 'inline', marginRight: 5 }} />
+                        Viajeros
+                    </label>
+                    <span className="price-calc__pax-badge">Máx. 3 plazas</span>
+                </div>
                 <div className="price-calc__pax">
-                    <button type="button" className="btn btn-outline btn-icon" onClick={() => setPax(p => Math.max(1, p - 1))}>
+                    <button
+                        type="button"
+                        className="btn btn-outline btn-icon"
+                        onClick={() => setPax(p => Math.max(1, p - 1))}
+                        disabled={pax <= 1}
+                        aria-label="Disminuir viajeros"
+                    >
                         <Minus size={16} />
                     </button>
-                    <span className="price-calc__pax-num">{pax} persona{pax !== 1 ? 's' : ''}</span>
-                    <button type="button" className="btn btn-outline btn-icon" onClick={() => setPax(p => Math.min(6, p + 1))}>
+                    <span className="price-calc__pax-num">{pax} {pax === 1 ? 'persona' : 'personas'}</span>
+                    <button
+                        type="button"
+                        className="btn btn-outline btn-icon"
+                        onClick={() => setPax(p => Math.min(3, p + 1))}
+                        disabled={pax >= 3}
+                        aria-label="Aumentar viajeros (máximo 3)"
+                    >
                         <Plus size={16} />
                     </button>
                 </div>
@@ -233,10 +320,81 @@ export default function PriceCalculator({
           color: var(--gray-400);
           display: block;
         }
-        .price-calc__dates {
-          display: grid;
-          grid-template-columns: 1fr 1fr;
+        .price-calc__dates-wrapper {
+          display: flex;
+          flex-direction: column;
           gap: var(--space-3);
+        }
+        .price-calc__dates-card {
+          display: flex;
+          align-items: center;
+          padding: var(--space-2) var(--space-3);
+          border: 1.5px solid var(--gray-200);
+          border-radius: var(--radius-md);
+          background: #FAF8F5;
+          cursor: pointer;
+          transition: all var(--transition-fast);
+          user-select: none;
+        }
+        .price-calc__dates-card:hover {
+          border-color: var(--sand-dark);
+          background: white;
+        }
+        .price-calc__dates-card--open {
+          border-color: var(--forest-green);
+          background: white;
+          box-shadow: 0 0 0 1px var(--forest-green);
+        }
+        .price-calc__date-pill {
+          flex: 1;
+          display: flex;
+          flex-direction: column;
+          gap: 2px;
+          padding: var(--space-1) var(--space-2);
+        }
+        .price-calc__date-label {
+          font-size: 0.72rem;
+          font-weight: 600;
+          text-transform: uppercase;
+          letter-spacing: 0.05em;
+          color: var(--gray-600);
+        }
+        .price-calc__date-val {
+          font-size: 0.88rem;
+          font-weight: 500;
+          color: var(--black-matte);
+        }
+        .price-calc__date-val--placeholder {
+          color: var(--gray-400);
+          font-weight: 400;
+        }
+        .price-calc__date-separator {
+          width: 1px;
+          height: 28px;
+          background: var(--gray-200);
+        }
+        .price-calc__dates-caret {
+          padding-left: var(--space-2);
+          color: var(--gray-600);
+          display: flex;
+          align-items: center;
+        }
+        .price-calc__calendar-collapse {
+          overflow: hidden;
+        }
+        .price-calc__pax-header {
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+          margin-bottom: var(--space-2);
+        }
+        .price-calc__pax-badge {
+          font-size: 0.7rem;
+          color: var(--forest-green);
+          background: rgba(45, 58, 45, 0.08);
+          padding: 2px 8px;
+          border-radius: var(--radius-full);
+          font-weight: 500;
         }
         .price-calc__pax {
           display: flex;

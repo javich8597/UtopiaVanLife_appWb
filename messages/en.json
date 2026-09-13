@@ -1,15 +1,18 @@
 {
   "HomePage": {
     "Hero": {
-      "title": "Choose your way to travel",
-      "subtitle": "Discover Mallorca like never before. Rent a premium camper and live a unique experience of calm and luxurious adventure.",
+      "title": "Your Utopia Awaits",
+      "subtitle": "High-end campervans in Mallorca. Design, comfort, and total autonomy to explore the island at your own pace.",
       "cta": "View campers",
-      "eyebrow": "Mallorca · Van Life · Freedom",
+      "eyebrow": "Utopia Van Life · Mallorca",
       "llegada": "Pickup",
       "salida": "Dropoff",
       "viajeros": "Guests",
       "buscar": "Find my Utopia",
-      "explorar": "Explore"
+      "explorar": "Explore",
+      "guarantee1": "No set itineraries",
+      "guarantee2": "Solar & lithium autonomy",
+      "guarantee3": "Comprehensive insurance"
     },
     "WhyUtopia": {
       "eyebrow": "Why choose us",

@@ -1,15 +1,18 @@
 {
   "HomePage": {
     "Hero": {
-      "title": "Elige tu forma de viajar",
-      "subtitle": "Descubre Mallorca como nunca antes. Alquila una camper premium y vive una experiencia única de calma y aventura lujosa.",
+      "title": "Tu Utopía te espera",
+      "subtitle": "Autocaravanas de alta gama en Mallorca. Diseño, confort y autonomía total para descubrir la isla a tu propio ritmo.",
       "cta": "Ver campers",
-      "eyebrow": "Mallorca · Van Life · Libertad",
+      "eyebrow": "Utopia Van Life · Mallorca",
       "llegada": "Llegada",
       "salida": "Salida",
       "viajeros": "Viajeros",
       "buscar": "Buscar mi Utopía",
-      "explorar": "Explorar"
+      "explorar": "Explorar",
+      "guarantee1": "Sin rutas marcadas",
+      "guarantee2": "Autonomía solar & litio",
+      "guarantee3": "Seguro a todo riesgo"
     },
     "WhyUtopia": {
       "eyebrow": "Por qué elegirnos",

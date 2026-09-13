@@ -2,7 +2,7 @@
 
 import { useState, useRef, useEffect } from 'react'
 import { useRouter } from '@/i18n/routing'
-import { Calendar as CalendarIcon, Users, Search, ChevronDown } from 'lucide-react'
+import { Calendar as CalendarIcon, Users, Search, Sparkles, Shield, Compass, Sun } from 'lucide-react'
 import { useTranslations } from 'next-intl'
 import BookingCalendar from '@/components/booking/BookingCalendar'
 import { motion, AnimatePresence } from 'framer-motion'
@@ -61,7 +61,7 @@ export default function HeroSection() {
 
     return (
         <section className="hero">
-            {/* Video Background */}
+            {/* Cinematic Video Background with Multi-Layer Gradient */}
             <div className="hero__video-wrap">
                 <video
                     className="hero__video"
@@ -77,20 +77,28 @@ export default function HeroSection() {
                 <div className="hero__overlay" />
             </div>
 
-            {/* Content */}
+            {/* Editorial Content */}
             <div className="hero__content">
-                <div className="hero__eyebrow text-label">{t('eyebrow')}</div>
+                {/* Floating Eyebrow Pill */}
+                <div className="hero__eyebrow-pill">
+                    <Sparkles size={13} className="hero__eyebrow-icon" />
+                    <span>{t('eyebrow')}</span>
+                </div>
+
+                {/* Main Headline */}
                 <h1 className="hero__title text-display">
                     Tu Utopía<br />
                     <em>te espera</em>
                 </h1>
+
+                {/* Subtitle */}
                 <p className="hero__subtitle">
                     {t('subtitle')}
                 </p>
 
-                {/* Search Bar Container */}
+                {/* Search Bar Container with Pro Max Glassmorphism */}
                 <div className="hero__search-container" ref={containerRef}>
-                    <form className="hero__searchbar glass" onSubmit={handleSearch}>
+                    <form className="hero__searchbar glass-pro" onSubmit={handleSearch}>
                         
                         {/* Selector Fechas: Llegada */}
                         <div
@@ -98,7 +106,7 @@ export default function HeroSection() {
                             onClick={() => setIsCalendarOpen(true)}
                         >
                             <span className="hero__field-label">
-                                <CalendarIcon size={14} />
+                                <CalendarIcon size={13} className="text-sand" />
                                 {t('llegada')}
                             </span>
                             <div className="hero__field-display">
@@ -116,7 +124,7 @@ export default function HeroSection() {
                             onClick={() => setIsCalendarOpen(true)}
                         >
                             <span className="hero__field-label">
-                                <CalendarIcon size={14} />
+                                <CalendarIcon size={13} className="text-sand" />
                                 {t('salida')}
                             </span>
                             <div className="hero__field-display">
@@ -131,9 +139,9 @@ export default function HeroSection() {
                         {/* Selector de Viajeros (1 a 3) */}
                         <div className="hero__field">
                             <span className="hero__field-label">
-                                <Users size={14} />
+                                <Users size={13} className="text-sand" />
                                 {t('viajeros')}
-                                <span className="hero__pax-limit">(máx. 3)</span>
+                                <span className="hero__pax-limit">Máx. 3</span>
                             </span>
                             <div className="hero__pax-control">
                                 <button
@@ -160,7 +168,7 @@ export default function HeroSection() {
 
                         {/* Botón Buscar */}
                         <button type="submit" className="hero__search-btn btn btn-forest btn-lg">
-                            <Search size={18} />
+                            <Search size={17} />
                             <span>{t('buscar')}</span>
                         </button>
                     </form>
@@ -169,10 +177,10 @@ export default function HeroSection() {
                     <AnimatePresence>
                         {isCalendarOpen && (
                             <motion.div
-                                initial={{ opacity: 0, y: -10, scale: 0.98 }}
+                                initial={{ opacity: 0, y: -8, scale: 0.98 }}
                                 animate={{ opacity: 1, y: 0, scale: 1 }}
-                                exit={{ opacity: 0, y: -10, scale: 0.98 }}
-                                transition={{ duration: 0.2, ease: 'easeOut' }}
+                                exit={{ opacity: 0, y: -8, scale: 0.98 }}
+                                transition={{ duration: 0.22, ease: [0.16, 1, 0.3, 1] }}
                                 className="hero__calendar-popover"
                             >
                                 <BookingCalendar
@@ -184,6 +192,24 @@ export default function HeroSection() {
                             </motion.div>
                         )}
                     </AnimatePresence>
+
+                    {/* Micro-guarantees badges */}
+                    <div className="hero__guarantees">
+                        <span className="hero__guarantee-item">
+                            <Compass size={13} />
+                            {t('guarantee1')}
+                        </span>
+                        <span className="hero__guarantee-dot">•</span>
+                        <span className="hero__guarantee-item">
+                            <Sun size={13} />
+                            {t('guarantee2')}
+                        </span>
+                        <span className="hero__guarantee-dot">•</span>
+                        <span className="hero__guarantee-item">
+                            <Shield size={13} />
+                            {t('guarantee3')}
+                        </span>
+                    </div>
                 </div>
 
                 {/* Scroll indicator */}
@@ -198,7 +224,7 @@ export default function HeroSection() {
           position: relative;
           min-height: 100svh;
           height: auto;
-          padding: 80px 0 60px;
+          padding: 100px 0 70px;
           display: flex;
           align-items: center;
           justify-content: center;
@@ -214,11 +240,17 @@ export default function HeroSection() {
           height: 100%;
           object-fit: cover;
           object-position: center;
+          filter: saturate(1.08) brightness(0.95);
         }
         .hero__overlay {
           position: absolute;
           inset: 0;
-          background: rgba(26,26,26,0.38);
+          background: linear-gradient(
+            to bottom,
+            rgba(20, 24, 20, 0.45) 0%,
+            rgba(20, 24, 20, 0.32) 40%,
+            rgba(20, 24, 20, 0.65) 100%
+          );
         }
         .hero__content {
           position: relative;
@@ -229,74 +261,110 @@ export default function HeroSection() {
           display: flex;
           flex-direction: column;
           align-items: center;
-          gap: var(--space-6);
-          animation: fadeInUp 0.8s both;
+          gap: var(--space-5);
+          animation: fadeInUp 0.9s cubic-bezier(0.16, 1, 0.3, 1) both;
           width: 100%;
           max-width: 860px;
         }
-        .hero__eyebrow {
-          color: rgba(255,255,255,0.75);
-          letter-spacing: 0.2em;
+
+        /* Floating Eyebrow Pill */
+        .hero__eyebrow-pill {
+          display: inline-flex;
+          align-items: center;
+          gap: 8px;
+          padding: 6px 16px;
+          border-radius: var(--radius-full);
+          background: rgba(255, 255, 255, 0.12);
+          backdrop-filter: blur(12px);
+          -webkit-backdrop-filter: blur(12px);
+          border: 1px solid rgba(255, 255, 255, 0.22);
+          box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+          font-size: 0.76rem;
+          font-weight: 600;
+          letter-spacing: 0.14em;
+          text-transform: uppercase;
+          color: var(--cream);
         }
+        .hero__eyebrow-icon {
+          color: var(--sand);
+        }
+
+        /* Main Headline */
         .hero__title {
-          font-size: clamp(2.75rem, 7.5vw, 5.75rem);
+          font-size: clamp(3rem, 7.5vw, 5.8rem);
           font-weight: 300;
           letter-spacing: -0.03em;
-          line-height: 0.98;
+          line-height: 0.96;
           color: white;
+          text-shadow: 0 2px 24px rgba(0, 0, 0, 0.35);
           text-wrap: balance;
         }
         .hero__title em {
           font-style: italic;
           color: var(--sand);
+          font-weight: 300;
         }
         .hero__subtitle {
-          font-size: clamp(1rem, 2vw, 1.15rem);
-          color: rgba(255,255,255,0.8);
-          line-height: 1.7;
-          max-width: 520px;
+          font-size: clamp(1rem, 2vw, 1.18rem);
+          color: rgba(255, 255, 255, 0.9);
+          line-height: 1.68;
+          max-width: 580px;
+          text-shadow: 0 1px 12px rgba(0, 0, 0, 0.3);
+          text-wrap: balance;
         }
 
         /* Search Container & Popover */
         .hero__search-container {
           position: relative;
           width: 100%;
-          max-width: 780px;
+          max-width: 800px;
           margin-top: var(--space-4);
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          gap: var(--space-3);
         }
         .hero__calendar-popover {
           position: absolute;
-          top: calc(100% + 10px);
+          top: calc(100% - 18px);
           left: 50%;
           transform: translateX(-50%) !important;
           z-index: 100;
           width: max-content;
           max-width: calc(100vw - 32px);
-          box-shadow: 0 20px 30px -10px rgba(0, 0, 0, 0.25), 0 10px 10px -5px rgba(0, 0, 0, 0.05);
+          box-shadow: 0 24px 48px -12px rgba(0, 0, 0, 0.3), 0 0 0 1px rgba(255, 255, 255, 0.1);
           border-radius: var(--radius-md);
         }
 
-        /* Search bar */
+        /* Search bar (Glassmorphism Pro Max) */
+        .glass-pro {
+          background: rgba(255, 255, 255, 0.94);
+          backdrop-filter: blur(24px);
+          -webkit-backdrop-filter: blur(24px);
+          border: 1px solid rgba(255, 255, 255, 0.6);
+          box-shadow: 0 16px 40px -10px rgba(0, 0, 0, 0.25), 0 0 0 1px rgba(255, 255, 255, 0.4);
+        }
         .hero__searchbar {
           display: flex;
           align-items: center;
-          border-radius: var(--radius-xl);
-          padding: var(--space-3) var(--space-3) var(--space-3) var(--space-6);
+          border-radius: var(--radius-full);
+          padding: 8px 8px 8px 24px;
           gap: var(--space-2);
           width: 100%;
           text-align: left;
-          background: rgba(255, 255, 255, 0.92);
-          backdrop-filter: blur(16px);
-          box-shadow: var(--shadow-lg);
+          transition: all var(--transition-base);
+        }
+        .hero__searchbar:hover {
+          box-shadow: 0 20px 48px -10px rgba(0, 0, 0, 0.3), 0 0 0 1px rgba(255, 255, 255, 0.6);
         }
         .hero__field {
           display: flex;
           flex-direction: column;
-          gap: 3px;
+          gap: 2px;
           flex: 1;
           min-width: 130px;
-          padding: var(--space-1) var(--space-2);
-          border-radius: var(--radius-md);
+          padding: 6px 10px;
+          border-radius: var(--radius-lg);
           transition: background var(--transition-fast);
         }
         .hero__field--clickable {
@@ -311,8 +379,8 @@ export default function HeroSection() {
         .hero__field-label {
           display: flex;
           align-items: center;
-          gap: 5px;
-          font-size: 0.72rem;
+          gap: 6px;
+          font-size: 0.7rem;
           font-weight: 700;
           letter-spacing: 0.08em;
           text-transform: uppercase;
@@ -320,13 +388,16 @@ export default function HeroSection() {
         }
         .hero__pax-limit {
           font-size: 0.65rem;
-          font-weight: 500;
+          font-weight: 600;
           color: var(--forest-green);
+          background: rgba(45, 58, 45, 0.08);
+          padding: 1px 6px;
+          border-radius: var(--radius-full);
           text-transform: none;
           letter-spacing: normal;
         }
         .hero__field-display {
-          font-size: 0.95rem;
+          font-size: 0.94rem;
           font-weight: 500;
         }
         .hero__field-value {
@@ -338,24 +409,24 @@ export default function HeroSection() {
         }
         .hero__separator {
           width: 1px;
-          height: 36px;
+          height: 34px;
           background: var(--gray-200);
           flex-shrink: 0;
         }
         .hero__pax-control {
           display: flex;
           align-items: center;
-          gap: var(--space-3);
+          gap: var(--space-2);
         }
         .hero__pax-btn {
-          width: 28px;
-          height: 28px;
+          width: 26px;
+          height: 26px;
           border-radius: 50%;
-          border: 1.5px solid var(--gray-200);
+          border: 1px solid var(--gray-200);
           display: flex;
           align-items: center;
           justify-content: center;
-          font-size: 1.1rem;
+          font-size: 1rem;
           font-weight: 600;
           color: var(--black-matte);
           background: white;
@@ -368,61 +439,93 @@ export default function HeroSection() {
           color: white;
         }
         .hero__pax-btn:disabled {
-          opacity: 0.35;
+          opacity: 0.3;
           cursor: not-allowed;
         }
         .hero__pax-num {
-          font-size: 1rem;
+          font-size: 0.95rem;
           font-weight: 600;
           color: var(--black-matte);
-          min-width: 20px;
+          min-width: 18px;
           text-align: center;
         }
         .hero__search-btn {
-          border-radius: var(--radius-xl);
+          border-radius: var(--radius-full);
           flex-shrink: 0;
-          gap: var(--space-2);
-          box-shadow: 0 4px 12px rgba(45, 58, 45, 0.2);
+          gap: 8px;
+          padding: 14px 26px;
+          font-size: 0.92rem;
+          box-shadow: 0 6px 18px rgba(45, 58, 45, 0.28);
+          transition: transform var(--transition-fast), box-shadow var(--transition-fast);
+        }
+        .hero__search-btn:hover {
+          transform: translateY(-1px);
+          box-shadow: 0 8px 22px rgba(45, 58, 45, 0.35);
+        }
+
+        /* Micro-guarantees */
+        .hero__guarantees {
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          gap: 12px;
+          color: rgba(255, 255, 255, 0.85);
+          font-size: 0.8rem;
+          font-weight: 500;
+          text-shadow: 0 1px 8px rgba(0, 0, 0, 0.3);
+          flex-wrap: wrap;
+        }
+        .hero__guarantee-item {
+          display: inline-flex;
+          align-items: center;
+          gap: 5px;
+        }
+        .hero__guarantee-dot {
+          opacity: 0.4;
+          font-size: 0.7rem;
         }
 
         /* Scroll indicator */
         .hero__scroll-indicator {
           position: absolute;
-          bottom: var(--space-8);
+          bottom: var(--space-6);
           left: 50%;
           transform: translateX(-50%);
           display: flex;
           flex-direction: column;
           align-items: center;
           gap: var(--space-2);
-          color: rgba(255,255,255,0.6);
+          color: rgba(255, 255, 255, 0.65);
           font-size: 0.7rem;
-          letter-spacing: 0.12em;
+          letter-spacing: 0.14em;
           text-transform: uppercase;
           opacity: 0;
           animation: fadeIn 1s 1.5s both;
         }
         .hero__scroll-line {
           width: 1px;
-          height: 40px;
-          background: linear-gradient(to bottom, rgba(255,255,255,0.5), transparent);
+          height: 36px;
+          background: linear-gradient(to bottom, rgba(255, 255, 255, 0.6), transparent);
           animation: scrollLine 2s ease-in-out infinite;
         }
         @keyframes scrollLine {
-          0%, 100% { height: 40px; opacity: 0.5; }
-          50% { height: 60px; opacity: 1; }
+          0%, 100% { height: 36px; opacity: 0.4; }
+          50% { height: 52px; opacity: 1; }
         }
 
         @media (max-width: 768px) {
+          .hero {
+            padding: 90px var(--space-4) 60px;
+          }
           .hero__searchbar {
             flex-direction: column;
             padding: var(--space-4);
             gap: var(--space-3);
-            border-radius: var(--radius-lg);
+            border-radius: var(--radius-xl);
             align-items: stretch;
           }
           .hero__separator { display: none; }
-          .hero__search-btn { width: 100%; border-radius: var(--radius-md); }
+          .hero__search-btn { width: 100%; border-radius: var(--radius-full); }
           .hero__field { min-width: unset; }
           .hero__calendar-popover {
             position: fixed;
@@ -434,6 +537,14 @@ export default function HeroSection() {
             max-width: 310px;
             width: 90vw;
             z-index: 1000;
+          }
+          .hero__guarantees {
+            flex-direction: column;
+            gap: 6px;
+            font-size: 0.75rem;
+          }
+          .hero__guarantee-dot {
+            display: none;
           }
         }
       `}</style>

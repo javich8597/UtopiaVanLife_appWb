@@ -28,8 +28,10 @@
       "reason4_desc": "Compensamos las emisiones de CO2 de cada alquiler. Disfruta sin culpa."
     },
     "FeaturedCampers": {
-      "title": "Nuestra flota",
-      "subtitle": "Campers que inspiran"
+      "eyebrow": "Modelos Exclusivos Nomade Nation",
+      "title": "Nuestra Flota",
+      "subtitle": "Tu viaje, a tu manera. Campers de alta gama equipadas para disfrutar de Mallorca con máxima libertad y confort.",
+      "viewAll": "Ver todas las campers"
     },
     "Experiences": {
       "eyebrow": "Lo que te espera",

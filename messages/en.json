@@ -28,8 +28,10 @@
       "reason4_desc": "We offset the CO2 emissions of every rental. Enjoy guilt-free."
     },
     "FeaturedCampers": {
-      "title": "Our fleet",
-      "subtitle": "Campers that inspire"
+      "eyebrow": "Exclusive Nomade Nation Models",
+      "title": "Our Fleet",
+      "subtitle": "Your journey, your way. High-end campervans equipped to experience Mallorca with total freedom and luxury.",
+      "viewAll": "View all campers"
     },
     "Experiences": {
       "eyebrow": "What awaits you",

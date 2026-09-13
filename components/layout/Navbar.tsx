@@ -61,10 +61,10 @@ export default function Navbar() {
         <div className="navbar__inner container">
           {/* Logo */}
           <Link href="/" className="navbar__logo">
-            <img 
-              src="/images/logo.png" 
-              alt="Utopia Van Life" 
-              style={{ height: '42px', width: 'auto', objectFit: 'contain', display: 'block' }} 
+            <img
+              src="/images/logo.png"
+              alt="Utopia Van Life"
+              style={{ height: '42px', width: 'auto', objectFit: 'contain', display: 'block' }}
             />
           </Link>
 
@@ -116,15 +116,16 @@ export default function Navbar() {
         <div className="mobile-menu" onClick={() => setMenuOpen(false)}>
           <nav className="mobile-menu__nav" onClick={e => e.stopPropagation()}>
             <div className="mobile-menu__header">
-              <Link href="/" onClick={() => setMenuOpen(false)} style={{ display: 'flex', alignItems: 'center', flex: 1 }}>
+              <Link href="/" onClick={() => setMenuOpen(false)} style={{ display: 'block', flex: 1, paddingRight: '12px' }}>
                 <img
-                  src="/images/logo.png"
+                  src="/images/logo-bold.png"
                   alt="Utopia Van Life"
                   style={{
-                    height: '52px',
-                    width: 'auto',
-                    maxWidth: '190px',
+                    height: 'auto',
+                    width: '100%',
+                    maxHeight: '75px',
                     objectFit: 'contain',
+                    objectPosition: 'left center',
                     display: 'block'
                   }}
                 />
@@ -136,9 +137,11 @@ export default function Navbar() {
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
-                  padding: '6px',
+                  padding: '8px',
                   borderRadius: '8px',
-                  color: 'var(--black-matte)'
+                  color: 'var(--black-matte)',
+                  background: 'rgba(0,0,0,0.04)',
+                  flexShrink: 0
                 }}
               >
                 <X size={24} />

@@ -10,216 +10,212 @@ import { parseISO, format } from 'date-fns'
 import { es } from 'date-fns/locale'
 
 export default function HeroSection() {
-    const t = useTranslations('HomePage.Hero')
-    const router = useRouter()
-    const [startDate, setStartDate] = useState('')
-    const [endDate, setEndDate] = useState('')
-    const [pax, setPax] = useState(2)
-    const [isCalendarOpen, setIsCalendarOpen] = useState(false)
-    const containerRef = useRef<HTMLDivElement>(null)
+  const t = useTranslations('HomePage.Hero')
+  const router = useRouter()
+  const [startDate, setStartDate] = useState('')
+  const [endDate, setEndDate] = useState('')
+  const [pax, setPax] = useState(2)
+  const [isCalendarOpen, setIsCalendarOpen] = useState(false)
+  const containerRef = useRef<HTMLDivElement>(null)
 
-    // Cerrar el popover al hacer clic fuera
-    useEffect(() => {
-        function handleClickOutside(event: MouseEvent) {
-            if (containerRef.current && !containerRef.current.contains(event.target as Node)) {
-                setIsCalendarOpen(false)
-            }
-        }
-        if (isCalendarOpen) {
-            document.addEventListener('mousedown', handleClickOutside)
-        }
-        return () => {
-            document.removeEventListener('mousedown', handleClickOutside)
-        }
-    }, [isCalendarOpen])
-
-    const handleSearch = (e: React.FormEvent) => {
-        e.preventDefault()
-        const params = new URLSearchParams()
-        if (startDate) params.set('from', startDate)
-        if (endDate) params.set('to', endDate)
-        params.set('pax', String(Math.min(3, Math.max(1, pax))))
-        router.push(`/campers?${params.toString()}`)
+  // Cerrar el popover al hacer clic fuera
+  useEffect(() => {
+    function handleClickOutside(event: MouseEvent) {
+      if (containerRef.current && !containerRef.current.contains(event.target as Node)) {
+        setIsCalendarOpen(false)
+      }
     }
-
-    const handleDatesChange = (start: string, end: string) => {
-        setStartDate(start)
-        setEndDate(end)
-        if (start && end) {
-            setIsCalendarOpen(false)
-        }
+    if (isCalendarOpen) {
+      document.addEventListener('mousedown', handleClickOutside)
     }
-
-    const formatDisplayDate = (dateStr: string) => {
-        if (!dateStr) return null
-        try {
-            return format(parseISO(dateStr), "d 'de' MMM", { locale: es })
-        } catch {
-            return dateStr
-        }
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside)
     }
+  }, [isCalendarOpen])
 
-    return (
-        <section className="hero">
-            {/* Cinematic Video Background with Multi-Layer Gradient */}
-            <div className="hero__video-wrap">
-                <video
-                    className="hero__video"
-                    autoPlay
-                    muted
-                    loop
-                    playsInline
-                    poster="/images/campers/neo/neo-ext.png"
-                    suppressHydrationWarning
+  const handleSearch = (e: React.FormEvent) => {
+    e.preventDefault()
+    const params = new URLSearchParams()
+    if (startDate) params.set('from', startDate)
+    if (endDate) params.set('to', endDate)
+    params.set('pax', String(Math.min(3, Math.max(1, pax))))
+    router.push(`/campers?${params.toString()}`)
+  }
+
+  const handleDatesChange = (start: string, end: string) => {
+    setStartDate(start)
+    setEndDate(end)
+    if (start && end) {
+      setIsCalendarOpen(false)
+    }
+  }
+
+  const formatDisplayDate = (dateStr: string) => {
+    if (!dateStr) return null
+    try {
+      return format(parseISO(dateStr), "d 'de' MMM", { locale: es })
+    } catch {
+      return dateStr
+    }
+  }
+
+  return (
+    <section className="hero">
+      {/* Cinematic Video Background with Multi-Layer Gradient */}
+      <div className="hero__video-wrap">
+        <video
+          className="hero__video"
+          autoPlay
+          muted
+          loop
+          playsInline
+          poster="/images/campers/neo/neo-ext.png"
+          suppressHydrationWarning
+        >
+          <source src="/videos/hero-bg.mov" type="video/mp4" />
+        </video>
+        <div className="hero__overlay" />
+      </div>
+
+      {/* Editorial Content */}
+      <div className="hero__content">
+        <div className="hero__eyebrow text-label">{t('eyebrow')}</div>
+
+        {/* Main Headline */}
+        <h1 className="hero__title text-display">
+          Tu Utopía<br />
+          <em>te espera</em>
+        </h1>
+
+        {/* Subtitle */}
+        <p className="hero__subtitle">
+          {t('subtitle')}
+        </p>
+
+        {/* Search Bar Container with Pro Max Glassmorphism */}
+        <div className="hero__search-container" ref={containerRef}>
+          <form className="hero__searchbar glass-pro" onSubmit={handleSearch}>
+
+            {/* Selector Fechas: Llegada */}
+            <div
+              className={`hero__field hero__field--clickable ${isCalendarOpen ? 'hero__field--active' : ''}`}
+              onClick={() => setIsCalendarOpen(true)}
+            >
+              <span className="hero__field-label">
+                <CalendarIcon size={13} className="text-sand" />
+                {t('llegada')}
+              </span>
+              <div className="hero__field-display">
+                <span className={!startDate ? 'hero__field-placeholder' : 'hero__field-value'}>
+                  {formatDisplayDate(startDate) || t('llegada')}
+                </span>
+              </div>
+            </div>
+
+            <div className="hero__separator" />
+
+            {/* Selector Fechas: Salida */}
+            <div
+              className={`hero__field hero__field--clickable ${isCalendarOpen ? 'hero__field--active' : ''}`}
+              onClick={() => setIsCalendarOpen(true)}
+            >
+              <span className="hero__field-label">
+                <CalendarIcon size={13} className="text-sand" />
+                {t('salida')}
+              </span>
+              <div className="hero__field-display">
+                <span className={!endDate ? 'hero__field-placeholder' : 'hero__field-value'}>
+                  {formatDisplayDate(endDate) || t('salida')}
+                </span>
+              </div>
+            </div>
+
+            <div className="hero__separator" />
+
+            {/* Selector de Viajeros (1 a 3) */}
+            <div className="hero__field">
+              <span className="hero__field-label">
+                <Users size={13} className="text-sand" />
+                {t('viajeros')}
+                <span className="hero__pax-limit">Máx. 3</span>
+              </span>
+              <div className="hero__pax-control">
+                <button
+                  type="button"
+                  onClick={() => setPax(p => Math.max(1, p - 1))}
+                  disabled={pax <= 1}
+                  className="hero__pax-btn"
+                  aria-label="Menos viajeros"
                 >
-                    <source src="/videos/hero-bg.mov" type="video/mp4" />
-                </video>
-                <div className="hero__overlay" />
+                  −
+                </button>
+                <span className="hero__pax-num">{pax}</span>
+                <button
+                  type="button"
+                  onClick={() => setPax(p => Math.min(3, p + 1))}
+                  disabled={pax >= 3}
+                  className="hero__pax-btn"
+                  aria-label="Más viajeros (máximo 3)"
+                >
+                  +
+                </button>
+              </div>
             </div>
 
-            {/* Editorial Content */}
-            <div className="hero__content">
-                {/* Floating Eyebrow Pill */}
-                <div className="hero__eyebrow-pill">
-                    <Sparkles size={13} className="hero__eyebrow-icon" />
-                    <span>{t('eyebrow')}</span>
-                </div>
+            {/* Botón Buscar */}
+            <button type="submit" className="hero__search-btn btn btn-forest btn-lg">
+              <Search size={17} />
+              <span>{t('buscar')}</span>
+            </button>
+          </form>
 
-                {/* Main Headline */}
-                <h1 className="hero__title text-display">
-                    Tu Utopía<br />
-                    <em>te espera</em>
-                </h1>
+          {/* Popover flotante del calendario */}
+          <AnimatePresence>
+            {isCalendarOpen && (
+              <motion.div
+                initial={{ opacity: 0, y: -8, scale: 0.98 }}
+                animate={{ opacity: 1, y: 0, scale: 1 }}
+                exit={{ opacity: 0, y: -8, scale: 0.98 }}
+                transition={{ duration: 0.22, ease: [0.16, 1, 0.3, 1] }}
+                className="hero__calendar-popover"
+              >
+                <BookingCalendar
+                  startDate={startDate}
+                  endDate={endDate}
+                  onChange={handleDatesChange}
+                  onClose={() => setIsCalendarOpen(false)}
+                />
+              </motion.div>
+            )}
+          </AnimatePresence>
 
-                {/* Subtitle */}
-                <p className="hero__subtitle">
-                    {t('subtitle')}
-                </p>
+          {/* Micro-guarantees badges */}
+          <div className="hero__guarantees">
+            <span className="hero__guarantee-item">
+              <Compass size={13} />
+              {t('guarantee1')}
+            </span>
+            <span className="hero__guarantee-dot">•</span>
+            <span className="hero__guarantee-item">
+              <Sun size={13} />
+              {t('guarantee2')}
+            </span>
+            <span className="hero__guarantee-dot">•</span>
+            <span className="hero__guarantee-item">
+              <Shield size={13} />
+              {t('guarantee3')}
+            </span>
+          </div>
+        </div>
 
-                {/* Search Bar Container with Pro Max Glassmorphism */}
-                <div className="hero__search-container" ref={containerRef}>
-                    <form className="hero__searchbar glass-pro" onSubmit={handleSearch}>
-                        
-                        {/* Selector Fechas: Llegada */}
-                        <div
-                            className={`hero__field hero__field--clickable ${isCalendarOpen ? 'hero__field--active' : ''}`}
-                            onClick={() => setIsCalendarOpen(true)}
-                        >
-                            <span className="hero__field-label">
-                                <CalendarIcon size={13} className="text-sand" />
-                                {t('llegada')}
-                            </span>
-                            <div className="hero__field-display">
-                                <span className={!startDate ? 'hero__field-placeholder' : 'hero__field-value'}>
-                                    {formatDisplayDate(startDate) || t('llegada')}
-                                </span>
-                            </div>
-                        </div>
+        {/* Scroll indicator */}
+        <div className="hero__scroll-indicator">
+          <span>{t('explorar')}</span>
+          <div className="hero__scroll-line" />
+        </div>
+      </div>
 
-                        <div className="hero__separator" />
-
-                        {/* Selector Fechas: Salida */}
-                        <div
-                            className={`hero__field hero__field--clickable ${isCalendarOpen ? 'hero__field--active' : ''}`}
-                            onClick={() => setIsCalendarOpen(true)}
-                        >
-                            <span className="hero__field-label">
-                                <CalendarIcon size={13} className="text-sand" />
-                                {t('salida')}
-                            </span>
-                            <div className="hero__field-display">
-                                <span className={!endDate ? 'hero__field-placeholder' : 'hero__field-value'}>
-                                    {formatDisplayDate(endDate) || t('salida')}
-                                </span>
-                            </div>
-                        </div>
-
-                        <div className="hero__separator" />
-
-                        {/* Selector de Viajeros (1 a 3) */}
-                        <div className="hero__field">
-                            <span className="hero__field-label">
-                                <Users size={13} className="text-sand" />
-                                {t('viajeros')}
-                                <span className="hero__pax-limit">Máx. 3</span>
-                            </span>
-                            <div className="hero__pax-control">
-                                <button
-                                    type="button"
-                                    onClick={() => setPax(p => Math.max(1, p - 1))}
-                                    disabled={pax <= 1}
-                                    className="hero__pax-btn"
-                                    aria-label="Menos viajeros"
-                                >
-                                    −
-                                </button>
-                                <span className="hero__pax-num">{pax}</span>
-                                <button
-                                    type="button"
-                                    onClick={() => setPax(p => Math.min(3, p + 1))}
-                                    disabled={pax >= 3}
-                                    className="hero__pax-btn"
-                                    aria-label="Más viajeros (máximo 3)"
-                                >
-                                    +
-                                </button>
-                            </div>
-                        </div>
-
-                        {/* Botón Buscar */}
-                        <button type="submit" className="hero__search-btn btn btn-forest btn-lg">
-                            <Search size={17} />
-                            <span>{t('buscar')}</span>
-                        </button>
-                    </form>
-
-                    {/* Popover flotante del calendario */}
-                    <AnimatePresence>
-                        {isCalendarOpen && (
-                            <motion.div
-                                initial={{ opacity: 0, y: -8, scale: 0.98 }}
-                                animate={{ opacity: 1, y: 0, scale: 1 }}
-                                exit={{ opacity: 0, y: -8, scale: 0.98 }}
-                                transition={{ duration: 0.22, ease: [0.16, 1, 0.3, 1] }}
-                                className="hero__calendar-popover"
-                            >
-                                <BookingCalendar
-                                    startDate={startDate}
-                                    endDate={endDate}
-                                    onChange={handleDatesChange}
-                                    onClose={() => setIsCalendarOpen(false)}
-                                />
-                            </motion.div>
-                        )}
-                    </AnimatePresence>
-
-                    {/* Micro-guarantees badges */}
-                    <div className="hero__guarantees">
-                        <span className="hero__guarantee-item">
-                            <Compass size={13} />
-                            {t('guarantee1')}
-                        </span>
-                        <span className="hero__guarantee-dot">•</span>
-                        <span className="hero__guarantee-item">
-                            <Sun size={13} />
-                            {t('guarantee2')}
-                        </span>
-                        <span className="hero__guarantee-dot">•</span>
-                        <span className="hero__guarantee-item">
-                            <Shield size={13} />
-                            {t('guarantee3')}
-                        </span>
-                    </div>
-                </div>
-
-                {/* Scroll indicator */}
-                <div className="hero__scroll-indicator">
-                    <span>{t('explorar')}</span>
-                    <div className="hero__scroll-line" />
-                </div>
-            </div>
-
-            <style jsx>{`
+      <style jsx>{`
         .hero {
           position: relative;
           min-height: 100svh;
@@ -548,6 +544,6 @@ export default function HeroSection() {
           }
         }
       `}</style>
-        </section>
-    )
+    </section>
+  )
 }

@@ -2,10 +2,11 @@
 
 import { useState, useEffect } from 'react'
 import { useRouter } from '@/i18n/routing'
-import { Calendar as CalendarIcon, Users, Plus, Minus, CheckCircle, ChevronDown } from 'lucide-react'
-import { calculatePrice, formatPrice } from '@/lib/pricing/engine'
+import { Calendar as CalendarIcon, Users, Plus, Minus, CheckCircle, ChevronDown, AlertCircle } from 'lucide-react'
+import { calculatePrice, formatPrice, getMinNightsForDate, DaySlot } from '@/lib/pricing/engine'
 import type { Season, Extra } from '@/lib/pricing/engine'
 import BookingCalendar, { BlockedRange } from './BookingCalendar'
+import { BlockedSlot } from '@/lib/booking/availability'
 import { motion, AnimatePresence } from 'framer-motion'
 import { parseISO, format } from 'date-fns'
 import { es } from 'date-fns/locale'
@@ -29,14 +30,17 @@ export default function PriceCalculator({
 }: PriceCalculatorProps) {
     const router = useRouter()
     const [startDate, setStartDate] = useState(initialFrom || '')
+    const [startSlot, setStartSlot] = useState<DaySlot>('afternoon')
     const [endDate, setEndDate] = useState(initialTo || '')
+    const [endSlot, setEndSlot] = useState<DaySlot>('morning')
     const [pax, setPax] = useState(2)
     const [isCalendarOpen, setIsCalendarOpen] = useState(false)
+    const [blockedSlots, setBlockedSlots] = useState<BlockedSlot[]>([])
     const [blockedRanges, setBlockedRanges] = useState<BlockedRange[]>([])
     const [selectedExtras, setSelectedExtras] = useState<Extra[]>([])
     const [breakdown, setBreakdown] = useState<ReturnType<typeof calculatePrice> | null>(null)
 
-    // Cargar fechas bloqueadas para esta furgoneta
+    // Cargar fechas y slots bloqueados para esta furgoneta
     useEffect(() => {
         let isMounted = true
         async function fetchAvailability() {
@@ -44,8 +48,9 @@ export default function PriceCalculator({
                 const res = await fetch(`/api/campers/${camperSlug}/availability`)
                 if (res.ok) {
                     const data = await res.json()
-                    if (isMounted && data.blockedRanges) {
-                        setBlockedRanges(data.blockedRanges)
+                    if (isMounted) {
+                        if (data.blockedSlots) setBlockedSlots(data.blockedSlots)
+                        if (data.blockedRanges) setBlockedRanges(data.blockedRanges)
                     }
                 }
             } catch {
@@ -58,16 +63,19 @@ export default function PriceCalculator({
         }
     }, [camperSlug])
 
-    // Recalcular desglose de precio
+    // Estancia mínima para la temporada del día de inicio
+    const activeMinNights = startDate ? getMinNightsForDate(new Date(startDate), seasons) : 3
+
+    // Recalcular desglose de precio con granularidad de medio día
     useEffect(() => {
         if (!startDate || !endDate) { setBreakdown(null); return }
         const start = new Date(startDate)
         const end = new Date(endDate)
         if (end <= start) { setBreakdown(null); return }
 
-        const result = calculatePrice(start, end, seasons, selectedExtras, depositAmount)
+        const result = calculatePrice(start, startSlot, end, endSlot, seasons, selectedExtras, depositAmount)
         setBreakdown(result)
-    }, [startDate, endDate, selectedExtras, seasons, depositAmount])
+    }, [startDate, startSlot, endDate, endSlot, selectedExtras, seasons, depositAmount])
 
     const toggleExtra = (extra: Extra) => {
         setSelectedExtras(prev =>
@@ -77,31 +85,45 @@ export default function PriceCalculator({
         )
     }
 
-    const handleDatesChange = (start: string, end: string) => {
+    const handleDatesChange = (start: string, sSlot: DaySlot, end: string, eSlot: DaySlot) => {
         setStartDate(start)
+        setStartSlot(sSlot)
         setEndDate(end)
+        setEndSlot(eSlot)
         if (start && end) {
             // Cerramos el calendario suavemente al completar el rango
             setIsCalendarOpen(false)
         }
     }
 
+    const isBelowMinNights = Boolean(breakdown && breakdown.numNights < activeMinNights)
+
     const handleReserve = () => {
-        if (!startDate || !endDate || !breakdown) return
+        if (!startDate || !endDate || !breakdown || isBelowMinNights) return
+        const pickupTime = startSlot === 'morning' ? '09:00' : '15:00'
+        const dropoffTime = endSlot === 'morning' ? '12:00' : '19:00'
+
         const params = new URLSearchParams({
             camper: camperSlug,
             from: startDate,
+            pickup_time: pickupTime,
             to: endDate,
+            dropoff_time: dropoffTime,
             pax: String(Math.min(3, Math.max(1, pax))),
             extras: selectedExtras.map(e => e.id).join(','),
         })
         router.push(`/checkout?${params.toString()}`)
     }
 
-    const formatDisplayDate = (dateStr: string) => {
+    const formatDisplayDate = (dateStr: string, slot?: DaySlot, isEnd?: boolean) => {
         if (!dateStr) return null
         try {
-            return format(parseISO(dateStr), "d 'de' MMM", { locale: es })
+            const formatted = format(parseISO(dateStr), "d 'de' MMM", { locale: es })
+            if (!slot) return formatted
+            const timeTag = isEnd
+                ? (slot === 'morning' ? '12:00h' : '19:00h')
+                : (slot === 'morning' ? '09:00h' : '15:00h')
+            return `${formatted} (${timeTag})`
         } catch {
             return dateStr
         }
@@ -114,7 +136,9 @@ export default function PriceCalculator({
                 {breakdown && (
                     <div className="price-calc__total">
                         <span className="price-calc__amount">{formatPrice(breakdown.totalWithoutDeposit)}</span>
-                        <span className="price-calc__nights">/ {breakdown.numNights} noche{breakdown.numNights !== 1 ? 's' : ''}</span>
+                        <span className="price-calc__nights">
+                            / {breakdown.totalDays} día{breakdown.totalDays !== 1 ? 's' : ''} ({breakdown.numNights} n.)
+                        </span>
                     </div>
                 )}
             </div>
@@ -128,10 +152,10 @@ export default function PriceCalculator({
                     <div className="price-calc__date-pill">
                         <span className="price-calc__date-label">
                             <CalendarIcon size={12} style={{ display: 'inline', marginRight: 5 }} />
-                            Llegada
+                            Recogida
                         </span>
                         <span className={`price-calc__date-val ${!startDate ? 'price-calc__date-val--placeholder' : ''}`}>
-                            {formatDisplayDate(startDate) || 'Añadir fecha'}
+                            {formatDisplayDate(startDate, startSlot, false) || 'Añadir fecha'}
                         </span>
                     </div>
 
@@ -140,10 +164,10 @@ export default function PriceCalculator({
                     <div className="price-calc__date-pill">
                         <span className="price-calc__date-label">
                             <CalendarIcon size={12} style={{ display: 'inline', marginRight: 5 }} />
-                            Salida
+                            Devolución
                         </span>
                         <span className={`price-calc__date-val ${!endDate ? 'price-calc__date-val--placeholder' : ''}`}>
-                            {formatDisplayDate(endDate) || 'Añadir fecha'}
+                            {formatDisplayDate(endDate, endSlot, true) || 'Añadir fecha'}
                         </span>
                     </div>
 
@@ -158,6 +182,15 @@ export default function PriceCalculator({
                     </div>
                 </div>
 
+                {/* Resumen de franjas seleccionadas */}
+                {startDate && endDate && (
+                    <div className="price-calc__schedule-badge">
+                        <span>Recogida: {startSlot === 'morning' ? 'Mañana (09–12h)' : 'Tarde (15–19h)'}</span>
+                        <span>·</span>
+                        <span>Devolución: {endSlot === 'morning' ? 'Mañana (09–12h)' : 'Tarde (15–19h)'}</span>
+                    </div>
+                )}
+
                 {/* Animated Dropdown Calendar */}
                 <AnimatePresence>
                     {isCalendarOpen && (
@@ -170,9 +203,13 @@ export default function PriceCalculator({
                         >
                             <BookingCalendar
                                 startDate={startDate}
+                                startSlot={startSlot}
                                 endDate={endDate}
+                                endSlot={endSlot}
                                 onChange={handleDatesChange}
+                                blockedSlots={blockedSlots}
                                 blockedRanges={blockedRanges}
+                                minNights={activeMinNights}
                                 onClose={() => setIsCalendarOpen(false)}
                             />
                         </motion.div>
@@ -245,6 +282,12 @@ export default function PriceCalculator({
                             <span>{formatPrice(s.subtotal)}</span>
                         </div>
                     ))}
+                    {breakdown.totalDays > breakdown.numNights && (
+                        <div className="price-calc__row" style={{ color: 'var(--forest-green)', fontStyle: 'italic' }}>
+                            <span>Suplemento medio día ({breakdown.totalDays - breakdown.numNights} día adicional)</span>
+                            <span>+{formatPrice(breakdown.baseTotal - breakdown.nightsPerSeason.reduce((acc, curr) => acc + curr.subtotal, 0))}</span>
+                        </div>
+                    )}
                     {breakdown.discountAmount > 0 && (
                         <div className="price-calc__row price-calc__row--discount">
                             <span>Descuento estancia larga ({breakdown.discountPct}%)</span>
@@ -259,7 +302,7 @@ export default function PriceCalculator({
                     )}
                     <div className="price-calc__divider" />
                     <div className="price-calc__row price-calc__row--subtotal">
-                        <span>Subtotal (sin fianza)</span>
+                        <span>Subtotal ({breakdown.totalDays} días)</span>
                         <span>{formatPrice(breakdown.totalWithoutDeposit)}</span>
                     </div>
                     <div className="price-calc__row">
@@ -273,18 +316,27 @@ export default function PriceCalculator({
                 </div>
             )}
 
+            {isBelowMinNights && (
+                <div className="price-calc__min-nights-alert">
+                    <AlertCircle size={14} />
+                    <span>Estancia mínima requerida para estas fechas: {activeMinNights} noches.</span>
+                </div>
+            )}
+
             <button
                 className="btn btn-forest btn-lg"
                 style={{ width: '100%' }}
-                disabled={!breakdown || breakdown.numNights === 0}
+                disabled={!breakdown || breakdown.numNights === 0 || isBelowMinNights}
                 onClick={handleReserve}
             >
-                {breakdown && breakdown.numNights > 0
+                {isBelowMinNights
+                    ? `Mínimo ${activeMinNights} noches requeridas`
+                    : breakdown && breakdown.numNights > 0
                     ? `Reservar — ${formatPrice(breakdown.grandTotal)}`
                     : 'Selecciona fechas para reservar'}
             </button>
 
-            {breakdown && breakdown.numNights >= 7 && breakdown.discountPct > 0 && (
+            {breakdown && breakdown.totalDays >= 7 && breakdown.discountPct > 0 && (
                 <p className="text-xs" style={{ textAlign: 'center', color: 'var(--success)', marginTop: 'var(--space-2)' }}>
                     ✓ Descuento de estancia larga aplicado ({breakdown.discountPct}%)
                 </p>
@@ -298,96 +350,127 @@ export default function PriceCalculator({
           padding: var(--space-6);
           background: white;
           border-radius: var(--radius-lg);
+          box-shadow: var(--shadow-sm);
           border: 1px solid var(--gray-200);
-          box-shadow: var(--shadow-md);
-          position: sticky;
-          top: 88px;
         }
+
         .price-calc__header {
           display: flex;
           justify-content: space-between;
-          align-items: center;
+          align-items: baseline;
+          padding-bottom: var(--space-4);
+          border-bottom: 1px solid var(--gray-100);
         }
-        .price-calc__total { text-align: right; }
+
+        .price-calc__total {
+          display: flex;
+          align-items: baseline;
+          gap: var(--space-1);
+        }
+
         .price-calc__amount {
-          font-family: var(--font-display);
-          font-size: 1.8rem;
-          font-weight: 500;
+          font-family: var(--font-sans);
+          font-size: var(--text-h4);
+          font-weight: 700;
           color: var(--forest-green);
         }
+
         .price-calc__nights {
-          font-size: 0.8rem;
-          color: var(--gray-400);
-          display: block;
+          font-size: var(--text-small);
+          color: var(--gray-500);
         }
+
         .price-calc__dates-wrapper {
           display: flex;
           flex-direction: column;
-          gap: var(--space-3);
+          gap: var(--space-2);
         }
+
         .price-calc__dates-card {
           display: flex;
           align-items: center;
-          padding: var(--space-2) var(--space-3);
-          border: 1.5px solid var(--gray-200);
-          border-radius: var(--radius-md);
           background: #FAF8F5;
+          border: 1px solid var(--gray-200);
+          border-radius: var(--radius-md);
+          padding: 8px 12px;
           cursor: pointer;
           transition: all var(--transition-fast);
-          user-select: none;
         }
+
         .price-calc__dates-card:hover {
-          border-color: var(--sand-dark);
-          background: white;
-        }
-        .price-calc__dates-card--open {
           border-color: var(--forest-green);
           background: white;
-          box-shadow: 0 0 0 1px var(--forest-green);
         }
+
+        .price-calc__dates-card--open {
+          border-color: var(--forest-green);
+          box-shadow: 0 0 0 1px var(--forest-green);
+          background: white;
+        }
+
         .price-calc__date-pill {
           flex: 1;
           display: flex;
           flex-direction: column;
           gap: 2px;
-          padding: var(--space-1) var(--space-2);
         }
+
         .price-calc__date-label {
-          font-size: 0.72rem;
+          font-size: 0.7rem;
           font-weight: 600;
+          color: var(--gray-500);
           text-transform: uppercase;
-          letter-spacing: 0.05em;
-          color: var(--gray-600);
+          letter-spacing: 0.04em;
         }
+
         .price-calc__date-val {
           font-size: 0.88rem;
-          font-weight: 500;
+          font-weight: 600;
           color: var(--black-matte);
         }
+
         .price-calc__date-val--placeholder {
           color: var(--gray-400);
           font-weight: 400;
         }
+
         .price-calc__date-separator {
           width: 1px;
           height: 28px;
           background: var(--gray-200);
+          margin: 0 var(--space-2);
         }
+
         .price-calc__dates-caret {
-          padding-left: var(--space-2);
-          color: var(--gray-600);
+          color: var(--gray-500);
+          padding-left: var(--space-1);
+        }
+
+        .price-calc__schedule-badge {
           display: flex;
           align-items: center;
+          justify-content: center;
+          gap: 6px;
+          font-size: 0.72rem;
+          color: var(--forest-green);
+          background: rgba(45, 58, 45, 0.06);
+          padding: 3px 8px;
+          border-radius: var(--radius-full);
+          font-weight: 500;
         }
+
         .price-calc__calendar-collapse {
           overflow: hidden;
+          margin-top: 4px;
         }
+
         .price-calc__pax-header {
           display: flex;
           justify-content: space-between;
           align-items: center;
           margin-bottom: var(--space-2);
         }
+
         .price-calc__pax-badge {
           font-size: 0.7rem;
           color: var(--forest-green);
@@ -396,75 +479,108 @@ export default function PriceCalculator({
           border-radius: var(--radius-full);
           font-weight: 500;
         }
+
         .price-calc__pax {
           display: flex;
           align-items: center;
-          gap: var(--space-4);
+          gap: var(--space-3);
         }
+
         .price-calc__pax-num {
           flex: 1;
           text-align: center;
           font-weight: 500;
         }
+
         .price-calc__extras {
           display: flex;
           flex-direction: column;
           gap: var(--space-2);
         }
+
         .price-calc__extra {
           display: flex;
           align-items: center;
           gap: var(--space-2);
-          padding: var(--space-3) var(--space-4);
+          padding: var(--space-2) var(--space-3);
+          border: 1px solid var(--gray-200);
           border-radius: var(--radius-md);
-          border: 1.5px solid var(--gray-200);
-          font-size: 0.85rem;
+          background: white;
+          cursor: pointer;
+          font-size: var(--text-small);
           transition: all var(--transition-fast);
           text-align: left;
-          cursor: pointer;
-          background: white;
         }
-        .price-calc__extra:hover { border-color: var(--forest-green); }
+
+        .price-calc__extra:hover {
+          border-color: var(--sand-dark);
+          background: #FAF8F5;
+        }
+
         .price-calc__extra--selected {
           border-color: var(--forest-green);
-          background: rgba(45,58,45,0.04);
-          color: var(--forest-green);
+          background: rgba(45, 58, 45, 0.05);
         }
-        .price-calc__extra-check { color: var(--forest-green); }
+
+        .price-calc__extra-check {
+          color: var(--forest-green);
+          flex-shrink: 0;
+        }
+
         .price-calc__extra-price {
           margin-left: auto;
-          font-weight: 600;
-          font-size: 0.8rem;
+          font-weight: 500;
+          color: var(--gray-600);
         }
+
         .price-calc__breakdown {
-          background: var(--cream);
-          border-radius: var(--radius-md);
-          padding: var(--space-4);
           display: flex;
           flex-direction: column;
           gap: var(--space-2);
+          padding: var(--space-4);
+          background: #FAF8F5;
+          border-radius: var(--radius-md);
+          font-size: var(--text-small);
         }
+
         .price-calc__row {
           display: flex;
           justify-content: space-between;
-          font-size: 0.85rem;
           color: var(--gray-600);
         }
-        .price-calc__row--discount { color: var(--success); }
-        .price-calc__row--subtotal {
-          font-weight: 500;
-          color: var(--black-matte);
-          margin-top: var(--space-1);
+
+        .price-calc__row--discount {
+          color: var(--success);
         }
+
+        .price-calc__row--subtotal {
+          font-weight: 600;
+          color: var(--black-matte);
+        }
+
         .price-calc__row--total {
           font-weight: 700;
-          font-size: 1rem;
-          color: var(--black-matte);
+          font-size: var(--text-body);
+          color: var(--forest-green);
         }
+
         .price-calc__divider {
           height: 1px;
           background: var(--gray-200);
-          margin-block: var(--space-2);
+          margin: var(--space-1) 0;
+        }
+
+        .price-calc__min-nights-alert {
+          display: flex;
+          align-items: center;
+          gap: 6px;
+          padding: 8px 12px;
+          background: #FEF3C7;
+          border: 1px solid #F59E0B;
+          border-radius: var(--radius-sm);
+          color: #92400E;
+          font-size: 0.78rem;
+          font-weight: 500;
         }
       `}</style>
         </div>

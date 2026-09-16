@@ -65,4 +65,36 @@ describe('Pricing Engine & Season Rates (TDD)', () => {
     assert.match(formatPrice(120), /120,00\s*€/)
     assert.match(formatPrice(1250.5), /1250,50\s*€/)
   })
+
+  it('should calculate 3.0 days for afternoon pickup to morning dropoff (standard 3 nights)', () => {
+    const start = new Date('2026-07-10')
+    const end = new Date('2026-07-13')
+    const breakdown = calculatePrice(start, 'afternoon', end, 'morning', sampleSeasons, [], 800)
+    assert.equal(breakdown.totalDays, 3.0)
+    assert.equal(breakdown.baseTotal, 3 * 165)
+  })
+
+  it('should calculate 3.5 days for afternoon pickup to afternoon dropoff (+0.5 day)', () => {
+    const start = new Date('2026-07-10')
+    const end = new Date('2026-07-13')
+    const breakdown = calculatePrice(start, 'afternoon', end, 'afternoon', sampleSeasons, [], 800)
+    assert.equal(breakdown.totalDays, 3.5)
+    assert.equal(breakdown.baseTotal, 3.5 * 165)
+  })
+
+  it('should calculate 3.5 days for morning pickup to morning dropoff (+0.5 day)', () => {
+    const start = new Date('2026-07-10')
+    const end = new Date('2026-07-13')
+    const breakdown = calculatePrice(start, 'morning', end, 'morning', sampleSeasons, [], 800)
+    assert.equal(breakdown.totalDays, 3.5)
+    assert.equal(breakdown.baseTotal, 3.5 * 165)
+  })
+
+  it('should calculate 4.0 days for morning pickup to afternoon dropoff (+1.0 day)', () => {
+    const start = new Date('2026-07-10')
+    const end = new Date('2026-07-13')
+    const breakdown = calculatePrice(start, 'morning', end, 'afternoon', sampleSeasons, [], 800)
+    assert.equal(breakdown.totalDays, 4.0)
+    assert.equal(breakdown.baseTotal, 4.0 * 165)
+  })
 })

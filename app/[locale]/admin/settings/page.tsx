@@ -1,6 +1,7 @@
 import { createClient } from '@/lib/supabase/server'
-import { Settings as SettingsIcon, Calendar, Sparkles } from 'lucide-react'
+import { Settings as SettingsIcon, Sparkles } from 'lucide-react'
 import { formatPrice } from '@/lib/pricing/engine'
+import SeasonsTableClient from './SeasonsTableClient'
 
 export default async function AdminSettingsPage() {
     const supabase = await createClient()
@@ -31,44 +32,7 @@ export default async function AdminSettingsPage() {
 
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(360px, 1fr))', gap: 'var(--space-8)' }}>
                 {/* Temporadas */}
-                <div className="card">
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-2)', marginBottom: 'var(--space-4)' }}>
-                        <Calendar size={18} style={{ color: 'var(--forest-green)' }} />
-                        <h2 className="text-h4">Temporadas Activas</h2>
-                    </div>
-
-                    <div className="table-container">
-                        <table className="admin-table">
-                            <thead>
-                                <tr>
-                                    <th>Nombre</th>
-                                    <th>Fechas</th>
-                                    <th>Desc. 7+ días</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {seasons?.map((s: any) => (
-                                    <tr key={s.id}>
-                                        <td style={{ fontWeight: 600 }}>{s.name}</td>
-                                        <td className="text-small">
-                                            {new Date(s.start_date).toLocaleDateString('es-ES')} → {new Date(s.end_date).toLocaleDateString('es-ES')}
-                                        </td>
-                                        <td style={{ color: 'var(--success)', fontWeight: 500 }}>
-                                            {s.discount_7days_pct || 0}%
-                                        </td>
-                                    </tr>
-                                ))}
-                                {(!seasons || seasons.length === 0) && (
-                                    <tr>
-                                        <td colSpan={3} style={{ textAlign: 'center', padding: 'var(--space-6)', color: 'var(--gray-500)' }}>
-                                            No hay temporadas configuradas.
-                                        </td>
-                                    </tr>
-                                )}
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
+                <SeasonsTableClient initialSeasons={seasons || []} />
 
                 {/* Extras */}
                 <div className="card">

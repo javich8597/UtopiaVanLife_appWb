@@ -313,7 +313,7 @@ export default function BookingCalendar({
             {/* Mensaje de validación o estancia mínima */}
             {validationError && (
                 <div className="booking-cal__alert">
-                    <Info size={13} style={{ shrink: 0 }} />
+                    <Info size={13} style={{ flexShrink: 0 }} />
                     <span>{validationError}</span>
                 </div>
             )}

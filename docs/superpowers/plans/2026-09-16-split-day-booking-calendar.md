@@ -1,6 +1,6 @@
 # Split-Day Booking Calendar (Holo-Van Style) Implementation Plan
 
-> **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
+> **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [x]`) syntax for tracking.
 
 **Goal:** Implement a half-day booking calendar with diagonal split cells, reactive pick-up and return time slot selectors, half-day (+0.5) proportional pricing, and season-based minimum night enforcement.
 
@@ -16,7 +16,7 @@
 - Modify: `tests/pricing.test.ts`
 - Modify: `lib/pricing/engine.ts`
 
-- [ ] **Step 1: Write the failing tests for half-day pricing and minimum nights**
+- [x] **Step 1: Write the failing tests for half-day pricing and minimum nights**
 
 In `tests/pricing.test.ts`, add test cases for the 4 slot combinations and `getMinNightsForDate`:
 
@@ -54,12 +54,12 @@ it('should calculate 4.0 days for morning pickup to afternoon dropoff (+1.0 day)
 })
 ```
 
-- [ ] **Step 2: Run test to verify it fails**
+- [x] **Step 2: Run test to verify it fails**
 
 Run: `npm.cmd test`  
 Expected: FAIL because `calculatePrice` does not yet accept slot arguments or return `totalDays`.
 
-- [ ] **Step 3: Update `lib/pricing/engine.ts` to implement half-day logic**
+- [x] **Step 3: Update `lib/pricing/engine.ts` to implement half-day logic**
 
 Add `DaySlot = 'morning' | 'afternoon'` and update `calculatePrice` signature and formula:
 ```typescript
@@ -173,12 +173,12 @@ export function calculatePrice(
 }
 ```
 
-- [ ] **Step 4: Run test to verify it passes**
+- [x] **Step 4: Run test to verify it passes**
 
 Run: `npm.cmd test`  
 Expected: PASS (all tests green).
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add tests/pricing.test.ts lib/pricing/engine.ts
@@ -194,7 +194,7 @@ git commit -m "feat(pricing): add half-day slot pricing calculation and min-nigh
 - Modify: `tests/availability.test.ts`
 - Modify: `app/api/campers/[slug]/availability/route.ts`
 
-- [ ] **Step 1: Write failing tests for `parseBlockedSlots`**
+- [x] **Step 1: Write failing tests for `parseBlockedSlots`**
 
 In `tests/availability.test.ts`:
 ```typescript
@@ -231,12 +231,12 @@ describe('parseBlockedSlots with morning/afternoon granularity', () => {
 })
 ```
 
-- [ ] **Step 2: Run test to verify it fails**
+- [x] **Step 2: Run test to verify it fails**
 
 Run: `npm.cmd test`  
 Expected: FAIL because `lib/booking/availability.ts` does not exist yet.
 
-- [ ] **Step 3: Implement `lib/booking/availability.ts`**
+- [x] **Step 3: Implement `lib/booking/availability.ts`**
 
 ```typescript
 export interface BlockedSlot {
@@ -308,16 +308,16 @@ export function parseBlockedSlots(
 }
 ```
 
-- [ ] **Step 4: Update `/api/campers/[slug]/availability/route.ts`**
+- [x] **Step 4: Update `/api/campers/[slug]/availability/route.ts`**
 
 Update the route to return `blockedSlots: BlockedSlot[]` along with backward-compatible `blockedRanges`.
 
-- [ ] **Step 5: Run tests to verify they pass**
+- [x] **Step 5: Run tests to verify they pass**
 
 Run: `npm.cmd test`  
 Expected: PASS.
 
-- [ ] **Step 6: Commit**
+- [x] **Step 6: Commit**
 
 ```bash
 git add lib/booking/availability.ts tests/availability.test.ts app/api/campers/[slug]/availability/route.ts
@@ -332,7 +332,7 @@ git commit -m "feat(availability): add parseBlockedSlots supporting morning and 
 - Create: `lib/booking/calendarLogic.ts`
 - Modify: `tests/bookingCalendar.test.ts`
 
-- [ ] **Step 1: Write failing tests for `calendarLogic.ts`**
+- [x] **Step 1: Write failing tests for `calendarLogic.ts`**
 
 In `tests/bookingCalendar.test.ts`:
 ```typescript
@@ -378,21 +378,21 @@ describe('Calendar slot logic', () => {
 })
 ```
 
-- [ ] **Step 2: Run test to verify it fails**
+- [x] **Step 2: Run test to verify it fails**
 
 Run: `npm.cmd test`  
 Expected: FAIL because `calendarLogic.ts` does not exist.
 
-- [ ] **Step 3: Implement `lib/booking/calendarLogic.ts`**
+- [x] **Step 3: Implement `lib/booking/calendarLogic.ts`**
 
 Implement `getSlotAvailability`, `isSlotSelectableAsPickup`, `isSlotSelectableAsReturn`, and `validateBookingRange`.
 
-- [ ] **Step 4: Run tests to verify they pass**
+- [x] **Step 4: Run tests to verify they pass**
 
 Run: `npm.cmd test`  
 Expected: PASS.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add lib/booking/calendarLogic.ts tests/bookingCalendar.test.ts
@@ -406,7 +406,7 @@ git commit -m "feat(calendar): implement calendarLogic for slot validation and m
 **Files:**
 - Modify: `components/booking/BookingCalendar.tsx`
 
-- [ ] **Step 1: Update component Props and State**
+- [x] **Step 1: Update component Props and State**
 
 Replace flat string dates with:
 ```typescript
@@ -423,7 +423,7 @@ export interface BookingCalendarProps {
 }
 ```
 
-- [ ] **Step 2: Render diagonal gradients for half-day occupied days**
+- [x] **Step 2: Render diagonal gradients for half-day occupied days**
 
 In the day render function:
 ```tsx
@@ -434,7 +434,7 @@ const slotStatus = getSlotAvailability(dateStr, blockedSlots)
 // - full_blocked: disabled, strikethrough
 ```
 
-- [ ] **Step 3: Add `PICK-UP TIME` and `RETURN TIME` selectors below calendar**
+- [x] **Step 3: Add `PICK-UP TIME` and `RETURN TIME` selectors below calendar**
 
 ```tsx
 <div className="booking-cal__slots">
@@ -463,25 +463,25 @@ const slotStatus = getSlotAvailability(dateStr, blockedSlots)
 </div>
 ```
 
-- [ ] **Step 4: Implement auto-selection logic on day click**
+- [x] **Step 4: Implement auto-selection logic on day click**
 
 When the user clicks a day:
 - If morning is blocked $\to$ auto-set `startSlot = 'afternoon'`.
 - If clicking return day and afternoon is blocked $\to$ auto-set `endSlot = 'morning'`.
 
-- [ ] **Step 5: Add visual legend and min-night indicator message**
+- [x] **Step 5: Add visual legend and min-night indicator message**
 
 Render compact legend:
 - ◺ Mañana ocupada (Recogida a partir de 15:00)
 - ◿ Tarde ocupada (Devolución antes de 12:00)
 - Aviso de estancia mínima si `days < minNights`.
 
-- [ ] **Step 6: Run tests and verify compile**
+- [x] **Step 6: Run tests and verify compile**
 
 Run: `npm.cmd test`  
 Expected: PASS.
 
-- [ ] **Step 7: Commit**
+- [x] **Step 7: Commit**
 
 ```bash
 git add components/booking/BookingCalendar.tsx
@@ -495,36 +495,36 @@ git commit -m "feat(ui): add diagonal split-day cells and time slot selectors to
 **Files:**
 - Modify: `components/booking/PriceCalculator.tsx`
 
-- [ ] **Step 1: Update State in `PriceCalculator.tsx`**
+- [x] **Step 1: Update State in `PriceCalculator.tsx`**
 
 Add `startSlot` (default `'afternoon'`) and `endSlot` (default `'morning'`), and `blockedSlots` from API.
 
-- [ ] **Step 2: Update `calculatePrice` integration**
+- [x] **Step 2: Update `calculatePrice` integration**
 
 Pass `startSlot` and `endSlot` to `calculatePrice`.  
 Calculate active `minNights` using `getMinNightsForDate(new Date(startDate), seasons)`.
 
-- [ ] **Step 3: Update trip summary card**
+- [x] **Step 3: Update trip summary card**
 
 Show:
 `{breakdown.totalDays} días`  
 `Recogida: {formatDate(startDate)} ({startSlot === 'morning' ? '09:00h' : '15:00h'})`  
 `Devolución: {formatDate(endDate)} ({endSlot === 'morning' ? '12:00h' : '19:00h'})`
 
-- [ ] **Step 4: Disable Reserve button if `breakdown.numNights < minNights`**
+- [x] **Step 4: Disable Reserve button if `breakdown.numNights < minNights`**
 
 Display helper text: `Estancia mínima de ${minNights} noches para estas fechas`.
 
-- [ ] **Step 5: Pass parameters to Checkout URL**
+- [x] **Step 5: Pass parameters to Checkout URL**
 
 Include `pickup_time: startSlot === 'morning' ? '09:00' : '15:00'` and `dropoff_time: endSlot === 'morning' ? '12:00' : '19:00'` in the URL search params for `/checkout`.
 
-- [ ] **Step 6: Run tests and build**
+- [x] **Step 6: Run tests and build**
 
 Run: `npm.cmd test`  
 Expected: PASS.
 
-- [ ] **Step 7: Commit**
+- [x] **Step 7: Commit**
 
 ```bash
 git add components/booking/PriceCalculator.tsx
@@ -541,7 +541,7 @@ git commit -m "feat(booking): connect PriceCalculator with half-day slots and ch
 - Modify: `app/[locale]/admin/settings/page.tsx`
 - Create: `app/[locale]/admin/settings/SeasonMinNightsEditorClient.tsx`
 
-- [ ] **Step 1: Write SQL migration file**
+- [x] **Step 1: Write SQL migration file**
 
 ```sql
 ALTER TABLE seasons ADD COLUMN IF NOT EXISTS min_nights INTEGER NOT NULL DEFAULT 3;
@@ -549,25 +549,25 @@ UPDATE seasons SET min_nights = 5 WHERE LOWER(name) LIKE '%alta%';
 UPDATE seasons SET min_nights = 3 WHERE min_nights IS NULL;
 ```
 
-- [ ] **Step 2: Create API route to update season `min_nights`**
+- [x] **Step 2: Create API route to update season `min_nights`**
 
 `app/api/admin/seasons/[id]/route.ts`:
 PATCH endpoint verifying admin authentication and updating `min_nights`.
 
-- [ ] **Step 3: Create `SeasonMinNightsEditorClient.tsx`**
+- [x] **Step 3: Create `SeasonMinNightsEditorClient.tsx`**
 
 Interactive number input/stepper for each season in the admin table with instant optimistic update and toast feedback.
 
-- [ ] **Step 4: Update `app/[locale]/admin/settings/page.tsx`**
+- [x] **Step 4: Update `app/[locale]/admin/settings/page.tsx`**
 
 Integrate the `min_nights` column in the seasons table.
 
-- [ ] **Step 5: Run tests**
+- [x] **Step 5: Run tests**
 
 Run: `npm.cmd test`  
 Expected: PASS.
 
-- [ ] **Step 6: Commit**
+- [x] **Step 6: Commit**
 
 ```bash
 git add supabase/migrations/20260916_add_min_nights_to_seasons.sql app/api/admin/seasons/[id]/route.ts app/[locale]/admin/settings/
@@ -578,21 +578,21 @@ git commit -m "feat(admin): add min_nights configuration to seasons in admin set
 
 ### Task 7: End-to-End Verification & Quality Assurance
 
-- [ ] **Step 1: Run full test suite**
+- [x] **Step 1: Run full test suite**
 
 Run: `npm.cmd test`  
 Expected: All tests pass.
 
-- [ ] **Step 2: Run Next.js build**
+- [x] **Step 2: Run Next.js build**
 
 Run: `npm.cmd run build`  
 Expected: Build succeeds without TypeScript or ESLint errors.
 
-- [ ] **Step 3: Visual and functional review**
+- [x] **Step 3: Visual and functional review**
 
 Verify calendar display, diagonal cutoffs, responsive behavior, and price breakdowns.
 
-- [ ] **Step 4: Final commit**
+- [x] **Step 4: Final commit**
 
 ```bash
 git commit --allow-empty -m "chore: complete split-day booking calendar implementation"

@@ -156,11 +156,16 @@ export default function BookingCalendar({
 
     const weekHeaders = ['L', 'M', 'X', 'J', 'V', 'S', 'D']
 
-    // Controles de slot para pickup y return
-    const canPickupMorning = startDate ? isSlotSelectableAsPickup(startDate, 'morning', effectiveSlots) : false
-    const canPickupAfternoon = startDate ? isSlotSelectableAsPickup(startDate, 'afternoon', effectiveSlots) : false
-    const canReturnMorning = endDate ? isSlotSelectableAsReturn(endDate, 'morning', effectiveSlots) : false
-    const canReturnAfternoon = endDate ? isSlotSelectableAsReturn(endDate, 'afternoon', effectiveSlots) : false
+    // Controles de slot para pickup y return (habilitados por defecto si aún no hay fecha seleccionada)
+    const canPickupMorning = startDate ? isSlotSelectableAsPickup(startDate, 'morning', effectiveSlots) : true
+    const canPickupAfternoon = startDate ? isSlotSelectableAsPickup(startDate, 'afternoon', effectiveSlots) : true
+    const canReturnMorning = endDate ? isSlotSelectableAsReturn(endDate, 'morning', effectiveSlots) : true
+    const canReturnAfternoon = endDate ? isSlotSelectableAsReturn(endDate, 'afternoon', effectiveSlots) : true
+
+    const isPickupMorningActive = startSlot === 'morning' && canPickupMorning
+    const isPickupAfternoonActive = startSlot === 'afternoon' && canPickupAfternoon
+    const isReturnMorningActive = endSlot === 'morning' && canReturnMorning
+    const isReturnAfternoonActive = endSlot === 'afternoon' && canReturnAfternoon
 
     return (
         <div className="booking-cal">
@@ -271,17 +276,21 @@ export default function BookingCalendar({
                             type="button"
                             disabled={!canPickupMorning}
                             onClick={() => handlePickupSlotChange('morning')}
-                            className={`booking-cal__slot-pill ${startSlot === 'morning' ? 'booking-cal__slot-pill--active' : ''}`}
+                            className={`booking-cal__slot-pill ${isPickupMorningActive ? 'booking-cal__slot-pill--active' : ''}`}
+                            title={!canPickupMorning ? 'Mañana no disponible para recogida' : ''}
                         >
-                            Mañana 09–12h
+                            <span className="booking-cal__slot-text">Mañana (09–12h)</span>
+                            <span className="booking-cal__slot-badge">+0.5 día</span>
                         </button>
                         <button
                             type="button"
                             disabled={!canPickupAfternoon}
                             onClick={() => handlePickupSlotChange('afternoon')}
-                            className={`booking-cal__slot-pill ${startSlot === 'afternoon' ? 'booking-cal__slot-pill--active' : ''}`}
+                            className={`booking-cal__slot-pill ${isPickupAfternoonActive ? 'booking-cal__slot-pill--active' : ''}`}
+                            title={!canPickupAfternoon ? 'Tarde no disponible para recogida' : ''}
                         >
-                            Tarde 15–19h
+                            <span className="booking-cal__slot-text">Tarde (15–19h)</span>
+                            <span className="booking-cal__slot-badge">Estándar</span>
                         </button>
                     </div>
                 </div>
@@ -294,17 +303,21 @@ export default function BookingCalendar({
                             type="button"
                             disabled={!canReturnMorning}
                             onClick={() => handleReturnSlotChange('morning')}
-                            className={`booking-cal__slot-pill ${endSlot === 'morning' ? 'booking-cal__slot-pill--active' : ''}`}
+                            className={`booking-cal__slot-pill ${isReturnMorningActive ? 'booking-cal__slot-pill--active' : ''}`}
+                            title={!canReturnMorning ? 'Mañana no disponible para devolución' : ''}
                         >
-                            Mañana 09–12h
+                            <span className="booking-cal__slot-text">Mañana (09–12h)</span>
+                            <span className="booking-cal__slot-badge">Estándar</span>
                         </button>
                         <button
                             type="button"
                             disabled={!canReturnAfternoon}
                             onClick={() => handleReturnSlotChange('afternoon')}
-                            className={`booking-cal__slot-pill ${endSlot === 'afternoon' ? 'booking-cal__slot-pill--active' : ''}`}
+                            className={`booking-cal__slot-pill ${isReturnAfternoonActive ? 'booking-cal__slot-pill--active' : ''}`}
+                            title={!canReturnAfternoon ? 'Tarde no disponible para devolución' : ''}
                         >
-                            Tarde 15–19h
+                            <span className="booking-cal__slot-text">Tarde (15–19h)</span>
+                            <span className="booking-cal__slot-badge">+0.5 día</span>
                         </button>
                     </div>
                 </div>
@@ -313,7 +326,7 @@ export default function BookingCalendar({
             {/* Mensaje de validación o estancia mínima */}
             {validationError && (
                 <div className="booking-cal__alert">
-                    <Info size={13} style={{ flexShrink: 0 }} />
+                    <Info size={14} style={{ flexShrink: 0 }} />
                     <span>{validationError}</span>
                 </div>
             )}
@@ -341,46 +354,47 @@ export default function BookingCalendar({
 
             <style jsx>{`
                 .booking-cal {
-                    background: #FAF8F5;
-                    border: 1px solid var(--gray-200);
-                    border-radius: var(--radius-md);
-                    padding: 12px 14px 10px;
+                    background: #FFFFFF;
+                    border: 1px solid #E2DDD5;
+                    border-radius: 14px;
+                    padding: 14px 16px 12px;
                     user-select: none;
-                    max-width: 320px;
+                    max-width: 330px;
                     margin: 0 auto;
+                    box-shadow: 0 6px 24px rgba(0, 0, 0, 0.08);
                 }
                 .booking-cal__header {
                     display: flex;
                     align-items: center;
                     justify-content: space-between;
-                    margin-bottom: 8px;
+                    margin-bottom: 10px;
                 }
                 .booking-cal__month-title {
                     font-family: var(--font-sans);
-                    font-weight: 600;
+                    font-weight: 700;
                     text-transform: capitalize;
-                    font-size: 0.85rem;
-                    color: var(--black-matte);
+                    font-size: 0.92rem;
+                    color: #1A1A1A;
                     letter-spacing: -0.01em;
                 }
                 .booking-cal__nav-btn {
-                    background: transparent;
-                    border: 1px solid var(--gray-200);
+                    background: #FAF8F5;
+                    border: 1px solid #D5CFC6;
                     border-radius: var(--radius-full);
-                    width: 26px;
-                    height: 26px;
+                    width: 28px;
+                    height: 28px;
                     display: flex;
                     align-items: center;
                     justify-content: center;
                     cursor: pointer;
-                    color: var(--black-matte);
+                    color: #1A1A1A;
                     transition: all var(--transition-fast);
                     padding: 0;
                 }
                 .booking-cal__nav-btn:hover:not(:disabled) {
-                    background: white;
+                    background: var(--forest-green);
                     border-color: var(--forest-green);
-                    color: var(--forest-green);
+                    color: #FFFFFF;
                 }
                 .booking-cal__nav-btn:disabled {
                     opacity: 0.25;
@@ -390,26 +404,26 @@ export default function BookingCalendar({
                     display: grid;
                     grid-template-columns: repeat(7, 1fr);
                     text-align: center;
-                    margin-bottom: 4px;
+                    margin-bottom: 6px;
                 }
                 .booking-cal__weekday {
-                    font-size: 0.68rem;
-                    font-weight: 600;
-                    color: var(--gray-400);
+                    font-size: 0.74rem;
+                    font-weight: 700;
+                    color: #4A4540;
                     padding-bottom: 2px;
                 }
                 .booking-cal__grid {
                     display: grid;
                     grid-template-columns: repeat(7, 1fr);
-                    gap: 1px 0;
+                    gap: 2px 0;
                 }
                 .booking-cal__day {
                     aspect-ratio: 1;
                     background: transparent;
                     border: none;
-                    font-size: 0.78rem;
-                    font-weight: 500;
-                    color: var(--black-matte);
+                    font-size: 0.82rem;
+                    font-weight: 600;
+                    color: #1A1A1A;
                     cursor: pointer;
                     display: flex;
                     align-items: center;
@@ -420,8 +434,8 @@ export default function BookingCalendar({
                     border-radius: 6px;
                 }
                 .booking-cal__day-number {
-                    width: 26px;
-                    height: 26px;
+                    width: 28px;
+                    height: 28px;
                     display: flex;
                     align-items: center;
                     justify-content: center;
@@ -430,44 +444,53 @@ export default function BookingCalendar({
                     z-index: 2;
                 }
                 .booking-cal__day--outside {
-                    opacity: 0.2;
+                    color: #D6D0C7;
+                    opacity: 0.45;
                 }
                 .booking-cal__day--disabled {
-                    color: var(--gray-400);
-                    text-decoration: line-through;
+                    color: #C2BAB0;
                     cursor: not-allowed;
-                    opacity: 0.4;
+                }
+                .booking-cal__day--disabled .booking-cal__day-number {
+                    text-decoration: line-through;
+                    text-decoration-color: #DDD6CD;
                 }
                 /* Corte diagonal: Mañana ocupada (AM) */
                 .booking-cal__day--morning-blocked {
-                    background: linear-gradient(135deg, rgba(194, 168, 120, 0.45) 50%, transparent 50%);
+                    background: linear-gradient(135deg, rgba(200, 160, 110, 0.45) 50%, transparent 50%);
                 }
                 /* Corte diagonal: Tarde ocupada (PM) */
                 .booking-cal__day--afternoon-blocked {
-                    background: linear-gradient(135deg, transparent 50%, rgba(194, 168, 120, 0.45) 50%);
+                    background: linear-gradient(135deg, transparent 50%, rgba(200, 160, 110, 0.45) 50%);
                 }
                 .booking-cal__day:hover:not(.booking-cal__day--disabled):not(.booking-cal__day--start):not(.booking-cal__day--end) .booking-cal__day-number {
-                    background: rgba(45, 58, 45, 0.08);
+                    background: rgba(45, 58, 45, 0.12);
                     color: var(--forest-green);
                 }
                 .booking-cal__day--in-range {
-                    background: rgba(45, 58, 45, 0.08);
+                    background: rgba(45, 58, 45, 0.10);
+                }
+                .booking-cal__day--in-range .booking-cal__day-number {
+                    color: var(--forest-green);
+                    font-weight: 700;
                 }
                 .booking-cal__day--start {
-                    background: linear-gradient(to right, transparent 50%, rgba(45, 58, 45, 0.08) 50%);
+                    background: linear-gradient(to right, transparent 50%, rgba(45, 58, 45, 0.10) 50%);
                 }
                 .booking-cal__day--start .booking-cal__day-number {
                     background: var(--forest-green);
-                    color: #FAF8F5;
-                    font-weight: 600;
+                    color: #FFFFFF;
+                    font-weight: 700;
+                    box-shadow: 0 2px 6px rgba(45, 58, 45, 0.3);
                 }
                 .booking-cal__day--end {
-                    background: linear-gradient(to left, transparent 50%, rgba(45, 58, 45, 0.08) 50%);
+                    background: linear-gradient(to left, transparent 50%, rgba(45, 58, 45, 0.10) 50%);
                 }
                 .booking-cal__day--end .booking-cal__day-number {
                     background: var(--forest-green);
-                    color: #FAF8F5;
-                    font-weight: 600;
+                    color: #FFFFFF;
+                    font-weight: 700;
+                    box-shadow: 0 2px 6px rgba(45, 58, 45, 0.3);
                 }
                 .booking-cal__day--start.booking-cal__day--end {
                     background: transparent;
@@ -479,131 +502,173 @@ export default function BookingCalendar({
                     justify-content: space-between;
                     align-items: center;
                     gap: 6px;
-                    margin-top: 8px;
-                    padding-top: 6px;
-                    border-top: 1px dashed var(--gray-200);
-                    font-size: 0.65rem;
-                    color: var(--gray-500);
+                    margin-top: 10px;
+                    padding-top: 8px;
+                    border-top: 1px solid #EBE5DC;
+                    font-size: 0.72rem;
+                    color: #4A4540;
+                    font-weight: 500;
                 }
                 .booking-cal__legend-item {
                     display: flex;
                     align-items: center;
-                    gap: 4px;
+                    gap: 5px;
                 }
                 .booking-cal__legend-icon {
-                    width: 10px;
-                    height: 10px;
-                    border-radius: 2px;
+                    width: 11px;
+                    height: 11px;
+                    border-radius: 3px;
                     display: inline-block;
                 }
                 .booking-cal__legend-icon--am {
-                    background: linear-gradient(135deg, rgba(194, 168, 120, 0.8) 50%, transparent 50%);
-                    border: 1px solid rgba(194, 168, 120, 0.6);
+                    background: linear-gradient(135deg, #C8A06E 50%, #FAF8F5 50%);
+                    border: 1px solid #B08B5B;
                 }
                 .booking-cal__legend-icon--pm {
-                    background: linear-gradient(135deg, transparent 50%, rgba(194, 168, 120, 0.8) 50%);
-                    border: 1px solid rgba(194, 168, 120, 0.6);
+                    background: linear-gradient(135deg, #FAF8F5 50%, #C8A06E 50%);
+                    border: 1px solid #B08B5B;
                 }
 
                 /* Selectores de Franjas Horarias */
                 .booking-cal__slots-container {
-                    margin-top: 10px;
+                    margin-top: 12px;
                     display: flex;
                     flex-direction: column;
-                    gap: 8px;
-                    background: white;
-                    padding: 8px 10px;
-                    border-radius: var(--radius-sm);
-                    border: 1px solid var(--gray-200);
+                    gap: 10px;
+                    background: #FAF8F5;
+                    padding: 10px 12px;
+                    border-radius: 10px;
+                    border: 1px solid #E5DFD7;
                 }
                 .booking-cal__slot-group {
                     display: flex;
                     flex-direction: column;
-                    gap: 3px;
+                    gap: 5px;
                 }
                 .booking-cal__slot-title {
-                    font-size: 0.62rem;
-                    font-weight: 700;
-                    letter-spacing: 0.04em;
-                    color: var(--gray-500);
+                    font-size: 0.68rem;
+                    font-weight: 800;
+                    letter-spacing: 0.05em;
+                    color: #2D3A2D;
                     text-transform: uppercase;
                 }
                 .booking-cal__slot-buttons {
                     display: grid;
                     grid-template-columns: 1fr 1fr;
-                    gap: 4px;
+                    gap: 6px;
                 }
                 .booking-cal__slot-pill {
-                    padding: 4px 6px;
-                    font-size: 0.68rem;
-                    font-weight: 500;
-                    border-radius: 6px;
-                    border: 1px solid var(--gray-200);
-                    background: #FAF8F5;
-                    color: var(--black-matte);
+                    display: flex;
+                    flex-direction: column;
+                    align-items: flex-start;
+                    justify-content: center;
+                    gap: 3px;
+                    padding: 6px 10px;
+                    border-radius: 8px;
+                    border: 1px solid #D5CEC5;
+                    background: #FFFFFF;
+                    color: #1A1A1A;
                     cursor: pointer;
                     transition: all var(--transition-fast);
-                    text-align: center;
+                    text-align: left;
+                    width: 100%;
+                }
+                .booking-cal__slot-text {
+                    font-size: 0.74rem;
+                    font-weight: 700;
+                    line-height: 1.2;
+                    white-space: nowrap;
+                }
+                .booking-cal__slot-badge {
+                    font-size: 0.64rem;
+                    font-weight: 600;
+                    padding: 1px 5px;
+                    border-radius: 4px;
+                    background: #ECE7E0;
+                    color: #5C554E;
+                    white-space: nowrap;
                 }
                 .booking-cal__slot-pill:hover:not(:disabled) {
                     border-color: var(--forest-green);
-                    background: white;
+                    background: #F4F7F4;
+                    color: var(--forest-green);
                 }
                 .booking-cal__slot-pill--active {
                     background: var(--forest-green) !important;
-                    color: #FAF8F5 !important;
+                    color: #FFFFFF !important;
                     border-color: var(--forest-green) !important;
-                    font-weight: 600;
+                    box-shadow: 0 2px 6px rgba(45, 58, 45, 0.25);
+                }
+                .booking-cal__slot-pill--active .booking-cal__slot-text {
+                    color: #FFFFFF !important;
+                }
+                .booking-cal__slot-pill--active .booking-cal__slot-badge {
+                    background: rgba(255, 255, 255, 0.22) !important;
+                    color: #FFFFFF !important;
                 }
                 .booking-cal__slot-pill:disabled {
-                    opacity: 0.35;
+                    opacity: 0.5;
+                    background: #F3EFE9;
+                    border: 1px dashed #DDD6CD;
+                    color: #9E9690;
                     cursor: not-allowed;
-                    text-decoration: line-through;
+                }
+                .booking-cal__slot-pill:disabled .booking-cal__slot-badge {
+                    opacity: 0.6;
+                    background: #E5DFD7;
+                    color: #9E9690;
                 }
 
                 .booking-cal__alert {
                     display: flex;
                     align-items: center;
-                    gap: 5px;
+                    gap: 6px;
                     margin-top: 8px;
-                    padding: 4px 8px;
-                    background: rgba(194, 168, 120, 0.15);
-                    border-left: 2px solid var(--sand-dark);
-                    border-radius: 4px;
-                    font-size: 0.68rem;
-                    color: #8A6D3B;
+                    padding: 6px 10px;
+                    background: #FEF7EE;
+                    border: 1px solid #E8C99B;
+                    border-left: 3px solid #B46914;
+                    border-radius: 6px;
+                    font-size: 0.72rem;
+                    font-weight: 600;
+                    color: #78350F;
+                    line-height: 1.35;
                 }
 
                 .booking-cal__footer {
                     display: flex;
                     justify-content: space-between;
                     align-items: center;
-                    margin-top: 8px;
-                    padding-top: 6px;
-                    border-top: 1px solid var(--gray-200);
+                    margin-top: 10px;
+                    padding-top: 8px;
+                    border-top: 1px solid #EBE5DC;
                 }
                 .booking-cal__clear-btn {
                     background: none;
                     border: none;
-                    font-size: 0.72rem;
+                    font-size: 0.76rem;
+                    font-weight: 500;
                     text-decoration: underline;
-                    color: var(--gray-600);
+                    color: #5C554E;
                     cursor: pointer;
                     padding: 0;
                 }
+                .booking-cal__clear-btn:hover:not(:disabled) {
+                    color: #1A1A1A;
+                }
                 .booking-cal__clear-btn:disabled {
-                    opacity: 0.3;
+                    opacity: 0.35;
                     cursor: not-allowed;
                     text-decoration: none;
                 }
                 .booking-cal__done-btn {
                     background: var(--forest-green);
-                    color: #FAF8F5;
+                    color: #FFFFFF;
                     border: none;
                     border-radius: var(--radius-full);
-                    padding: 3px 10px;
-                    font-size: 0.72rem;
-                    font-weight: 500;
+                    padding: 4px 14px;
+                    font-size: 0.76rem;
+                    font-weight: 600;
                     cursor: pointer;
                     transition: background var(--transition-fast);
                 }

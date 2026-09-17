@@ -416,22 +416,22 @@ export default function PriceCalculator({
         }
 
         .price-calc__date-label {
-          font-size: 0.7rem;
-          font-weight: 600;
-          color: var(--gray-500);
+          font-size: 0.72rem;
+          font-weight: 700;
+          color: #4A4540;
           text-transform: uppercase;
           letter-spacing: 0.04em;
         }
 
         .price-calc__date-val {
-          font-size: 0.88rem;
-          font-weight: 600;
-          color: var(--black-matte);
+          font-size: 0.90rem;
+          font-weight: 700;
+          color: #1A1A1A;
         }
 
         .price-calc__date-val--placeholder {
-          color: var(--gray-400);
-          font-weight: 400;
+          color: #78716C;
+          font-weight: 500;
         }
 
         .price-calc__date-separator {
@@ -442,7 +442,7 @@ export default function PriceCalculator({
         }
 
         .price-calc__dates-caret {
-          color: var(--gray-500);
+          color: #4A4540;
           padding-left: var(--space-1);
         }
 
@@ -451,12 +451,13 @@ export default function PriceCalculator({
           align-items: center;
           justify-content: center;
           gap: 6px;
-          font-size: 0.72rem;
-          color: var(--forest-green);
-          background: rgba(45, 58, 45, 0.06);
-          padding: 3px 8px;
+          font-size: 0.76rem;
+          color: #1E3324;
+          background: #EAF2EB;
+          border: 1px solid #CFE2D2;
+          padding: 4px 10px;
           border-radius: var(--radius-full);
-          font-weight: 500;
+          font-weight: 600;
         }
 
         .price-calc__calendar-collapse {

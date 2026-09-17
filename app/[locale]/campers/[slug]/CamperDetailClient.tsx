@@ -17,7 +17,16 @@ import {
   Zap,
   Sparkles,
   Shield,
-  Check
+  Check,
+  CheckCircle2,
+  ShieldCheck,
+  Waves,
+  BedDouble,
+  Droplets,
+  Car,
+  Award,
+  Layers,
+  HeartHandshake
 } from 'lucide-react'
 import PriceCalculator from '@/components/booking/PriceCalculator'
 import MapboxExperiences from '@/components/map/MapboxExperiences'
@@ -31,6 +40,33 @@ interface Props {
   initialTo?: string
 }
 
+// What's included in the rental (official Utopia Van Life specifications)
+const RENTAL_INCLUDES = [
+  { id: 'clean', title: 'Set de limpieza', desc: 'Productos de higiene y mantenimiento para tu estancia' },
+  { id: 'bedding', title: 'Almohadas, sábanas y toallas', desc: 'Ropa de cama completa y toallas de baño para todos los viajeros' },
+  { id: 'chairs', title: 'Dos sillas de camping para exterior', desc: 'Equipamiento de exterior para descansar en plena naturaleza' },
+  { id: 'kitchen', title: 'Menaje completo premium', desc: 'Vajilla, sartenes, cubiertos, cafetera y útiles de cocina' },
+  { id: 'assistance', title: 'Asistencia telefónica durante el viaje (16 h)', desc: 'Soporte y atención directa durante todo tu viaje' },
+  { id: 'km', title: '150 km al día incluidos', desc: 'Kilometraje holgado para descubrir cada rincón de Mallorca' },
+  { id: 'fees', title: 'Gastos de gestión', desc: 'Preparación, revisión exhaustiva pre-entrega y check-in personalizado' },
+  { id: 'insurance', title: 'Seguro a todo riesgo con asistencia en viaje', desc: 'Al recoger el vehículo se deposita una fianza reembolsable de 1.000 €' },
+  { id: 'snorkel', title: '2 máscaras de snorkel', desc: 'Listas para explorar los fondos y calas cristalinas de la isla' },
+]
+
+// Design philosophy pillars from official page
+const DESIGN_PILLARS: Record<string, { title: string; desc: string }[]> = {
+  neo: [
+    { title: 'Materiales de calidad', desc: 'Materiales resistentes a los golpes, a las manchas y a las humedades para una durabilidad total.' },
+    { title: 'Uso del espacio', desc: 'Distribución interior compensada para sacar el máximo partido a cada estancia y a sus 2.230 L de maletero.' },
+    { title: 'Máximo confort', desc: 'Cada estancia ha sido preparada para que puedas disfrutar de la máxima comodidad y bienestar en ruta.' }
+  ],
+  space: [
+    { title: 'Amplitud real', desc: 'Espacios abiertos en 7m² sin divisiones que aportan total libertad y fluidez de movimiento interior.' },
+    { title: 'Confort superior', desc: 'Cama elevable de techo y salón panorámico en U con mesa 360° pensado para disfrutar sin renunciar a nada.' },
+    { title: 'Funcionalidad total', desc: 'Todo organizado de manera práctica y sencilla para hacer de tu ruta una experiencia fluida.' }
+  ]
+}
+
 // Media and highlights mapping based on Nomade Nation official specs
 const PREMIUM_MEDIA_DATA: Record<string, {
   tourUrl: string
@@ -39,6 +75,7 @@ const PREMIUM_MEDIA_DATA: Record<string, {
   nightVideo: string
   nightPoster: string
   relaxImg: string
+  tagline: string
   highlights_es: string[]
   highlights_en: string[]
   techDetails_es: string[]
@@ -51,6 +88,7 @@ const PREMIUM_MEDIA_DATA: Record<string, {
     nightVideo: "https://nomade-nation.com/wp-content/uploads/2024/07/video_noche_min.mp4",
     nightPoster: "https://nomade-nation.com/wp-content/uploads/2024/10/Oscuro-optimized.jpg",
     relaxImg: "https://nomade-nation.com/wp-content/uploads/2024/07/4-3-optimized.png",
+    tagline: "Espacio, diseño y libertad en su forma más simple.",
     highlights_es: [
       "Claraboya panorámica (El doble de estrellas)",
       "Separación total de cabina para máximo aislamiento e intimidad",
@@ -70,25 +108,27 @@ const PREMIUM_MEDIA_DATA: Record<string, {
       "12V Dometic Air Conditioning and Truma Combi 4D + E diesel heating"
     ],
     techDetails_es: [
-      "Vehículo base: Fiat Ducato L3H2 (5.99m longitud)",
-      "Motor Multijet 140 CV Diésel (8L/100 km) con cambio manual",
+      "Vehículo base: Fiat Ducato L3H2 (5.99m longitud × 2.05m ancho × 2.58m altura)",
+      "Motor: Diésel 2.2L Multijet 140 CV (8L/100 km) con cambio manual 6 velocidades",
       "Aire acondicionado 12V Dometic CoolAir y calefacción Truma Combi 4D + E",
-      "2 Baterías de Litio Victron (540Ah) y 2 Placas Solares (400W)",
-      "Inversor Victron Multiplus 2000W y cargador Orion XS 12/12-50A",
-      "Pantalla táctil Garmin SERV y app Garmin RV Controls",
-      "Depósito de aguas limpias de 113L y aguas grises de 90L",
-      "Pantalla táctil de 10 pulgadas con CarPlay/Android Auto y cámara trasera",
+      "Sistema eléctrico Pro: 2 baterías de litio (540Ah) y 2 placas solares (400W)",
+      "Inversor Victron Multiplus 2000W, cargador Orión XS 12/12-50A y SmartSolar MPPT 100/30",
+      "Centralita inteligente Cerbo GX con pantalla táctil y app Garmin RV Controls",
+      "Depósito de aguas limpias 113L y aguas grises 90L",
+      "Cocina completa con nevera compresor 86L, dos fogones y gas GLP con alarma",
+      "Pantalla táctil de 10 pulgadas con Apple CarPlay / Android Auto y cámara trasera",
       "Sonido envolvente con 4 altavoces coaxiales JBL"
     ],
     techDetails_en: [
-      "Base vehicle: Fiat Ducato L3H2 (5.99m length)",
-      "Multijet 140 HP Diesel engine (8L/100 km) with manual transmission",
+      "Base vehicle: Fiat Ducato L3H2 (5.99m length × 2.05m width × 2.58m height)",
+      "Engine: Multijet 140 HP Diesel (8L/100 km) with 6-speed manual transmission",
       "12V Dometic CoolAir AC and Truma Combi 4D + E diesel heating",
-      "2 Victron Lithium batteries (540Ah) and 2 Solar Panels (400W)",
-      "Victron Multiplus 2000W Inverter and Orion XS 12/12-50A charger",
-      "Garmin SERV touchscreen and Garmin RV Controls mobile app",
+      "Pro electrical system: 2 lithium batteries (540Ah) and 2 solar panels (400W)",
+      "Victron Multiplus 2000W Inverter, Orion XS 12/12-50A charger and SmartSolar MPPT 100/30",
+      "Cerbo GX smart central unit with touchscreen and Garmin RV Controls mobile app",
       "113L fresh water tank and 90L gray water tank",
-      "10-inch touchscreen with CarPlay/Android Auto and rear camera",
+      "Full kitchen with 86L compressor fridge, 2 burners and LPG gas with alarm",
+      "10-inch touchscreen with Apple CarPlay / Android Auto and rear camera",
       "Surround sound with 4 JBL coaxial speakers"
     ]
   },
@@ -99,45 +139,52 @@ const PREMIUM_MEDIA_DATA: Record<string, {
     nightVideo: "https://nomade-nation.com/wp-content/uploads/2024/07/video_noche_min.mp4",
     nightPoster: "https://nomade-nation.com/wp-content/uploads/2024/10/Oscuro-optimized.jpg",
     relaxImg: "https://nomade-nation.com/wp-content/uploads/2026/04/3-1-optimized.png",
+    tagline: "Máximo confort en una camper. El espacio que se adapta a ti.",
     highlights_es: [
       "Distribución diurna 100% abierta (7m² sin divisiones)",
-      "Cama elevable eléctrica de 185x135 cm (salón de día, dormitorio de noche)",
+      "Cama elevable eléctrica de techo (salón amplio de día, dormitorio de noche)",
       "Salón panorámico trasero en U con mesa giratoria 360° para teletrabajo",
-      "5 Ventanas correderas y hasta 3 claraboyas para máxima luminosidad",
-      "Depósito de aguas limpias de gran capacidad (160 Litros)",
-      "Nevera de compresor 86L a 12V con congelador y encimera en L",
-      "Pack Cine con proyector HD y sistema de sonido JBL con amplificador"
+      "5 Ventanas correderas y claraboya panorámica para máxima luminosidad",
+      "Depósitos de agua limpias 113L y aguas grises 90L",
+      "Cocina equipada con nevera compresor 86L a 12V con congelador y dos fogones",
+      "Pack Cine con proyector HD y sistema de sonido JBL con amplificador",
+      "Sistema Eléctrico PRO Victron (540Ah Litio + 400W Solar + Inversor 2000W)",
+      "Aire acondicionado 12V Dometic y calefacción diésel Truma Combi 4D + E"
     ],
     highlights_en: [
       "100% Open day layout (7m² without barriers)",
-      "Electric drop-down 185x135 cm bed (lounge by day, bedroom by night)",
+      "Electric drop-down roof bed (spacious lounge by day, bedroom by night)",
       "Panoramic U-shaped lounge with 360° swivel table for remote work",
-      "5 Sliding windows and up to 3 skylights for maximum natural light",
-      "Extra large 160-Liter fresh water tank for superior autonomy",
-      "12V compressor 86L refrigerator with freezer and L-shaped countertop",
-      "Cinema Pack with HD projector and amplified JBL sound system"
+      "5 Sliding windows and panoramic skylight for maximum natural light",
+      "113-Liter fresh water tank and 90-Liter gray water tank",
+      "12V compressor 86L refrigerator with freezer and two burners",
+      "Cinema Pack with HD projector and amplified JBL sound system",
+      "Victron PRO Electrical System (540Ah Lithium + 400W Solar + 2000W Inverter)",
+      "12V Dometic Air Conditioning and Truma Combi 4D + E diesel heating"
     ],
     techDetails_es: [
-      "Vehículo base: Fiat Ducato L3H2 (5.99m longitud)",
-      "Motor Multijet 140 CV Diésel (8L/100 km) con cambio manual",
-      "Aire acondicionado Dometic 12V y calefacción Truma Combi 4D + E",
-      "2 Baterías de Litio Victron (540Ah) y 2 Placas Solares (400W)",
-      "Inversor Victron Multiplus 2000W y cargador Orion XS 12/12-50A",
-      "Pantalla táctil Garmin SERV con domótica integral y app móvil",
-      "Depósito de aguas limpias de 160L y aguas grises de 93L",
-      "Ducha interior spa con agua caliente, WC químico y ducha exterior",
-      "Pantalla táctil 10\" con CarPlay/Android Auto y cámara dinámica"
+      "Vehículo base: Fiat Ducato L3H2 (5.99m longitud × 2.05m ancho × 2.58m altura)",
+      "Motor: Diésel 2.2L Multijet 140 CV (8L/100 km) con cambio manual 6 velocidades",
+      "Aire acondicionado Dometic 12V y calefacción Truma Combi 4D + E con aislamiento Kaiflex 360º",
+      "Sistema eléctrico Pro: 2 baterías de litio (540Ah) y 2 placas solares (400W)",
+      "Inversor Victron Multiplus 2000W, cargador Orión XS 12/12-50A y SmartSolar MPPT 100/30",
+      "Centralita inteligente Cerbo GX con pantalla táctil y app Garmin RV Controls",
+      "Depósito de aguas limpias 113L y aguas grises 90L",
+      "Baño completo con ducha interior con agua caliente, WC químico y ducha exterior",
+      "Pantalla táctil de 10 pulgadas con Apple CarPlay / Android Auto y cámara dinámica",
+      "Pack Cine con proyector de alta definición y sonido envolvente JBL"
     ],
     techDetails_en: [
-      "Base vehicle: Fiat Ducato L3H2 (5.99m length)",
-      "Multijet 140 HP Diesel engine (8L/100 km) with manual transmission",
-      "12V Dometic AC and Truma Combi 4D + E diesel heating",
-      "2 Victron Lithium batteries (540Ah) and 2 Solar Panels (400W)",
-      "Victron Multiplus 2000W Inverter and Orion XS 12/12-50A charger",
-      "Garmin SERV touchscreen with home automation and mobile app",
-      "160L fresh water tank and 93L gray water tank",
-      "Indoor spa shower with hot water, chemical toilet, and outdoor shower",
-      "10-inch touchscreen with CarPlay/Android Auto and dynamic camera"
+      "Base vehicle: Fiat Ducato L3H2 (5.99m length × 2.05m width × 2.58m height)",
+      "Engine: Multijet 140 HP Diesel (8L/100 km) with 6-speed manual transmission",
+      "12V Dometic AC and Truma Combi 4D + E diesel heating with 360º Kaiflex insulation",
+      "Pro electrical system: 2 lithium batteries (540Ah) and 2 solar panels (400W)",
+      "Victron Multiplus 2000W Inverter, Orion XS 12/12-50A charger and SmartSolar MPPT 100/30",
+      "Cerbo GX smart central unit with touchscreen and Garmin RV Controls mobile app",
+      "113L fresh water tank and 90L gray water tank",
+      "Full bathroom with hot indoor shower, chemical toilet, and outdoor shower",
+      "10-inch touchscreen with Apple CarPlay / Android Auto and dynamic rear camera",
+      "Cinema Pack with HD projector and JBL surround sound system"
     ]
   }
 }
@@ -337,25 +384,72 @@ export default function CamperDetailClient({ camper, seasons, extras, initialFro
           
           {/* Main content */}
           <div className="camper-detail__main">
-            {/* Header Title */}
+            {/* Header Title & Tagline */}
             <div className="camper-detail__header">
-              <div>
-                <span className="text-label tracking-wide" style={{ color: 'var(--forest-green)', fontWeight: 600 }}>
-                  Utopia Van Life
+              <div className="camper-detail__header-top">
+                <span className="text-label tracking-wide" style={{ color: 'var(--forest-green)', fontWeight: 700, letterSpacing: '0.08em' }}>
+                  UTOPIA VAN LIFE · MALLORCA
                 </span>
-                <h1 className="text-display" style={{ marginTop: 'var(--space-2)' }}>
-                  {camper.name}
-                </h1>
+                <span className="camper-detail__badge-model">
+                  {camper.slug === 'neo' ? '3 Plazas · 2.230 L Maletero' : '2 Plazas · Open Concept 7m²'}
+                </span>
+              </div>
+              <h1 className="text-display" style={{ marginTop: 'var(--space-2)', marginBottom: 'var(--space-2)' }}>
+                {camper.name}
+              </h1>
+              <p className="camper-detail__tagline">
+                {premiumData.tagline}
+              </p>
+
+              {/* Quick Spec Badges */}
+              <div className="camper-detail__quick-pills">
+                <span className="quick-pill">
+                  <Users size={14} />
+                  <span>{camper.slug === 'space' ? '2 personas (viaje y descanso)' : '3 personas (viaje y descanso)'}</span>
+                </span>
+                <span className="quick-pill">
+                  <BedDouble size={14} />
+                  <span>{camper.slug === 'space' ? 'Cama elevable eléctrica' : 'Cama fija 192×130 cm + Auxiliar'}</span>
+                </span>
+                <span className="quick-pill">
+                  <Droplets size={14} />
+                  <span>Ducha interior caliente + WC químico</span>
+                </span>
+                <span className="quick-pill">
+                  <Zap size={14} />
+                  <span>Victron Pro: 540Ah Litio + 400W Solar</span>
+                </span>
+                <span className="quick-pill quick-pill--deposit">
+                  <ShieldCheck size={14} />
+                  <span>Fianza: 1.000 € (reembolsable)</span>
+                </span>
               </div>
             </div>
 
             {/* Description Text */}
             <div className="camper-detail__desc">
               {(camper.description_es || '').split('\n\n').map((para: string, i: number) => (
-                <p key={i} className="text-body-large" style={{ color: 'var(--gray-700)', lineHeight: '1.75' }}>
+                <p key={i} className="text-body-large" style={{ color: 'var(--gray-700)', lineHeight: '1.8' }}>
                   {para}
                 </p>
               ))}
+            </div>
+
+            {/* Filosofía y Diseño (3 Pilares oficiales de utopiavanlife.com) */}
+            <div className="camper-detail__philosophy-section">
+              <div className="section-title-wrap">
+                <span className="text-label" style={{ color: 'var(--forest-green)', fontWeight: 600 }}>DISEÑO EN CADA DETALLE</span>
+                <h2 className="text-h3" style={{ marginTop: 'var(--space-1)' }}>Espacios creados para vivir y sentir la libertad</h2>
+              </div>
+              <div className="philosophy-grid">
+                {(DESIGN_PILLARS[camper.slug] || DESIGN_PILLARS.neo).map((pillar, idx) => (
+                  <div key={idx} className="philosophy-card">
+                    <div className="philosophy-card__num">0{idx + 1}</div>
+                    <h3 className="philosophy-card__title">{pillar.title}</h3>
+                    <p className="philosophy-card__desc">{pillar.desc}</p>
+                  </div>
+                ))}
+              </div>
             </div>
 
             {/* Specifications Cards Grid (Glassmorphism + physical style) */}
@@ -372,6 +466,36 @@ export default function CamperDetailClient({ camper, seasons, extras, initialFro
                     <div>
                       <div className="spec-card__label">{s.label}</div>
                       <div className="spec-card__value">{s.value}</div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* ¿Qué incluye el alquiler? (Official Utopia specifications) */}
+            <div className="included-section">
+              <div className="section-title-wrap">
+                <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                  <Award size={20} className="text-forest" />
+                  <span className="text-label" style={{ color: 'var(--forest-green)', fontWeight: 600 }}>TRANSPARENCIA TOTAL</span>
+                </div>
+                <h2 className="text-h3" style={{ marginTop: 'var(--space-1)' }}>
+                  ¿Qué incluye el alquiler de la {camper.name}?
+                </h2>
+                <p className="text-body" style={{ color: 'var(--gray-600)', marginTop: 'var(--space-1)' }}>
+                  Todo lo necesario para tu ruta por Mallorca sin sorpresas ni costes ocultos.
+                </p>
+              </div>
+
+              <div className="included-grid">
+                {RENTAL_INCLUDES.map((item) => (
+                  <div key={item.id} className="included-card">
+                    <div className="included-card__check">
+                      <Check size={14} strokeWidth={2.5} />
+                    </div>
+                    <div className="included-card__content">
+                      <h4 className="included-card__title">{item.title}</h4>
+                      <p className="included-card__desc">{item.desc}</p>
                     </div>
                   </div>
                 ))}
@@ -409,17 +533,26 @@ export default function CamperDetailClient({ camper, seasons, extras, initialFro
                   </div>
                   <h4 className="power-card-title">VICTRON SYSTEM PRO</h4>
                   <p className="power-card-desc">
-                    {t('proElectricalDesc')}
+                    El corazón de la camper: el sistema electrónico Victron Energy más avanzado para autonomía e independencia total.
                   </p>
+
+                  <ul className="power-card-list">
+                    <li>• 2 baterías de litio Victron (540Ah)</li>
+                    <li>• Doble placa solar monocristalina (400W)</li>
+                    <li>• Inversor Multiplus 2.000W Victron</li>
+                    <li>• Centralita digital Cerbo GX</li>
+                    <li>• Cargador de batería Orion XS 12/12-50A</li>
+                    <li>• SmartSolar MPPT 100/30</li>
+                  </ul>
                   
                   <div className="power-card-footer">
                     <div className="power-stat">
                       <span className="stat-label">SOLAR CAPACITY</span>
-                      <span className="stat-val">{camper.slug === 'space' ? '800 W' : '400 W'}</span>
+                      <span className="stat-val">400 W</span>
                     </div>
                     <div className="power-stat">
                       <span className="stat-label">LITHIUM STORAGE</span>
-                      <span className="stat-val">{camper.slug === 'space' ? '540 Ah' : '200 Ah'}</span>
+                      <span className="stat-val">540 Ah</span>
                     </div>
                   </div>
                 </div>
@@ -467,6 +600,7 @@ export default function CamperDetailClient({ camper, seasons, extras, initialFro
               availableExtras={effectiveExtras}
               initialFrom={initialFrom}
               initialTo={initialTo}
+              maxGuests={camper.specs?.seats || (camper.slug === 'space' ? 2 : 3)}
             />
           </div>
 
@@ -645,10 +779,175 @@ export default function CamperDetailClient({ camper, seasons, extras, initialFro
           border-bottom: 1px solid rgba(0, 0, 0, 0.08);
           padding-bottom: var(--space-6);
         }
+        .camper-detail__header-top {
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          flex-wrap: wrap;
+          gap: var(--space-2);
+        }
+        .camper-detail__badge-model {
+          display: inline-flex;
+          align-items: center;
+          font-size: 11px;
+          font-weight: 700;
+          letter-spacing: 0.05em;
+          text-transform: uppercase;
+          background: rgba(43, 76, 55, 0.08);
+          color: var(--forest-green);
+          padding: 4px 12px;
+          border-radius: var(--radius-full);
+          border: 1px solid rgba(43, 76, 55, 0.15);
+        }
+        .camper-detail__tagline {
+          font-size: 1.15rem;
+          font-weight: 500;
+          font-style: italic;
+          color: var(--earth-brown, #6e5849);
+          margin-bottom: var(--space-4);
+          line-height: 1.4;
+        }
+        .camper-detail__quick-pills {
+          display: flex;
+          flex-wrap: wrap;
+          gap: 8px;
+          margin-top: var(--space-3);
+        }
+        .quick-pill {
+          display: inline-flex;
+          align-items: center;
+          gap: 6px;
+          background: white;
+          border: 1px solid rgba(0, 0, 0, 0.08);
+          border-radius: var(--radius-full);
+          padding: 6px 12px;
+          font-size: 12px;
+          font-weight: 500;
+          color: var(--gray-700);
+          box-shadow: 0 1px 3px rgba(0, 0, 0, 0.03);
+          transition: all 0.2s ease;
+        }
+        .quick-pill--deposit {
+          background: rgba(43, 76, 55, 0.06);
+          border-color: rgba(43, 76, 55, 0.2);
+          color: var(--forest-green);
+          font-weight: 600;
+        }
+
         .camper-detail__desc {
           display: flex;
           flex-direction: column;
           gap: var(--space-4);
+        }
+
+        /* Philosophy and design pillars */
+        .camper-detail__philosophy-section {
+          display: flex;
+          flex-direction: column;
+          gap: var(--space-4);
+        }
+        .section-title-wrap {
+          display: flex;
+          flex-direction: column;
+          gap: 4px;
+        }
+        .philosophy-grid {
+          display: grid;
+          grid-template-columns: repeat(3, 1fr);
+          gap: var(--space-4);
+        }
+        .philosophy-card {
+          background: white;
+          border: 1px solid rgba(0, 0, 0, 0.06);
+          border-radius: var(--radius-lg);
+          padding: var(--space-6);
+          display: flex;
+          flex-direction: column;
+          gap: var(--space-2);
+          box-shadow: 0 4px 20px rgba(0, 0, 0, 0.02);
+          transition: all 0.25s ease;
+        }
+        .philosophy-card:hover {
+          transform: translateY(-2px);
+          box-shadow: 0 8px 24px rgba(0, 0, 0, 0.05);
+          border-color: rgba(43, 76, 55, 0.15);
+        }
+        .philosophy-card__num {
+          font-size: 11px;
+          font-weight: 800;
+          color: var(--forest-green);
+          background: rgba(43, 76, 55, 0.08);
+          padding: 2px 8px;
+          border-radius: var(--radius-full);
+          width: fit-content;
+          letter-spacing: 0.05em;
+        }
+        .philosophy-card__title {
+          font-size: 15px;
+          font-weight: 700;
+          color: var(--black-matte);
+          margin: 0;
+        }
+        .philosophy-card__desc {
+          font-size: 13px;
+          color: var(--gray-600);
+          line-height: 1.6;
+          margin: 0;
+        }
+
+        /* Included rental items */
+        .included-section {
+          display: flex;
+          flex-direction: column;
+          gap: var(--space-4);
+        }
+        .included-grid {
+          display: grid;
+          grid-template-columns: repeat(3, 1fr);
+          gap: var(--space-4);
+        }
+        .included-card {
+          display: flex;
+          align-items: flex-start;
+          gap: var(--space-3);
+          padding: var(--space-4);
+          background: white;
+          border: 1px solid rgba(0, 0, 0, 0.05);
+          border-radius: var(--radius-md);
+          box-shadow: 0 2px 8px rgba(0, 0, 0, 0.02);
+          transition: all 0.2s ease;
+        }
+        .included-card:hover {
+          border-color: rgba(43, 76, 55, 0.15);
+        }
+        .included-card__check {
+          width: 22px;
+          height: 22px;
+          border-radius: 50%;
+          background: rgba(43, 76, 55, 0.1);
+          color: var(--forest-green);
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          flex-shrink: 0;
+          margin-top: 1px;
+        }
+        .included-card__content {
+          display: flex;
+          flex-direction: column;
+          gap: 2px;
+        }
+        .included-card__title {
+          font-size: 13px;
+          font-weight: 700;
+          color: var(--black-matte);
+          margin: 0;
+        }
+        .included-card__desc {
+          font-size: 12px;
+          color: var(--gray-500);
+          line-height: 1.4;
+          margin: 0;
         }
         
         /* Specs card layout (glassmorphism/physical cards) */
@@ -789,7 +1088,17 @@ export default function CamperDetailClient({ camper, seasons, extras, initialFro
           font-size: var(--text-sm);
           color: rgba(255,255,255,0.6);
           line-height: 1.5;
-          margin-bottom: var(--space-8);
+          margin-bottom: var(--space-4);
+        }
+        .power-card-list {
+          list-style: none;
+          padding: 0;
+          margin: 0 0 var(--space-6) 0;
+          display: flex;
+          flex-direction: column;
+          gap: 6px;
+          font-size: var(--text-sm);
+          color: rgba(255, 255, 255, 0.85);
         }
         .power-card-footer {
           display: flex;
@@ -870,6 +1179,12 @@ export default function CamperDetailClient({ camper, seasons, extras, initialFro
             grid-template-columns: 1fr;
           }
           .tech-details-grid {
+            grid-template-columns: 1fr;
+          }
+          .philosophy-grid {
+            grid-template-columns: 1fr;
+          }
+          .included-grid {
             grid-template-columns: 1fr;
           }
         }

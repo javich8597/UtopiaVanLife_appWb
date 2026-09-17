@@ -141,5 +141,10 @@ export default function CampersPage() {
 }
 
 function formatDate(d: string) {
-    return new Date(d).toLocaleDateString('es-ES', { day: 'numeric', month: 'short', year: 'numeric' })
+    try {
+        const [y, m, day] = d.split('-').map(Number)
+        return new Date(y, m - 1, day).toLocaleDateString('es-ES', { day: 'numeric', month: 'short' })
+    } catch {
+        return d
+    }
 }

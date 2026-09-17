@@ -140,7 +140,7 @@ export function detectCamperModelSpecs(slugOrName?: string | null): CamperModelS
   if (normalized.includes('space')) {
     return {
       modelKey: 'space',
-      modelName: 'Nomade SPACE',
+      modelName: 'Camper SPACE',
       vehicleType: 'Fiat Ducato L3H2 (5.99m)',
       lengthMeters: 5.99,
       capacity: '2 Plazas (adaptable a 3)',
@@ -163,7 +163,7 @@ export function detectCamperModelSpecs(slugOrName?: string | null): CamperModelS
   // Default to NEO
   return {
     modelKey: 'neo',
-    modelName: 'Nomade NEO',
+    modelName: 'Camper NEO',
     vehicleType: 'Fiat Ducato L3H2 (5.99m)',
     lengthMeters: 5.99,
     capacity: '2-3 Plazas (ideal 2 personas, adaptable a 3)',

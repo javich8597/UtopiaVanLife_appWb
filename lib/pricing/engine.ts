@@ -103,8 +103,8 @@ export function calculatePrice(
 
     const startSeason = findSeason(startDate, seasons)
     const endSeason = findSeason(endDate, seasons)
-    const startPrice = startSeason?.price_per_night ?? 120
-    const endPrice = endSeason?.price_per_night ?? 120
+    const startPrice = Number(startSeason?.price_per_night ?? 120)
+    const endPrice = Number(endSeason?.price_per_night ?? 120)
 
     let extraDays = 0
     let extraSlotCost = 0
@@ -129,7 +129,7 @@ export function calculatePrice(
         currentDate.setDate(currentDate.getDate() + i)
 
         const activeSeason = findSeason(currentDate, seasons)
-        const pricePerNight = activeSeason?.price_per_night ?? 120 // fallback
+        const pricePerNight = Number(activeSeason?.price_per_night ?? 120)
         const seasonName = activeSeason?.name ?? 'Temporada Estándar'
 
         if (!nightsPerSeason[seasonName]) {
@@ -146,14 +146,15 @@ export function calculatePrice(
     const maxDiscount = totalDays >= 7
         ? Math.max(...seasons
             .filter(s => Object.keys(nightsPerSeason).includes(s.name))
-            .map(s => s.discount_7days_pct), 0)
+            .map(s => Number(s.discount_7days_pct) || 0), 0)
         : 0
 
-    const discountAmount = (baseTotal * maxDiscount) / 100
+    const discountAmount = Math.round(((baseTotal * maxDiscount) / 100) * 100) / 100
     const discountedBase = baseTotal - discountAmount
 
     // Extras
-    const extrasTotal = selectedExtras.reduce((sum, e) => sum + e.price * (e.quantity ?? 1), 0)
+    const extrasTotal = selectedExtras.reduce((sum, e) => sum + (Number(e.price) || 0) * (e.quantity ?? 1), 0)
+    const numDeposit = Number(depositAmount) || 0
 
     return {
         numNights: baseNights,
@@ -163,9 +164,9 @@ export function calculatePrice(
         discountPct: maxDiscount,
         discountAmount,
         extrasTotal,
-        deposit: depositAmount,
+        deposit: numDeposit,
         totalWithoutDeposit: discountedBase + extrasTotal,
-        grandTotal: discountedBase + extrasTotal + depositAmount,
+        grandTotal: discountedBase + extrasTotal + numDeposit,
     }
 }
 

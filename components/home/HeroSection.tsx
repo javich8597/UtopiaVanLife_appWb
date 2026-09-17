@@ -5,6 +5,7 @@ import { useRouter } from '@/i18n/routing'
 import { Calendar as CalendarIcon, Users, Search, Sparkles, Shield, Compass, Sun } from 'lucide-react'
 import { useTranslations } from 'next-intl'
 import BookingCalendar from '@/components/booking/BookingCalendar'
+import { DaySlot } from '@/lib/pricing/engine'
 import { motion, AnimatePresence } from 'framer-motion'
 import { parseISO, format } from 'date-fns'
 import { es } from 'date-fns/locale'
@@ -33,6 +34,19 @@ export default function HeroSection() {
     }
   }, [isCalendarOpen])
 
+  // Centrar la barra de búsqueda y el calendario en el viewport al abrir para verlo sin escrolear
+  useEffect(() => {
+    if (isCalendarOpen && containerRef.current) {
+      requestAnimationFrame(() => {
+        containerRef.current?.scrollIntoView({
+          behavior: 'smooth',
+          block: 'center',
+          inline: 'nearest'
+        })
+      })
+    }
+  }, [isCalendarOpen])
+
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault()
     const params = new URLSearchParams()
@@ -42,11 +56,13 @@ export default function HeroSection() {
     router.push(`/campers?${params.toString()}`)
   }
 
-  const handleDatesChange = (start: string, end: string) => {
+  const handleDatesChange = (start: string, _startSlot: DaySlot, end: string, _endSlot: DaySlot) => {
     setStartDate(start)
     setEndDate(end)
     if (start && end) {
-      setIsCalendarOpen(false)
+      setTimeout(() => {
+        setIsCalendarOpen(false)
+      }, 200)
     }
   }
 
@@ -96,24 +112,6 @@ export default function HeroSection() {
         <div className="hero__search-container" ref={containerRef}>
           <form className="hero__searchbar glass-pro" onSubmit={handleSearch}>
 
-            {/* Selector Fechas: Llegada */}
-            <div
-              className={`hero__field hero__field--clickable ${isCalendarOpen ? 'hero__field--active' : ''}`}
-              onClick={() => setIsCalendarOpen(true)}
-            >
-              <span className="hero__field-label">
-                <CalendarIcon size={13} className="text-sand" />
-                {t('llegada')}
-              </span>
-              <div className="hero__field-display">
-                <span className={!startDate ? 'hero__field-placeholder' : 'hero__field-value'}>
-                  {formatDisplayDate(startDate) || t('llegada')}
-                </span>
-              </div>
-            </div>
-
-            <div className="hero__separator" />
-
             {/* Selector Fechas: Salida */}
             <div
               className={`hero__field hero__field--clickable ${isCalendarOpen ? 'hero__field--active' : ''}`}
@@ -124,8 +122,26 @@ export default function HeroSection() {
                 {t('salida')}
               </span>
               <div className="hero__field-display">
+                <span className={!startDate ? 'hero__field-placeholder' : 'hero__field-value'}>
+                  {formatDisplayDate(startDate) || 'Fecha de salida'}
+                </span>
+              </div>
+            </div>
+
+            <div className="hero__separator" />
+
+            {/* Selector Fechas: Llegada */}
+            <div
+              className={`hero__field hero__field--clickable ${isCalendarOpen ? 'hero__field--active' : ''}`}
+              onClick={() => setIsCalendarOpen(true)}
+            >
+              <span className="hero__field-label">
+                <CalendarIcon size={13} className="text-sand" />
+                {t('llegada')}
+              </span>
+              <div className="hero__field-display">
                 <span className={!endDate ? 'hero__field-placeholder' : 'hero__field-value'}>
-                  {formatDisplayDate(endDate) || t('salida')}
+                  {formatDisplayDate(endDate) || 'Fecha de llegada'}
                 </span>
               </div>
             </div>
@@ -173,15 +189,17 @@ export default function HeroSection() {
           <AnimatePresence>
             {isCalendarOpen && (
               <motion.div
-                initial={{ opacity: 0, y: -8, scale: 0.98 }}
+                initial={{ opacity: 0, y: -6, scale: 0.98 }}
                 animate={{ opacity: 1, y: 0, scale: 1 }}
-                exit={{ opacity: 0, y: -8, scale: 0.98 }}
-                transition={{ duration: 0.22, ease: [0.16, 1, 0.3, 1] }}
+                exit={{ opacity: 0, y: -6, scale: 0.98 }}
+                transition={{ duration: 0.2, ease: [0.16, 1, 0.3, 1] }}
                 className="hero__calendar-popover"
               >
                 <BookingCalendar
                   startDate={startDate}
                   endDate={endDate}
+                  showSlots={false}
+                  variant="hero"
                   onChange={handleDatesChange}
                   onClose={() => setIsCalendarOpen(false)}
                 />
@@ -287,18 +305,18 @@ export default function HeroSection() {
 
         /* Main Headline */
         .hero__title {
-          font-size: clamp(3rem, 7.5vw, 5.8rem);
-          font-weight: 300;
-          letter-spacing: -0.03em;
-          line-height: 0.96;
+          font-size: clamp(2.8rem, 6.5vw, 5.2rem);
+          font-weight: 700;
+          letter-spacing: -0.02em;
+          line-height: 1.05;
           color: white;
           text-shadow: 0 2px 24px rgba(0, 0, 0, 0.35);
           text-wrap: balance;
         }
         .hero__title em {
-          font-style: italic;
-          color: var(--sand);
-          font-weight: 300;
+          font-style: normal;
+          color: var(--sand-dark);
+          font-weight: 700;
         }
         .hero__subtitle {
           font-size: clamp(1rem, 2vw, 1.18rem);
@@ -322,14 +340,15 @@ export default function HeroSection() {
         }
         .hero__calendar-popover {
           position: absolute;
-          top: calc(100% - 18px);
+          top: calc(100% + 10px);
           left: 50%;
-          transform: translateX(-50%) !important;
+          translate: -50% 0;
           z-index: 100;
-          width: max-content;
+          width: 350px;
           max-width: calc(100vw - 32px);
-          box-shadow: 0 24px 48px -12px rgba(0, 0, 0, 0.3), 0 0 0 1px rgba(255, 255, 255, 0.1);
-          border-radius: var(--radius-md);
+          box-shadow: 0 24px 48px -12px rgba(0, 0, 0, 0.35), 0 0 0 1px rgba(255, 255, 255, 0.15);
+          border-radius: var(--radius-lg);
+          box-sizing: border-box;
         }
 
         /* Search bar (Glassmorphism Pro Max) */

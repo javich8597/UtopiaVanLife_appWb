@@ -50,7 +50,7 @@ describe('contractEngine validation and data generation', () => {
       start_date: '2026-10-03',
       end_date: '2026-10-05',
       total_price: 450,
-      camper: { slug: 'neo', name: 'Nomade NEO' }
+      camper: { slug: 'neo', name: 'Camper NEO' }
     }
     const dummyProfile = {
       full_name: 'Laura Gómez',

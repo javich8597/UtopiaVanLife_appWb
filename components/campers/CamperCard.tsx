@@ -58,7 +58,7 @@ export default function CamperCard({
                 {/* Floating Top Badges */}
                 <div className="camper-card__top-badges">
                     <span className="camper-card__badge camper-card__badge--brand">
-                        Nomade Nation
+                        Utopia Van Life
                     </span>
                     {isAvailable ? (
                         <span className="camper-card__badge camper-card__badge--eco">
@@ -127,7 +127,7 @@ export default function CamperCard({
                     aria-disabled={!isAvailable}
                     tabIndex={isAvailable ? 0 : -1}
                 >
-                    <span>{isAvailable ? 'Explorar Camper' : 'No disponible'}</span>
+                    <span>{isAvailable ? (searchParams ? 'Seleccionar camper' : 'Explorar Camper') : 'No disponible'}</span>
                     {isAvailable && <ArrowRight size={15} className="camper-card__btn-arrow" />}
                 </Link>
             </div>

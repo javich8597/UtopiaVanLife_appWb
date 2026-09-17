@@ -1618,7 +1618,7 @@ export default function MallorcaGuideClient() {
           margin-bottom: 8px;
         }
         .guia-header__title {
-          font-family: var(--font-heading), 'Playfair Display', serif;
+          font-family: var(--font-heading), sans-serif;
           font-size: clamp(1.8rem, 3.5vw, 2.5rem);
           font-weight: 700;
           color: #1A2B21;
@@ -2069,7 +2069,7 @@ export default function MallorcaGuideClient() {
           padding-bottom: 12px;
         }
         .highlights-title {
-          font-family: var(--font-heading), 'Playfair Display', serif;
+          font-family: var(--font-heading), sans-serif;
           font-size: 1.6rem;
           font-weight: 700;
           color: #1A2B21;
@@ -2178,7 +2178,7 @@ export default function MallorcaGuideClient() {
           letter-spacing: 0.05em;
         }
         .spot-card__title {
-          font-family: var(--font-heading), 'Playfair Display', serif;
+          font-family: var(--font-heading), sans-serif;
           font-size: 1.15rem;
           font-weight: 700;
           color: #1A2B21;

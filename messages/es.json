@@ -28,7 +28,7 @@
       "reason4_desc": "Compensamos las emisiones de CO2 de cada alquiler. Disfruta sin culpa."
     },
     "FeaturedCampers": {
-      "eyebrow": "Modelos Exclusivos Nomade Nation",
+      "eyebrow": "Modelos Exclusivos Utopia",
       "title": "Nuestra Flota",
       "subtitle": "Tu viaje, a tu manera. Campers de alta gama equipadas para disfrutar de Mallorca con máxima libertad y confort.",
       "viewAll": "Ver todas las campers"
@@ -76,21 +76,21 @@
   "Campers": {
     "neo": {
       "name": "NEO",
-      "description": "NEO es la camper más polivalente y con mayor almacenaje. 2.230 litros de maletero para llevar todo tu equipo. Cuenta con separación total de cabina para máximo aislamiento térmico y privacidad, cama fija viscoelástica (192x130 cm) más cama auxiliar, y el sistema eléctrico PRO Victron con 540Ah de litio, 400W solares y aire acondicionado 12V Dometic.",
+      "description": "No es sólo una camper. La NEO ofrece más espacio, más capacidad y más libertad gracias a su gran maletero de 2.230 litros, ideal para llevar todo lo que forma parte de tu aventura: desde equipo deportivo hasta escapadas más largas sin renunciar a nada. Equipada con el sistema eléctrico PRO Victron más avanzado del mercado (540Ah de litio, 400W solares e inversor Multiplus 2000W) y aire acondicionado 12V Dometic. Habitáculo con separación total de cabina para máximo aislamiento térmico, acústico e intimidad. Ideal para 2 personas, adaptable a 3.",
       "beds": "2-3 camas",
       "seats": "3 plazas",
-      "length": "6.0m",
+      "length": "5.99m",
       "engine": "Diésel 2.2L Multijet (140 CV)",
-      "transmission": "Manual / Automático"
+      "transmission": "Manual 6 vel."
     },
     "space": {
       "name": "SPACE",
-      "description": "SPACE redefine el confort con una distribución completamente abierta de 7m² ('The biggest 7m²'). Su cama elevable eléctrica de techo sube durante el día dejando libre un gran salón panorámico en U con mesa giratoria 360° para teletrabajo o relax. Incluye 160L de agua limpia, 540Ah de litio Victron, 400W solares, aire acondicionado 12V Dometic y Pack Cine con proyector.",
+      "description": "Máximo confort en una camper. Gracias a su cama elevable eléctrica de techo, durante el día disfrutas de todo el espacio interior con un amplio salón panorámico en U y mesa giratoria 360°, como si estuvieras en una autocaravana… pero con la libertad y agilidad de una camper. Menos maletero. Más calidad de vida en el día a día. Diseñada para dos personas, primando el máximo confort y habitabilidad en todo momento. Equipada con sistema eléctrico PRO Victron con 540Ah de litio, 400W solares, aire acondicionado 12V Dometic y baño con ducha interior y WC químico.",
       "beds": "2 camas",
       "seats": "2 plazas",
-      "length": "6.0m",
+      "length": "5.99m",
       "engine": "Diésel 2.2L Multijet (140 CV)",
-      "transmission": "Manual / Automático"
+      "transmission": "Manual 6 vel."
     }
   },
   "CamperDetail": {

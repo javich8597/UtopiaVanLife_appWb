@@ -40,19 +40,23 @@ interface BookingCalendarProps {
     minNights?: number
     minDate?: Date
     onClose?: () => void
+    showSlots?: boolean
+    variant?: 'default' | 'hero'
 }
 
 export default function BookingCalendar({
     startDate,
-    startSlot = 'afternoon',
+    startSlot = 'morning',
     endDate,
-    endSlot = 'morning',
+    endSlot = 'afternoon',
     onChange,
     blockedSlots = [],
     blockedRanges = [],
     minNights = 3,
     minDate = startOfDay(new Date()),
     onClose,
+    showSlots = true,
+    variant = 'default',
 }: BookingCalendarProps) {
     const initialMonth = startDate ? parseISO(startDate) : new Date()
     const [currentMonth, setCurrentMonth] = useState<Date>(initialMonth)
@@ -151,7 +155,7 @@ export default function BookingCalendar({
 
     const clearDates = () => {
         setValidationError(null)
-        onChange('', 'afternoon', '', 'morning')
+        onChange('', 'morning', '', 'afternoon')
     }
 
     const weekHeaders = ['L', 'M', 'X', 'J', 'V', 'S', 'D']
@@ -175,8 +179,10 @@ export default function BookingCalendar({
         })
     }, [days, effectiveSlots])
 
+    const isHero = variant === 'hero' || !showSlots
+
     return (
-        <div className="booking-cal">
+        <div className={`booking-cal ${isHero ? 'booking-cal--hero' : ''}`} role="dialog" aria-label="Selector de fechas de reserva">
             {/* Header del mes */}
             <div className="booking-cal__header">
                 <button
@@ -201,22 +207,23 @@ export default function BookingCalendar({
                 </button>
             </div>
 
-            {/* Indicador de paso / guía al viajero */}
-            <div className={`booking-cal__step-banner ${startDate && endDate ? 'booking-cal__step-banner--done' : ''}`}>
-                <span>
-                    {!startDate
-                        ? '① Elige tu fecha de recogida'
-                        : !endDate
-                        ? `② Elige tu fecha de devolución (mín. ${minNights} noches)`
-                        : '③ Confirma tus horarios y pulsa "Listo"'}
-                </span>
-            </div>
-
-            {/* Mensaje de validación o estancia mínima a la altura de los ojos */}
-            {validationError && (
-                <div className="booking-cal__alert">
+            {/* Indicador de paso / guía al viajero o alerta de error (ranura fija sin saltos de tamaño) */}
+            {validationError ? (
+                <div className="booking-cal__alert" role="alert">
                     <Info size={14} style={{ flexShrink: 0 }} />
                     <span>{validationError}</span>
+                </div>
+            ) : (
+                <div className={`booking-cal__step-banner ${startDate && endDate ? 'booking-cal__step-banner--done' : ''}`}>
+                    <span>
+                        {!startDate
+                            ? '① Elige fecha de salida'
+                            : !endDate
+                            ? `② Elige fecha de regreso (mín. ${minNights} noches)`
+                            : isHero
+                            ? '✓ Fechas listas'
+                            : '③ Confirma tus horarios y pulsa "Listo"'}
+                    </span>
                 </div>
             )}
 
@@ -281,8 +288,8 @@ export default function BookingCalendar({
                 })}
             </div>
 
-            {/* Leyenda visual de medios días (solo si el mes actual tiene bloqueos parciales) */}
-            {monthHasPartialBlocks && (
+            {/* Leyenda visual de medios días (solo si NO es hero y el mes actual tiene bloqueos parciales) */}
+            {!isHero && monthHasPartialBlocks && (
                 <div className="booking-cal__legend">
                     <div className="booking-cal__legend-item" title="La mañana ya está reservada. Puedes recoger la camper a partir de las 15:00h">
                         <span className="booking-cal__legend-icon booking-cal__legend-icon--am"></span>
@@ -295,70 +302,72 @@ export default function BookingCalendar({
                 </div>
             )}
 
-            {/* Selectores de Franja Horaria (Holo-Van style) */}
-            <div className="booking-cal__slots-container">
-                {/* HORA DE RECOGIDA */}
-                <div className="booking-cal__slot-group">
-                    <span className="booking-cal__slot-title">HORA DE RECOGIDA</span>
-                    <div className="booking-cal__slot-buttons">
-                        <button
-                            type="button"
-                            disabled={!canPickupMorning}
-                            onClick={() => handlePickupSlotChange('morning')}
-                            className={`booking-cal__slot-pill ${isPickupMorningActive ? 'booking-cal__slot-pill--active' : ''}`}
-                            title={!canPickupMorning ? 'Mañana no disponible para recogida' : ''}
-                        >
-                            <span className="booking-cal__slot-text">Mañana (09–12h)</span>
-                            <span className="booking-cal__slot-badge">+0.5 día</span>
-                        </button>
-                        <button
-                            type="button"
-                            disabled={!canPickupAfternoon}
-                            onClick={() => handlePickupSlotChange('afternoon')}
-                            className={`booking-cal__slot-pill ${isPickupAfternoonActive ? 'booking-cal__slot-pill--active' : ''}`}
-                            title={!canPickupAfternoon ? 'Tarde no disponible para recogida' : ''}
-                        >
-                            <span className="booking-cal__slot-text">Tarde (15–19h)</span>
-                            <span className="booking-cal__slot-badge">Estándar</span>
-                        </button>
+            {/* Selectores de Franja Horaria (solo si NO es hero) */}
+            {!isHero && (
+                <div className="booking-cal__slots-container">
+                    {/* HORA DE RECOGIDA */}
+                    <div className="booking-cal__slot-group">
+                        <span className="booking-cal__slot-title">HORA DE RECOGIDA</span>
+                        <div className="booking-cal__slot-buttons">
+                            <button
+                                type="button"
+                                disabled={!canPickupMorning}
+                                onClick={() => handlePickupSlotChange('morning')}
+                                className={`booking-cal__slot-pill ${isPickupMorningActive ? 'booking-cal__slot-pill--active' : ''}`}
+                                title={!canPickupMorning ? 'Mañana no disponible para recogida' : ''}
+                            >
+                                <span className="booking-cal__slot-text">Mañana (09–12h)</span>
+                                <span className="booking-cal__slot-badge">Estándar (+0.5 d)</span>
+                            </button>
+                            <button
+                                type="button"
+                                disabled={!canPickupAfternoon}
+                                onClick={() => handlePickupSlotChange('afternoon')}
+                                className={`booking-cal__slot-pill ${isPickupAfternoonActive ? 'booking-cal__slot-pill--active' : ''}`}
+                                title={!canPickupAfternoon ? 'Tarde no disponible para recogida' : ''}
+                            >
+                                <span className="booking-cal__slot-text">Tarde (15–19h)</span>
+                                <span className="booking-cal__slot-badge">-0.5 día</span>
+                            </button>
+                        </div>
+                    </div>
+
+                    {/* HORA DE DEVOLUCIÓN */}
+                    <div className="booking-cal__slot-group">
+                        <span className="booking-cal__slot-title">HORA DE DEVOLUCIÓN</span>
+                        <div className="booking-cal__slot-buttons">
+                            <button
+                                type="button"
+                                disabled={!canReturnMorning}
+                                onClick={() => handleReturnSlotChange('morning')}
+                                className={`booking-cal__slot-pill ${isReturnMorningActive ? 'booking-cal__slot-pill--active' : ''}`}
+                                title={!canReturnMorning ? 'Mañana no disponible para devolución' : ''}
+                            >
+                                <span className="booking-cal__slot-text">Mañana (09–12h)</span>
+                                <span className="booking-cal__slot-badge">-0.5 día</span>
+                            </button>
+                            <button
+                                type="button"
+                                disabled={!canReturnAfternoon}
+                                onClick={() => handleReturnSlotChange('afternoon')}
+                                className={`booking-cal__slot-pill ${isReturnAfternoonActive ? 'booking-cal__slot-pill--active' : ''}`}
+                                title={!canReturnAfternoon ? 'Tarde no disponible para devolución' : ''}
+                            >
+                                <span className="booking-cal__slot-text">Tarde (15–19h)</span>
+                                <span className="booking-cal__slot-badge">Estándar (+0.5 d)</span>
+                            </button>
+                        </div>
+                    </div>
+
+                    {/* Explicación contextual de turnos */}
+                    <div className="booking-cal__slots-info">
+                        <Info size={13} style={{ flexShrink: 0, marginTop: 2, color: 'var(--forest-green)' }} />
+                        <span>
+                            <strong>Horarios:</strong> Recogida mañana (09–12h) y entrega tarde (15–19h) para días completos. Recogida por la tarde o entrega por la mañana descuenta <strong>-0.5 día</strong>.
+                        </span>
                     </div>
                 </div>
-
-                {/* HORA DE DEVOLUCIÓN */}
-                <div className="booking-cal__slot-group">
-                    <span className="booking-cal__slot-title">HORA DE DEVOLUCIÓN</span>
-                    <div className="booking-cal__slot-buttons">
-                        <button
-                            type="button"
-                            disabled={!canReturnMorning}
-                            onClick={() => handleReturnSlotChange('morning')}
-                            className={`booking-cal__slot-pill ${isReturnMorningActive ? 'booking-cal__slot-pill--active' : ''}`}
-                            title={!canReturnMorning ? 'Mañana no disponible para devolución' : ''}
-                        >
-                            <span className="booking-cal__slot-text">Mañana (09–12h)</span>
-                            <span className="booking-cal__slot-badge">Estándar</span>
-                        </button>
-                        <button
-                            type="button"
-                            disabled={!canReturnAfternoon}
-                            onClick={() => handleReturnSlotChange('afternoon')}
-                            className={`booking-cal__slot-pill ${isReturnAfternoonActive ? 'booking-cal__slot-pill--active' : ''}`}
-                            title={!canReturnAfternoon ? 'Tarde no disponible para devolución' : ''}
-                        >
-                            <span className="booking-cal__slot-text">Tarde (15–19h)</span>
-                            <span className="booking-cal__slot-badge">+0.5 día</span>
-                        </button>
-                    </div>
-                </div>
-
-                {/* Explicación contextual de turnos */}
-                <div className="booking-cal__slots-info">
-                    <Info size={13} style={{ flexShrink: 0, marginTop: 2, color: 'var(--forest-green)' }} />
-                    <span>
-                        <strong>Horarios estándar:</strong> Recogida tarde (15–19h) y entrega mañana (09–12h). Recogida por la mañana o entrega por la tarde suman <strong>+0.5 día</strong> de alquiler.
-                    </span>
-                </div>
-            </div>
+            )}
 
             {/* Footer con acciones accesibles */}
             <div className="booking-cal__footer">
@@ -385,12 +394,25 @@ export default function BookingCalendar({
                 .booking-cal {
                     background: #FFFFFF;
                     border: 1px solid #E2DDD5;
-                    border-radius: 14px;
-                    padding: 14px 16px 12px;
+                    border-radius: 16px;
+                    padding: 16px 18px 14px;
                     user-select: none;
-                    max-width: 330px;
+                    width: 100%;
+                    max-width: 350px;
                     margin: 0 auto;
                     box-shadow: 0 6px 24px rgba(0, 0, 0, 0.08);
+                    box-sizing: border-box;
+                }
+                .booking-cal--hero {
+                    width: 350px;
+                    max-width: calc(100vw - 32px);
+                    padding: 16px 18px 14px;
+                    border-radius: 18px;
+                    box-shadow: 0 20px 48px rgba(0, 0, 0, 0.18);
+                    box-sizing: border-box;
+                }
+                .booking-cal--hero .booking-cal__grid {
+                    gap: 3px 0;
                 }
                 .booking-cal__header {
                     display: flex;
@@ -463,8 +485,8 @@ export default function BookingCalendar({
                     border-radius: 6px;
                 }
                 .booking-cal__day-number {
-                    width: 28px;
-                    height: 28px;
+                    width: 34px;
+                    height: 34px;
                     display: flex;
                     align-items: center;
                     justify-content: center;
@@ -649,10 +671,15 @@ export default function BookingCalendar({
                 }
 
                 .booking-cal__step-banner {
-                    margin-bottom: 8px;
-                    padding: 6px 10px;
+                    min-height: 36px;
+                    box-sizing: border-box;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    margin-bottom: 10px;
+                    padding: 6px 12px;
                     border-radius: 8px;
-                    font-size: 0.74rem;
+                    font-size: 0.78rem;
                     font-weight: 700;
                     background: #F5F1EB;
                     color: #2D3A2D;
@@ -681,19 +708,23 @@ export default function BookingCalendar({
                 }
 
                 .booking-cal__alert {
+                    min-height: 36px;
+                    box-sizing: border-box;
                     display: flex;
                     align-items: center;
+                    justify-content: center;
                     gap: 6px;
-                    margin-bottom: 8px;
-                    padding: 6px 10px;
+                    margin-bottom: 10px;
+                    padding: 6px 12px;
                     background: #FEF7EE;
                     border: 1px solid #E8C99B;
                     border-left: 3px solid #B46914;
-                    border-radius: 6px;
-                    font-size: 0.72rem;
+                    border-radius: 8px;
+                    font-size: 0.74rem;
                     font-weight: 600;
                     color: #78350F;
                     line-height: 1.35;
+                    text-align: center;
                 }
 
                 .booking-cal__footer {

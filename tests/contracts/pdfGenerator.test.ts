@@ -10,7 +10,7 @@ describe('pdfGenerator', () => {
       start_date: '2026-10-03',
       end_date: '2026-10-05',
       total_price: 450,
-      camper: { slug: 'neo', name: 'Nomade NEO', plate_number: '8291-LKN' }
+      camper: { slug: 'neo', name: 'Camper NEO', plate_number: '8291-LKN' }
     }
     const dummyProfile = {
       full_name: 'Carlos Ruiz',

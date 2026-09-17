@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { useRouter } from '@/i18n/routing'
-import { Calendar as CalendarIcon, Users, Plus, Minus, CheckCircle, ChevronDown, AlertCircle } from 'lucide-react'
+import { Calendar as CalendarIcon, Users, Plus, Minus, CheckCircle, ChevronDown, AlertCircle, Sparkles, Check, Info } from 'lucide-react'
 import { calculatePrice, formatPrice, getMinNightsForDate, DaySlot } from '@/lib/pricing/engine'
 import type { Season, Extra } from '@/lib/pricing/engine'
 import BookingCalendar, { BlockedRange } from './BookingCalendar'
@@ -18,6 +18,7 @@ interface PriceCalculatorProps {
     availableExtras: Extra[]
     initialFrom?: string
     initialTo?: string
+    maxGuests?: number
 }
 
 export default function PriceCalculator({
@@ -27,18 +28,23 @@ export default function PriceCalculator({
     availableExtras,
     initialFrom,
     initialTo,
+    maxGuests,
 }: PriceCalculatorProps) {
     const router = useRouter()
+    const maxPax = maxGuests || (camperSlug === 'space' ? 2 : 3)
     const [startDate, setStartDate] = useState(initialFrom || '')
-    const [startSlot, setStartSlot] = useState<DaySlot>('afternoon')
+    const [startSlot, setStartSlot] = useState<DaySlot>('morning')
     const [endDate, setEndDate] = useState(initialTo || '')
-    const [endSlot, setEndSlot] = useState<DaySlot>('morning')
-    const [pax, setPax] = useState(2)
+    const [endSlot, setEndSlot] = useState<DaySlot>('afternoon')
+    const [pax, setPax] = useState(Math.min(2, maxPax))
     const [isCalendarOpen, setIsCalendarOpen] = useState(false)
+    const [isExtrasOpen, setIsExtrasOpen] = useState(false)
     const [blockedSlots, setBlockedSlots] = useState<BlockedSlot[]>([])
     const [blockedRanges, setBlockedRanges] = useState<BlockedRange[]>([])
     const [selectedExtras, setSelectedExtras] = useState<Extra[]>([])
     const [breakdown, setBreakdown] = useState<ReturnType<typeof calculatePrice> | null>(null)
+
+    const safeDeposit = Number(depositAmount) || 1000
 
     // Cargar fechas y slots bloqueados para esta furgoneta
     useEffect(() => {
@@ -73,9 +79,9 @@ export default function PriceCalculator({
         const end = new Date(endDate)
         if (end <= start) { setBreakdown(null); return }
 
-        const result = calculatePrice(start, startSlot, end, endSlot, seasons, selectedExtras, depositAmount)
+        const result = calculatePrice(start, startSlot, end, endSlot, seasons, selectedExtras, safeDeposit)
         setBreakdown(result)
-    }, [startDate, startSlot, endDate, endSlot, selectedExtras, seasons, depositAmount])
+    }, [startDate, startSlot, endDate, endSlot, selectedExtras, seasons, safeDeposit])
 
     const toggleExtra = (extra: Extra) => {
         setSelectedExtras(prev =>
@@ -214,14 +220,14 @@ export default function PriceCalculator({
                 </AnimatePresence>
             </div>
 
-            {/* Pax (1 to 3 travellers max) */}
+            {/* Pax (travellers max based on camper capacity) */}
             <div className="form-group">
                 <div className="price-calc__pax-header">
                     <label className="form-label" style={{ marginBottom: 0 }}>
                         <Users size={12} style={{ display: 'inline', marginRight: 5 }} />
                         Viajeros
                     </label>
-                    <span className="price-calc__pax-badge">Máx. 3 plazas</span>
+                    <span className="price-calc__pax-badge">Máx. {maxPax} {maxPax === 1 ? 'plaza' : 'plazas'}</span>
                 </div>
                 <div className="price-calc__pax">
                     <button
@@ -237,36 +243,98 @@ export default function PriceCalculator({
                     <button
                         type="button"
                         className="btn btn-outline btn-icon"
-                        onClick={() => setPax(p => Math.min(3, p + 1))}
-                        disabled={pax >= 3}
-                        aria-label="Aumentar viajeros (máximo 3)"
+                        onClick={() => setPax(p => Math.min(maxPax, p + 1))}
+                        disabled={pax >= maxPax}
+                        aria-label={`Aumentar viajeros (máximo ${maxPax})`}
                     >
                         <Plus size={16} />
                     </button>
                 </div>
             </div>
 
-            {/* Extras */}
+            {/* Collapsible Extras Dropdown */}
             {availableExtras.length > 0 && (
-                <div>
-                    <label className="form-label" style={{ marginBottom: 'var(--space-3)', display: 'block' }}>Extras opcionales</label>
-                    <div className="price-calc__extras">
-                        {availableExtras.map(extra => {
-                            const selected = selectedExtras.find(e => e.id === extra.id)
-                            return (
-                                <button
-                                    key={extra.id}
-                                    type="button"
-                                    className={`price-calc__extra ${selected ? 'price-calc__extra--selected' : ''}`}
-                                    onClick={() => toggleExtra(extra)}
+                <div className="price-calc__extras-section">
+                    <button
+                        type="button"
+                        className={`price-calc__extras-toggle ${isExtrasOpen ? 'price-calc__extras-toggle--open' : ''}`}
+                        onClick={() => setIsExtrasOpen(prev => !prev)}
+                        aria-expanded={isExtrasOpen}
+                    >
+                        <div className="price-calc__extras-toggle-left">
+                            <Sparkles size={16} className="text-forest" />
+                            <div className="price-calc__extras-toggle-info">
+                                <span className="price-calc__extras-title">Personaliza tu viaje: Extras</span>
+                                <span className="price-calc__extras-hint">
+                                    {selectedExtras.length === 0
+                                        ? 'Equipamiento opcional para tu ruta'
+                                        : `${selectedExtras.length} ${selectedExtras.length === 1 ? 'extra añadido' : 'extras añadidos'} (+${formatPrice(breakdown?.extrasTotal || 0)})`}
+                                </span>
+                            </div>
+                        </div>
+                        <div className="price-calc__extras-toggle-right">
+                            {selectedExtras.length > 0 && (
+                                <span className="price-calc__extras-count-badge">
+                                    {selectedExtras.length}
+                                </span>
+                            )}
+                            <ChevronDown
+                                size={16}
+                                className={`price-calc__extras-chevron ${isExtrasOpen ? 'price-calc__extras-chevron--open' : ''}`}
+                            />
+                        </div>
+                    </button>
+
+                    {/* Selected Extras preview chips when collapsed */}
+                    {!isExtrasOpen && selectedExtras.length > 0 && (
+                        <div className="price-calc__extras-chips">
+                            {selectedExtras.map(e => (
+                                <span
+                                    key={e.id}
+                                    className="price-calc__extra-chip"
+                                    onClick={() => toggleExtra(e)}
+                                    title="Pulsar para deseleccionar"
                                 >
-                                    {selected && <CheckCircle size={14} className="price-calc__extra-check" />}
-                                    <span>{extra.name_es}</span>
-                                    <span className="price-calc__extra-price">+{formatPrice(extra.price)}</span>
-                                </button>
-                            )
-                        })}
-                    </div>
+                                    ✓ {e.name_es} <span className="price-calc__chip-price">+{formatPrice(Number(e.price))}</span>
+                                </span>
+                            ))}
+                        </div>
+                    )}
+
+                    {/* Collapsible Animated Panel */}
+                    <AnimatePresence>
+                        {isExtrasOpen && (
+                            <motion.div
+                                initial={{ opacity: 0, height: 0 }}
+                                animate={{ opacity: 1, height: 'auto' }}
+                                exit={{ opacity: 0, height: 0 }}
+                                transition={{ duration: 0.22, ease: 'easeInOut' }}
+                                className="price-calc__extras-collapse"
+                            >
+                                <div className="price-calc__extras-grid">
+                                    {availableExtras.map(extra => {
+                                        const selected = selectedExtras.some(e => e.id === extra.id)
+                                        return (
+                                            <button
+                                                key={extra.id}
+                                                type="button"
+                                                className={`price-calc__extra-card ${selected ? 'price-calc__extra-card--selected' : ''}`}
+                                                onClick={() => toggleExtra(extra)}
+                                            >
+                                                <div className="price-calc__extra-card-content">
+                                                    <span className={`price-calc__extra-checkbox ${selected ? 'price-calc__extra-checkbox--checked' : ''}`}>
+                                                        {selected && <Check size={11} strokeWidth={3} />}
+                                                    </span>
+                                                    <span className="price-calc__extra-name">{extra.name_es}</span>
+                                                </div>
+                                                <span className="price-calc__extra-price">+{formatPrice(Number(extra.price))}</span>
+                                            </button>
+                                        )
+                                    })}
+                                </div>
+                            </motion.div>
+                        )}
+                    </AnimatePresence>
                 </div>
             )}
 
@@ -287,29 +355,51 @@ export default function PriceCalculator({
                     )}
                     {breakdown.discountAmount > 0 && (
                         <div className="price-calc__row price-calc__row--discount">
-                            <span>Descuento estancia larga ({breakdown.discountPct}%)</span>
-                            <span>−{formatPrice(breakdown.discountAmount)}</span>
+                            <div className="price-calc__discount-tag-wrap">
+                                <span className="price-calc__discount-badge">−{breakdown.discountPct}%</span>
+                                <span>Descuento estancia larga (≥7 días)</span>
+                            </div>
+                            <span className="price-calc__discount-amount">−{formatPrice(breakdown.discountAmount)}</span>
                         </div>
                     )}
                     {breakdown.extrasTotal > 0 && (
                         <div className="price-calc__row">
-                            <span>Extras</span>
+                            <span>Extras opcionales</span>
                             <span>{formatPrice(breakdown.extrasTotal)}</span>
                         </div>
                     )}
                     <div className="price-calc__divider" />
                     <div className="price-calc__row price-calc__row--subtotal">
-                        <span>Subtotal ({breakdown.totalDays} días)</span>
+                        <span>Alquiler camper ({breakdown.totalDays} días)</span>
                         <span>{formatPrice(breakdown.totalWithoutDeposit)}</span>
                     </div>
-                    <div className="price-calc__row">
-                        <span>Fianza (reembolsable)</span>
-                        <span>{formatPrice(breakdown.deposit)}</span>
+                    <div className="price-calc__row price-calc__row--deposit">
+                        <div>
+                            <span>Fianza (100% reembolsable)</span>
+                            <span className="price-calc__deposit-subtext">Retención temporal al recoger el vehículo</span>
+                        </div>
+                        <span className="price-calc__deposit-val">{formatPrice(breakdown.deposit)}</span>
                     </div>
                     <div className="price-calc__row price-calc__row--total">
-                        <span>Total</span>
+                        <span>Total reserva</span>
                         <span>{formatPrice(breakdown.grandTotal)}</span>
                     </div>
+                </div>
+            )}
+
+            {/* Discount savings banner */}
+            {breakdown && breakdown.discountAmount > 0 && (
+                <div className="price-calc__discount-banner">
+                    <Sparkles size={16} className="text-gold" />
+                    <span>¡Ahorras <strong>{formatPrice(breakdown.discountAmount)}</strong> con el descuento del {breakdown.discountPct}% por estancia larga!</span>
+                </div>
+            )}
+
+            {/* Hint for long stay discount if user selected fewer than 7 days */}
+            {breakdown && breakdown.numNights > 0 && breakdown.totalDays < 7 && (
+                <div className="price-calc__discount-hint">
+                    <Info size={14} style={{ flexShrink: 0, marginTop: 1 }} />
+                    <span>Reserva 7 días o más y obtén un descuento automático de hasta el 10% en tu alquiler.</span>
                 </div>
             )}
 
@@ -333,13 +423,26 @@ export default function PriceCalculator({
                     : 'Selecciona fechas para reservar'}
             </button>
 
-            {breakdown && breakdown.totalDays >= 7 && breakdown.discountPct > 0 && (
-                <p className="text-xs" style={{ textAlign: 'center', color: 'var(--success)', marginTop: 'var(--space-2)' }}>
-                    ✓ Descuento de estancia larga aplicado ({breakdown.discountPct}%)
+            {breakdown && breakdown.numNights > 0 && !isBelowMinNights && (
+                <p className="price-calc__subtext-fianza">
+                    <Check size={13} className="text-forest" style={{ display: 'inline', marginRight: 4, verticalAlign: -1 }} />
+                    Incluye {formatPrice(breakdown.deposit)} de fianza 100% reembolsable
                 </p>
             )}
 
             <style jsx>{`
+        .price-calc__subtext-fianza {
+          font-size: var(--text-xs);
+          color: var(--gray-500);
+          text-align: center;
+          margin-top: calc(-1 * var(--space-2));
+          margin-bottom: 0;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          gap: 4px;
+        }
+
         .price-calc {
           display: flex;
           flex-direction: column;
@@ -490,53 +593,205 @@ export default function PriceCalculator({
           font-weight: 500;
         }
 
-        .price-calc__extras {
+        /* Collapsible Extras Dropdown styles */
+        .price-calc__extras-section {
           display: flex;
           flex-direction: column;
           gap: var(--space-2);
         }
 
-        .price-calc__extra {
+        .price-calc__extras-toggle {
           display: flex;
           align-items: center;
-          gap: var(--space-2);
-          padding: var(--space-2) var(--space-3);
-          border: 1px solid var(--gray-200);
+          justify-content: space-between;
+          width: 100%;
+          padding: 10px 14px;
+          background: #FAF8F5;
+          border: 1px solid rgba(0, 0, 0, 0.08);
           border-radius: var(--radius-md);
-          background: white;
           cursor: pointer;
-          font-size: var(--text-small);
-          transition: all var(--transition-fast);
+          transition: all 0.2s ease;
           text-align: left;
         }
 
-        .price-calc__extra:hover {
-          border-color: var(--sand-dark);
+        .price-calc__extras-toggle:hover {
+          background: #F4EFEB;
+          border-color: rgba(43, 76, 55, 0.25);
+        }
+
+        .price-calc__extras-toggle--open {
+          background: white;
+          border-color: var(--forest-green);
+          box-shadow: 0 0 0 1px var(--forest-green);
+        }
+
+        .price-calc__extras-toggle-left {
+          display: flex;
+          align-items: center;
+          gap: 10px;
+        }
+
+        .price-calc__extras-toggle-info {
+          display: flex;
+          flex-direction: column;
+          gap: 2px;
+        }
+
+        .price-calc__extras-title {
+          font-size: 0.82rem;
+          font-weight: 700;
+          color: var(--black-matte);
+          letter-spacing: 0.01em;
+        }
+
+        .price-calc__extras-hint {
+          font-size: 0.72rem;
+          color: var(--gray-500);
+        }
+
+        .price-calc__extras-toggle-right {
+          display: flex;
+          align-items: center;
+          gap: 8px;
+        }
+
+        .price-calc__extras-count-badge {
+          display: inline-flex;
+          align-items: center;
+          justify-content: center;
+          min-width: 20px;
+          height: 20px;
+          padding: 0 6px;
+          background: var(--forest-green);
+          color: white;
+          font-size: 0.7rem;
+          font-weight: 700;
+          border-radius: var(--radius-full);
+        }
+
+        .price-calc__extras-chevron {
+          color: var(--gray-500);
+          transition: transform 0.2s ease;
+        }
+
+        .price-calc__extras-chevron--open {
+          transform: rotate(180deg);
+        }
+
+        /* Chips for selected extras */
+        .price-calc__extras-chips {
+          display: flex;
+          flex-wrap: wrap;
+          gap: 6px;
+          padding: 4px 0;
+        }
+
+        .price-calc__extra-chip {
+          display: inline-flex;
+          align-items: center;
+          gap: 4px;
+          padding: 4px 8px;
+          background: rgba(43, 76, 55, 0.08);
+          color: var(--forest-green);
+          border: 1px solid rgba(43, 76, 55, 0.15);
+          border-radius: var(--radius-full);
+          font-size: 0.72rem;
+          font-weight: 600;
+          cursor: pointer;
+          transition: all 0.15s ease;
+        }
+
+        .price-calc__extra-chip:hover {
+          background: rgba(220, 38, 38, 0.1);
+          color: #DC2626;
+          border-color: rgba(220, 38, 38, 0.2);
+        }
+
+        .price-calc__chip-price {
+          color: var(--gray-600);
+          font-weight: 500;
+        }
+
+        /* Collapsible grid */
+        .price-calc__extras-collapse {
+          overflow: hidden;
+        }
+
+        .price-calc__extras-grid {
+          display: flex;
+          flex-direction: column;
+          gap: 6px;
+          padding: 6px 0;
+        }
+
+        .price-calc__extra-card {
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          padding: 8px 12px;
+          background: white;
+          border: 1px solid rgba(0, 0, 0, 0.08);
+          border-radius: var(--radius-sm);
+          cursor: pointer;
+          transition: all 0.15s ease;
+          text-align: left;
+        }
+
+        .price-calc__extra-card:hover {
+          border-color: rgba(43, 76, 55, 0.3);
           background: #FAF8F5;
         }
 
-        .price-calc__extra--selected {
+        .price-calc__extra-card--selected {
           border-color: var(--forest-green);
-          background: rgba(45, 58, 45, 0.05);
+          background: rgba(43, 76, 55, 0.05);
         }
 
-        .price-calc__extra-check {
-          color: var(--forest-green);
+        .price-calc__extra-card-content {
+          display: flex;
+          align-items: center;
+          gap: 8px;
+        }
+
+        .price-calc__extra-checkbox {
+          width: 16px;
+          height: 16px;
+          border: 1.5px solid var(--gray-400);
+          border-radius: 4px;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          background: white;
+          transition: all 0.15s ease;
           flex-shrink: 0;
         }
 
-        .price-calc__extra-price {
-          margin-left: auto;
+        .price-calc__extra-checkbox--checked {
+          background: var(--forest-green);
+          border-color: var(--forest-green);
+          color: white;
+        }
+
+        .price-calc__extra-name {
+          font-size: 0.8rem;
+          color: var(--black-matte);
           font-weight: 500;
+        }
+
+        .price-calc__extra-price {
+          font-size: 0.8rem;
+          font-weight: 600;
           color: var(--gray-600);
         }
 
+        /* Price Breakdown Details */
         .price-calc__breakdown {
           display: flex;
           flex-direction: column;
           gap: var(--space-2);
           padding: var(--space-4);
           background: #FAF8F5;
+          border: 1px solid rgba(0, 0, 0, 0.05);
           border-radius: var(--radius-md);
           font-size: var(--text-small);
         }
@@ -544,11 +799,39 @@ export default function PriceCalculator({
         .price-calc__row {
           display: flex;
           justify-content: space-between;
+          align-items: center;
           color: var(--gray-600);
         }
 
         .price-calc__row--discount {
-          color: var(--success);
+          color: #15803D;
+          font-weight: 600;
+          background: rgba(34, 197, 94, 0.08);
+          padding: 6px 8px;
+          border-radius: var(--radius-sm);
+          margin: 2px 0;
+        }
+
+        .price-calc__discount-tag-wrap {
+          display: flex;
+          align-items: center;
+          gap: 6px;
+        }
+
+        .price-calc__discount-badge {
+          background: #15803D;
+          color: white;
+          font-size: 0.68rem;
+          font-weight: 700;
+          padding: 1px 6px;
+          border-radius: var(--radius-full);
+          letter-spacing: 0.02em;
+        }
+
+        .price-calc__discount-amount {
+          font-size: 0.88rem;
+          font-weight: 700;
+          color: #15803D;
         }
 
         .price-calc__row--subtotal {
@@ -556,16 +839,61 @@ export default function PriceCalculator({
           color: var(--black-matte);
         }
 
+        .price-calc__row--deposit {
+          color: var(--gray-700);
+          padding-top: 2px;
+        }
+
+        .price-calc__deposit-subtext {
+          display: block;
+          font-size: 0.68rem;
+          color: var(--gray-500);
+          font-weight: 400;
+        }
+
+        .price-calc__deposit-val {
+          font-weight: 600;
+          color: var(--black-matte);
+        }
+
         .price-calc__row--total {
           font-weight: 700;
-          font-size: var(--text-body);
+          font-size: 1.05rem;
           color: var(--forest-green);
+          padding-top: var(--space-1);
         }
 
         .price-calc__divider {
           height: 1px;
-          background: var(--gray-200);
+          background: rgba(0, 0, 0, 0.08);
           margin: var(--space-1) 0;
+        }
+
+        /* Discount Banner & Hint */
+        .price-calc__discount-banner {
+          display: flex;
+          align-items: center;
+          gap: 8px;
+          padding: 8px 12px;
+          background: #F0FDF4;
+          border: 1px solid #BBF7D0;
+          border-radius: var(--radius-sm);
+          color: #166534;
+          font-size: 0.76rem;
+          font-weight: 500;
+        }
+
+        .price-calc__discount-hint {
+          display: flex;
+          align-items: flex-start;
+          gap: 6px;
+          padding: 8px 10px;
+          background: #F8FAFC;
+          border: 1px solid #E2E8F0;
+          border-radius: var(--radius-sm);
+          color: #475569;
+          font-size: 0.72rem;
+          line-height: 1.4;
         }
 
         .price-calc__min-nights-alert {

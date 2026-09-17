@@ -3,6 +3,7 @@ import '../globals.css'
 import { NextIntlClientProvider } from 'next-intl';
 import { getMessages } from 'next-intl/server';
 import { notFound } from 'next/navigation';
+import NavigationLoader from '@/components/layout/NavigationLoader';
 
 export const metadata: Metadata = {
   title: 'Utopia Van Life | Alquiler de Campers en Mallorca',
@@ -38,7 +39,7 @@ export default async function RootLayout({
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
         <link
-          href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;1,300;1,400&display=swap"
+          href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&family=Poppins:wght@400;500;600;700;800&display=swap"
           rel="stylesheet"
         />
         <link
@@ -48,6 +49,7 @@ export default async function RootLayout({
       </head>
       <body>
         <NextIntlClientProvider messages={messages}>
+          <NavigationLoader />
           {children}
         </NextIntlClientProvider>
       </body>

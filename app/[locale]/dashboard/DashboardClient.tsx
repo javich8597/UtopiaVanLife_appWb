@@ -82,7 +82,7 @@ export default function DashboardClient({ bookings, profile, user }: Props) {
                             <div className="booking-hero-card__img-content">
                                 <span className="tier-tag">PREMIUM TIER</span>
                                 <h2 className="camper-overlay-title">Camper {camperName}</h2>
-                                <p className="camper-overlay-sub">Nomade Nation</p>
+                                <p className="camper-overlay-sub">Utopia Van Life</p>
                             </div>
                         </div>
 

@@ -96,7 +96,7 @@ export default function DocumentsClient({ bookings, profile, user, contractTempl
     total_price: 1155,
     created_at: '2026-09-01T10:00:00Z',
     camper: {
-      name: 'Nomade NEO',
+      name: 'Camper NEO',
       slug: 'neo',
       plate_number: '1234-LMN',
       specs: { transmission: 'Automática', engine: '170 CV Diésel' }
@@ -446,7 +446,7 @@ export default function DocumentsClient({ bookings, profile, user, contractTempl
           clientName,
           clientDni,
           clientEmail,
-          camperName: 'Camper SPACE (Nomade Nation)',
+          camperName: 'Camper SPACE',
           camperPlate: '3819-KXP',
           datesRange: '12 Jun - 19 Jun, 2025',
           items: [

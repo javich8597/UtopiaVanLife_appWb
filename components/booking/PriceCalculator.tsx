@@ -90,10 +90,7 @@ export default function PriceCalculator({
         setStartSlot(sSlot)
         setEndDate(end)
         setEndSlot(eSlot)
-        if (start && end) {
-            // Cerramos el calendario suavemente al completar el rango
-            setIsCalendarOpen(false)
-        }
+        // Mantener el calendario abierto para permitir al usuario seleccionar y revisar turnos horarios y pulsar 'Listo'
     }
 
     const isBelowMinNights = Boolean(breakdown && breakdown.numNights < activeMinNights)

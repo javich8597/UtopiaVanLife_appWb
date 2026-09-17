@@ -167,6 +167,14 @@ export default function BookingCalendar({
     const isReturnMorningActive = endSlot === 'morning' && canReturnMorning
     const isReturnAfternoonActive = endSlot === 'afternoon' && canReturnAfternoon
 
+    const monthHasPartialBlocks = useMemo(() => {
+        return days.some(day => {
+            const dateStr = format(day, 'yyyy-MM-dd')
+            const status = getSlotAvailability(dateStr, effectiveSlots)
+            return status === 'morning_blocked' || status === 'afternoon_blocked'
+        })
+    }, [days, effectiveSlots])
+
     return (
         <div className="booking-cal">
             {/* Header del mes */}
@@ -192,6 +200,25 @@ export default function BookingCalendar({
                     <ChevronRight size={18} />
                 </button>
             </div>
+
+            {/* Indicador de paso / guía al viajero */}
+            <div className={`booking-cal__step-banner ${startDate && endDate ? 'booking-cal__step-banner--done' : ''}`}>
+                <span>
+                    {!startDate
+                        ? '① Elige tu fecha de recogida'
+                        : !endDate
+                        ? `② Elige tu fecha de devolución (mín. ${minNights} noches)`
+                        : '③ Confirma tus horarios y pulsa "Listo"'}
+                </span>
+            </div>
+
+            {/* Mensaje de validación o estancia mínima a la altura de los ojos */}
+            {validationError && (
+                <div className="booking-cal__alert">
+                    <Info size={14} style={{ flexShrink: 0 }} />
+                    <span>{validationError}</span>
+                </div>
+            )}
 
             {/* Días de la semana */}
             <div className="booking-cal__weekdays">
@@ -223,8 +250,8 @@ export default function BookingCalendar({
 
                     // Títulos accesibles según el estado de la celda
                     let tooltip = ''
-                    if (slotStatus === 'morning_blocked') tooltip = 'Mañana reservada — Recogida a partir de las 15:00h'
-                    if (slotStatus === 'afternoon_blocked') tooltip = 'Tarde reservada — Devolución antes de las 12:00h'
+                    if (slotStatus === 'morning_blocked') tooltip = 'Mañana ocupada — Recogida disponible a partir de las 15:00h'
+                    if (slotStatus === 'afternoon_blocked') tooltip = 'Tarde ocupada — Devolución disponible antes de las 12:00h'
                     if (isFullBlocked) tooltip = 'Fecha no disponible'
 
                     return (
@@ -254,17 +281,19 @@ export default function BookingCalendar({
                 })}
             </div>
 
-            {/* Leyenda visual de medios días */}
-            <div className="booking-cal__legend">
-                <div className="booking-cal__legend-item">
-                    <span className="booking-cal__legend-icon booking-cal__legend-icon--am"></span>
-                    <span>Mañana ocupada (Salida 15h)</span>
+            {/* Leyenda visual de medios días (solo si el mes actual tiene bloqueos parciales) */}
+            {monthHasPartialBlocks && (
+                <div className="booking-cal__legend">
+                    <div className="booking-cal__legend-item" title="La mañana ya está reservada. Puedes recoger la camper a partir de las 15:00h">
+                        <span className="booking-cal__legend-icon booking-cal__legend-icon--am"></span>
+                        <span>Recogidas a partir de 15:00h</span>
+                    </div>
+                    <div className="booking-cal__legend-item" title="La tarde ya está reservada. Debes entregar la camper antes de las 12:00h">
+                        <span className="booking-cal__legend-icon booking-cal__legend-icon--pm"></span>
+                        <span>Devoluciones hasta 12:00h</span>
+                    </div>
                 </div>
-                <div className="booking-cal__legend-item">
-                    <span className="booking-cal__legend-icon booking-cal__legend-icon--pm"></span>
-                    <span>Tarde ocupada (Entrega 12h)</span>
-                </div>
-            </div>
+            )}
 
             {/* Selectores de Franja Horaria (Holo-Van style) */}
             <div className="booking-cal__slots-container">
@@ -321,17 +350,17 @@ export default function BookingCalendar({
                         </button>
                     </div>
                 </div>
+
+                {/* Explicación contextual de turnos */}
+                <div className="booking-cal__slots-info">
+                    <Info size={13} style={{ flexShrink: 0, marginTop: 2, color: 'var(--forest-green)' }} />
+                    <span>
+                        <strong>Horarios estándar:</strong> Recogida tarde (15–19h) y entrega mañana (09–12h). Recogida por la mañana o entrega por la tarde suman <strong>+0.5 día</strong> de alquiler.
+                    </span>
+                </div>
             </div>
 
-            {/* Mensaje de validación o estancia mínima */}
-            {validationError && (
-                <div className="booking-cal__alert">
-                    <Info size={14} style={{ flexShrink: 0 }} />
-                    <span>{validationError}</span>
-                </div>
-            )}
-
-            {/* Footer con acciones */}
+            {/* Footer con acciones accesibles */}
             <div className="booking-cal__footer">
                 <button
                     type="button"
@@ -347,7 +376,7 @@ export default function BookingCalendar({
                         className="booking-cal__done-btn"
                         onClick={onClose}
                     >
-                        Listo
+                        ✓ Listo
                     </button>
                 )}
             </div>
@@ -619,11 +648,43 @@ export default function BookingCalendar({
                     color: #9E9690;
                 }
 
+                .booking-cal__step-banner {
+                    margin-bottom: 8px;
+                    padding: 6px 10px;
+                    border-radius: 8px;
+                    font-size: 0.74rem;
+                    font-weight: 700;
+                    background: #F5F1EB;
+                    color: #2D3A2D;
+                    text-align: center;
+                    border: 1px solid #E2DBD2;
+                    letter-spacing: -0.01em;
+                }
+                .booking-cal__step-banner--done {
+                    background: #EAF2EB;
+                    color: #1E3324;
+                    border-color: #CFE2D2;
+                }
+
+                .booking-cal__slots-info {
+                    display: flex;
+                    align-items: flex-start;
+                    gap: 6px;
+                    font-size: 0.69rem;
+                    color: #5C554E;
+                    line-height: 1.4;
+                    background: #FFFFFF;
+                    padding: 8px 10px;
+                    border-radius: 8px;
+                    border: 1px dashed #DDD6CD;
+                    margin-top: 4px;
+                }
+
                 .booking-cal__alert {
                     display: flex;
                     align-items: center;
                     gap: 6px;
-                    margin-top: 8px;
+                    margin-bottom: 8px;
                     padding: 6px 10px;
                     background: #FEF7EE;
                     border: 1px solid #E8C99B;
@@ -637,43 +698,61 @@ export default function BookingCalendar({
 
                 .booking-cal__footer {
                     display: flex;
-                    justify-content: space-between;
                     align-items: center;
-                    margin-top: 10px;
-                    padding-top: 8px;
+                    justify-content: space-between;
+                    gap: 10px;
+                    margin-top: 12px;
+                    padding-top: 10px;
                     border-top: 1px solid #EBE5DC;
                 }
                 .booking-cal__clear-btn {
-                    background: none;
-                    border: none;
-                    font-size: 0.76rem;
-                    font-weight: 500;
-                    text-decoration: underline;
+                    height: 38px;
+                    padding: 0 14px;
+                    border: 1px solid #DDD6CD;
+                    border-radius: var(--radius-full);
+                    background: #FAF8F5;
                     color: #5C554E;
+                    font-size: 0.76rem;
+                    font-weight: 600;
                     cursor: pointer;
-                    padding: 0;
+                    transition: all var(--transition-fast);
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    white-space: nowrap;
                 }
                 .booking-cal__clear-btn:hover:not(:disabled) {
+                    background: #FFFFFF;
+                    border-color: #A39B92;
                     color: #1A1A1A;
                 }
                 .booking-cal__clear-btn:disabled {
-                    opacity: 0.35;
+                    opacity: 0.4;
                     cursor: not-allowed;
-                    text-decoration: none;
+                    background: transparent;
+                    border-color: transparent;
                 }
                 .booking-cal__done-btn {
+                    height: 38px;
+                    flex: 1;
                     background: var(--forest-green);
                     color: #FFFFFF;
                     border: none;
                     border-radius: var(--radius-full);
-                    padding: 4px 14px;
-                    font-size: 0.76rem;
-                    font-weight: 600;
+                    padding: 0 16px;
+                    font-size: 0.82rem;
+                    font-weight: 700;
                     cursor: pointer;
-                    transition: background var(--transition-fast);
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    gap: 6px;
+                    box-shadow: 0 2px 6px rgba(45, 58, 45, 0.25);
+                    transition: all var(--transition-fast);
                 }
                 .booking-cal__done-btn:hover {
                     background: var(--forest-green-light);
+                    box-shadow: 0 4px 10px rgba(45, 58, 45, 0.35);
                 }
             `}</style>
         </div>

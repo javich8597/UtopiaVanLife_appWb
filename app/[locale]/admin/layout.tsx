@@ -2,6 +2,7 @@ import { redirect, Link } from '@/i18n/routing'
 import { createClient } from '@/lib/supabase/server'
 import AdminNavClient from './AdminNavClient'
 import AdminSidebarFooterClient from './AdminSidebarFooterClient'
+import AdminResponsiveShell from './AdminResponsiveShell'
 import { isAdminUser } from '@/lib/admin/auth'
 
 export default async function AdminLayout({
@@ -48,27 +49,8 @@ export default async function AdminLayout({
     }
 
     return (
-        <div className="admin-layout">
-            {/* Sidebar */}
-            <aside className="admin-sidebar">
-                <div className="admin-sidebar__header">
-                    <Link href="/admin" className="navbar__logo" style={{ color: 'white' }}>
-                        <span className="navbar__logo-text" style={{ color: 'white' }}>Utopia Admin</span>
-                        <span className="navbar__logo-sub" style={{ color: 'rgba(255,255,255,0.7)' }}>Backoffice</span>
-                    </Link>
-                </div>
-
-                <AdminNavClient />
-
-                <AdminSidebarFooterClient email={user.email} />
-            </aside>
-
-            {/* Main Content */}
-            <main className="admin-main">
-                <div className="admin-main__inner">
-                    {children}
-                </div>
-            </main>
-        </div>
+        <AdminResponsiveShell userEmail={user.email}>
+            {children}
+        </AdminResponsiveShell>
     )
 }

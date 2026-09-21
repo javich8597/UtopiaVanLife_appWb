@@ -617,8 +617,8 @@ export function generateContractData(
     bookingId: rawBookingId,
     startDate: booking?.start_date || new Date().toISOString().split('T')[0],
     endDate: booking?.end_date || new Date().toISOString().split('T')[0],
-    pickupTime: booking?.pickup_time || '10:00',
-    dropoffTime: booking?.dropoff_time || '18:00',
+    pickupTime: booking?.pickup_time || '14:00',
+    dropoffTime: booking?.dropoff_time || '11:00',
     pickupLocation: booking?.pickup_location || 'Palma de Mallorca (Aeropuerto PMI / Base Utopia Son Oms)',
     dropoffLocation: booking?.dropoff_location || 'Palma de Mallorca (Aeropuerto PMI / Base Utopia Son Oms)'
   }
@@ -629,9 +629,11 @@ export function generateContractData(
   const pricing = {
     totalPrice: Number(booking?.total_price || 0),
     depositAmount,
-    extras: Array.isArray(booking?.extras)
-      ? booking.extras
-      : (typeof booking?.extras === 'string' ? [booking.extras] : ['Seguro a todo riesgo', 'Menaje completo premium', 'Kit de cama y toallas', '2 Máscaras de snorkel'])
+    extras: Array.isArray(booking?.extras_selected) && booking.extras_selected.length > 0
+      ? booking.extras_selected.map((e: any) => `${e.name_es || e.name || 'Extra'}${e.quantity ? ` (x${e.quantity})` : ''}`)
+      : (Array.isArray(booking?.extras)
+        ? booking.extras
+        : (typeof booking?.extras === 'string' ? [booking.extras] : ['Seguro a todo riesgo', 'Menaje completo premium', 'Kit de cama y toallas', '2 Máscaras de snorkel']))
   }
 
   const articles = Array.isArray(templateOverride?.articles) && templateOverride.articles.length > 0

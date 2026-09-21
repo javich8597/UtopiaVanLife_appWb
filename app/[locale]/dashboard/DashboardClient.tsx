@@ -1,5 +1,6 @@
 'use client'
 
+import { useMemo } from 'react'
 import Image from 'next/image'
 import { Link } from '@/i18n/routing'
 import { Calendar, Euro, MapPin, Clock, BookOpen, ChevronRight, Sparkles, ShieldCheck, Compass, Users, AlertCircle, CheckCircle, Navigation, Zap, FileDown, Phone, PhoneCall, LifeBuoy, MessageCircle } from 'lucide-react'
@@ -25,6 +26,65 @@ export default function DashboardClient({ bookings, profile, user }: Props) {
     const userName = profile?.full_name?.split(' ')[0] || user.email?.split('@')[0] || 'Viajero'
     const isVerified = profile?.verification_status === 'verified'
     const isPendingDoc = profile?.verification_status === 'pending'
+
+    const parsedExtras: string[] = useMemo(() => {
+        if (!nextBooking) return []
+        const raw = nextBooking.extras_selected || nextBooking.extras || nextBooking.booking_extras
+        if (!raw) return []
+
+        if (Array.isArray(raw)) {
+            return raw.map((item: any) => {
+                if (typeof item === 'string') return item
+                const name = item?.name_es || item?.name || item?.extra?.name_es || item?.extra?.name || item?.description
+                const qty = item?.quantity ? ` (x${item.quantity})` : ''
+                if (name) return `${name}${qty}`
+                return String(item)
+            }).filter(Boolean)
+        }
+
+        if (typeof raw === 'string') {
+            try {
+                const parsed = JSON.parse(raw)
+                if (Array.isArray(parsed)) {
+                    return parsed.map((item: any) => {
+                        if (typeof item === 'string') return item
+                        const name = item?.name_es || item?.name || item?.extra?.name_es || item?.extra?.name || item?.description
+                        const qty = item?.quantity ? ` (x${item.quantity})` : ''
+                        return name ? `${name}${qty}` : String(item)
+                    }).filter(Boolean)
+                }
+            } catch {
+                return raw.split(',').map(s => s.trim()).filter(Boolean)
+            }
+        }
+
+        return []
+    }, [nextBooking])
+
+    const defaultExtrasFallback = [
+        '🛏️ Pack Ropa de Cama Premium',
+        '🤿 Kit Snorkel Utopia (x2)',
+        '⚡ Autonomía Solar Victron 540Ah',
+        '🧼 Kit Limpieza & Ducha Eco'
+    ]
+
+    const getExtraEmoji = (extraName: string) => {
+        const lower = extraName.toLowerCase()
+        if (lower.includes('cama') || lower.includes('ropa') || lower.includes('sábana') || lower.includes('almohada')) return '🛏️'
+        if (lower.includes('snorkel') || lower.includes('buceo')) return '🤿'
+        if (lower.includes('solar') || lower.includes('victron') || lower.includes('electricidad') || lower.includes('batería')) return '⚡'
+        if (lower.includes('surf') || lower.includes('paddle') || lower.includes('tabla')) return '🏄'
+        if (lower.includes('wifi') || lower.includes('starlink') || lower.includes('internet')) return '📡'
+        if (lower.includes('café') || lower.includes('cafetera') || lower.includes('coffee')) return '☕'
+        if (lower.includes('barbacoa') || lower.includes('bbq') || lower.includes('parrilla')) return '🍳'
+        if (lower.includes('bici') || lower.includes('bike')) return '🚲'
+        if (lower.includes('silla') || lower.includes('mesa') || lower.includes('camping') || lower.includes('exterior')) return '🪑'
+        if (lower.includes('nevera') || lower.includes('hielo')) return '🧊'
+        if (lower.includes('ducha') || lower.includes('toalla')) return '🚿'
+        if (lower.includes('wc') || lower.includes('químico')) return '🚽'
+        return '✨'
+    }
+
 
     let daysToTrip = -1
     let nightsCount = 7
@@ -119,11 +179,34 @@ export default function DashboardClient({ bookings, profile, user }: Props) {
 
                                 {/* Extras */}
                                 <div className="extras-section">
-                                    <span className="date-label" style={{ marginBottom: 6, display: 'block' }}>Extras Incluidos</span>
+                                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 6 }}>
+                                        <span className="date-label" style={{ margin: 0, display: 'block' }}>
+                                            {parsedExtras.length > 0 ? 'Extras de tu Reserva' : 'Extras Incluidos de Serie'}
+                                        </span>
+                                        {parsedExtras.length > 0 && (
+                                            <span className="text-xs" style={{ color: 'var(--forest-green)', fontWeight: 600 }}>
+                                                {parsedExtras.length} personalizados
+                                            </span>
+                                        )}
+                                    </div>
                                     <div className="extras-chips">
-                                        <span className="extra-chip">🛏️ Pack Ropa de Cama</span>
-                                        <span className="extra-chip">🤿 Kit Snorkel Utopia</span>
-                                        <span className="extra-chip">⚡ Autonomía Solar Victron</span>
+                                        {parsedExtras.length > 0 ? (
+                                            parsedExtras.map((extra, idx) => {
+                                                const hasEmoji = /\p{Extended_Pictographic}/u.test(extra)
+                                                const displayLabel = hasEmoji ? extra : `${getExtraEmoji(extra)} ${extra}`
+                                                return (
+                                                    <span key={idx} className="extra-chip">
+                                                        {displayLabel}
+                                                    </span>
+                                                )
+                                            })
+                                        ) : (
+                                            defaultExtrasFallback.map((extra, idx) => (
+                                                <span key={idx} className="extra-chip">
+                                                    {extra}
+                                                </span>
+                                            ))
+                                        )}
                                     </div>
                                 </div>
                             </div>
@@ -238,22 +321,48 @@ export default function DashboardClient({ bookings, profile, user }: Props) {
                                 </div>
 
                                 {/* Second Driver */}
-                                <div className="driver-row driver-row--dashed">
-                                    <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                                        <div className="driver-avatar-mini driver-avatar-mini--dashed">
-                                            <ShieldCheck size={14} style={{ color: 'var(--gray-400)' }} />
+                                {profile?.has_second_driver && profile?.second_driver_name ? (
+                                    <div className="driver-row">
+                                        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                                            <div className="driver-avatar-mini" style={{ background: 'var(--sand-light)', color: 'var(--forest-green)' }}>
+                                                {profile.second_driver_name.charAt(0).toUpperCase()}
+                                            </div>
+                                            <div>
+                                                <span style={{ fontWeight: 600, fontSize: '0.82rem', display: 'block', color: 'var(--black-matte)' }}>
+                                                    Segundo Conductor
+                                                </span>
+                                                <span className="text-xs" style={{ color: 'var(--gray-600)' }}>
+                                                    {profile.second_driver_name}
+                                                </span>
+                                            </div>
                                         </div>
-                                        <div>
-                                            <span style={{ fontWeight: 500, fontSize: '0.82rem', display: 'block', color: 'var(--gray-700)' }}>
-                                                Segundo Conductor
+                                        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                                            <span className="doc-chip doc-chip--verified" style={{ padding: '2px 8px', fontSize: '0.72rem' }}>
+                                                <CheckCircle size={10} /> Añadido
                                             </span>
-                                            <span className="text-xs" style={{ color: 'var(--gray-400)' }}>Opcional</span>
+                                            <Link href="/dashboard/profile" className="text-xs font-semibold" style={{ color: 'var(--forest-green)' }}>
+                                                Editar
+                                            </Link>
                                         </div>
                                     </div>
-                                    <Link href="/dashboard/profile" className="text-xs font-semibold" style={{ color: 'var(--sand-dark)' }}>
-                                        Añadir
-                                    </Link>
-                                </div>
+                                ) : (
+                                    <div className="driver-row driver-row--dashed">
+                                        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                                            <div className="driver-avatar-mini driver-avatar-mini--dashed">
+                                                <ShieldCheck size={14} style={{ color: 'var(--gray-400)' }} />
+                                            </div>
+                                            <div>
+                                                <span style={{ fontWeight: 500, fontSize: '0.82rem', display: 'block', color: 'var(--gray-700)' }}>
+                                                    Segundo Conductor
+                                                </span>
+                                                <span className="text-xs" style={{ color: 'var(--gray-400)' }}>Opcional</span>
+                                            </div>
+                                        </div>
+                                        <Link href="/dashboard/profile" className="text-xs font-semibold" style={{ color: 'var(--sand-dark)' }}>
+                                            Añadir
+                                        </Link>
+                                    </div>
+                                )}
                             </div>
                         </div>
                     </div>
@@ -888,6 +997,73 @@ export default function DashboardClient({ bookings, profile, user }: Props) {
                 @media (max-width: 992px) {
                     .bento-layout {
                         grid-template-columns: 1fr;
+                    }
+                }
+
+                @media (max-width: 640px) {
+                    .dash-header {
+                        gap: var(--space-3);
+                        padding-bottom: var(--space-3);
+                    }
+                    .dash-title {
+                        font-size: 1.4rem;
+                    }
+                    .countdown-pill {
+                        width: 100%;
+                        justify-content: center;
+                        font-size: 0.8rem;
+                        padding: 7px 12px;
+                    }
+                    .booking-hero-card__body {
+                        padding: var(--space-4);
+                    }
+                    .camper-overlay-title {
+                        font-size: 1.35rem;
+                    }
+                    .trip-dates-grid {
+                        gap: 8px;
+                        padding: 10px;
+                    }
+                    .date-val {
+                        font-size: 0.88rem;
+                    }
+                    .date-time {
+                        font-size: 0.72rem;
+                    }
+                    .price-summary-bar {
+                        flex-direction: column;
+                        align-items: stretch;
+                        gap: 10px;
+                    }
+                    .price-summary-bar > div {
+                        display: flex;
+                        justify-content: space-between;
+                        align-items: center;
+                        width: 100%;
+                    }
+                    .price-summary-bar > div:nth-child(2) {
+                        text-align: left;
+                        border-top: 1px dashed var(--gray-200);
+                        padding-top: 8px;
+                    }
+                    .emergency-grid {
+                        grid-template-columns: 1fr;
+                    }
+                    .emergency-item {
+                        padding: 12px;
+                        gap: 12px;
+                    }
+                    .emergency-item__phone {
+                        font-size: 0.92rem;
+                    }
+                    .quick-actions-grid {
+                        grid-template-columns: 1fr;
+                    }
+                    .action-tile {
+                        padding: 14px;
+                    }
+                    .side-card {
+                        padding: var(--space-4);
                     }
                 }
             `}</style>

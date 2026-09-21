@@ -1033,6 +1033,75 @@ export default function CalendarClient({ bookings, campers }: Props) {
           border-radius: 50%;
           margin-top: 1px;
         }
+
+        @media (max-width: 768px) {
+          .gcal-header {
+            padding: 12px 14px;
+            gap: 12px;
+          }
+
+          .gcal-header__left {
+            width: 100%;
+            justify-content: space-between;
+            gap: 8px;
+          }
+
+          .gcal-title {
+            font-size: 1.1rem;
+            min-width: unset;
+          }
+
+          .gcal-header__right {
+            width: 100%;
+            flex-direction: column;
+            align-items: stretch;
+            gap: 10px;
+          }
+
+          .gcal-camper-pills {
+            overflow-x: auto;
+            white-space: nowrap;
+            -webkit-overflow-scrolling: touch;
+            padding-bottom: 2px;
+            width: 100%;
+          }
+
+          .gcal-pill {
+            flex-shrink: 0;
+          }
+
+          .gcal-view-selector {
+            width: 100%;
+            justify-content: space-between;
+          }
+
+          .gcal-view-btn {
+            flex: 1;
+            text-align: center;
+            padding: 6px 0;
+          }
+
+          .gcal-body {
+            padding: 8px 4px;
+          }
+
+          .gcal-modal-backdrop {
+            align-items: flex-end;
+            padding: 0;
+          }
+
+          .gcal-modal-card {
+            max-width: 100%;
+            max-height: 90vh;
+            border-radius: 20px 20px 0 0;
+            animation: gcalSlideUp 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+          }
+
+          @keyframes gcalSlideUp {
+            from { transform: translateY(100%); }
+            to { transform: translateY(0); }
+          }
+        }
       `}</style>
     </div>
   )

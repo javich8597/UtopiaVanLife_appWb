@@ -80,7 +80,7 @@ export default async function AdminDashboardPage() {
                 </div>
 
                 <div className="table-container">
-                    <table className="admin-table">
+                    <table className="admin-table" style={{ minWidth: 700 }}>
                         <thead>
                             <tr>
                                 <th>ID</th>

@@ -5,17 +5,16 @@ import {
   Percent,
   Plus,
   Trash2,
-  Edit2,
+  Edit3,
   Check,
   Loader2,
   AlertCircle,
   Clock,
   Sparkles,
-  ToggleLeft,
-  ToggleRight,
   X
 } from 'lucide-react'
 import { DurationDiscount } from '@/lib/pricing/engine'
+import { AppleSwitch } from '@/components/ui/AppleSwitch'
 
 interface Props {
   initialDiscounts: DurationDiscount[]
@@ -227,18 +226,18 @@ export default function DurationDiscountsClient({ initialDiscounts }: Props) {
             color: 'white',
             border: 'none',
             borderRadius: 'var(--radius-md)',
-            padding: '8px 16px',
+            padding: '10px 18px',
             fontSize: '0.9rem',
-            fontWeight: 600,
+            fontWeight: 700,
             cursor: 'pointer',
-            boxShadow: '0 2px 6px rgba(46,74,56,0.2)',
-            transition: 'background 0.15s ease',
+            boxShadow: '0 3px 10px rgba(46,74,56,0.25)',
+            transition: 'all 0.15s ease',
           }}
           onMouseEnter={e => (e.currentTarget.style.filter = 'brightness(1.08)')}
           onMouseLeave={e => (e.currentTarget.style.filter = 'none')}
         >
-          <Plus size={16} />
-          Nuevo Tramo
+          <Plus size={18} strokeWidth={2.5} />
+          <span>Añadir Nuevo Tramo</span>
         </button>
       </div>
 
@@ -280,10 +279,11 @@ export default function DurationDiscountsClient({ initialDiscounts }: Props) {
           </button>
         </div>
       ) : (
-        <div style={{ overflowX: 'auto' }}>
+        <div className="table-container" style={{ overflowX: 'auto' }}>
           <table
             style={{
               width: '100%',
+              minWidth: 560,
               borderCollapse: 'collapse',
               textAlign: 'left',
               fontSize: '0.9rem',
@@ -361,34 +361,14 @@ export default function DurationDiscountsClient({ initialDiscounts }: Props) {
                       </span>
                     </td>
 
-                    {/* Estado con Toggle interactivo */}
+                    {/* Estado con Apple Switch */}
                     <td style={{ padding: '12px 14px' }}>
-                      <button
-                        type="button"
+                      <AppleSwitch
+                        checked={discount.is_active}
+                        onChange={() => handleToggleActive(discount)}
                         disabled={isToggling}
-                        onClick={() => handleToggleActive(discount)}
-                        style={{
-                          background: 'transparent',
-                          border: 'none',
-                          cursor: isToggling ? 'not-allowed' : 'pointer',
-                          display: 'inline-flex',
-                          alignItems: 'center',
-                          gap: '6px',
-                          padding: 0,
-                          fontSize: '0.85rem',
-                          fontWeight: 500,
-                          color: discount.is_active ? '#16a34a' : 'var(--gray-400)',
-                        }}
-                      >
-                        {isToggling ? (
-                          <Loader2 size={16} className="animate-spin" />
-                        ) : discount.is_active ? (
-                          <ToggleRight size={26} style={{ color: '#16a34a' }} />
-                        ) : (
-                          <ToggleLeft size={26} style={{ color: 'var(--gray-400)' }} />
-                        )}
-                        <span>{discount.is_active ? 'Activo' : 'Desactivado'}</span>
-                      </button>
+                        label={discount.is_active ? 'Activo' : 'Inactivo'}
+                      />
                     </td>
 
                     {/* Acciones */}
@@ -396,29 +376,33 @@ export default function DurationDiscountsClient({ initialDiscounts }: Props) {
                       <div style={{ display: 'inline-flex', alignItems: 'center', gap: '8px' }}>
                         <button
                           type="button"
-                          title="Editar tramo"
+                          title="Editar tramo de descuento"
                           onClick={() => handleOpenEdit(discount)}
                           style={{
-                            background: 'transparent',
-                            border: '1px solid var(--gray-300)',
-                            borderRadius: 'var(--radius-md)',
-                            padding: '6px 8px',
-                            cursor: 'pointer',
-                            color: 'var(--gray-600)',
-                            display: 'flex',
+                            display: 'inline-flex',
                             alignItems: 'center',
+                            gap: '6px',
+                            padding: '6px 14px',
+                            borderRadius: 'var(--radius-md)',
+                            border: '1.5px solid var(--forest-green)',
+                            background: 'rgba(46,74,56,0.06)',
+                            color: 'var(--forest-green)',
+                            cursor: 'pointer',
+                            fontSize: '0.82rem',
+                            fontWeight: 700,
                             transition: 'all 0.15s ease',
                           }}
                           onMouseEnter={e => {
-                            e.currentTarget.style.borderColor = 'var(--forest-green)'
-                            e.currentTarget.style.color = 'var(--forest-green)'
+                            e.currentTarget.style.background = 'var(--forest-green)'
+                            e.currentTarget.style.color = '#FFFFFF'
                           }}
                           onMouseLeave={e => {
-                            e.currentTarget.style.borderColor = 'var(--gray-300)'
-                            e.currentTarget.style.color = 'var(--gray-600)'
+                            e.currentTarget.style.background = 'rgba(46,74,56,0.06)'
+                            e.currentTarget.style.color = 'var(--forest-green)'
                           }}
                         >
-                          <Edit2 size={14} />
+                          <Edit3 size={13} strokeWidth={2.2} />
+                          <span>Editar</span>
                         </button>
 
                         <button
@@ -427,23 +411,23 @@ export default function DurationDiscountsClient({ initialDiscounts }: Props) {
                           disabled={isDeleting}
                           onClick={() => discount.id && handleDeleteDiscount(discount.id)}
                           style={{
-                            background: 'transparent',
-                            border: '1px solid var(--gray-300)',
-                            borderRadius: 'var(--radius-md)',
-                            padding: '6px 8px',
-                            cursor: isDeleting ? 'not-allowed' : 'pointer',
-                            color: 'var(--gray-400)',
-                            display: 'flex',
+                            display: 'inline-flex',
                             alignItems: 'center',
+                            justifyContent: 'center',
+                            width: '32px',
+                            height: '32px',
+                            borderRadius: '6px',
+                            border: '1px solid #fee2e2',
+                            background: '#fff5f5',
+                            color: '#dc2626',
+                            cursor: isDeleting ? 'not-allowed' : 'pointer',
                             transition: 'all 0.15s ease',
                           }}
                           onMouseEnter={e => {
-                            e.currentTarget.style.borderColor = '#dc2626'
-                            e.currentTarget.style.color = '#dc2626'
+                            e.currentTarget.style.background = '#fecaca'
                           }}
                           onMouseLeave={e => {
-                            e.currentTarget.style.borderColor = 'var(--gray-300)'
-                            e.currentTarget.style.color = 'var(--gray-400)'
+                            e.currentTarget.style.background = '#fff5f5'
                           }}
                         >
                           {isDeleting ? <Loader2 size={14} className="animate-spin" /> : <Trash2 size={14} />}
@@ -455,6 +439,56 @@ export default function DurationDiscountsClient({ initialDiscounts }: Props) {
               })}
             </tbody>
           </table>
+
+          {/* Botón Callout Destacado para Añadir Tramo de Descuento */}
+          <button
+            type="button"
+            onClick={handleOpenAdd}
+            style={{
+              width: '100%',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              gap: '10px',
+              padding: '14px 20px',
+              background: 'rgba(46,74,56,0.03)',
+              border: '2px dashed rgba(46,74,56,0.3)',
+              borderRadius: 'var(--radius-lg)',
+              color: 'var(--forest-green)',
+              fontSize: '0.92rem',
+              fontWeight: 700,
+              cursor: 'pointer',
+              marginTop: '12px',
+              transition: 'all 0.2s cubic-bezier(0.4, 0, 0.2, 1)',
+            }}
+            onMouseEnter={e => {
+              e.currentTarget.style.background = 'rgba(46,74,56,0.08)'
+              e.currentTarget.style.borderColor = 'var(--forest-green)'
+              e.currentTarget.style.transform = 'translateY(-1px)'
+            }}
+            onMouseLeave={e => {
+              e.currentTarget.style.background = 'rgba(46,74,56,0.03)'
+              e.currentTarget.style.borderColor = 'rgba(46,74,56,0.3)'
+              e.currentTarget.style.transform = 'none'
+            }}
+          >
+            <div
+              style={{
+                width: 26,
+                height: 26,
+                borderRadius: '50%',
+                background: 'var(--forest-green)',
+                color: 'white',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                boxShadow: '0 2px 4px rgba(46,74,56,0.2)',
+              }}
+            >
+              <Plus size={15} strokeWidth={2.5} />
+            </div>
+            <span>Añadir Nuevo Tramo de Descuento por Duración</span>
+          </button>
         </div>
       )}
 
@@ -581,17 +615,31 @@ export default function DurationDiscountsClient({ initialDiscounts }: Props) {
                 </span>
               </div>
 
-              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', paddingTop: '4px' }}>
-                <input
-                  type="checkbox"
-                  id="discount_active_checkbox"
+              {/* Estado Activo con Apple Switch */}
+              <div
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'space-between',
+                  padding: '12px 16px',
+                  background: 'var(--gray-50)',
+                  borderRadius: 'var(--radius-lg)',
+                  border: '1px solid var(--gray-200)',
+                }}
+              >
+                <div>
+                  <div style={{ fontSize: '0.85rem', fontWeight: 600, color: 'var(--gray-800)' }}>
+                    Visibilidad del Descuento
+                  </div>
+                  <div style={{ fontSize: '0.75rem', color: 'var(--gray-500)' }}>
+                    Si está activo, se aplicará automáticamente en el presupuesto.
+                  </div>
+                </div>
+                <AppleSwitch
                   checked={formIsActive}
-                  onChange={e => setFormIsActive(e.target.checked)}
-                  style={{ width: 16, height: 16, accentColor: 'var(--forest-green)', cursor: 'pointer' }}
+                  onChange={() => setFormIsActive(!formIsActive)}
+                  label={formIsActive ? 'Activo' : 'Inactivo'}
                 />
-                <label htmlFor="discount_active_checkbox" style={{ fontSize: '0.85rem', fontWeight: 600, color: 'var(--gray-700)', cursor: 'pointer' }}>
-                  Activar este tramo en la web inmediatamente
-                </label>
               </div>
 
               <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 'var(--space-2)', marginTop: 'var(--space-2)' }}>

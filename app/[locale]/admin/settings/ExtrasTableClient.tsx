@@ -54,6 +54,9 @@ const AVAILABLE_ICONS = [
   { id: 'flame', label: 'Gas / Calefacción', Icon: Flame },
 ]
 
+import { AppleSwitch } from '@/components/ui/AppleSwitch'
+export { AppleSwitch }
+
 export default function ExtrasTableClient({ initialExtras }: Props) {
   const router = useRouter()
   const [extras, setExtras] = useState<ExtraItem[]>(initialExtras || [])
@@ -265,15 +268,26 @@ export default function ExtrasTableClient({ initialExtras }: Props) {
         <button
           onClick={handleOpenCreate}
           className="btn btn-forest"
-          style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', padding: '8px 16px', borderRadius: '8px', fontSize: '0.875rem', fontWeight: 600 }}
+          style={{
+            display: 'inline-flex',
+            alignItems: 'center',
+            gap: '8px',
+            padding: '10px 18px',
+            borderRadius: 'var(--radius-md)',
+            fontSize: '0.9rem',
+            fontWeight: 700,
+            boxShadow: '0 3px 10px rgba(46,74,56,0.25)',
+            border: 'none',
+            cursor: 'pointer',
+          }}
         >
-          <Plus size={16} /> Nuevo Extra
+          <Plus size={18} strokeWidth={2.5} /> Añadir Nuevo Extra
         </button>
       </div>
 
       {/* Extras Table */}
       <div className="table-container" style={{ overflowX: 'auto' }}>
-        <table className="admin-table" style={{ width: '100%', borderCollapse: 'collapse' }}>
+        <table className="admin-table" style={{ width: '100%', borderCollapse: 'collapse', minWidth: 780 }}>
           <thead>
             <tr style={{ borderBottom: '1px solid var(--gray-200)', background: 'var(--gray-50)' }}>
               <th style={{ padding: '12px 16px', textAlign: 'left', fontSize: '0.8rem', color: 'var(--gray-600)', fontWeight: 600 }}>Extra</th>
@@ -335,61 +349,47 @@ export default function ExtrasTableClient({ initialExtras }: Props) {
                     </span>
                   </td>
 
-                  {/* Active Status Switch */}
+                  {/* Active Status Switch — Apple iOS Style */}
                   <td style={{ padding: '14px 16px', textAlign: 'center' }}>
-                    <button
-                      type="button"
-                      onClick={() => handleToggleActive(e)}
+                    <AppleSwitch
+                      checked={e.is_active}
+                      onChange={() => handleToggleActive(e)}
                       disabled={isToggling}
-                      style={{
-                        display: 'inline-flex',
-                        alignItems: 'center',
-                        gap: '5px',
-                        padding: '4px 10px',
-                        borderRadius: '20px',
-                        fontSize: '0.75rem',
-                        fontWeight: 600,
-                        border: 'none',
-                        cursor: isToggling ? 'not-allowed' : 'pointer',
-                        background: e.is_active ? 'rgba(16, 185, 129, 0.15)' : 'rgba(156, 163, 175, 0.15)',
-                        color: e.is_active ? '#065f46' : '#4b5563',
-                        transition: 'all 0.2s',
-                      }}
-                      title={e.is_active ? 'Haz clic para desactivar' : 'Haz clic para activar'}
-                    >
-                      {isToggling ? (
-                        <Loader2 size={12} className="animate-spin" />
-                      ) : e.is_active ? (
-                        <CheckCircle2 size={13} style={{ color: '#059669' }} />
-                      ) : (
-                        <XCircle size={13} style={{ color: '#9ca3af' }} />
-                      )}
-                      <span>{e.is_active ? 'Activo' : 'Inactivo'}</span>
-                    </button>
+                      label={e.is_active ? 'Activo' : 'Inactivo'}
+                    />
                   </td>
 
                   {/* Actions */}
                   <td style={{ padding: '14px 16px', textAlign: 'right' }}>
-                    <div style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', justifyContent: 'flex-end' }}>
+                    <div style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', justifyContent: 'flex-end' }}>
                       <button
                         type="button"
                         onClick={() => handleOpenEdit(e)}
                         style={{
                           display: 'inline-flex',
                           alignItems: 'center',
-                          gap: '4px',
-                          padding: '6px 10px',
-                          borderRadius: '6px',
-                          border: '1px solid var(--gray-200)',
-                          background: 'white',
-                          color: 'var(--gray-700)',
+                          gap: '6px',
+                          padding: '6px 14px',
+                          borderRadius: 'var(--radius-md)',
+                          border: '1.5px solid var(--forest-green)',
+                          background: 'rgba(46,74,56,0.06)',
+                          color: 'var(--forest-green)',
                           cursor: 'pointer',
-                          fontSize: '0.8rem',
-                          fontWeight: 500,
+                          fontSize: '0.82rem',
+                          fontWeight: 700,
+                          transition: 'all 0.15s ease',
                         }}
-                        title="Editar extra"
+                        onMouseEnter={el => {
+                          el.currentTarget.style.background = 'var(--forest-green)'
+                          el.currentTarget.style.color = '#FFFFFF'
+                        }}
+                        onMouseLeave={el => {
+                          el.currentTarget.style.background = 'rgba(46,74,56,0.06)'
+                          el.currentTarget.style.color = 'var(--forest-green)'
+                        }}
+                        title="Editar información y precio de este extra"
                       >
-                        <Edit3 size={14} />
+                        <Edit3 size={13} strokeWidth={2.2} />
                         <span>Editar</span>
                       </button>
 
@@ -433,7 +433,54 @@ export default function ExtrasTableClient({ initialExtras }: Props) {
         </table>
       </div>
 
-      {/* MODAL: Crear / Editar Extra */}
+      {/* Botón Callout Destacado para Añadir Extra */}
+      <button
+        type="button"
+        onClick={handleOpenCreate}
+        style={{
+          width: '100%',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          gap: '10px',
+          padding: '16px 20px',
+          background: 'rgba(46,74,56,0.03)',
+          border: '2px dashed rgba(46,74,56,0.3)',
+          borderRadius: 'var(--radius-lg)',
+          color: 'var(--forest-green)',
+          fontSize: '0.92rem',
+          fontWeight: 700,
+          cursor: 'pointer',
+          transition: 'all 0.2s cubic-bezier(0.4, 0, 0.2, 1)',
+        }}
+        onMouseEnter={e => {
+          e.currentTarget.style.background = 'rgba(46,74,56,0.08)'
+          e.currentTarget.style.borderColor = 'var(--forest-green)'
+          e.currentTarget.style.transform = 'translateY(-1px)'
+        }}
+        onMouseLeave={e => {
+          e.currentTarget.style.background = 'rgba(46,74,56,0.03)'
+          e.currentTarget.style.borderColor = 'rgba(46,74,56,0.3)'
+          e.currentTarget.style.transform = 'none'
+        }}
+      >
+        <div
+          style={{
+            width: 28,
+            height: 28,
+            borderRadius: '50%',
+            background: 'var(--forest-green)',
+            color: 'white',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            boxShadow: '0 2px 5px rgba(46,74,56,0.25)',
+          }}
+        >
+          <Plus size={16} strokeWidth={2.5} />
+        </div>
+        <span>Añadir Nuevo Extra al Catálogo de Alquiler</span>
+      </button>
       {isModalOpen && (
         <div
           style={{
@@ -641,17 +688,31 @@ export default function ExtrasTableClient({ initialExtras }: Props) {
                 </div>
               </div>
 
-              {/* Estado Activo */}
-              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '10px 14px', background: 'var(--gray-50)', borderRadius: '8px', marginBottom: '20px' }}>
+              {/* Estado Activo con Apple Switch */}
+              <div
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'space-between',
+                  padding: '12px 16px',
+                  background: 'var(--gray-50)',
+                  borderRadius: 'var(--radius-lg)',
+                  border: '1px solid var(--gray-200)',
+                  marginBottom: '20px',
+                }}
+              >
                 <div>
-                  <div style={{ fontSize: '0.85rem', fontWeight: 600, color: 'var(--gray-800)' }}>Visible en la Web</div>
-                  <div className="text-xs" style={{ color: 'var(--gray-500)' }}>Si está activo, se mostrará en el calculador y checkout.</div>
+                  <div style={{ fontSize: '0.85rem', fontWeight: 600, color: 'var(--gray-800)' }}>
+                    Visibilidad en la Web
+                  </div>
+                  <div className="text-xs" style={{ color: 'var(--gray-500)' }}>
+                    Si está activo, los clientes podrán añadirlo al reservar.
+                  </div>
                 </div>
-                <input
-                  type="checkbox"
+                <AppleSwitch
                   checked={formData.is_active}
-                  onChange={e => setFormData(prev => ({ ...prev, is_active: e.target.checked }))}
-                  style={{ width: '18px', height: '18px', cursor: 'pointer' }}
+                  onChange={() => setFormData(prev => ({ ...prev, is_active: !prev.is_active }))}
+                  label={formData.is_active ? 'Activo' : 'Inactivo'}
                 />
               </div>
 

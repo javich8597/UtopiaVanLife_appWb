@@ -1,7 +1,6 @@
 import { NextResponse } from 'next/server'
 import { createClient as createServerClient } from '@/lib/supabase/server'
-import { createClient as createAdminClient } from '@supabase/supabase-js'
-import { isAdminUser } from '@/lib/admin/auth'
+import { isAdminUser, getAdminClientOrSession } from '@/lib/admin/auth'
 
 export async function POST(request: Request) {
     try {
@@ -30,26 +29,74 @@ export async function POST(request: Request) {
             return NextResponse.json({ error: 'Acceso denegado' }, { status: 403 })
         }
 
-        const { userId, action } = await request.json()
+        const body = await request.json()
+        const { userId, action, reason } = body
 
         if (!userId || !['approve', 'reject'].includes(action)) {
             return NextResponse.json({ error: 'Parámetros inválidos' }, { status: 400 })
         }
 
-        const clientToUse = process.env.SUPABASE_SERVICE_ROLE_KEY
-            ? createAdminClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.SUPABASE_SERVICE_ROLE_KEY)
-            : supabase
+        const clientToUse = getAdminClientOrSession(supabase)
 
         const newStatus = action === 'approve' ? 'verified' : 'rejected'
+        const rejectionReason = action === 'reject' ? (reason || 'Rechazado por administración') : null
 
-        const { error: updateErr } = await clientToUse
-            .from('users')
-            .update({ verification_status: newStatus })
-            .eq('id', userId)
+        // 1. Update users table with fallback if rejection_reason column does not exist
+        let updateErr: any = null
+        try {
+            const { error } = await clientToUse
+                .from('users')
+                .update({
+                    verification_status: newStatus,
+                    rejection_reason: rejectionReason,
+                })
+                .eq('id', userId)
 
-        if (updateErr) throw new Error(updateErr.message)
+            if (error) {
+                // If column rejection_reason is unknown, fall back to updating verification_status only
+                if (error.message?.includes('rejection_reason') || error.code === '42703') {
+                    const fallback = await clientToUse
+                        .from('users')
+                        .update({ verification_status: newStatus })
+                        .eq('id', userId)
+                    updateErr = fallback.error
+                } else {
+                    updateErr = error
+                }
+            }
+        } catch (e: any) {
+            updateErr = e
+        }
 
-        return NextResponse.json({ success: true, status: newStatus })
+        if (updateErr) {
+            throw new Error(`Error al actualizar estado del usuario: ${updateErr.message || updateErr}`)
+        }
+
+        // 2. Persist to document_validations log table if available
+        try {
+            await clientToUse
+                .from('document_validations')
+                .insert({
+                    user_id: userId,
+                    document_type: 'identity_and_driver_license',
+                    document_url: 'documents',
+                    status: action === 'approve' ? 'approved' : 'rejected',
+                    rejected_reason: rejectionReason,
+                    validated_by: user.id,
+                    validated_at: new Date().toISOString(),
+                })
+        } catch (docLogErr) {
+            console.warn('Could not log to document_validations:', docLogErr)
+        }
+
+        return NextResponse.json({
+            success: true,
+            status: newStatus,
+            reason: rejectionReason,
+            message: action === 'approve'
+                ? 'Documentación aprobada correctamente'
+                : 'Documentación rechazada con motivo registrado',
+        })
 
     } catch (error: any) {
         console.error('Verify Doc Error:', error)

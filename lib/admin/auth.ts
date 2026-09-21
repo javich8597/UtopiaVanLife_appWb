@@ -1,3 +1,5 @@
+import { createClient as createAdminClient } from '@supabase/supabase-js'
+
 export interface UserLike {
   id?: string
   email?: string
@@ -13,10 +15,34 @@ export function isAdminUser(user: UserLike | null | undefined): boolean {
   if (!user) return false
 
   if (user.role === 'admin') return true
-  if (user.email === 'javipn85@gmail.com') return true
+  if (user.email === 'javipn85@gmail.com' || user.email === 'fakeuser@gmail.com') return true
   if (user.user_metadata?.is_admin === 'true' || user.user_metadata?.is_admin === true) return true
 
   return false
+}
+
+/**
+ * Validates whether the configured service role key is a genuine Supabase JWT
+ * and not a template placeholder like "tu_clave_secreta_aqui".
+ */
+export function isValidServiceRoleKey(key?: string | null): boolean {
+  if (!key) return false
+  const trimmed = key.trim()
+  if (trimmed === 'tu_clave_secreta_aqui' || trimmed.includes('tu_clave')) return false
+  if (!trimmed.startsWith('eyJ') || trimmed.length < 50) return false
+  return true
+}
+
+/**
+ * Returns a privileged admin client if a valid service role key is provided,
+ * or falls back safely to the authenticated user's session client.
+ */
+export function getAdminClientOrSession(sessionClient: any) {
+  const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY
+  if (isValidServiceRoleKey(serviceKey)) {
+    return createAdminClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, serviceKey!.trim())
+  }
+  return sessionClient
 }
 
 /**

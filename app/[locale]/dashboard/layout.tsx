@@ -30,7 +30,7 @@ export default async function DashboardLayout({
   return (
     <>
       <Navbar />
-      <main style={{ paddingTop: 104, paddingBottom: 80, minHeight: '85vh', background: 'var(--white-broken)' }}>
+      <main className="dashboard-main">
         <div className="container">
           <div className="dashboard-grid">
             <DashboardNavClient user={user} profile={profile} />

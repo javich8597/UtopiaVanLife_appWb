@@ -901,8 +901,46 @@ export default function ContractSignModal({ booking, profile, onClose, onSigned,
         }
 
         @media (max-width: 640px) {
+          .csm-backdrop {
+            align-items: flex-end;
+            padding: 0;
+          }
+          .csm-modal {
+            max-height: 94vh;
+            border-radius: 20px 20px 0 0;
+            animation: csmSlideUp 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+          }
+          @keyframes csmSlideUp {
+            from { transform: translateY(100%); }
+            to { transform: translateY(0); }
+          }
+          .csm-header {
+            padding: 14px 16px;
+          }
+          .csm-icon-wrap {
+            width: 36px;
+            height: 36px;
+            min-width: 36px;
+          }
+          .csm-title {
+            font-size: 0.98rem;
+          }
+          .csm-body {
+            padding: 16px;
+          }
           .csm-parties-grid {
             grid-template-columns: 1fr;
+          }
+          .csm-canvas-wrap {
+            height: 190px;
+          }
+          .csm-actions-row {
+            flex-direction: column-reverse;
+            gap: 8px;
+          }
+          .csm-actions-row button {
+            width: 100%;
+            justify-content: center;
           }
         }
       `}</style>

@@ -1,7 +1,6 @@
 import { NextResponse } from 'next/server'
 import { createClient as createServerClient } from '@/lib/supabase/server'
-import { createClient as createAdminClient } from '@supabase/supabase-js'
-import { isAdminUser } from '@/lib/admin/auth'
+import { isAdminUser, getAdminClientOrSession } from '@/lib/admin/auth'
 
 export async function POST(request: Request) {
   try {
@@ -37,9 +36,7 @@ export async function POST(request: Request) {
     }
 
     // Use the authenticated supabase client or admin client with SUPABASE_SERVICE_ROLE_KEY
-    const clientToUse = process.env.SUPABASE_SERVICE_ROLE_KEY
-      ? createAdminClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.SUPABASE_SERVICE_ROLE_KEY)
-      : supabase
+    const clientToUse = getAdminClientOrSession(supabase)
 
     const targetStatus = action === 'approve' ? 'confirmed' : 'cancelled'
 

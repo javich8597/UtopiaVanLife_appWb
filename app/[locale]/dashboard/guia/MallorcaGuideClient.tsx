@@ -22,6 +22,14 @@ import {
   LayoutGrid,
   ExternalLink,
   Mountain,
+  Scale,
+  CheckCircle2,
+  ShieldCheck,
+  Info,
+  Wifi,
+  ShoppingBag,
+  Leaf,
+  HelpCircle,
 } from 'lucide-react'
 
 export interface Spot {
@@ -855,6 +863,87 @@ export const SPOTS_34: Spot[] = [
   },
 ]
 
+export interface WaterServicePoint {
+  id: string
+  name: string
+  zone: string
+  location: string
+  services: string[]
+  price: string
+  coordinates: { lat: number; lng: number }
+  googleMapsUrl: string
+  note: string
+}
+
+export const WATER_SERVICE_POINTS: WaterServicePoint[] = [
+  {
+    id: 'area-son-servera',
+    name: 'Área Municipal de Autocaravanas de Son Servera',
+    zone: 'Levante',
+    location: 'Carrer de ses Serveres, Son Servera',
+    services: ['Agua potable limpia', 'Vaciado de aguas grises (rejilla)', 'Vaciado de aguas negras (casete químico)'],
+    price: 'Gratuito / Municipal',
+    coordinates: { lat: 39.6214, lng: 3.3582 },
+    googleMapsUrl: 'https://maps.google.com/?q=39.6214,3.3582',
+    note: 'Área oficial con 10 plazas y plataforma de vaciado muy accesible. Estratégica tras explorar Cala Torta y Cala Mesquida.'
+  },
+  {
+    id: 'area-inca-servicios',
+    name: 'Área de Servicios Camper & Bornes de Inca',
+    zone: 'Raiguer / Centro',
+    location: 'Carrer dels Teixidors, Polígon Can Valero, Inca',
+    services: ['Borne de agua potable (ficha/moneda)', 'Rejilla de grises transitable', 'Arqueta de negras con enjuague'],
+    price: '2 € (llenado 100L)',
+    coordinates: { lat: 39.7180, lng: 2.9125 },
+    googleMapsUrl: 'https://maps.google.com/?q=39.7180,2.9125',
+    note: 'En el centro geográfico de la isla. Conexión rápida con la autopista Ma-13 entre Palma y Alcúdia.'
+  },
+  {
+    id: 'repsol-son-oms-base',
+    name: 'Estación de Servicio Repsol Son Oms (Base Utopia)',
+    zone: 'Palma / Aeropuerto',
+    location: 'Polígono Son Oms, Carrer Son Oms, Palma',
+    services: ['Toma de agua dulce para manguera', 'Aspiradores y aire', 'Lavado especial camper alta presión'],
+    price: '1 € (toma de agua)',
+    coordinates: { lat: 39.5489, lng: 2.7312 },
+    googleMapsUrl: 'https://maps.google.com/?q=39.5489,2.7312',
+    note: 'A solo 3 minutos de nuestra base de entrega. Ideal para el llenado inicial o lavado antes del check-out.'
+  },
+  {
+    id: 'bp-campos-santanyi',
+    name: 'Estación BP Campos - Eje Santanyí & Ses Salines',
+    zone: 'Sureste',
+    location: 'Carretera Palma-Santanyí Ma-19, km 38, Campos',
+    services: ['Grifo de agua potable (rosca estándar)', 'Vaciado autorizado de grises', 'Tienda y cafetería'],
+    price: 'Consumo mínimo / 1 €',
+    coordinates: { lat: 39.4285, lng: 3.0310 },
+    googleMapsUrl: 'https://maps.google.com/?q=39.4285,3.0310',
+    note: 'Punto neurálgico antes de bajar hacia Es Trenc, Caló des Moro y el Parque Natural de Mondragó.'
+  },
+  {
+    id: 'repsol-alcudia-puerto',
+    name: 'Estación de Servicio Repsol Alcúdia Puerto',
+    zone: 'Norte',
+    location: 'Carretera d\'Artà Ma-12, km 2.5, Port d\'Alcúdia',
+    services: ['Toma de agua dulce limpia', 'Zona de lavado para vehículos de gran gálibo', 'Tienda abierta 24h'],
+    price: '1 € (agua)',
+    coordinates: { lat: 39.8402, lng: 3.1255 },
+    googleMapsUrl: 'https://maps.google.com/?q=39.8402,3.1255',
+    note: 'Parada imprescindible para llenar el depósito de 113L/160L antes de la ruta hacia Formentor y Pollença.'
+  },
+  {
+    id: 'petroestur-manacor',
+    name: 'Estación de Servicio Manacor Vía Palma',
+    zone: 'Levante',
+    location: 'Vía Palma Ma-15, Manacor',
+    services: ['Toma de agua dulce potable', 'Parking amplio para maniobra', 'Supermercado anexo'],
+    price: '1 €',
+    coordinates: { lat: 39.5712, lng: 3.2045 },
+    googleMapsUrl: 'https://maps.google.com/?q=39.5712,3.2045',
+    note: 'Excelente punto de aprovisionamiento en la capital del Llevant antes de internarse en las calas de Porto Cristo.'
+  }
+]
+
 export default function MallorcaGuideClient() {
   const [selectedZone, setSelectedZone] = useState<string>('all')
   const [selectedCategory, setSelectedCategory] = useState<string>('all')
@@ -1171,6 +1260,26 @@ export default function MallorcaGuideClient() {
             <span>Abrir en Google Maps</span>
           </a>
         </div>
+
+        {/* ─── Guide Sections Quick Nav ─── */}
+        <nav className="guide-quick-nav">
+          <a href="#mapa-spots" className="guide-nav-tab">
+            <MapPin size={14} />
+            <span>Mapa & 35 Spots</span>
+          </a>
+          <a href="#normativa-pernocta" className="guide-nav-tab">
+            <Scale size={14} />
+            <span>Normativa Legal DGT</span>
+          </a>
+          <a href="#puntos-agua" className="guide-nav-tab">
+            <Droplets size={14} />
+            <span>Puntos de Agua & Vaciado</span>
+          </a>
+          <a href="#consejos-nomadas" className="guide-nav-tab">
+            <Sparkles size={14} />
+            <span>Consejos Nómadas</span>
+          </a>
+        </nav>
       </header>
 
       {/* ─── Category Filter Pills (Stitch Design) ─── */}
@@ -1227,7 +1336,7 @@ export default function MallorcaGuideClient() {
       </div>
 
       {/* ─── Interactive Real Geographic Map (Stitch Aesthetic + Real Relief) ─── */}
-      <div className="stitch-map-card" ref={mapRef}>
+      <div className="stitch-map-card" ref={mapRef} id="mapa-spots">
         {/* Layer Switcher Top Bar */}
         <div className="map-layer-bar">
           <div className="map-layer-tabs">
@@ -1494,6 +1603,251 @@ export default function MallorcaGuideClient() {
             })}
           </div>
         )}
+      </section>
+
+      {/* ─── 1. Normativa de Pernocta y Acampada en Mallorca (DGT 08/V-74) ─── */}
+      <section id="normativa-pernocta" className="guide-info-block">
+        <div className="guide-info-header">
+          <div>
+            <div className="guide-info-badge guide-info-badge--legal">
+              <Scale size={13} />
+              <span>Marco Jurídico Oficial · DGT 08/V-74 & Ley de Costas</span>
+            </div>
+            <h2 className="guide-info-title">
+              Normativa de Pernocta y Acampada en Mallorca
+            </h2>
+            <p className="guide-info-subtitle">
+              Viajar en camper con total tranquilidad requiere conocer la diferencia legal entre estacionar/pernoctar (permitido) y acampar (restringido en vía pública).
+            </p>
+          </div>
+        </div>
+
+        <div className="normativa-grid">
+          {/* Card Pernocta (Permitida) */}
+          <div className="normativa-card normativa-card--allowed">
+            <div className="normativa-card__header">
+              <div className="normativa-card__icon-box normativa-card__icon-box--allowed">
+                <CheckCircle2 size={20} />
+              </div>
+              <div>
+                <span className="normativa-card__tag normativa-card__tag--allowed">100% LEGAL EN MALLORCA</span>
+                <h3 className="normativa-card__title">Estacionar & Pernoctar</h3>
+              </div>
+            </div>
+            <p className="normativa-card__desc">
+              Según la <strong>Instrucción 08/V-74 de la Dirección General de Tráfico (DGT)</strong>, los ocupantes de una camper o autocaravana pueden pernoctar en su interior siempre que el vehículo esté debidamente estacionado.
+            </p>
+            <div className="normativa-card__rules">
+              <span className="normativa-rules-title">Requisitos para considerarse estacionamiento:</span>
+              <ul className="normativa-rules-list">
+                <li>
+                  <Check size={14} style={{ color: '#15803D', flexShrink: 0 }} />
+                  <span>El vehículo se apoya únicamente sobre sus 4 ruedas (sin patas estabilizadoras).</span>
+                </li>
+                <li>
+                  <Check size={14} style={{ color: '#15803D', flexShrink: 0 }} />
+                  <span>No sobresale ningún elemento del perímetro de la furgoneta (ventanas batientes cerradas o dentro de gálibo).</span>
+                </li>
+                <li>
+                  <Check size={14} style={{ color: '#15803D', flexShrink: 0 }} />
+                  <span>Se puede abrir la claraboya superior y elevar el techo elevable (modelo SPACE) ya que no supera el perímetro en planta.</span>
+                </li>
+                <li>
+                  <Check size={14} style={{ color: '#15803D', flexShrink: 0 }} />
+                  <span>Toda la actividad (cocinar, cenar, dormir) se desarrolla estrictamente en el habitáculo interior.</span>
+                </li>
+              </ul>
+            </div>
+          </div>
+
+          {/* Card Acampada (Prohibida) */}
+          <div className="normativa-card normativa-card--prohibited">
+            <div className="normativa-card__header">
+              <div className="normativa-card__icon-box normativa-card__icon-box--prohibited">
+                <AlertTriangle size={20} />
+              </div>
+              <div>
+                <span className="normativa-card__tag normativa-card__tag--prohibited">SANCIONABLE EN ESPACIO PÚBLICO</span>
+                <h3 className="normativa-card__title">Acampada en Vía Pública</h3>
+              </div>
+            </div>
+            <p className="normativa-card__desc">
+              Se considera acampada cuando el vehículo despliega elementos hacia el exterior o proyecta su actividad fuera del volumen de la carrocería. Está prohibido en vías públicas y playas.
+            </p>
+            <div className="normativa-card__rules">
+              <span className="normativa-rules-title">Acciones que constituyen acampada ilegal:</span>
+              <ul className="normativa-rules-list">
+                <li>
+                  <X size={14} style={{ color: '#B91C1C', flexShrink: 0 }} />
+                  <span>Desplegar el toldo exterior fijado a la furgoneta.</span>
+                </li>
+                <li>
+                  <X size={14} style={{ color: '#B91C1C', flexShrink: 0 }} />
+                  <span>Sacar sillas, mesas, hamacas o tendederos al asfalto o tierra.</span>
+                </li>
+                <li>
+                  <X size={14} style={{ color: '#B91C1C', flexShrink: 0 }} />
+                  <span>Colocar calzos niveladores (salvo en fuerte pendiente por seguridad según Código de Circulación).</span>
+                </li>
+                <li>
+                  <X size={14} style={{ color: '#B91C1C', flexShrink: 0 }} />
+                  <span>Verter cualquier tipo de residuo, detergente o agua residual en el terreno.</span>
+                </li>
+              </ul>
+            </div>
+          </div>
+        </div>
+
+        {/* Espacios Protegidos en Mallorca Box */}
+        <div className="protected-spaces-box">
+          <div className="protected-spaces-header">
+            <ShieldCheck size={18} style={{ color: '#B88746' }} />
+            <h4 className="protected-spaces-title">Espacios Naturales Protegidos & Restricciones Insulares</h4>
+          </div>
+          <div className="protected-spaces-grid">
+            <div className="protected-item">
+              <strong>Parc Natural de Mondragó & Península de Llevant:</strong>
+              <p>El estacionamiento diurno está regulado en sus parkings oficiales. La estancia nocturna de campers está expresamente prohibida de 22:00 a 08:00 dentro de los límites del parque.</p>
+            </div>
+            <div className="protected-item">
+              <strong>Serra de Tramuntana (Patrimonio Mundial UNESCO):</strong>
+              <p>Evita estacionar en las calles peatonales y cascos antiguos de Sóller, Deià, Fornalutx o Valldemossa. Utiliza siempre los parkings de bienvenida exteriores señalizados.</p>
+            </div>
+            <div className="protected-item">
+              <strong>Ley de Costas (Dominio Público Marítimo-Terrestre):</strong>
+              <p>Prohibido el estacionamiento y circulación de vehículos en las playas y en la zona de servidumbre de protección (100 metros desde la línea de ribera de mar en zonas no urbanizadas).</p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* ─── 2. Directorio de Puntos de Recarga de Agua Potable y Vaciado ─── */}
+      <section id="puntos-agua" className="guide-info-block">
+        <div className="guide-info-header">
+          <div>
+            <div className="guide-info-badge guide-info-badge--water">
+              <Droplets size={13} />
+              <span>Infraestructura & Saneamiento Camper</span>
+            </div>
+            <h2 className="guide-info-title">
+              Puntos de Recarga de Agua Potable & Vaciado Ecológico
+            </h2>
+            <p className="guide-info-subtitle">
+              Directorio geolocalizado de áreas de autocaravanas y estaciones con servicios autorizados de vaciado de aguas grises, vaciado de casete de aguas negras y tomas de agua limpia.
+            </p>
+          </div>
+        </div>
+
+        <div className="water-points-grid">
+          {WATER_SERVICE_POINTS.map(wp => (
+            <article key={wp.id} className="water-card">
+              <div className="water-card__top">
+                <span className="water-card__zone-tag">{wp.zone}</span>
+                <span className="water-card__price-tag">{wp.price}</span>
+              </div>
+              <h3 className="water-card__name">{wp.name}</h3>
+              <p className="water-card__location">
+                <MapPin size={13} style={{ color: '#0284C7', flexShrink: 0 }} />
+                <span>{wp.location}</span>
+              </p>
+
+              <div className="water-card__services">
+                {wp.services.map((srv, idx) => (
+                  <span key={idx} className="water-service-chip">
+                    <Check size={11} style={{ color: '#0284C7' }} />
+                    <span>{srv}</span>
+                  </span>
+                ))}
+              </div>
+
+              <p className="water-card__note">{wp.note}</p>
+
+              <div className="water-card__action">
+                <a
+                  href={wp.googleMapsUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="water-card__btn-gps"
+                >
+                  <Navigation size={13} />
+                  <span>Cómo llegar con Google Maps</span>
+                </a>
+              </div>
+            </article>
+          ))}
+        </div>
+      </section>
+
+      {/* ─── 3. Consejos para Nómadas (Nomad Life en Mallorca) ─── */}
+      <section id="consejos-nomadas" className="guide-info-block">
+        <div className="guide-info-header">
+          <div>
+            <div className="guide-info-badge guide-info-badge--nomad">
+              <Sparkles size={13} />
+              <span>Vida Nómada en las Baleares</span>
+            </div>
+            <h2 className="guide-info-title">
+              Consejos Clave para Nómadas en Mallorca
+            </h2>
+            <p className="guide-info-subtitle">
+              Recomendaciones prácticas basadas en la experiencia local para que tu estancia en furgoneta sea fluida, respetuosa y enriquecedora.
+            </p>
+          </div>
+        </div>
+
+        <div className="nomad-tips-grid">
+          <div className="nomad-tip-card">
+            <div className="nomad-tip-card__icon-box">
+              <ShoppingBag size={20} />
+            </div>
+            <h3 className="nomad-tip-card__title">Abastecimiento & Mercados Locales</h3>
+            <p className="nomad-tip-card__desc">
+              Compra fruta fresca, quesos y verdura de temporada en los mercados semanales: <strong>Sineu (miércoles)</strong>, <strong>Santa Maria del Camí (domingo)</strong> o <strong>Santanyí (sábados)</strong>.
+            </p>
+            <span className="nomad-tip-highlight">
+              💡 Para compras grandes, los supermercados a las afueras de Inca, Manacor y Campos tienen parkings llanos ideales para maniobrar.
+            </span>
+          </div>
+
+          <div className="nomad-tip-card">
+            <div className="nomad-tip-card__icon-box">
+              <Wifi size={20} />
+            </div>
+            <h3 className="nomad-tip-card__title">Cobertura 4G/5G & Teletrabajo</h3>
+            <p className="nomad-tip-card__desc">
+              Mallorca cuenta con un 95% de cobertura 4G/5G de alta velocidad. Es excelente en zonas abiertas y litorales como el Faro de Ses Salines o Son Serra de Marina.
+            </p>
+            <span className="nomad-tip-highlight">
+              ⚠️ En gargantas profundas de la Serra de Tramuntana (Sa Calobra o Cala Tuent) la señal disminuye; descarga mapas offline antes de descender.
+            </span>
+          </div>
+
+          <div className="nomad-tip-card">
+            <div className="nomad-tip-card__icon-box">
+              <Mountain size={20} />
+            </div>
+            <h3 className="nomad-tip-card__title">Carreteras de Montaña & Gálibo</h3>
+            <p className="nomad-tip-card__desc">
+              En la carretera Ma-10 de la Tramuntana conduce en marchas cortas para aprovechar el freno motor y no fatigar los frenos en bajadas continuas.
+            </p>
+            <span className="nomad-tip-highlight">
+              ⚠️ Ten siempre presente la altura de tu vehículo (2.65m en NEO / 2.75m en SPACE) ante balcones en pueblos antiguos y ramas bajas.
+            </span>
+          </div>
+
+          <div className="nomad-tip-card">
+            <div className="nomad-tip-card__icon-box">
+              <Leaf size={20} />
+            </div>
+            <h3 className="nomad-tip-card__title">Filosofía &quot;Leave No Trace&quot;</h3>
+            <p className="nomad-tip-card__desc">
+              El mayor tesoro de Mallorca es su naturaleza virgen. Deja cada rincón más limpio de lo que lo encontraste y utiliza los contenedores de reciclaje de los municipios.
+            </p>
+            <span className="nomad-tip-highlight">
+              🌿 Emplea siempre jabones biodegradables en la ducha exterior y respeta el silencio nocturno para convivir en armonía con los vecinos.
+            </span>
+          </div>
+        </div>
       </section>
 
       <style jsx global>{`
@@ -2288,6 +2642,353 @@ export default function MallorcaGuideClient() {
           font-weight: 600;
           border: none;
           cursor: pointer;
+        }
+
+        /* Quick Navigation Bar */
+        .guide-quick-nav {
+          display: flex;
+          gap: 10px;
+          overflow-x: auto;
+          margin-bottom: 24px;
+          padding-bottom: 6px;
+          -webkit-overflow-scrolling: touch;
+        }
+        .guide-nav-tab {
+          padding: 8px 16px;
+          border-radius: 9999px;
+          background: #FFFFFF;
+          border: 1px solid #E2E8F0;
+          color: #4A5568;
+          font-size: 0.82rem;
+          font-weight: 600;
+          text-decoration: none;
+          white-space: nowrap;
+          transition: all 0.2s ease;
+        }
+        .guide-nav-tab:hover {
+          background: #F1F5F9;
+          color: #1A2B21;
+          border-color: #CBD5E1;
+        }
+
+        /* Guide Info Sections */
+        .guide-info-block {
+          background: #FFFFFF;
+          border: 1px solid #E2E8F0;
+          border-radius: 16px;
+          padding: 28px;
+          margin-top: 36px;
+          box-shadow: 0 4px 20px -2px rgba(0,0,0,0.03);
+          scroll-margin-top: 24px;
+        }
+        .guide-info-header {
+          display: flex;
+          justify-content: space-between;
+          align-items: flex-start;
+          gap: 16px;
+          margin-bottom: 20px;
+          flex-wrap: wrap;
+        }
+        .guide-info-header h2 {
+          font-family: var(--font-heading), sans-serif;
+          font-size: 1.35rem;
+          font-weight: 700;
+          color: #1A2B21;
+          margin: 0 0 6px 0;
+        }
+        .guide-info-header p {
+          font-size: 0.88rem;
+          color: #64748B;
+          margin: 0;
+          line-height: 1.5;
+        }
+        .guide-info-badge {
+          font-size: 0.75rem;
+          font-weight: 700;
+          padding: 6px 12px;
+          border-radius: 9999px;
+          white-space: nowrap;
+        }
+        .guide-info-badge--amber {
+          background: #FEF3C7;
+          color: #92400E;
+          border: 1px solid #FDE68A;
+        }
+        .guide-info-badge--blue {
+          background: #EFF6FF;
+          color: #1E40AF;
+          border: 1px solid #BFDBFE;
+        }
+        .guide-info-badge--green {
+          background: #ECFDF5;
+          color: #065F46;
+          border: 1px solid #A7F3D0;
+        }
+
+        /* Normativa */
+        .normativa-grid {
+          display: grid;
+          grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+          gap: 18px;
+          margin-bottom: 24px;
+        }
+        .normativa-card {
+          border-radius: 12px;
+          padding: 20px;
+          border: 1px solid transparent;
+        }
+        .normativa-card--allowed {
+          background: #F0FDF4;
+          border-color: #BBF7D0;
+        }
+        .normativa-card--prohibited {
+          background: #FEF2F2;
+          border-color: #FECACA;
+        }
+        .normativa-card__header {
+          display: flex;
+          align-items: center;
+          gap: 10px;
+          margin-bottom: 12px;
+        }
+        .normativa-card__header h3 {
+          font-size: 1rem;
+          font-weight: 700;
+          margin: 0;
+        }
+        .normativa-card--allowed .normativa-card__header h3 {
+          color: #166534;
+        }
+        .normativa-card--prohibited .normativa-card__header h3 {
+          color: #991B1B;
+        }
+        .normativa-card p {
+          font-size: 0.82rem;
+          color: #475569;
+          line-height: 1.5;
+          margin: 0 0 12px 0;
+        }
+        .normativa-card ul {
+          list-style: none;
+          padding: 0;
+          margin: 0;
+          display: flex;
+          flex-direction: column;
+          gap: 8px;
+        }
+        .normativa-card li {
+          font-size: 0.82rem;
+          color: #1E293B;
+          line-height: 1.4;
+          display: flex;
+          align-items: flex-start;
+          gap: 8px;
+        }
+        .protected-spaces-box {
+          background: #FFFBEB;
+          border: 1px solid #FDE68A;
+          border-radius: 12px;
+          padding: 16px 20px;
+          display: flex;
+          gap: 14px;
+          align-items: flex-start;
+          font-size: 0.82rem;
+          color: #78350F;
+          line-height: 1.5;
+        }
+        .protected-spaces-box strong {
+          color: #92400E;
+          display: block;
+          margin-bottom: 4px;
+          font-size: 0.88rem;
+        }
+
+        /* Water Points */
+        .water-points-grid {
+          display: grid;
+          grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+          gap: 16px;
+        }
+        .water-card {
+          border: 1px solid #E2E8F0;
+          border-radius: 12px;
+          padding: 18px;
+          display: flex;
+          flex-direction: column;
+          justify-content: space-between;
+          gap: 12px;
+          background: #FAFAFA;
+        }
+        .water-card__zone {
+          font-size: 0.72rem;
+          font-weight: 700;
+          color: #2563EB;
+          text-transform: uppercase;
+          letter-spacing: 0.05em;
+        }
+        .water-card h3 {
+          font-size: 1rem;
+          font-weight: 700;
+          color: #1A2B21;
+          margin: 4px 0 6px 0;
+        }
+        .water-card__desc {
+          font-size: 0.8rem;
+          color: #64748B;
+          margin: 0 0 10px 0;
+          line-height: 1.4;
+        }
+        .water-card__services {
+          display: flex;
+          flex-wrap: wrap;
+          gap: 6px;
+          margin-bottom: 12px;
+        }
+        .water-service-chip {
+          font-size: 0.72rem;
+          background: #FFFFFF;
+          border: 1px solid #CBD5E1;
+          color: #334155;
+          padding: 3px 8px;
+          border-radius: 6px;
+          font-weight: 500;
+        }
+        .water-card__footer {
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+          padding-top: 10px;
+          border-top: 1px solid #E2E8F0;
+        }
+        .water-card__price {
+          font-size: 0.75rem;
+          font-weight: 600;
+          color: #059669;
+        }
+        .water-card__btn {
+          font-size: 0.75rem;
+          font-weight: 600;
+          color: #2563EB;
+          text-decoration: none;
+          display: inline-flex;
+          align-items: center;
+          gap: 4px;
+        }
+        .water-card__btn:hover {
+          text-decoration: underline;
+        }
+
+        /* Nomad Tips */
+        .nomad-tips-grid {
+          display: grid;
+          grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+          gap: 16px;
+        }
+        .nomad-tip-card {
+          background: #F8FAFC;
+          border: 1px solid #E2E8F0;
+          border-radius: 12px;
+          padding: 18px;
+          display: flex;
+          flex-direction: column;
+          gap: 8px;
+        }
+        .nomad-tip-card__icon {
+          font-size: 1.5rem;
+        }
+        .nomad-tip-card h3 {
+          font-size: 0.95rem;
+          font-weight: 700;
+          color: #1A2B21;
+          margin: 0;
+        }
+        .nomad-tip-card p {
+          font-size: 0.8rem;
+          color: #475569;
+          line-height: 1.5;
+          margin: 0;
+        }
+
+        @media (max-width: 768px) {
+          .guia-header__title {
+            font-size: 1.6rem;
+          }
+          .stitch-btn-primary {
+            width: 100%;
+            justify-content: center;
+          }
+          .map-canvas-wrapper {
+            min-height: 350px;
+            aspect-ratio: 4 / 3;
+          }
+        }
+
+        @media (max-width: 640px) {
+          .category-pills-row {
+            overflow-x: auto;
+            -webkit-overflow-scrolling: touch;
+            flex-wrap: nowrap;
+            padding-bottom: 4px;
+            scrollbar-width: none;
+          }
+          .category-pills-row::-webkit-scrollbar {
+            display: none;
+          }
+          .stitch-category-pill {
+            flex-shrink: 0;
+            white-space: nowrap;
+          }
+          .zone-pills-container {
+            overflow-x: auto;
+            -webkit-overflow-scrolling: touch;
+            flex-wrap: nowrap;
+            border-radius: 12px;
+            scrollbar-width: none;
+          }
+          .zone-pills-container::-webkit-scrollbar {
+            display: none;
+          }
+          .zone-pill {
+            flex-shrink: 0;
+            white-space: nowrap;
+          }
+          .routes-pills {
+            grid-template-columns: 1fr;
+          }
+          .map-layer-bar {
+            flex-direction: column;
+            align-items: stretch;
+          }
+          .map-layer-tabs {
+            overflow-x: auto;
+            -webkit-overflow-scrolling: touch;
+            flex-wrap: nowrap;
+            scrollbar-width: none;
+          }
+          .map-layer-tabs::-webkit-scrollbar {
+            display: none;
+          }
+          .map-layer-btn {
+            flex-shrink: 0;
+            white-space: nowrap;
+          }
+          .stitch-floating-modal {
+            top: auto;
+            bottom: 12px;
+            left: 12px;
+            right: 12px;
+            width: auto;
+            max-width: 100%;
+          }
+          .normativa-grid {
+            grid-template-columns: 1fr;
+          }
+          .water-points-grid {
+            grid-template-columns: 1fr;
+          }
+          .nomad-tips-grid {
+            grid-template-columns: 1fr;
+          }
         }
       `}</style>
     </div>

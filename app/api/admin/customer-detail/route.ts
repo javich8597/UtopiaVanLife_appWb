@@ -1,7 +1,6 @@
 import { NextResponse } from 'next/server'
 import { createClient as createServerClient } from '@/lib/supabase/server'
-import { createClient as createAdminClient } from '@supabase/supabase-js'
-import { isAdminUser } from '@/lib/admin/auth'
+import { isAdminUser, getAdminClientOrSession } from '@/lib/admin/auth'
 
 export async function GET(request: Request) {
     try {
@@ -36,9 +35,7 @@ export async function GET(request: Request) {
             return NextResponse.json({ error: 'Acceso denegado' }, { status: 403 })
         }
 
-        const clientToUse = process.env.SUPABASE_SERVICE_ROLE_KEY
-            ? createAdminClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.SUPABASE_SERVICE_ROLE_KEY)
-            : supabase
+        const clientToUse = getAdminClientOrSession(supabase)
 
         // 1. Fetch user data
         const { data: targetUser, error: userError } = await clientToUse

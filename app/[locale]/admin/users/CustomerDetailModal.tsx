@@ -190,9 +190,31 @@ export default function CustomerDetailModal({
                         </div>
                         <div className="cd-field">
                           <span className="cd-field-label">Teléfono de Contacto</span>
-                          <strong className="cd-field-value flex-align">
-                            <Phone size={14} className="cd-icon-muted" /> {user?.phone || user?.phone_number || '-'}
-                          </strong>
+                          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 8 }}>
+                            <strong className="cd-field-value flex-align">
+                              <Phone size={14} className="cd-icon-muted" /> {user?.phone || user?.phone_number || '-'}
+                            </strong>
+                            {(user?.phone || user?.phone_number) && (
+                              <div style={{ display: 'flex', gap: 6 }}>
+                                <a
+                                  href={`tel:${user.phone || user.phone_number}`}
+                                  className="cd-phone-action cd-phone-action--call"
+                                  title="Llamar al cliente"
+                                >
+                                  Llamar
+                                </a>
+                                <a
+                                  href={`https://wa.me/${(user.phone || user.phone_number).replace(/[^0-9]/g, '')}`}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  className="cd-phone-action cd-phone-action--wa"
+                                  title="Abrir chat WhatsApp"
+                                >
+                                  WhatsApp
+                                </a>
+                              </div>
+                            )}
+                          </div>
                         </div>
                         <div className="cd-field">
                           <span className="cd-field-label">DNI / NIE / Pasaporte</span>
@@ -1031,11 +1053,104 @@ export default function CustomerDetailModal({
           overflow: auto;
         }
 
-        .cd-zoom-img {
-          max-width: 100%;
-          max-height: 75vh;
-          object-fit: contain;
-          border-radius: 6px;
+        .cd-phone-action {
+          display: inline-flex;
+          align-items: center;
+          gap: 4px;
+          padding: 3px 9px;
+          border-radius: 9999px;
+          font-size: 0.72rem;
+          font-weight: 700;
+          text-decoration: none;
+          transition: opacity 0.15s ease;
+        }
+        .cd-phone-action:hover {
+          opacity: 0.85;
+        }
+        .cd-phone-action--call {
+          background: #E0E7FF;
+          color: #3730A3;
+        }
+        .cd-phone-action--wa {
+          background: #DCFCE7;
+          color: #15803D;
+        }
+
+        @media (max-width: 640px) {
+          .cd-backdrop {
+            align-items: flex-end;
+            padding: 0;
+          }
+
+          .cd-modal {
+            max-width: 100%;
+            max-height: 94vh;
+            border-radius: 20px 20px 0 0;
+            animation: cdSlideUp 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+          }
+
+          @keyframes cdSlideUp {
+            from { transform: translateY(100%); }
+            to { transform: translateY(0); }
+          }
+
+          .cd-header {
+            padding: 16px;
+          }
+
+          .cd-tabs {
+            padding: 0 12px;
+            overflow-x: auto;
+            white-space: nowrap;
+            -webkit-overflow-scrolling: touch;
+            scrollbar-width: none;
+          }
+          .cd-tabs::-webkit-scrollbar {
+            display: none;
+          }
+
+          .cd-tab {
+            padding: 10px 12px;
+            font-size: 0.8rem;
+          }
+
+          .cd-body {
+            padding: 16px;
+          }
+
+          .cd-grid {
+            grid-template-columns: 1fr;
+          }
+
+          .cd-doc-grid {
+            grid-template-columns: repeat(2, 1fr);
+            gap: 10px;
+          }
+
+          .cd-action-bar {
+            flex-direction: column;
+            align-items: stretch;
+          }
+
+          .cd-action-bar > div {
+            flex-direction: column;
+            width: 100%;
+          }
+
+          .cd-btn {
+            width: 100%;
+            justify-content: center;
+          }
+
+          .cd-zoom-backdrop {
+            padding: 0;
+          }
+
+          .cd-zoom-card {
+            max-height: 100vh;
+            height: 100vh;
+            border-radius: 0;
+          }
         }
       `}</style>
     </div>

@@ -56,7 +56,7 @@ export default function UsersTableClient({ initialUsers }: Props) {
           />
         </div>
 
-        <div style={{ display: 'flex', gap: 12, fontSize: '0.85rem', color: 'var(--gray-600)' }}>
+        <div style={{ display: 'flex', flexWrap: 'wrap', gap: 12, fontSize: '0.85rem', color: 'var(--gray-600)' }}>
           <span>Total: <strong>{users.length}</strong> clientes</span>
           <span>·</span>
           <span style={{ color: 'var(--forest-green)' }}>
@@ -70,7 +70,7 @@ export default function UsersTableClient({ initialUsers }: Props) {
       </div>
 
       <div className="table-container">
-        <table className="admin-table">
+        <table className="admin-table" style={{ minWidth: 880 }}>
           <thead>
             <tr>
               <th>Nombre</th>

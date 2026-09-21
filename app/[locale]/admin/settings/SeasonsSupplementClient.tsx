@@ -15,7 +15,8 @@ import {
   CalendarRange,
   ArrowRight,
   TrendingUp,
-  X
+  X,
+  Edit3,
 } from 'lucide-react'
 import { SeasonV2, SeasonPeriod, hasOverlappingPeriods, formatPrice } from '@/lib/pricing/engine'
 
@@ -377,76 +378,137 @@ export default function SeasonsSupplementClient({
                   </div>
                 </div>
 
-                {/* Formulario Inline de Parámetros (Suplemento y Noches Mínimas) */}
+                {/* Formulario Inline de Parámetros Destacados (Suplemento y Noches Mínimas) */}
                 <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-3)', flexWrap: 'wrap' }}>
                   {/* Suplemento por noche */}
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                    <label style={{ fontSize: '0.82rem', color: 'var(--gray-600)', whiteSpace: 'nowrap' }}>
-                      Suplemento:
-                    </label>
-                    <div style={{ position: 'relative', display: 'flex', alignItems: 'center' }}>
+                  {isBaja ? (
+                    <div
+                      style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '8px',
+                        padding: '8px 14px',
+                        borderRadius: 'var(--radius-md)',
+                        background: 'var(--gray-100)',
+                        border: '1px solid var(--gray-200)',
+                        color: 'var(--gray-600)',
+                        fontSize: '0.82rem',
+                        fontWeight: 600,
+                      }}
+                    >
+                      <span>Tarifa Base (0 € suplemento)</span>
+                    </div>
+                  ) : (
+                    <div
+                      style={{
+                        display: 'flex',
+                        flexDirection: 'column',
+                        gap: '3px',
+                        background: 'white',
+                        padding: '6px 12px',
+                        borderRadius: 'var(--radius-md)',
+                        border: `2px solid ${badgeColor}70`,
+                        boxShadow: `0 2px 8px ${badgeColor}18`,
+                        transition: 'all 0.15s ease',
+                      }}
+                    >
+                      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '6px' }}>
+                        <span style={{ fontSize: '0.68rem', fontWeight: 800, color: badgeColor, textTransform: 'uppercase', letterSpacing: '0.04em' }}>
+                          Suplemento Editable
+                        </span>
+                        <Edit3 size={11} style={{ color: badgeColor }} />
+                      </div>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+                        <span style={{ fontSize: '0.92rem', fontWeight: 800, color: badgeColor }}>+</span>
+                        <input
+                          type="number"
+                          min="0"
+                          step="1"
+                          value={season.supplement_per_night}
+                          onChange={e => {
+                            const val = parseFloat(e.target.value) || 0
+                            handleUpdateSeason(season.id, { supplement_per_night: val })
+                          }}
+                          style={{
+                            width: '68px',
+                            padding: '3px 6px',
+                            borderRadius: '6px',
+                            border: '1.5px solid #CBD5E1',
+                            fontSize: '0.95rem',
+                            fontWeight: 800,
+                            textAlign: 'right',
+                            color: 'var(--gray-900)',
+                            background: 'white',
+                            outline: 'none',
+                          }}
+                          onFocus={e => (e.currentTarget.style.borderColor = badgeColor)}
+                          onBlur={e => (e.currentTarget.style.borderColor = '#CBD5E1')}
+                        />
+                        <span style={{ fontSize: '0.8rem', fontWeight: 700, color: 'var(--gray-600)' }}>
+                          €/noche
+                        </span>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Noches mínimas */}
+                  <div
+                    style={{
+                      display: 'flex',
+                      flexDirection: 'column',
+                      gap: '3px',
+                      background: 'white',
+                      padding: '6px 12px',
+                      borderRadius: 'var(--radius-md)',
+                      border: '1.5px solid #CBD5E1',
+                      boxShadow: '0 2px 6px rgba(0,0,0,0.03)',
+                    }}
+                  >
+                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '6px' }}>
+                      <span style={{ fontSize: '0.68rem', fontWeight: 700, color: 'var(--gray-500)', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
+                        Estancia Mínima
+                      </span>
+                      <Clock size={11} style={{ color: 'var(--gray-400)' }} />
+                    </div>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
                       <input
                         type="number"
-                        min="0"
+                        min="1"
+                        max="30"
                         step="1"
-                        disabled={isBaja}
-                        value={season.supplement_per_night}
+                        value={season.min_nights}
                         onChange={e => {
-                          const val = parseFloat(e.target.value) || 0
-                          handleUpdateSeason(season.id, { supplement_per_night: val })
+                          const val = parseInt(e.target.value, 10) || 1
+                          handleUpdateSeason(season.id, { min_nights: val })
                         }}
                         style={{
-                          width: '85px',
-                          padding: '6px 24px 6px 10px',
-                          borderRadius: 'var(--radius-md)',
-                          border: '1px solid var(--gray-300)',
-                          fontSize: '0.9rem',
-                          fontWeight: 600,
-                          textAlign: 'right',
-                          background: isBaja ? 'var(--gray-100)' : 'white',
-                          cursor: isBaja ? 'not-allowed' : 'text',
+                          width: '52px',
+                          padding: '3px 6px',
+                          borderRadius: '6px',
+                          border: '1.5px solid #CBD5E1',
+                          fontSize: '0.95rem',
+                          fontWeight: 800,
+                          textAlign: 'center',
+                          color: 'var(--gray-900)',
+                          background: 'white',
+                          outline: 'none',
                         }}
+                        onFocus={e => (e.currentTarget.style.borderColor = 'var(--forest-green)')}
+                        onBlur={e => (e.currentTarget.style.borderColor = '#CBD5E1')}
                       />
-                      <span style={{ position: 'absolute', right: 8, fontSize: '0.8rem', color: 'var(--gray-500)', pointerEvents: 'none' }}>
-                        €
+                      <span style={{ fontSize: '0.8rem', fontWeight: 600, color: 'var(--gray-600)' }}>
+                        noches
                       </span>
                     </div>
                   </div>
 
-                  {/* Noches mínimas */}
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                    <label style={{ fontSize: '0.82rem', color: 'var(--gray-600)', whiteSpace: 'nowrap' }}>
-                      Noches mín.:
-                    </label>
-                    <input
-                      type="number"
-                      min="1"
-                      max="30"
-                      step="1"
-                      value={season.min_nights}
-                      onChange={e => {
-                        const val = parseInt(e.target.value, 10) || 1
-                        handleUpdateSeason(season.id, { min_nights: val })
-                      }}
-                      style={{
-                        width: '65px',
-                        padding: '6px 8px',
-                        borderRadius: 'var(--radius-md)',
-                        border: '1px solid var(--gray-300)',
-                        fontSize: '0.9rem',
-                        fontWeight: 600,
-                        textAlign: 'center',
-                      }}
-                    />
-                  </div>
-
                   {/* Feedback Status Indicator */}
-                  <div style={{ minWidth: 24, display: 'flex', alignItems: 'center' }}>
-                    {isSaving && <Loader2 size={16} className="animate-spin" style={{ color: 'var(--forest-green)' }} />}
-                    {isSaved && <Check size={18} style={{ color: '#16a34a' }} />}
+                  <div style={{ minWidth: 26, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                    {isSaving && <Loader2 size={18} className="animate-spin" style={{ color: 'var(--forest-green)' }} />}
+                    {isSaved && <Check size={20} style={{ color: '#16a34a' }} />}
                     {hasError && (
                       <span title="Error al guardar">
-                        <AlertCircle size={18} style={{ color: '#dc2626' }} />
+                        <AlertCircle size={20} style={{ color: '#dc2626' }} />
                       </span>
                     )}
                   </div>
@@ -460,8 +522,8 @@ export default function SeasonsSupplementClient({
                   paddingTop: 'var(--space-3)',
                 }}
               >
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
-                  <span style={{ fontSize: '0.85rem', fontWeight: 600, color: 'var(--gray-700)' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px' }}>
+                  <span style={{ fontSize: '0.85rem', fontWeight: 700, color: 'var(--gray-800)' }}>
                     Periodos de Fechas ({seasonPeriods.length})
                   </span>
 
@@ -473,21 +535,28 @@ export default function SeasonsSupplementClient({
                         display: 'inline-flex',
                         alignItems: 'center',
                         gap: '6px',
-                        background: 'transparent',
-                        color: badgeColor,
-                        border: `1px solid ${badgeColor}`,
+                        background: badgeColor,
+                        color: 'white',
+                        border: 'none',
                         borderRadius: 'var(--radius-md)',
-                        padding: '4px 10px',
-                        fontSize: '0.8rem',
-                        fontWeight: 600,
+                        padding: '6px 12px',
+                        fontSize: '0.82rem',
+                        fontWeight: 700,
                         cursor: 'pointer',
-                        transition: 'background 0.15s ease',
+                        boxShadow: `0 2px 6px ${badgeColor}35`,
+                        transition: 'opacity 0.15s ease, transform 0.15s ease',
                       }}
-                      onMouseEnter={e => (e.currentTarget.style.background = badgeColor + '10')}
-                      onMouseLeave={e => (e.currentTarget.style.background = 'transparent')}
+                      onMouseEnter={e => {
+                        e.currentTarget.style.opacity = '0.92'
+                        e.currentTarget.style.transform = 'translateY(-1px)'
+                      }}
+                      onMouseLeave={e => {
+                        e.currentTarget.style.opacity = '1'
+                        e.currentTarget.style.transform = 'none'
+                      }}
                     >
-                      <Plus size={14} />
-                      Añadir Periodo
+                      <Plus size={15} strokeWidth={2.5} />
+                      <span>Añadir Periodo de Fechas</span>
                     </button>
                   )}
                 </div>
@@ -496,13 +565,14 @@ export default function SeasonsSupplementClient({
                   <div
                     style={{
                       background: 'var(--gray-50)',
-                      padding: '8px 12px',
+                      padding: '10px 14px',
                       borderRadius: 'var(--radius-md)',
                       fontSize: '0.82rem',
                       color: 'var(--gray-600)',
                       display: 'flex',
                       alignItems: 'center',
                       gap: '8px',
+                      border: '1px solid var(--gray-200)',
                     }}
                   >
                     <Info size={16} style={{ color: 'var(--gray-500)', flexShrink: 0 }} />
@@ -511,24 +581,63 @@ export default function SeasonsSupplementClient({
                     </span>
                   </div>
                 ) : seasonPeriods.length === 0 ? (
-                  <div
+                  /* Tarjeta interactiva dashed grande cuando no hay periodos */
+                  <button
+                    type="button"
+                    onClick={() => handleOpenAddPeriod(season.id)}
                     style={{
-                      background: 'var(--gray-50)',
-                      padding: '12px',
-                      borderRadius: 'var(--radius-md)',
-                      fontSize: '0.85rem',
-                      color: 'var(--gray-500)',
-                      textAlign: 'center',
+                      width: '100%',
+                      padding: '20px',
+                      background: `${badgeColor}08`,
+                      border: `2px dashed ${badgeColor}80`,
+                      borderRadius: 'var(--radius-lg)',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      gap: '12px',
+                      cursor: 'pointer',
+                      color: badgeColor,
+                      transition: 'all 0.2s cubic-bezier(0.4, 0, 0.2, 1)',
+                    }}
+                    onMouseEnter={e => {
+                      e.currentTarget.style.background = `${badgeColor}15`
+                      e.currentTarget.style.transform = 'translateY(-1px)'
+                    }}
+                    onMouseLeave={e => {
+                      e.currentTarget.style.background = `${badgeColor}08`
+                      e.currentTarget.style.transform = 'none'
                     }}
                   >
-                    No hay periodos de fechas definidos para esta temporada. Haz clic en "Añadir Periodo" para programar rangos (ej. Verano, Semana Santa, Puentes).
-                  </div>
+                    <div
+                      style={{
+                        width: 34,
+                        height: 34,
+                        borderRadius: '50%',
+                        background: badgeColor,
+                        color: 'white',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        boxShadow: `0 2px 6px ${badgeColor}40`,
+                      }}
+                    >
+                      <Plus size={18} strokeWidth={2.5} />
+                    </div>
+                    <div style={{ textAlign: 'left' }}>
+                      <div style={{ fontWeight: 700, fontSize: '0.92rem' }}>
+                        Añadir Primer Periodo de Fechas para {season.name}
+                      </div>
+                      <div style={{ fontSize: '0.78rem', color: 'var(--gray-600)' }}>
+                        Haz clic aquí para programar rangos (ej. Verano, Semana Santa, Puentes o fines de semana clave)
+                      </div>
+                    </div>
+                  </button>
                 ) : (
                   <div
                     style={{
                       display: 'grid',
                       gridTemplateColumns: 'repeat(auto-fill, minmax(320px, 1fr))',
-                      gap: '8px',
+                      gap: '10px',
                     }}
                   >
                     {seasonPeriods.map(period => {
@@ -539,29 +648,39 @@ export default function SeasonsSupplementClient({
                         <div
                           key={period.id}
                           style={{
-                            background: 'var(--gray-50)',
+                            background: 'white',
                             border: '1px solid var(--gray-200)',
                             borderRadius: 'var(--radius-md)',
-                            padding: '8px 12px',
+                            padding: '10px 14px',
                             display: 'flex',
                             alignItems: 'center',
                             justifyContent: 'space-between',
                             gap: '8px',
+                            boxShadow: '0 2px 5px rgba(0,0,0,0.02)',
                           }}
                         >
                           <div style={{ minWidth: 0, flex: 1 }}>
                             <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
                               <Calendar size={14} style={{ color: badgeColor, flexShrink: 0 }} />
-                              <span style={{ fontWeight: 600, fontSize: '0.85rem', color: 'var(--gray-900)' }}>
+                              <span style={{ fontWeight: 700, fontSize: '0.88rem', color: 'var(--gray-900)' }}>
                                 {period.label || 'Periodo de Temporada'}
                               </span>
                               {days && (
-                                <span style={{ fontSize: '0.75rem', color: 'var(--gray-500)', background: 'var(--gray-200)', padding: '1px 6px', borderRadius: '10px' }}>
+                                <span
+                                  style={{
+                                    fontSize: '0.75rem',
+                                    fontWeight: 600,
+                                    color: badgeColor,
+                                    background: `${badgeColor}12`,
+                                    padding: '1px 7px',
+                                    borderRadius: '10px',
+                                  }}
+                                >
                                   {days}
                                 </span>
                               )}
                             </div>
-                            <div style={{ fontSize: '0.78rem', color: 'var(--gray-600)', marginTop: '2px' }}>
+                            <div style={{ fontSize: '0.8rem', color: 'var(--gray-600)', marginTop: '2px', fontWeight: 500 }}>
                               {text}
                             </div>
                           </div>
@@ -573,24 +692,65 @@ export default function SeasonsSupplementClient({
                             onClick={() => period.id && handleDeletePeriod(period.id)}
                             style={{
                               background: 'transparent',
-                              border: 'none',
+                              border: '1px solid var(--gray-200)',
                               color: 'var(--gray-400)',
                               cursor: isDeleting ? 'not-allowed' : 'pointer',
-                              padding: '4px',
-                              borderRadius: '4px',
+                              padding: '6px',
+                              borderRadius: '6px',
                               display: 'flex',
                               alignItems: 'center',
                               justifyContent: 'center',
-                              transition: 'color 0.15s ease',
+                              transition: 'all 0.15s ease',
                             }}
-                            onMouseEnter={e => (e.currentTarget.style.color = '#dc2626')}
-                            onMouseLeave={e => (e.currentTarget.style.color = 'var(--gray-400)')}
+                            onMouseEnter={e => {
+                              e.currentTarget.style.borderColor = '#fee2e2'
+                              e.currentTarget.style.background = '#fef2f2'
+                              e.currentTarget.style.color = '#dc2626'
+                            }}
+                            onMouseLeave={e => {
+                              e.currentTarget.style.borderColor = 'var(--gray-200)'
+                              e.currentTarget.style.background = 'transparent'
+                              e.currentTarget.style.color = 'var(--gray-400)'
+                            }}
                           >
-                            {isDeleting ? <Loader2 size={15} className="animate-spin" /> : <Trash2 size={15} />}
+                            {isDeleting ? <Loader2 size={14} className="animate-spin" /> : <Trash2 size={14} />}
                           </button>
                         </div>
                       )
                     })}
+
+                    {/* Tarjeta dashed para añadir otro periodo al final del grid */}
+                    <button
+                      type="button"
+                      onClick={() => handleOpenAddPeriod(season.id)}
+                      style={{
+                        background: `${badgeColor}05`,
+                        border: `2px dashed ${badgeColor}65`,
+                        borderRadius: 'var(--radius-md)',
+                        padding: '10px 14px',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        gap: '8px',
+                        cursor: 'pointer',
+                        color: badgeColor,
+                        fontWeight: 700,
+                        fontSize: '0.85rem',
+                        minHeight: '58px',
+                        transition: 'all 0.2s cubic-bezier(0.4, 0, 0.2, 1)',
+                      }}
+                      onMouseEnter={e => {
+                        e.currentTarget.style.background = `${badgeColor}12`
+                        e.currentTarget.style.transform = 'translateY(-1px)'
+                      }}
+                      onMouseLeave={e => {
+                        e.currentTarget.style.background = `${badgeColor}05`
+                        e.currentTarget.style.transform = 'none'
+                      }}
+                    >
+                      <Plus size={16} strokeWidth={2.5} />
+                      <span>+ Añadir Otro Periodo de Fechas</span>
+                    </button>
                   </div>
                 )}
               </div>

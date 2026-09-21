@@ -14,7 +14,7 @@ const navItems = [
   { label: 'Ajustes', href: '/admin/settings', icon: Settings, exact: false },
 ]
 
-export default function AdminNavClient() {
+export default function AdminNavClient({ onNavigate }: { onNavigate?: () => void } = {}) {
   const pathname = usePathname()
 
   return (
@@ -30,6 +30,7 @@ export default function AdminNavClient() {
             <li key={item.href}>
               <Link
                 href={item.href as any}
+                onClick={onNavigate}
                 className={`admin-nav__link ${isActive ? 'admin-nav__link--active' : ''}`}
                 style={{
                   backgroundColor: isActive ? 'rgba(255, 255, 255, 0.14)' : undefined,

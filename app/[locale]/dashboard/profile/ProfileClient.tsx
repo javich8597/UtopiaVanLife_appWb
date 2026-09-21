@@ -54,14 +54,14 @@ export default function ProfileClient({ user, profile }: Props) {
   const [secondDriverLicense, setSecondDriverLicense] = useState(profile?.second_driver_license || '')
 
   // Archivos del conductor principal
-  const [dniFront, setDniFront] = useState<UploadedFilePreview>({ file: null, previewUrl: null })
-  const [dniBack, setDniBack] = useState<UploadedFilePreview>({ file: null, previewUrl: null })
-  const [licenseFront, setLicenseFront] = useState<UploadedFilePreview>({ file: null, previewUrl: null })
-  const [licenseBack, setLicenseBack] = useState<UploadedFilePreview>({ file: null, previewUrl: null })
+  const [dniFront, setDniFront] = useState<UploadedFilePreview>({ file: null, previewUrl: profile?.dni_front_url || null })
+  const [dniBack, setDniBack] = useState<UploadedFilePreview>({ file: null, previewUrl: profile?.dni_back_url || null })
+  const [licenseFront, setLicenseFront] = useState<UploadedFilePreview>({ file: null, previewUrl: profile?.license_front_url || null })
+  const [licenseBack, setLicenseBack] = useState<UploadedFilePreview>({ file: null, previewUrl: profile?.license_back_url || null })
 
   // Archivos del segundo conductor
-  const [secondLicenseFront, setSecondLicenseFront] = useState<UploadedFilePreview>({ file: null, previewUrl: null })
-  const [secondLicenseBack, setSecondLicenseBack] = useState<UploadedFilePreview>({ file: null, previewUrl: null })
+  const [secondLicenseFront, setSecondLicenseFront] = useState<UploadedFilePreview>({ file: null, previewUrl: profile?.second_license_front_url || profile?.second_driver_license_front_url || null })
+  const [secondLicenseBack, setSecondLicenseBack] = useState<UploadedFilePreview>({ file: null, previewUrl: profile?.second_license_back_url || profile?.second_driver_license_back_url || null })
 
   // Estado del formulario
   const [status, setStatus] = useState<string>(profile?.verification_status || 'not_submitted')
@@ -270,6 +270,16 @@ export default function ProfileClient({ user, profile }: Props) {
           <div>
             <strong>Carnet de Conducir Caducado</strong>
             <p>{licenseValidation.warningMessage}</p>
+          </div>
+        </div>
+      )}
+
+      {licenseValidation.isNovel && !licenseValidation.isExpired && (
+        <div className="alert-box alert-box--warning" style={{ background: 'rgba(230, 126, 34, 0.12)', borderColor: 'var(--warning)', color: '#9c5208' }}>
+          <AlertCircle size={20} className="alert-icon" style={{ color: 'var(--warning)' }} />
+          <div>
+            <strong>Antigüedad del Carnet de Conducir</strong>
+            <p style={{ margin: 0, fontSize: '0.85rem' }}>{licenseValidation.warningMessage || 'Tu permiso de conducir tiene menos de 2 años de antigüedad. Para formalizar el contrato oficial se requiere un conductor principal con al menos 2 años de antigüedad.'}</p>
           </div>
         </div>
       )}
@@ -1294,6 +1304,29 @@ export default function ProfileClient({ user, profile }: Props) {
         .alert-icon {
           flex-shrink: 0;
           margin-top: 2px;
+        }
+
+        @media (max-width: 640px) {
+          .form-card {
+            padding: 16px;
+          }
+          .form-grid-3 {
+            grid-template-columns: 1fr;
+          }
+          .security-bar {
+            padding: 12px 14px;
+            gap: 10px;
+          }
+          .btn-save {
+            max-width: 100%;
+            padding: 13px 20px;
+          }
+          .preview-container {
+            height: 140px;
+          }
+          .dropzone-empty {
+            height: 140px;
+          }
         }
       `}</style>
     </div>

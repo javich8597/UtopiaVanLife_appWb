@@ -1,8 +1,7 @@
 import { NextResponse } from 'next/server'
 import { createClient as createServerClient } from '@/lib/supabase/server'
-import { createClient as createAdminClient } from '@supabase/supabase-js'
 import { stripe } from '@/lib/stripe'
-import { isAdminUser, canRefundBooking } from '@/lib/admin/auth'
+import { isAdminUser, canRefundBooking, getAdminClientOrSession } from '@/lib/admin/auth'
 
 export async function POST(request: Request) {
     try {
@@ -37,10 +36,7 @@ export async function POST(request: Request) {
             return NextResponse.json({ error: 'ID de reserva requerido' }, { status: 400 })
         }
 
-        const supabaseAdmin = createAdminClient(
-            process.env.NEXT_PUBLIC_SUPABASE_URL!,
-            process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-        )
+        const supabaseAdmin = getAdminClientOrSession(supabase)
 
         // Verify booking status
         const { data: booking, error: bookingErr } = await supabaseAdmin

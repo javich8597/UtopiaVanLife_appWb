@@ -135,8 +135,44 @@ export default function BookingDetailModal({ booking, onClose }: Props) {
                 </div>
                 <div className="bm-field">
                   <span className="bm-label">Teléfono</span>
-                  <div className="bm-val flex-align">
-                    <Phone size={13} style={{ color: '#6b7280' }} /> {clientPhone}
+                  <div className="bm-val flex-align" style={{ flexWrap: 'wrap', gap: '8px' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                      <Phone size={13} style={{ color: '#6b7280' }} /> {clientPhone}
+                    </div>
+                    {clientPhone && clientPhone !== '-' && (
+                      <div style={{ display: 'inline-flex', gap: '6px' }}>
+                        <a
+                          href={`tel:${clientPhone}`}
+                          style={{
+                            fontSize: '0.72rem',
+                            fontWeight: 700,
+                            color: '#15803d',
+                            background: '#dcfce7',
+                            padding: '2px 8px',
+                            borderRadius: '9999px',
+                            textDecoration: 'none',
+                          }}
+                        >
+                          Llamar
+                        </a>
+                        <a
+                          href={`https://wa.me/${clientPhone.replace(/\D/g, '')}`}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          style={{
+                            fontSize: '0.72rem',
+                            fontWeight: 700,
+                            color: '#0369a1',
+                            background: '#e0f2fe',
+                            padding: '2px 8px',
+                            borderRadius: '9999px',
+                            textDecoration: 'none',
+                          }}
+                        >
+                          WhatsApp
+                        </a>
+                      </div>
+                    )}
                   </div>
                 </div>
                 <div className="bm-field">
@@ -469,6 +505,48 @@ export default function BookingDetailModal({ booking, onClose }: Props) {
         }
         .bm-btn--primary:hover {
           background: #15803d;
+        }
+
+        @media (max-width: 640px) {
+          .bm-backdrop {
+            padding: 0;
+            align-items: flex-end;
+          }
+          .bm-modal {
+            border-radius: 20px 20px 0 0;
+            max-height: 92vh;
+            animation: bmSlideUp 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+          }
+          .bm-header {
+            padding: 14px 16px;
+          }
+          .bm-body {
+            padding: 16px;
+            gap: 14px;
+          }
+          .bm-grid {
+            grid-template-columns: 1fr;
+          }
+          .bm-footer {
+            padding: 14px 16px;
+            flex-direction: column;
+            gap: 10px;
+          }
+          .bm-footer-actions {
+            width: 100%;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+          }
+          .bm-btn {
+            width: 100%;
+            justify-content: center;
+          }
+        }
+
+        @keyframes bmSlideUp {
+          from { transform: translateY(100%); }
+          to { transform: translateY(0); }
         }
       `}</style>
     </div>

@@ -51,9 +51,9 @@ export default function BookingsClient({ initialBookings }: Props) {
           </p>
         </div>
 
-        <div style={{ display: 'flex', gap: 'var(--space-3)', alignItems: 'center', flexWrap: 'wrap' }}>
-          <div className="search-bar" style={{ background: 'white', border: '1px solid var(--gray-300)', borderRadius: 'var(--radius-md)', display: 'flex', alignItems: 'center', padding: '6px 12px', gap: 8, minWidth: 260 }}>
-            <Search size={16} style={{ color: 'var(--gray-400)' }} />
+        <div style={{ display: 'flex', gap: 'var(--space-3)', alignItems: 'center', flexWrap: 'wrap', width: '100%', maxWidth: 420 }}>
+          <div className="search-bar" style={{ background: 'white', border: '1px solid var(--gray-300)', borderRadius: 'var(--radius-md)', display: 'flex', alignItems: 'center', padding: '6px 12px', gap: 8, width: '100%', minWidth: 200 }}>
+            <Search size={16} style={{ color: 'var(--gray-400)', flexShrink: 0 }} />
             <input
               type="text"
               placeholder="Buscar por cliente, email, camper o ID..."
@@ -70,7 +70,7 @@ export default function BookingsClient({ initialBookings }: Props) {
       </div>
 
       {/* Filter Tabs */}
-      <div style={{ display: 'flex', gap: 'var(--space-2)', marginBottom: 'var(--space-6)', overflowX: 'auto', paddingBottom: 4 }}>
+      <div style={{ display: 'flex', gap: 'var(--space-2)', marginBottom: 'var(--space-6)', overflowX: 'auto', WebkitOverflowScrolling: 'touch', paddingBottom: 6 }}>
         {[
           { id: 'all', label: 'Todas' },
           { id: 'confirmed', label: 'Confirmadas' },
@@ -99,9 +99,11 @@ export default function BookingsClient({ initialBookings }: Props) {
                 border: isActive ? '1px solid var(--forest-green)' : '1px solid var(--gray-200)',
                 boxShadow: isActive ? 'var(--shadow-sm)' : 'none',
                 cursor: 'pointer',
-                display: 'flex',
+                display: 'inline-flex',
                 alignItems: 'center',
-                gap: 6
+                gap: 6,
+                flexShrink: 0,
+                whiteSpace: 'nowrap'
               }}
             >
               <span>{tab.label}</span>
@@ -121,7 +123,7 @@ export default function BookingsClient({ initialBookings }: Props) {
 
       {/* Table */}
       <div className="table-container">
-        <table className="admin-table">
+        <table className="admin-table" style={{ minWidth: 840 }}>
           <thead>
             <tr>
               <th>ID</th>

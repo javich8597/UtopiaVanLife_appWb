@@ -84,42 +84,24 @@ export default function DocumentsClient({ bookings, profile, user, contractTempl
   const pastBookings = bookings?.filter(b => b.status === 'completed' || b.status === 'cancelled') || []
   const pendingBookings = bookings?.filter(b => b.status === 'pending') || []
 
-  const mockBooking = useMemo(() => ({
-    id: 'bk-current-neo-2026',
-    status: 'confirmed',
-    start_date: '2026-09-15',
-    end_date: '2026-09-22',
-    pickup_time: '10:00',
-    dropoff_time: '18:00',
-    pickup_location: 'Aeropuerto de Palma de Mallorca (PMI)',
-    dropoff_location: 'Aeropuerto de Palma de Mallorca (PMI)',
-    total_price: 1155,
-    created_at: '2026-09-01T10:00:00Z',
-    camper: {
-      name: 'Camper NEO',
-      slug: 'neo',
-      plate_number: '1234-LMN',
-      specs: { transmission: 'Automática', engine: '170 CV Diésel' }
-    }
-  }), [])
-
-  const nextBooking = activeBookings[0] || pendingBookings[0] || mockBooking
+  const hasBookings = Boolean(bookings && bookings.length > 0)
+  const nextBooking = activeBookings[0] || pendingBookings[0] || (bookings && bookings[0]) || null
 
   const safeProfile = useMemo(() => ({
     ...profile,
-    full_name: profile?.full_name || user?.user_metadata?.full_name || 'Javier Prieto',
-    dni_nie: profile?.dni_nie || '12345678Z',
-    phone: profile?.phone || '+34 611 560 916',
-    address: profile?.address || 'Carrer Son Oms, Palma de Mallorca',
-    driver_license_id: profile?.driver_license_id || 'B-12345678',
-    driver_license_issue_date: profile?.driver_license_issue_date || '2020-05-15',
-    driver_license_expiry_date: profile?.driver_license_expiry_date || '2030-05-15',
-    verification_status: profile?.verification_status || 'verified'
+    full_name: profile?.full_name || user?.user_metadata?.full_name || user?.email?.split('@')[0] || 'Viajero',
+    dni_nie: profile?.dni_nie || '',
+    phone: profile?.phone || '',
+    address: profile?.address || '',
+    driver_license_id: profile?.driver_license_id || '',
+    driver_license_issue_date: profile?.driver_license_issue_date || '',
+    driver_license_expiry_date: profile?.driver_license_expiry_date || '',
+    verification_status: profile?.verification_status || 'pending'
   }), [profile, user])
 
   const clientName = safeProfile.full_name
   const clientDni = safeProfile.dni_nie
-  const clientEmail = user?.email || 'javipn85@gmail.com'
+  const clientEmail = user?.email || ''
   const clientPhone = safeProfile.phone
   const isVerified = safeProfile.verification_status === 'verified'
 
@@ -239,6 +221,13 @@ export default function DocumentsClient({ bookings, profile, user, contractTempl
             { label: `Alquiler Camper ${camperName} (${rangeFormatted})`, value: 'Base Imponible', price: Math.round(priceTotal / 1.21) },
             { label: 'Kit de Ropa de Cama & Toallas Premium', value: 'Incluido de serie', price: 0 },
             { label: 'Set de Cocina & Cafetera Italiana', value: 'Incluido de serie', price: 0 },
+            ...(Array.isArray(nextBooking.extras_selected) && nextBooking.extras_selected.length > 0
+              ? nextBooking.extras_selected.map((ex: any) => ({
+                  label: `${ex.name_es || ex.name || 'Extra'}${ex.quantity ? ` (x${ex.quantity})` : ''}`,
+                  value: 'Servicio Contratado',
+                  price: Number(ex.price || 0) * Number(ex.quantity || 1),
+                }))
+              : []),
             { label: 'IVA General (21%)', value: '21% I.V.A.', price: priceTotal - Math.round(priceTotal / 1.21) },
             { label: 'Importe Total Liquidado', value: 'Tarjeta • Stripe', price: priceTotal },
           ]
@@ -423,100 +412,6 @@ export default function DocumentsClient({ bookings, profile, user, contractTempl
             ]
           }
         })
-      })
-    } else {
-      // Historical past records for demonstration
-      list.push({
-        id: 'past-ctr-2025-sample',
-        title: 'Contrato de Alquiler · Mallorca Edition 2025',
-        category: 'past',
-        typeLabel: 'Contrato Archivado',
-        refNumber: 'UTO-CTR-2025-0189',
-        date: '12 de Junio, 2025',
-        isoDate: '2025-06-12',
-        status: 'archived',
-        statusLabel: 'Archivado',
-        fileFormat: 'PDF (2.2 MB)',
-        isPast: true,
-        tripName: 'Alquiler Anterior · Camper SPACE (Junio 2025)',
-        summary: 'Contrato de alquiler completado con éxito del 12 al 19 de Junio de 2025. Fianza devuelta sin incidencias.',
-        contentDetails: {
-          issuer: 'Utopia Van Life S.L.',
-          cif: 'B-57984210',
-          clientName,
-          clientDni,
-          clientEmail,
-          camperName: 'Camper SPACE',
-          camperPlate: '3819-KXP',
-          datesRange: '12 Jun - 19 Jun, 2025',
-          items: [
-            { label: 'Periodo de Alquiler', value: '12 al 19 de Junio, 2025 (7 Noches)' },
-            { label: 'Vehículo', value: 'Camper SPACE (4 plazas viajar / 4 dormir)' },
-            { label: 'Kilómetros recorridos', value: '840 km en Mallorca' },
-            { label: 'Fianza de Seguridad', value: '800,00 € (Liberada el 20/06/2025)' },
-          ]
-        }
-      })
-
-      list.push({
-        id: 'past-fac-2025-sample',
-        title: 'Factura Oficial · Alquiler Temporada 2025',
-        category: 'past',
-        typeLabel: 'Factura Archivada',
-        refNumber: 'FAC-2025-00189',
-        date: '12 de Junio, 2025',
-        isoDate: '2025-06-12',
-        status: 'paid',
-        statusLabel: 'Pagada',
-        fileFormat: 'PDF (880 KB)',
-        isPast: true,
-        tripName: 'Alquiler Anterior · Camper SPACE (Junio 2025)',
-        amount: 1260,
-        summary: 'Factura oficial con IVA 21% desglosado por importe de 1.260,00 €, pagada mediante tarjeta bancaria.',
-        contentDetails: {
-          issuer: 'Utopia Van Life S.L.',
-          cif: 'B-57984210',
-          clientName,
-          clientDni,
-          clientEmail,
-          camperName: 'Camper SPACE',
-          datesRange: '12 Jun - 19 Jun, 2025',
-          items: [
-            { label: 'Alquiler Camper SPACE (7 Noches)', value: 'Base Imponible', price: 1041.32 },
-            { label: 'IVA General (21%)', value: '21% I.V.A.', price: 218.68 },
-            { label: 'Total Factura', value: 'Pagado • Stripe', price: 1260 },
-          ]
-        }
-      })
-
-      list.push({
-        id: 'past-dev-2025-sample',
-        title: 'Certificado de Devolución de Fianza & Check-out',
-        category: 'past',
-        typeLabel: 'Liquidación Fianza',
-        refNumber: 'DEV-2025-00189',
-        date: '20 de Junio, 2025',
-        isoDate: '2025-06-20',
-        status: 'archived',
-        statusLabel: 'Liquidado ✓',
-        fileFormat: 'PDF (650 KB)',
-        isPast: true,
-        tripName: 'Alquiler Anterior · Camper SPACE (Junio 2025)',
-        summary: 'Comprobante de liberación y devolución íntegra de los 800€ de fianza tras revisión técnica satisfactoria.',
-        contentDetails: {
-          issuer: 'Utopia Van Life S.L.',
-          cif: 'B-57984210',
-          clientName,
-          clientDni,
-          clientEmail,
-          camperName: 'Camper SPACE',
-          items: [
-            { label: 'Importe de Fianza Retenido', value: '800,00 €' },
-            { label: 'Revisión de Daños y Carrocería', value: '0 incidencias • 100% OK' },
-            { label: 'Depósito de Combustible', value: '100% Lleno (Conforme)' },
-            { label: 'Importe Abonado a la Cuenta', value: '800,00 € (Completado)' }
-          ]
-        }
       })
     }
 
@@ -800,46 +695,105 @@ export default function DocumentsClient({ bookings, profile, user, contractTempl
           </p>
         </div>
 
-        {/* Filter Pills */}
-        <div className="mini-filter-bar">
-          <button
-            onClick={() => setSelectedFilter('all')}
-            className={`mini-filter-btn ${selectedFilter === 'all' ? 'mini-filter-btn--active' : ''}`}
-          >
-            Todos <span className="pill-qty">{documents.length}</span>
-          </button>
-          <button
-            onClick={() => setSelectedFilter('current')}
-            className={`mini-filter-btn ${selectedFilter === 'current' ? 'mini-filter-btn--active' : ''}`}
-          >
-            Reserva Actual <span className="pill-qty">{currentCount}</span>
-          </button>
-          <button
-            onClick={() => setSelectedFilter('invoices')}
-            className={`mini-filter-btn ${selectedFilter === 'invoices' ? 'mini-filter-btn--active' : ''}`}
-          >
-            Facturas <span className="pill-qty">{invoiceCount}</span>
-          </button>
-          <button
-            onClick={() => setSelectedFilter('past')}
-            className={`mini-filter-btn ${selectedFilter === 'past' ? 'mini-filter-btn--active' : ''}`}
-          >
-            Histórico <span className="pill-qty">{pastCount}</span>
-          </button>
-        </div>
+        {hasBookings && (
+          /* Filter Pills */
+          <div className="mini-filter-bar">
+            <button
+              onClick={() => setSelectedFilter('all')}
+              className={`mini-filter-btn ${selectedFilter === 'all' ? 'mini-filter-btn--active' : ''}`}
+            >
+              Todos <span className="pill-qty">{documents.length}</span>
+            </button>
+            <button
+              onClick={() => setSelectedFilter('current')}
+              className={`mini-filter-btn ${selectedFilter === 'current' ? 'mini-filter-btn--active' : ''}`}
+            >
+              Reserva Actual <span className="pill-qty">{currentCount}</span>
+            </button>
+            <button
+              onClick={() => setSelectedFilter('invoices')}
+              className={`mini-filter-btn ${selectedFilter === 'invoices' ? 'mini-filter-btn--active' : ''}`}
+            >
+              Facturas <span className="pill-qty">{invoiceCount}</span>
+            </button>
+            <button
+              onClick={() => setSelectedFilter('past')}
+              className={`mini-filter-btn ${selectedFilter === 'past' ? 'mini-filter-btn--active' : ''}`}
+            >
+              Histórico <span className="pill-qty">{pastCount}</span>
+            </button>
+          </div>
+        )}
       </div>
 
-      {/* ─── Minimalist Stack (Unos encima de otros con desplegable) ─── */}
-      {filteredDocuments.length === 0 ? (
-        <div className="mini-empty-card">
-          <FileText size={36} style={{ color: '#94A3B8' }} />
-          <p style={{ margin: 0, fontWeight: 600, color: '#1A2B21' }}>No hay documentos en esta categoría</p>
-          <button onClick={() => setSelectedFilter('all')} className="mini-link-btn">
-            Mostrar todos los documentos
-          </button>
+      {!hasBookings ? (
+        <div className="empty-docs-container">
+          <div className="empty-docs-badge">
+            <Sparkles size={13} />
+            <span>Preparado para tu próxima aventura</span>
+          </div>
+          <div className="empty-docs-icon-wrap">
+            <FileText size={38} style={{ color: 'var(--forest-green)' }} />
+          </div>
+          <h2 className="empty-docs-title">Aún no tienes documentación generada</h2>
+          <p className="empty-docs-desc">
+            En cuanto reserves tu camper Utopia, aquí tendrás disponible en tiempo real tu contrato oficial de alquiler con firma digitalizada, actas de check-in, certificados de póliza a todo riesgo y facturas con IVA desglosado.
+          </p>
+
+          <div className="empty-docs-features-grid">
+            <div className="empty-feature-item">
+              <div className="empty-feature-icon"><FileCheck size={18} /></div>
+              <div>
+                <h4 className="empty-feature-title">Contrato Oficial de Alquiler</h4>
+                <p className="empty-feature-text">31 artículos legales con cobertura completa, kilometraje oficial y condiciones de fianza.</p>
+              </div>
+            </div>
+            <div className="empty-feature-item">
+              <div className="empty-feature-icon"><ShieldCheck size={18} /></div>
+              <div>
+                <h4 className="empty-feature-title">Póliza Allianz & Asistencia 24h</h4>
+                <p className="empty-feature-text">Certificado oficial de cobertura en carretera y teléfono directo de asistencia.</p>
+              </div>
+            </div>
+            <div className="empty-feature-item">
+              <div className="empty-feature-icon"><ClipboardCheck size={18} /></div>
+              <div>
+                <h4 className="empty-feature-title">Acta de Entrega Digital</h4>
+                <p className="empty-feature-text">Check-in con fotos, niveles de fluidos al 100% y revisión del kit exterior.</p>
+              </div>
+            </div>
+            <div className="empty-feature-item">
+              <div className="empty-feature-icon"><Receipt size={18} /></div>
+              <div>
+                <h4 className="empty-feature-title">Facturas Oficiales</h4>
+                <p className="empty-feature-text">Desglose de IVA al 21%, recibos de pago y certificados de devolución de fianza.</p>
+              </div>
+            </div>
+          </div>
+
+          <div className="empty-docs-cta-group">
+            <Link href="/campers" className="btn btn-forest" style={{ padding: '12px 24px', gap: 8, textDecoration: 'none' }}>
+              <Truck size={16} />
+              <span>Explorar Campers & Reservar</span>
+            </Link>
+            <Link href="/dashboard/profile" className="btn btn-outline" style={{ padding: '12px 20px', gap: 8, textDecoration: 'none' }}>
+              <UserCheck size={16} />
+              <span>Completar Perfil de Conductor</span>
+            </Link>
+          </div>
         </div>
       ) : (
-        <div className="docs-accordion-stack">
+        /* ─── Minimalist Stack (Unos encima de otros con desplegable) ─── */
+        filteredDocuments.length === 0 ? (
+          <div className="mini-empty-card">
+            <FileText size={36} style={{ color: '#94A3B8' }} />
+            <p style={{ margin: 0, fontWeight: 600, color: '#1A2B21' }}>No hay documentos en esta categoría</p>
+            <button onClick={() => setSelectedFilter('all')} className="mini-link-btn">
+              Mostrar todos los documentos
+            </button>
+          </div>
+        ) : (
+          <div className="docs-accordion-stack">
           {filteredDocuments.map(doc => {
             const isExpanded = expandedIds.has(doc.id)
             const isDownloading = downloadingId === doc.id
@@ -1129,7 +1083,7 @@ export default function DocumentsClient({ bookings, profile, user, contractTempl
             )
           })}
         </div>
-      )}
+      ))}
 
       {/* ─── Minimalist Modal Preview ─── */}
       {activePreviewDoc && (
@@ -1942,6 +1896,172 @@ export default function DocumentsClient({ bookings, profile, user, contractTempl
           .modal-sheet-content {
             padding: 18px;
           }
+        }
+
+        @media (max-width: 640px) {
+          .modal-backdrop {
+            align-items: flex-end;
+            padding: 0;
+          }
+          .modal-dialog {
+            max-height: 94vh;
+            border-radius: 20px 20px 0 0;
+            border-bottom: none;
+            animation: modalDocSlideUp 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+          }
+          @keyframes modalDocSlideUp {
+            from { transform: translateY(100%); }
+            to { transform: translateY(0); }
+          }
+          .mini-docs-title {
+            font-size: 1.35rem;
+          }
+          .mini-filter-bar {
+            flex-wrap: nowrap;
+            overflow-x: auto;
+            -webkit-overflow-scrolling: touch;
+            padding: 4px;
+            width: 100%;
+            scrollbar-width: none;
+          }
+          .mini-filter-bar::-webkit-scrollbar {
+            display: none;
+          }
+          .mini-filter-btn {
+            white-space: nowrap;
+            flex-shrink: 0;
+          }
+          .accordion-header {
+            padding: 12px;
+          }
+          .accordion-header__actions {
+            flex-wrap: wrap;
+            gap: 8px;
+            width: 100%;
+          }
+          .accordion-header__actions button {
+            flex: 1;
+            justify-content: center;
+          }
+          .doc-primary-title {
+            white-space: normal;
+          }
+          .empty-docs-container {
+            padding: 36px 16px;
+          }
+          .empty-docs-cta-group {
+            flex-direction: column;
+            width: 100%;
+          }
+          .empty-docs-cta-group a,
+          .empty-docs-cta-group button {
+            width: 100%;
+            justify-content: center;
+          }
+        }
+
+        .empty-docs-container {
+          background: #FFFFFF;
+          border: 1px solid #E5E7EB;
+          border-radius: var(--radius-xl, 16px);
+          padding: 56px 32px;
+          text-align: center;
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          box-shadow: 0 4px 20px rgba(0, 0, 0, 0.03);
+          margin-top: 12px;
+        }
+        .empty-docs-badge {
+          display: inline-flex;
+          align-items: center;
+          gap: 6px;
+          background: #F4F1EA;
+          color: #1A2B21;
+          font-size: 0.75rem;
+          font-weight: 700;
+          text-transform: uppercase;
+          letter-spacing: 0.06em;
+          padding: 6px 14px;
+          border-radius: 9999px;
+          margin-bottom: 24px;
+        }
+        .empty-docs-icon-wrap {
+          width: 76px;
+          height: 76px;
+          border-radius: 50%;
+          background: #E8F5E9;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          margin-bottom: 20px;
+        }
+        .empty-docs-title {
+          font-size: 1.5rem;
+          font-weight: 800;
+          color: #1A2B21;
+          margin: 0 0 10px 0;
+          letter-spacing: -0.02em;
+        }
+        .empty-docs-desc {
+          font-size: 0.95rem;
+          color: #4B5563;
+          max-width: 600px;
+          line-height: 1.6;
+          margin: 0 0 32px 0;
+        }
+        .empty-docs-features-grid {
+          display: grid;
+          grid-template-columns: repeat(2, 1fr);
+          gap: 16px;
+          max-width: 740px;
+          width: 100%;
+          margin-bottom: 36px;
+          text-align: left;
+        }
+        @media (max-width: 640px) {
+          .empty-docs-features-grid {
+            grid-template-columns: 1fr;
+          }
+        }
+        .empty-feature-item {
+          display: flex;
+          align-items: flex-start;
+          gap: 14px;
+          background: #FAF8F5;
+          border: 1px solid #EAE5DC;
+          border-radius: var(--radius-lg, 12px);
+          padding: 16px 18px;
+        }
+        .empty-feature-icon {
+          width: 38px;
+          height: 38px;
+          border-radius: 10px;
+          background: #FFFFFF;
+          border: 1px solid #E2DDD5;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          color: #1A2B21;
+          flex-shrink: 0;
+        }
+        .empty-feature-title {
+          font-size: 0.88rem;
+          font-weight: 700;
+          color: #1A2B21;
+          margin: 0 0 4px 0;
+        }
+        .empty-feature-text {
+          font-size: 0.8rem;
+          color: #6B7280;
+          line-height: 1.4;
+          margin: 0;
+        }
+        .empty-docs-cta-group {
+          display: flex;
+          gap: 12px;
+          flex-wrap: wrap;
+          justify-content: center;
         }
       `}</style>
     </div>

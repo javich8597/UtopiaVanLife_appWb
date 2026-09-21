@@ -78,8 +78,13 @@ export async function POST(req: Request) {
                 customer_phone: customerPhone,
                 start_date: from,
                 end_date: to,
-                total_price: breakdown.totalWithoutDeposit,
+                num_nights: breakdown.numNights,
+                base_price: breakdown.baseTotal,
+                extras_total: breakdown.extrasTotal,
+                discount_amount: breakdown.discountAmount,
                 deposit_amount: breakdown.deposit,
+                extras_selected: extras || [],
+                total_price: breakdown.totalWithoutDeposit,
                 status: 'pending',
                 payment_status: 'unpaid'
             })

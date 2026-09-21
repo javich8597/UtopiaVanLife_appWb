@@ -38,6 +38,9 @@ interface Props {
   extras: any[]
   initialFrom?: string
   initialTo?: string
+  seasonsV2?: any[]
+  seasonPeriods?: any[]
+  durationDiscounts?: any[]
 }
 
 // What's included in the rental (official Utopia Van Life specifications)
@@ -189,7 +192,16 @@ const PREMIUM_MEDIA_DATA: Record<string, {
   }
 }
 
-export default function CamperDetailClient({ camper, seasons, extras, initialFrom, initialTo }: Props) {
+export default function CamperDetailClient({
+  camper,
+  seasons,
+  extras,
+  initialFrom,
+  initialTo,
+  seasonsV2,
+  seasonPeriods,
+  durationDiscounts
+}: Props) {
   const t = useTranslations('CamperDetail')
   const locale = useLocale()
   const [currentImg, setCurrentImg] = useState(0)
@@ -601,6 +613,10 @@ export default function CamperDetailClient({ camper, seasons, extras, initialFro
               initialFrom={initialFrom}
               initialTo={initialTo}
               maxGuests={camper.specs?.seats || (camper.slug === 'space' ? 2 : 3)}
+              seasonsV2={seasonsV2}
+              seasonPeriods={seasonPeriods}
+              durationDiscounts={durationDiscounts}
+              camperBasePrice={Number(camper.base_price_per_night) || (camper.slug === 'space' ? 135 : 110)}
             />
           </div>
 

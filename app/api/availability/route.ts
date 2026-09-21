@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server'
 import { createServerClient } from '@supabase/ssr'
+import { resolveSeasonForDate, SeasonV2, SeasonPeriod } from '@/lib/pricing/engine'
 
 const DEMO_CAMPERS = [
     {
@@ -36,30 +37,37 @@ export async function GET(request: Request) {
     )
 
     try {
-        // Fetch all active campers
+        // Fetch all active campers with their base price
         const { data: campers, error } = await supabase
             .from('campers')
-            .select('id, slug, name, description_es, thumbnail_url, specs, deposit_amount')
+            .select('id, slug, name, description_es, thumbnail_url, specs, deposit_amount, base_price_per_night')
             .eq('is_active', true)
 
         if (error || !campers || campers.length === 0) {
             return NextResponse.json({ campers: DEMO_CAMPERS })
         }
 
-        // Fetch pricing for active seasons
-        const { data: pricing } = await supabase
-            .from('camper_pricing')
-            .select('camper_id, price_per_night, seasons (name, start_date, end_date)')
+        // Fetch seasons_v2 and season_periods for dynamic pricing
+        const [seasonsV2Res, periodsRes] = await Promise.all([
+            supabase.from('seasons_v2').select('*'),
+            supabase.from('season_periods').select('*')
+        ])
+
+        const seasonsV2: SeasonV2[] = seasonsV2Res.data || []
+        const periods: SeasonPeriod[] = periodsRes.data || []
+
+        const dateToResolve = from ? from : new Date()
+        const activeSeason = resolveSeasonForDate(dateToResolve, seasonsV2, periods)
 
         const campersWithPricing = campers.map(c => {
-            const camperPrices = pricing?.filter((p: any) => p.camper_id === c.id) || []
-            const defaultPrice = camperPrices[0]?.price_per_night || (c.slug === 'neo' ? 120 : 140)
-            const defaultSeason = (camperPrices[0] as any)?.seasons?.name || 'Temporada Media'
+            const basePrice = Number(c.base_price_per_night) || (c.slug === 'space' ? 135 : 110)
+            const supplement = Number(activeSeason.supplement_per_night) || 0
+            const calculatedPrice = basePrice + supplement
 
             return {
                 ...c,
-                pricePerNight: defaultPrice,
-                seasonName: defaultSeason,
+                pricePerNight: calculatedPrice,
+                seasonName: activeSeason.name,
                 isAvailable: true,
             }
         })

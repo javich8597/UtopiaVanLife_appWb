@@ -444,7 +444,11 @@ export default function SeasonsSupplementClient({
                   <div style={{ minWidth: 24, display: 'flex', alignItems: 'center' }}>
                     {isSaving && <Loader2 size={16} className="animate-spin" style={{ color: 'var(--forest-green)' }} />}
                     {isSaved && <Check size={18} style={{ color: '#16a34a' }} />}
-                    {hasError && <AlertCircle size={18} style={{ color: '#dc2626' }} title="Error al guardar" />}
+                    {hasError && (
+                      <span title="Error al guardar">
+                        <AlertCircle size={18} style={{ color: '#dc2626' }} />
+                      </span>
+                    )}
                   </div>
                 </div>
               </div>

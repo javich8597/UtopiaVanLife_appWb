@@ -3,8 +3,8 @@
 import { useState, useEffect } from 'react'
 import { useRouter } from '@/i18n/routing'
 import { Calendar as CalendarIcon, Users, Plus, Minus, CheckCircle, ChevronDown, AlertCircle, Sparkles, Check, Info } from 'lucide-react'
-import { calculatePrice, formatPrice, getMinNightsForDate, DaySlot } from '@/lib/pricing/engine'
-import type { Season, Extra } from '@/lib/pricing/engine'
+import { calculatePrice, calculatePriceV2, formatPrice, getMinNightsForDate, getMinNightsForDateV2, DaySlot } from '@/lib/pricing/engine'
+import type { Season, SeasonV2, SeasonPeriod, DurationDiscount, Extra } from '@/lib/pricing/engine'
 import BookingCalendar, { BlockedRange } from './BookingCalendar'
 import { BlockedSlot } from '@/lib/booking/availability'
 import { motion, AnimatePresence } from 'framer-motion'
@@ -19,6 +19,10 @@ interface PriceCalculatorProps {
     initialFrom?: string
     initialTo?: string
     maxGuests?: number
+    durationDiscounts?: DurationDiscount[]
+    seasonsV2?: SeasonV2[]
+    seasonPeriods?: SeasonPeriod[]
+    camperBasePrice?: number
 }
 
 export default function PriceCalculator({
@@ -29,6 +33,10 @@ export default function PriceCalculator({
     initialFrom,
     initialTo,
     maxGuests,
+    durationDiscounts,
+    seasonsV2,
+    seasonPeriods,
+    camperBasePrice,
 }: PriceCalculatorProps) {
     const router = useRouter()
     const maxPax = maxGuests || (camperSlug === 'space' ? 2 : 3)
@@ -70,7 +78,11 @@ export default function PriceCalculator({
     }, [camperSlug])
 
     // Estancia mínima para la temporada del día de inicio
-    const activeMinNights = startDate ? getMinNightsForDate(new Date(startDate), seasons) : 3
+    const activeMinNights = startDate
+        ? (seasonsV2 && seasonPeriods && seasonsV2.length > 0)
+            ? getMinNightsForDateV2(new Date(startDate), seasonsV2, seasonPeriods)
+            : getMinNightsForDate(new Date(startDate), seasons)
+        : 3
 
     // Recalcular desglose de precio con granularidad de medio día
     useEffect(() => {
@@ -79,9 +91,25 @@ export default function PriceCalculator({
         const end = new Date(endDate)
         if (end <= start) { setBreakdown(null); return }
 
-        const result = calculatePrice(start, startSlot, end, endSlot, seasons, selectedExtras, safeDeposit)
-        setBreakdown(result)
-    }, [startDate, startSlot, endDate, endSlot, selectedExtras, seasons, safeDeposit])
+        if (seasonsV2 && seasonPeriods && seasonsV2.length > 0 && camperBasePrice) {
+            const result = calculatePriceV2({
+                startDate: start,
+                startSlot,
+                endDate: end,
+                endSlot,
+                camperBasePrice,
+                seasons: seasonsV2,
+                periods: seasonPeriods,
+                discounts: durationDiscounts || [],
+                selectedExtras,
+                depositAmount: safeDeposit
+            })
+            setBreakdown(result)
+        } else {
+            const result = calculatePrice(start, startSlot, end, endSlot, seasons, selectedExtras, safeDeposit)
+            setBreakdown(result)
+        }
+    }, [startDate, startSlot, endDate, endSlot, selectedExtras, seasons, safeDeposit, seasonsV2, seasonPeriods, durationDiscounts, camperBasePrice])
 
     const toggleExtra = (extra: Extra) => {
         setSelectedExtras(prev =>
@@ -295,7 +323,7 @@ export default function PriceCalculator({
                                     onClick={() => toggleExtra(e)}
                                     title="Pulsar para deseleccionar"
                                 >
-                                    ✓ {e.name_es} <span className="price-calc__chip-price">+{formatPrice(Number(e.price))}</span>
+                                    ✓ {e.name_es} <span className="price-calc__chip-price">+{formatPrice(Number(e.price))}{e.price_type === 'per_day' ? '/día' : ''}</span>
                                 </span>
                             ))}
                         </div>
@@ -327,7 +355,9 @@ export default function PriceCalculator({
                                                     </span>
                                                     <span className="price-calc__extra-name">{extra.name_es}</span>
                                                 </div>
-                                                <span className="price-calc__extra-price">+{formatPrice(Number(extra.price))}</span>
+                                                <span className="price-calc__extra-price">
+                                                    +{formatPrice(Number(extra.price))}{extra.price_type === 'per_day' ? '/día' : ''}
+                                                </span>
                                             </button>
                                         )
                                     })}
@@ -357,7 +387,7 @@ export default function PriceCalculator({
                         <div className="price-calc__row price-calc__row--discount">
                             <div className="price-calc__discount-tag-wrap">
                                 <span className="price-calc__discount-badge">−{breakdown.discountPct}%</span>
-                                <span>Descuento estancia larga (≥7 días)</span>
+                                <span>Descuento estancia larga ({breakdown.totalDays} días)</span>
                             </div>
                             <span className="price-calc__discount-amount">−{formatPrice(breakdown.discountAmount)}</span>
                         </div>
@@ -395,12 +425,23 @@ export default function PriceCalculator({
                 </div>
             )}
 
-            {/* Hint for long stay discount if user selected fewer than 7 days */}
-            {breakdown && breakdown.numNights > 0 && breakdown.totalDays < 7 && (
-                <div className="price-calc__discount-hint">
-                    <Info size={14} style={{ flexShrink: 0, marginTop: 1 }} />
-                    <span>Reserva 7 días o más y obtén un descuento automático de hasta el 10% en tu alquiler.</span>
-                </div>
+            {/* Dynamic hint for next duration discount tier */}
+            {breakdown && breakdown.numNights > 0 && (
+                (() => {
+                    const sortedDiscounts = (durationDiscounts || [
+                        { min_days: 7, discount_pct: 10, is_active: true },
+                        { min_days: 14, discount_pct: 15, is_active: true },
+                        { min_days: 21, discount_pct: 20, is_active: true },
+                    ]).filter(d => d.is_active && d.min_days > breakdown.totalDays).sort((a, b) => a.min_days - b.min_days)
+                    const nextTier = sortedDiscounts[0]
+                    if (!nextTier) return null
+                    return (
+                        <div className="price-calc__discount-hint">
+                            <Info size={14} style={{ flexShrink: 0, marginTop: 1 }} />
+                            <span>Reserva {nextTier.min_days} días o más y obtén un descuento automático del {nextTier.discount_pct}% en tu alquiler.</span>
+                        </div>
+                    )
+                })()
             )}
 
             {isBelowMinNights && (

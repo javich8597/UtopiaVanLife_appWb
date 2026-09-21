@@ -223,4 +223,63 @@ describe('Seasons & Discounts Engine (V2)', () => {
       assert.equal(minBaja, 3)
     })
   })
+
+  describe('Admin API Payloads Validation', () => {
+    function validatePeriodPayload(body: any, existingPeriods: SeasonPeriod[]) {
+      const { season_id, start_date, end_date, id } = body || {}
+      if (!season_id) return { status: 400, error: 'El ID de la temporada es obligatorio' }
+      const DATE_REGEX = /^\d{4}-\d{2}-\d{2}$/
+      if (!start_date || !end_date || !DATE_REGEX.test(start_date) || !DATE_REGEX.test(end_date)) {
+        return { status: 400, error: 'Formato de fecha inválido' }
+      }
+      if (end_date < start_date) {
+        return { status: 400, error: 'La fecha de fin no puede ser anterior a la fecha de inicio' }
+      }
+      if (hasOverlappingPeriods({ id, start_date, end_date }, existingPeriods)) {
+        return { status: 409, error: 'El periodo seleccionado se solapa con otro periodo' }
+      }
+      return { status: 200, valid: true }
+    }
+
+    function validateDiscountPayload(body: any) {
+      const { min_days, discount_pct } = body || {}
+      const parsedDays = parseInt(min_days, 10)
+      if (isNaN(parsedDays) || parsedDays < 2) {
+        return { status: 400, error: 'min_days debe ser >= 2' }
+      }
+      const parsedPct = parseFloat(discount_pct)
+      if (isNaN(parsedPct) || parsedPct < 0 || parsedPct > 100) {
+        return { status: 400, error: 'discount_pct debe estar entre 0 y 100' }
+      }
+      return { status: 200, valid: true }
+    }
+
+    it('should reject invalid period date formats or inverted ranges', () => {
+      assert.equal(validatePeriodPayload({ season_id: 'sec-alta', start_date: 'invalid', end_date: '2026-07-10' }, samplePeriods).status, 400)
+      assert.equal(validatePeriodPayload({ season_id: 'sec-alta', start_date: '2026-08-10', end_date: '2026-08-01' }, samplePeriods).status, 400)
+    })
+
+    it('should reject period that collides with an existing period with 409', () => {
+      const res = validatePeriodPayload(
+        { season_id: 'sec-media', start_date: '2026-07-01', end_date: '2026-07-10' },
+        samplePeriods
+      )
+      assert.equal(res.status, 409)
+    })
+
+    it('should accept non-overlapping valid period with 200', () => {
+      const res = validatePeriodPayload(
+        { season_id: 'sec-media', start_date: '2026-10-01', end_date: '2026-10-15' },
+        samplePeriods
+      )
+      assert.equal(res.status, 200)
+    })
+
+    it('should reject discount tiers with min_days < 2 or discount_pct > 100', () => {
+      assert.equal(validateDiscountPayload({ min_days: 1, discount_pct: 10 }).status, 400)
+      assert.equal(validateDiscountPayload({ min_days: 7, discount_pct: -5 }).status, 400)
+      assert.equal(validateDiscountPayload({ min_days: 7, discount_pct: 105 }).status, 400)
+      assert.equal(validateDiscountPayload({ min_days: 14, discount_pct: 15 }).status, 200)
+    })
+  })
 })

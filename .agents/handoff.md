@@ -1,54 +1,53 @@
-# Handoff Report: Sentinel Final Verification & Project Closure
+# Handoff Report: Sentinel Final Verification & Project Closure (Round 2)
 
 **Agent**: Sentinel (`project_sentinel`)  
-**Timestamp**: 2026-09-18T01:20:00Z  
+**Timestamp**: 2026-09-22T21:38:00Z  
 **Verdict**: **VICTORY CONFIRMED**  
 
 ---
 
 ## 1. Observation
-- The user requested complete polish, interconnection, and validation of all User (`/dashboard`) and Admin (`/admin`) portals in Utopia Van Life, verified with automated tests, production build, and an independent black-box evaluation.
-- The request was recorded verbatim to `ORIGINAL_REQUEST.md`.
+- The user requested the implementation of a dedicated Holo-Van inspired premium multi-step booking flow (`/[locale]/reserva/[slug]`) with dates & time slots (morning/afternoon), mileage packages (150 km included vs unlimited +15 €/day), cancellation policies (standard included vs flexible +8 €/day), categorized extras (Equipamiento, Deporte, Confort), personal details & checkout with transparent Supabase user provisioning, sticky trip summary, bottom navigation bar, 100% Redsys payment processing, webhook auto-blocking in `blocked_dates`, admin and user portals synchronization, and automated integration test suite with clean build.
+- The request was recorded verbatim to `.agents/ORIGINAL_REQUEST.md` and root `ORIGINAL_REQUEST.md`.
 - Route selected: General -> `teamwork_preview_orchestrator`.
-- The Project Orchestrator executed a multi-agent workflow:
-  - 3 parallel Explorers (User, Admin, Tech)
-  - 2 parallel Implementation Workers (`worker_m1_user`, `worker_m2_admin`)
-  - Gate 1 panel: 2 Reviewers, 2 Challengers, 1 Forensic Auditor
-  - Milestone 5 Black-Box Evaluator (`critic_blackbox`)
-- The Orchestrator claimed victory.
-- In accordance with Sentinel Core Job 4, the independent auditor (`teamwork_preview_victory_auditor_1`) was spawned with clean context.
-- Victory Auditor executed independent checks:
-  - Timeline: sequential and verified.
-  - Anti-cheating forensics: 0 fake mocks, 0 bypassed tests, authentic code.
-  - Automated tests: 88 passing tests across 24 test suites (100% pass, 0 failures).
-  - Build: Next.js 16.1.6 Turbopack production build succeeded cleanly with exit code 0.
-  - Verdict: **VICTORY CONFIRMED**.
-- Cleanup protocol executed: both monitoring crons cancelled, and all subagents terminated via `manage_subagents(action='kill_all')`.
+- The Project Orchestrator executed a structured multi-agent workflow in `.agents/teamwork_preview_orchestrator_2`:
+  - 3 parallel Survey Explorers (`explorer_survey_booking`, `explorer_survey_backend`, `explorer_survey_sync_tests`)
+  - Parallel Dual Track: `worker_m6_backend` and `test_writer_e2e`
+  - Milestone M7 Worker (`worker_m7_wizard`) implementing all 11 wizard components in `app/[locale]/reserva/[slug]/`
+  - Milestone M8 Worker (`worker_m8_portals_sync`) updating `/admin/bookings`, `/admin/calendar`, and `/dashboard`
+  - Milestone M9 Gate Panel: 2 Reviewers, 2 Challengers, and 1 Forensic Auditor
+- The Orchestrator claimed project victory.
+- Sentinel activated independent verification: spawned `teamwork_preview_victory_auditor` (`5e5a450c-bb07-4ae7-9d67-8f499034f305`) in `.agents/teamwork_preview_victory_auditor_2`.
+- Victory Auditor executed a blocking 3-phase audit:
+  - Phase A (Timeline): All steps authentically executed in order; 0 timeline anomalies.
+  - Phase B (Integrity & Anti-Cheating): 0 hardcoded values, 0 dummy facades, genuine HMAC-SHA256 & 3DES Redsys cryptography, genuine Supabase service-role mutations and idempotency checks, genuine dynamic pricing calculation with deposit segregation.
+  - Phase C (Independent Test Execution): `npm.cmd test` independently executed -> 220 passed, 0 failed across 60 test suites. `npm.cmd run build` compiled all 27 static and dynamic routes cleanly with exit code 0.
+  - Final Auditor Verdict: **VICTORY CONFIRMED**.
+- Active background cron tasks were cancelled and subagents terminated per Sentinel cleanup protocol.
 
 ---
 
 ## 2. Logic Chain
-1. Verified adherence to requirements:
-   - **R1 User Area**: `/dashboard` (countdown, dynamic extras, empty states, 24/7 assistance links), `/dashboard/profile` (personal data, driving license expiry & novel validation, document upload), `/dashboard/documentos` (license/passport upload, live status, Retina Hi-DPI signature modal, multi-page official rental agreement PDF download), `/dashboard/manual` (full camper systems guide including 12V/220V Victron lithium, water tanks, gas stove with CP250 cartridge, pop-up electric roof bed, interactive troubleshooting accordion, PDF export), `/dashboard/guia` (35 Mallorca spots, DGT 08/V-74 camping vs parking legal rules, water dump/fill stations, nomad advice).
-   - **R2 Admin Area**: `/admin` (real-time financial KPIs, active/pending bookings, registered users, latest bookings), `/admin/bookings` (status tabs, search, price & extras breakdown modal, approval/refund logic), `/admin/calendar` (FullCalendar occupancy timeline), `/admin/campers` (fleet inventory, CRUD modal, safe archiving, pricing sync), `/admin/verifications` (document review queue with inline lightbox zoom and explicit rejection reason modal/persistence), `/admin/users` (client table, rental history, document status, details), `/admin/contrato` (contract clause editor and live preview), `/admin/settings` (season management and inline base nightly pricing editor).
-   - **R3 Technical Verification**: All 88 tests passing across 24 suites; Next.js 16 build exits with code 0.
-   - **R4 Black-Box Evaluation**: Independent review by `critic_blackbox` verified premium design (Apple / Emil Kowalski aesthetic), responsive behavior, and robust edge cases.
-2. Independent Victory Auditor independently confirmed all assertions and issued `VICTORY CONFIRMED`.
+1. **Requirements Mapping**: The user's prompt demanded high-fidelity booking UX and deep full-stack synchronization. Decomposing into architecture survey, database/pricing extensions, dedicated UI, sync across portals, and E2E verification guaranteed complete coverage.
+2. **Independent Testing**: Developing the test suites (`tests/r4_*.test.ts`) concurrently with backend development ensured tests were derived strictly from `ORIGINAL_REQUEST.md` specifications rather than implementation artifacts.
+3. **Rigorous Gate Panel**: Deploying adversarial reviewers and challengers verified edge cases (such as DNI checksum calculations, leap years, signature tampering, and admin calendar auto-blocks) before victory was claimed.
+4. **Independent Post-Victory Verification**: Running the independent Victory Auditor confirmed zero fake mocks or bypassed assertions, validating clean compiler exit codes and test results.
 
 ---
 
 ## 3. Caveats
-- Production deployment will connect to production Supabase and Stripe environments using real customer credentials.
-- In offline/mock development mode, mock bookings and seed data are seamlessly handled.
+- Production deployment will require live environment variables for Redsys merchant credentials (`REDSYS_MERCHANT_KEY`, `REDSYS_MERCHANT_CODE`, `REDSYS_TERMINAL`, `REDSYS_URL`) and Supabase service role key (`SUPABASE_SERVICE_ROLE_KEY`).
+- In local development / testing, Redsys test gateway and mock credentials operate transparently with genuine HMAC-SHA256 signature calculation.
 
 ---
 
 ## 4. Conclusion
-All acceptance criteria of the user request are satisfied in full with zero compromises, verified by an independent post-victory audit.
+All acceptance criteria across R1 (Dedicated Holo-Van Booking Wizard), R2 (Redsys Payment & Webhook Auto-Blocking), R3 (Portals Synchronization in Admin & User Dashboards), and R4 (Automated Integration Suite & Verification) have been fully met, independently verified, and confirmed. The project is production-ready.
 
 ---
 
 ## 5. Verification Method
-- Independent automated tests run: `npm.cmd test` -> 88 passed, 0 failed.
-- Independent production build run: `npm.cmd run build` -> exit code 0.
-- Independent black-box and victory auditor reports archived in `.agents/`.
+- Independent Victory Auditor: `teamwork_preview_victory_auditor` (convId: `5e5a450c-bb07-4ae7-9d67-8f499034f305`).
+- Test Suite Command: `npm.cmd test` -> 220 tests passed, 0 failed across 60 suites in 970.88ms.
+- TypeScript Command: `npx.cmd tsc --noEmit` -> 0 errors, exit code 0.
+- Production Build Command: `npm.cmd run build` -> Next.js 16.1.6 Turbopack compiled 27 routes with exit code 0.

@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useRef } from 'react'
 import Image from 'next/image'
+import Link from 'next/link'
 import {
   ChevronLeft,
   ChevronRight,
@@ -436,6 +437,27 @@ export default function CamperDetailClient({
                   <span>Fianza: 1.000 € (reembolsable)</span>
                 </span>
               </div>
+
+              {/* Dedicated Holo-Van Booking Wizard CTA */}
+              <div style={{ marginTop: 'var(--space-4)', display: 'flex', alignItems: 'center', gap: 'var(--space-3)', flexWrap: 'wrap' }}>
+                <Link
+                  href={`/${locale}/reserva/${camper.slug}${initialFrom && initialTo ? `?from=${initialFrom}&to=${initialTo}` : ''}`}
+                  className="btn btn-forest"
+                  style={{
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: 8,
+                    fontWeight: 700,
+                    boxShadow: '0 4px 14px rgba(45, 58, 45, 0.25)',
+                    padding: '12px 22px',
+                    borderRadius: 'var(--radius-lg)',
+                  }}
+                >
+                  <Sparkles size={16} style={{ color: '#E2D1C3' }} />
+                  <span>Reservar ahora · Asistente 5 Pasos</span>
+                  <ChevronRight size={16} />
+                </Link>
+              </div>
             </div>
 
             {/* Description Text */}
@@ -605,6 +627,36 @@ export default function CamperDetailClient({
 
           {/* Sticky booking calculator panel */}
           <div className="camper-detail__sidebar">
+            <div style={{
+              background: '#FAF8F5',
+              border: '1.5px solid var(--forest-green)',
+              borderRadius: 'var(--radius-lg)',
+              padding: '12px 16px',
+              marginBottom: 'var(--space-3)',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              gap: 12
+            }}>
+              <div>
+                <span style={{ fontSize: '10px', fontWeight: 800, letterSpacing: '0.06em', color: 'var(--forest-green)', display: 'block' }}>NUEVO WIZARD HOLO-VAN</span>
+                <span style={{ fontSize: '13px', fontWeight: 700, color: 'var(--black-matte)' }}>Reserva en 5 pasos guiados</span>
+              </div>
+              <Link
+                href={`/${locale}/reserva/${camper.slug}${initialFrom && initialTo ? `?from=${initialFrom}&to=${initialTo}` : ''}`}
+                style={{
+                  fontSize: '12px',
+                  fontWeight: 700,
+                  color: '#ffffff',
+                  background: 'var(--forest-green)',
+                  padding: '7px 14px',
+                  borderRadius: 'var(--radius-full)',
+                  whiteSpace: 'nowrap'
+                }}
+              >
+                Empezar →
+              </Link>
+            </div>
             <PriceCalculator
               camperSlug={camper.slug}
               depositAmount={camper.deposit_amount}

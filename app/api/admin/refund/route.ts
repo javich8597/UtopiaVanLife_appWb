@@ -1,6 +1,5 @@
 import { NextResponse } from 'next/server'
 import { createClient as createServerClient } from '@/lib/supabase/server'
-import { stripe } from '@/lib/stripe'
 import { isAdminUser, canRefundBooking, getAdminClientOrSession } from '@/lib/admin/auth'
 
 export async function POST(request: Request) {
@@ -54,37 +53,9 @@ export async function POST(request: Request) {
             return NextResponse.json({ error: refundCheck.reason || 'No se puede reembolsar esta reserva' }, { status: 400 })
         }
 
-        let targetPaymentIntentId = booking.payment_intent_id
-
-        if (!targetPaymentIntentId) {
-            // Buscamos el Payment Intent en Stripe usando search query 
-            const searchResult = await stripe.paymentIntents.search({
-                query: `metadata['booking_id']:'${bookingId}'`,
-                limit: 1
-            })
-
-            const paymentIntent = searchResult.data[0]
-
-            if (!paymentIntent) {
-                // Intentamos con list() en caso de que el Search Index no haya actualizado
-                const allIntents = await stripe.paymentIntents.list({ limit: 50 })
-                const found = allIntents.data.find(pi => pi.metadata?.booking_id === bookingId)
-
-                if (found) {
-                    targetPaymentIntentId = found.id
-                }
-            } else {
-                targetPaymentIntentId = paymentIntent.id
-            }
-        }
-
-        if (targetPaymentIntentId) {
-            try {
-                await stripe.refunds.create({ payment_intent: targetPaymentIntentId })
-            } catch (stripeErr: any) {
-                console.warn('Stripe refund warning (proceeding with status update if already refunded):', stripeErr.message)
-            }
-        }
+        // Si la reserva fue pagada por Redsys (código de 12 caracteres o referencia Redsys),
+        // el reembolso se registra en BD y se gestiona desde el panel de Comercia Global Payments / CaixaBank
+        const paymentReference = booking.payment_intent_id
 
         // Update the booking status in DB
         const { error: updateErr } = await supabaseAdmin
@@ -94,7 +65,20 @@ export async function POST(request: Request) {
 
         if (updateErr) throw new Error(updateErr.message)
 
-        return NextResponse.json({ success: true, status: 'cancelled' })
+        // Si había bloqueo en blocked_dates con session_id de esta reserva, liberarlo
+        if (paymentReference) {
+            await supabaseAdmin
+                .from('blocked_dates')
+                .delete()
+                .eq('session_id', `redsys_${paymentReference}`)
+        }
+
+        return NextResponse.json({
+            success: true,
+            status: 'cancelled',
+            paymentStatus: 'refunded',
+            message: 'Reserva cancelada y marcada como reembolsada con éxito.',
+        })
 
     } catch (error: any) {
         console.error('Refund Error:', error)

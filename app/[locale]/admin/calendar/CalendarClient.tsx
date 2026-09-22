@@ -25,6 +25,39 @@ import {
 interface Props {
   bookings: any[]
   campers: any[]
+  blockedDates?: any[]
+  blocked_dates?: any[]
+}
+
+export function mapCalendarBlockedDateEvent(b: any, camperName: string = 'Camper') {
+  const isRedsysAutoBlock = Boolean(b.session_id && b.session_id.startsWith('redsys_'))
+  const orderId = isRedsysAutoBlock ? b.session_id.replace('redsys_', '') : ''
+
+  const title = isRedsysAutoBlock
+    ? `🔒 Auto-Bloqueo Redsys (#${orderId}) · ${camperName}`
+    : `⛔ Bloqueo Flota (${b.reason || 'Mantenimiento'}) · ${camperName}`
+
+  const backgroundColor = isRedsysAutoBlock ? '#FEF3C7' : '#F1F5F9'
+  const borderColor = isRedsysAutoBlock ? '#D97706' : '#94A3B8'
+  const textColor = isRedsysAutoBlock ? '#92400E' : '#334155'
+
+  return {
+    id: b.id,
+    title,
+    start: b.start_date,
+    end: b.end_date,
+    allDay: true,
+    backgroundColor,
+    borderColor,
+    textColor,
+    extendedProps: {
+      ...b,
+      isRedsysAutoBlock,
+      orderId,
+      camperName,
+      blockType: isRedsysAutoBlock ? 'redsys_hold' : 'maintenance',
+    },
+  }
 }
 
 const CAMPER_COLORS: Record<string, { bg: string; border: string; text: string; dot: string }> = {
@@ -48,7 +81,7 @@ const CAMPER_COLORS: Record<string, { bg: string; border: string; text: string; 
   }
 }
 
-export default function CalendarClient({ bookings, campers }: Props) {
+export default function CalendarClient({ bookings, campers, blockedDates, blocked_dates }: Props) {
   const [calendarRef, setCalendarRef] = useState<any>(null)
   const [currentView, setCurrentView] = useState<'dayGridMonth' | 'timeGridWeek' | 'timeGridDay' | 'year'>('dayGridMonth')
   const [currentYear, setCurrentYear] = useState<number>(new Date().getFullYear())
@@ -56,6 +89,10 @@ export default function CalendarClient({ bookings, campers }: Props) {
   const [selectedCamperFilter, setSelectedCamperFilter] = useState<string>('all')
   const [selectedBooking, setSelectedBooking] = useState<any>(null)
   const [selectedRange, setSelectedRange] = useState<{ start: string; end: string } | null>(null)
+
+  const rawBlockedDates = useMemo(() => {
+    return blockedDates || blocked_dates || []
+  }, [blockedDates, blocked_dates])
 
   // Filter bookings by selected camper
   const filteredBookings = useMemo(() => {
@@ -67,9 +104,19 @@ export default function CalendarClient({ bookings, campers }: Props) {
     })
   }, [bookings, selectedCamperFilter])
 
-  // Transform bookings into Google Calendar-style events
+  // Filter blocked dates by selected camper
+  const filteredBlockedDates = useMemo(() => {
+    return rawBlockedDates.filter((b: any) => {
+      if (selectedCamperFilter === 'all') return true
+      const matchingCamper = campers.find(c => (c.slug || '').toLowerCase() === selectedCamperFilter)
+      if (matchingCamper && b.camper_id === matchingCamper.id) return true
+      return b.camper_id === selectedCamperFilter
+    })
+  }, [rawBlockedDates, selectedCamperFilter, campers])
+
+  // Transform bookings & blocked dates into Google Calendar-style events
   const events = useMemo(() => {
-    return filteredBookings.map(b => {
+    const bookingEvents = filteredBookings.map(b => {
       const camperSlug = (b.campers?.slug || 'neo').toLowerCase()
       const colorScheme = CAMPER_COLORS[camperSlug] || CAMPER_COLORS.default
       const camperName = b.campers?.name || 'Camper'
@@ -101,11 +148,35 @@ export default function CalendarClient({ bookings, campers }: Props) {
           colorScheme,
           camperName,
           clientName,
-          isConfirmed
+          isConfirmed,
+          isBlockedDate: false
         }
       }
     })
-  }, [filteredBookings])
+
+    const blockedEvents = filteredBlockedDates.map((b: any) => {
+      const camper = campers.find(c => c.id === b.camper_id)
+      const camperName = camper?.name || 'Camper'
+      const mapped = mapCalendarBlockedDateEvent(b, camperName)
+      return {
+        ...mapped,
+        extendedProps: {
+          ...mapped.extendedProps,
+          isBlockedDate: true,
+          camperName,
+          clientName: mapped.extendedProps.isRedsysAutoBlock ? 'Auto-Bloqueo Redsys' : 'Bloqueo Flota',
+          colorScheme: {
+            bg: mapped.backgroundColor,
+            border: mapped.borderColor,
+            text: mapped.textColor,
+            dot: mapped.borderColor
+          }
+        }
+      }
+    })
+
+    return [...bookingEvents, ...blockedEvents]
+  }, [filteredBookings, filteredBlockedDates, campers])
 
   const handleDateSelect = (selectInfo: any) => {
     const startStr = selectInfo.startStr
@@ -181,7 +252,7 @@ export default function CalendarClient({ bookings, campers }: Props) {
       const daysInMonth = lastDay.getDate()
       const startingDay = (firstDay.getDay() + 6) % 7 // Monday = 0
 
-      const days: { dayNumber: number; dateStr: string; bookings: any[] }[] = []
+      const days: { dayNumber: number; dateStr: string; bookings: any[]; blocked: any[] }[] = []
       for (let d = 1; d <= daysInMonth; d++) {
         const monthStr = String(m + 1).padStart(2, '0')
         const dayStr = String(d).padStart(2, '0')
@@ -193,10 +264,17 @@ export default function CalendarClient({ bookings, campers }: Props) {
           return dateStr >= s && dateStr <= e
         })
 
+        const dayBlocked = filteredBlockedDates.filter((b: any) => {
+          const s = b.start_date
+          const e = b.end_date
+          return dateStr >= s && dateStr <= e
+        })
+
         days.push({
           dayNumber: d,
           dateStr,
-          bookings: dayBookings
+          bookings: dayBookings,
+          blocked: dayBlocked
         })
       }
 
@@ -208,7 +286,7 @@ export default function CalendarClient({ bookings, campers }: Props) {
         days
       }
     })
-  }, [currentYear, filteredBookings])
+  }, [currentYear, filteredBookings, filteredBlockedDates])
 
   return (
     <div className="gcal-container">
@@ -326,35 +404,77 @@ export default function CalendarClient({ bookings, campers }: Props) {
 
                   {/* Day cells */}
                   {m.days.map(d => {
-                    const hasBooking = d.bookings.length > 0
-                    const firstBooking = d.bookings[0]
-                    const slug = (firstBooking?.campers?.slug || 'neo').toLowerCase()
-                    const scheme = CAMPER_COLORS[slug] || CAMPER_COLORS.default
+                    const hasBooking = d.bookings && d.bookings.length > 0
+                    const hasBlocked = d.blocked && d.blocked.length > 0
+                    const firstBooking = d.bookings?.[0]
+                    const firstBlocked = d.blocked?.[0]
+
+                    let cellBg: string | undefined = undefined
+                    let cellColor: string | undefined = undefined
+                    let cellBorder: string | undefined = undefined
+                    let dotColor: string | undefined = undefined
+                    let title = d.dateStr
+
+                    if (hasBooking) {
+                      const slug = (firstBooking?.campers?.slug || 'neo').toLowerCase()
+                      const scheme = CAMPER_COLORS[slug] || CAMPER_COLORS.default
+                      cellBg = scheme.bg
+                      cellColor = scheme.text
+                      cellBorder = scheme.border
+                      dotColor = scheme.dot
+                      title = `${firstBooking.campers?.name || 'Camper'}: ${firstBooking.customer_name || 'Reserva'}`
+                    } else if (hasBlocked) {
+                      const isRedsys = Boolean(firstBlocked.session_id && firstBlocked.session_id.startsWith('redsys_'))
+                      cellBg = isRedsys ? '#FEF3C7' : '#F1F5F9'
+                      cellColor = isRedsys ? '#92400E' : '#334155'
+                      cellBorder = isRedsys ? '#D97706' : '#94A3B8'
+                      dotColor = isRedsys ? '#D97706' : '#64748B'
+                      title = isRedsys ? `🔒 Auto-Bloqueo Redsys (${firstBlocked.session_id})` : `⛔ Bloqueado (${firstBlocked.reason || 'Mantenimiento'})`
+                    }
 
                     return (
                       <div
                         key={d.dateStr}
-                        className={`gcal-year-day-cell ${hasBooking ? 'gcal-year-day-cell--booked' : ''}`}
-                        style={hasBooking ? {
-                          backgroundColor: scheme.bg,
-                          color: scheme.text,
-                          borderColor: scheme.border
+                        className={`gcal-year-day-cell ${hasBooking ? 'gcal-year-day-cell--booked' : hasBlocked ? 'gcal-year-day-cell--blocked' : ''}`}
+                        style={(hasBooking || hasBlocked) ? {
+                          backgroundColor: cellBg,
+                          color: cellColor,
+                          borderColor: cellBorder
                         } : undefined}
                         onClick={() => {
                           if (hasBooking) {
+                            const slug = (firstBooking?.campers?.slug || 'neo').toLowerCase()
+                            const scheme = CAMPER_COLORS[slug] || CAMPER_COLORS.default
                             setSelectedBooking({
                               ...firstBooking,
                               camperName: firstBooking.campers?.name || 'Camper',
                               clientName: firstBooking.customer_name || firstBooking.users?.full_name || 'Viajero Utopia',
                               colorScheme: scheme
                             })
+                          } else if (hasBlocked) {
+                            const camper = campers.find(c => c.id === firstBlocked.camper_id)
+                            const camperName = camper?.name || 'Camper'
+                            const mapped = mapCalendarBlockedDateEvent(firstBlocked, camperName)
+                            setSelectedBooking({
+                              ...mapped.extendedProps,
+                              isBlockedDate: true,
+                              title: mapped.title,
+                              start_date: firstBlocked.start_date,
+                              end_date: firstBlocked.end_date,
+                              colorScheme: {
+                                bg: mapped.backgroundColor,
+                                border: mapped.borderColor,
+                                text: mapped.textColor,
+                                dot: mapped.borderColor
+                              }
+                            })
                           }
                         }}
-                        title={hasBooking ? `${firstBooking.campers?.name}: ${firstBooking.customer_name}` : d.dateStr}
+                        title={title}
                       >
                         <span>{d.dayNumber}</span>
-                        {hasBooking && (
-                          <span className="gcal-year-dot" style={{ backgroundColor: scheme.dot }} />
+                        {(hasBooking || hasBlocked) && (
+                          <span className="gcal-year-dot" style={{ backgroundColor: dotColor }} />
                         )}
                       </div>
                     )
@@ -389,6 +509,25 @@ export default function CalendarClient({ bookings, campers }: Props) {
             }}
             eventContent={(eventInfo) => {
               const ext = eventInfo.event.extendedProps
+              if (ext.isBlockedDate || ext.isRedsysAutoBlock || ext.blockType) {
+                return (
+                  <div
+                    className="gcal-event-pill gcal-event-pill--blocked"
+                    style={{
+                      backgroundColor: eventInfo.event.backgroundColor,
+                      borderColor: eventInfo.event.borderColor,
+                      color: eventInfo.event.textColor,
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: 4
+                    }}
+                    title={eventInfo.event.title}
+                  >
+                    <span style={{ fontSize: '0.8rem' }}>{ext.isRedsysAutoBlock ? '🔒' : '⛔'}</span>
+                    <span className="gcal-event-title" style={{ fontWeight: 600 }}>{eventInfo.event.title}</span>
+                  </div>
+                )
+              }
               const pTime = ext.pickupTime || '10:00'
               const dTime = ext.dropoffTime || '18:00'
               return (
@@ -422,82 +561,159 @@ export default function CalendarClient({ bookings, campers }: Props) {
             <div className="gcal-modal-top" style={{ borderLeft: `6px solid ${selectedBooking.colorScheme?.dot || '#16a34a'}` }}>
               <div style={{ flex: 1 }}>
                 <span className="gcal-modal-badge" style={{ backgroundColor: selectedBooking.colorScheme?.bg, color: selectedBooking.colorScheme?.text }}>
-                  {selectedBooking.camperName}
+                  {selectedBooking.camperName || 'Camper'}
                 </span>
-                <h3 className="gcal-modal-title">{selectedBooking.clientName}</h3>
+                <h3 className="gcal-modal-title">
+                  {selectedBooking.isBlockedDate || selectedBooking.isRedsysAutoBlock || selectedBooking.blockType
+                    ? (selectedBooking.isRedsysAutoBlock ? `🔒 Auto-Bloqueo Redsys (#${selectedBooking.orderId || selectedBooking.session_id?.replace('redsys_', '') || ''})` : `⛔ Bloqueo de Flota`)
+                    : selectedBooking.clientName}
+                </h3>
               </div>
               <button onClick={() => setSelectedBooking(null)} className="gcal-close-btn">
                 <X size={20} />
               </button>
             </div>
 
-            <div className="gcal-modal-details">
-              <div className="gcal-detail-row">
-                <CalendarIcon size={18} className="gcal-detail-icon" />
-                <div>
-                  <span className="gcal-detail-label">Periodo y Horarios de Alquiler</span>
-                  <div className="gcal-detail-value" style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
-                    <div>
-                      <strong>Recogida: </strong>
-                      {new Date(selectedBooking.start_date).toLocaleDateString('es-ES', { day: 'numeric', month: 'long', year: 'numeric' })}
-                      <span className="gcal-time-tag"> a las {selectedBooking.pickupTime || '10:00'}h</span>
-                    </div>
-                    <div>
-                      <strong>Devolución: </strong>
-                      {new Date(selectedBooking.end_date).toLocaleDateString('es-ES', { day: 'numeric', month: 'long', year: 'numeric' })}
-                      <span className="gcal-time-tag"> a las {selectedBooking.dropoffTime || '18:00'}h</span>
+            {selectedBooking.isBlockedDate || selectedBooking.isRedsysAutoBlock || selectedBooking.blockType ? (
+              <div className="gcal-modal-details">
+                <div className="gcal-detail-row">
+                  <CalendarIcon size={18} className="gcal-detail-icon" />
+                  <div>
+                    <span className="gcal-detail-label">Periodo Bloqueado</span>
+                    <div className="gcal-detail-value" style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+                      <div>
+                        <strong>Inicio: </strong>
+                        {new Date(selectedBooking.start_date || selectedBooking.start).toLocaleDateString('es-ES', { day: 'numeric', month: 'long', year: 'numeric' })}
+                      </div>
+                      <div>
+                        <strong>Fin: </strong>
+                        {new Date(selectedBooking.end_date || selectedBooking.end).toLocaleDateString('es-ES', { day: 'numeric', month: 'long', year: 'numeric' })}
+                      </div>
                     </div>
                   </div>
                 </div>
-              </div>
 
-              <div className="gcal-detail-row">
-                <User size={18} className="gcal-detail-icon" />
-                <div>
-                  <span className="gcal-detail-label">Cliente & Contacto</span>
-                  <div className="gcal-detail-value">{selectedBooking.customer_name || selectedBooking.clientName}</div>
-                  <div className="gcal-detail-sub">{selectedBooking.customer_email || selectedBooking.users?.email || '-'}</div>
-                  {selectedBooking.customer_phone && (
-                    <div className="gcal-detail-sub">{selectedBooking.customer_phone}</div>
-                  )}
+                <div className="gcal-detail-row">
+                  <Truck size={18} className="gcal-detail-icon" />
+                  <div>
+                    <span className="gcal-detail-label">Vehículo</span>
+                    <div className="gcal-detail-value">{selectedBooking.camperName || 'Camper'}</div>
+                  </div>
+                </div>
+
+                <div className="gcal-detail-row">
+                  <Clock size={18} className="gcal-detail-icon" />
+                  <div>
+                    <span className="gcal-detail-label">Tipo de Bloqueo</span>
+                    <div style={{ marginTop: 4 }}>
+                      <span
+                        className="gcal-status-pill"
+                        style={{
+                          backgroundColor: selectedBooking.isRedsysAutoBlock ? '#FEF3C7' : '#F1F5F9',
+                          color: selectedBooking.isRedsysAutoBlock ? '#92400E' : '#334155',
+                          border: `1px solid ${selectedBooking.isRedsysAutoBlock ? '#D97706' : '#94A3B8'}`
+                        }}
+                      >
+                        {selectedBooking.isRedsysAutoBlock ? '🔒 Auto-Bloqueo Pasarela Redsys' : '⛔ Bloqueo Flota / Mantenimiento'}
+                      </span>
+                    </div>
+                    <p style={{ fontSize: '0.82rem', color: '#6B7280', margin: '6px 0 0' }}>
+                      {selectedBooking.isRedsysAutoBlock
+                        ? `Bloqueo automático de calendario ejecutado tras confirmación de pago online en Redsys (Order ID: ${selectedBooking.orderId || selectedBooking.session_id?.replace('redsys_', '') || 'N/A'}).`
+                        : (selectedBooking.reason || 'Bloqueo manual por taller o mantenimiento programado.')}
+                    </p>
+                  </div>
                 </div>
               </div>
+            ) : (
+              <div className="gcal-modal-details">
+                <div className="gcal-detail-row">
+                  <CalendarIcon size={18} className="gcal-detail-icon" />
+                  <div>
+                    <span className="gcal-detail-label">Periodo y Horarios de Alquiler</span>
+                    <div className="gcal-detail-value" style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+                      <div>
+                        <strong>Recogida: </strong>
+                        {new Date(selectedBooking.start_date).toLocaleDateString('es-ES', { day: 'numeric', month: 'long', year: 'numeric' })}
+                        <span className="gcal-time-tag"> a las {selectedBooking.pickupTime || '10:00'}h</span>
+                      </div>
+                      <div>
+                        <strong>Devolución: </strong>
+                        {new Date(selectedBooking.end_date).toLocaleDateString('es-ES', { day: 'numeric', month: 'long', year: 'numeric' })}
+                        <span className="gcal-time-tag"> a las {selectedBooking.dropoffTime || '18:00'}h</span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
 
-              <div className="gcal-detail-row">
-                <Euro size={18} className="gcal-detail-icon" />
-                <div>
-                  <span className="gcal-detail-label">Importe Total</span>
-                  <div className="gcal-detail-value" style={{ color: '#16a34a', fontWeight: 700 }}>
-                    {selectedBooking.total_price} €
-                    <span style={{ fontSize: '0.82rem', fontWeight: 400, color: '#6b7280', marginLeft: 8 }}>
-                      (+ {selectedBooking.deposit_amount || 500} € fianza)
+                <div className="gcal-detail-row">
+                  <User size={18} className="gcal-detail-icon" />
+                  <div>
+                    <span className="gcal-detail-label">Cliente & Contacto</span>
+                    <div className="gcal-detail-value">{selectedBooking.customer_name || selectedBooking.clientName}</div>
+                    <div className="gcal-detail-sub">{selectedBooking.customer_email || selectedBooking.users?.email || '-'}</div>
+                    {selectedBooking.customer_phone && (
+                      <div className="gcal-detail-sub">{selectedBooking.customer_phone}</div>
+                    )}
+                  </div>
+                </div>
+
+                <div className="gcal-detail-row">
+                  <Euro size={18} className="gcal-detail-icon" />
+                  <div>
+                    <span className="gcal-detail-label">Importe Total</span>
+                    <div className="gcal-detail-value" style={{ color: '#16a34a', fontWeight: 700 }}>
+                      {selectedBooking.total_price} €
+                      <span style={{ fontSize: '0.82rem', fontWeight: 400, color: '#6b7280', marginLeft: 8 }}>
+                        (+ {selectedBooking.deposit_amount || 500} € fianza)
+                      </span>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="gcal-detail-row">
+                  <Clock size={18} className="gcal-detail-icon" />
+                  <div>
+                    <span className="gcal-detail-label">Estado de la Reserva</span>
+                    <span className={`gcal-status-pill gcal-status--${selectedBooking.status}`}>
+                      {selectedBooking.status === 'confirmed' ? 'Confirmada' :
+                       selectedBooking.status === 'active' ? 'En Curso' :
+                       selectedBooking.status === 'pending' ? 'Pendiente' :
+                       selectedBooking.status === 'completed' ? 'Completada' : 'Cancelada'}
                     </span>
                   </div>
                 </div>
               </div>
-
-              <div className="gcal-detail-row">
-                <Clock size={18} className="gcal-detail-icon" />
-                <div>
-                  <span className="gcal-detail-label">Estado de la Reserva</span>
-                  <span className={`gcal-status-pill gcal-status--${selectedBooking.status}`}>
-                    {selectedBooking.status === 'confirmed' ? 'Confirmada' :
-                     selectedBooking.status === 'active' ? 'En Curso' :
-                     selectedBooking.status === 'pending' ? 'Pendiente' :
-                     selectedBooking.status === 'completed' ? 'Completada' : 'Cancelada'}
-                  </span>
-                </div>
-              </div>
-            </div>
+            )}
 
             <div className="gcal-modal-footer">
-              <a
-                href={`/es/admin/bookings`}
-                className="gcal-btn gcal-btn--secondary"
-                style={{ textDecoration: 'none' }}
-              >
-                Ver en Reservas
-              </a>
+              {selectedBooking.isBlockedDate || selectedBooking.isRedsysAutoBlock ? (
+                selectedBooking.orderId || selectedBooking.session_id?.startsWith('redsys_') ? (
+                  <a
+                    href={`/es/admin/bookings?search=${selectedBooking.orderId || selectedBooking.session_id?.replace('redsys_', '')}`}
+                    className="gcal-btn gcal-btn--secondary"
+                    style={{ textDecoration: 'none' }}
+                  >
+                    Buscar Reserva Redsys
+                  </a>
+                ) : (
+                  <a
+                    href={`/es/admin/bookings`}
+                    className="gcal-btn gcal-btn--secondary"
+                    style={{ textDecoration: 'none' }}
+                  >
+                    Ver en Reservas
+                  </a>
+                )
+              ) : (
+                <a
+                  href={`/es/admin/bookings`}
+                  className="gcal-btn gcal-btn--secondary"
+                  style={{ textDecoration: 'none' }}
+                >
+                  Ver en Reservas
+                </a>
+              )}
               <button onClick={() => setSelectedBooking(null)} className="gcal-btn gcal-btn--primary">
                 Entendido
               </button>
@@ -1025,6 +1241,17 @@ export default function CalendarClient({ bookings, campers }: Props) {
           font-weight: 700;
           border: 1px solid;
           box-shadow: 0 1px 2px rgba(0,0,0,0.04);
+        }
+
+        .gcal-year-day-cell--blocked {
+          font-weight: 700;
+          border: 1px dashed;
+          box-shadow: 0 1px 2px rgba(0,0,0,0.04);
+        }
+
+        .gcal-event-pill--blocked {
+          border-style: dashed !important;
+          font-weight: 600 !important;
         }
 
         .gcal-year-dot {

@@ -17,7 +17,14 @@ import {
   ExternalLink,
   Printer,
   Phone,
-  Mail
+  Mail,
+  Gauge,
+  Shield,
+  CreditCard,
+  Package,
+  Sparkles,
+  Waves,
+  Check
 } from 'lucide-react'
 import { formatPrice } from '@/lib/pricing/engine'
 import ApproveActionClient from './ApproveActionClient'
@@ -28,6 +35,16 @@ interface Props {
   onClose: () => void
 }
 
+interface NormalizedExtra {
+  id: string
+  name: string
+  category: 'Equipamiento' | 'Deporte' | 'Confort' | 'Otros'
+  quantity: number
+  unit_price: number
+  total: number
+  price_type?: string
+}
+
 export default function BookingDetailModal({ booking, onClose }: Props) {
   const [showContractPreview, setShowContractPreview] = useState(false)
 
@@ -36,6 +53,7 @@ export default function BookingDetailModal({ booking, onClose }: Props) {
   const clientName = booking.customer_name || booking.users?.full_name || 'Viajero Utopia'
   const clientEmail = booking.customer_email || booking.users?.email || '-'
   const clientPhone = booking.customer_phone || booking.users?.phone || '-'
+  const clientDni = booking.customer_dni || booking.users?.dni_nie || booking.users?.driver_license_id || 'No registrado'
   const camperName = booking.campers?.name || 'Camper'
 
   const startDate = new Date(booking.start_date)
@@ -48,7 +66,152 @@ export default function BookingDetailModal({ booking, onClose }: Props) {
   const pickupLocation = booking.pickup_location || 'Palma de Mallorca (Aeropuerto PMI / Base Utopia Son Oms)'
   const dropoffLocation = booking.dropoff_location || 'Palma de Mallorca (Aeropuerto PMI / Base Utopia Son Oms)'
 
-  const basePricePerNight = nights > 0 ? Math.round((booking.total_price / nights) * 100) / 100 : booking.total_price
+  // 1. KM Package
+  const isUnlimitedKm = booking.km_package === 'unlimited'
+  const kmLabel = isUnlimitedKm ? 'Kilometraje Ilimitado (+15 €/día)' : '150 km/día (Incluido)'
+  const kmBadgeClass = isUnlimitedKm ? 'badge-km--unlimited' : 'badge-km--included'
+  const kmSupplement = Number(booking.km_supplement ?? booking.km_price ?? (isUnlimitedKm ? nights * 15 : 0))
+
+  // 2. Cancellation Policy
+  const isFlexibleCancel = booking.cancellation_policy === 'flexible'
+  const cancellationLabel = isFlexibleCancel ? 'Flexible (+8 €/día)' : 'Estándar (Incluida)'
+  const cancellationBadgeClass = isFlexibleCancel ? 'badge-cancel--flexible' : 'badge-cancel--standard'
+  const cancellationSupplement = Number(booking.cancellation_supplement ?? booking.cancellation_price ?? (isFlexibleCancel ? nights * 8 : 0))
+
+  // 3. Customer Contact & Billing
+  const cleanPhone = clientPhone.replace(/\D/g, '')
+  const telLink = cleanPhone ? `tel:${clientPhone}` : null
+  const whatsAppLink = cleanPhone ? `https://wa.me/${cleanPhone}` : null
+
+  const billingAddress = [
+    booking.customer_address,
+    booking.customer_postal_code,
+    booking.customer_city,
+    booking.customer_country
+  ].filter(Boolean).join(', ') || booking.customer_address || booking.billing_address || 'No especificada'
+
+  const travelersCount = booking.travelers_count || booking.guests_count || 2
+  const specialNotes = booking.special_notes || booking.notes || 'Ninguna'
+
+  // 4. Categorized Extras
+  const rawExtras = booking.extras_selected || booking.pricing_breakdown?.itemizedExtras || booking.extras
+  let parsedExtrasList: NormalizedExtra[] = []
+
+  function categorizeName(name: string): 'Equipamiento' | 'Deporte' | 'Confort' | 'Otros' {
+    const lower = name.toLowerCase()
+    if (lower.includes('surf') || lower.includes('paddle') || lower.includes('snorkel') || lower.includes('bici') || lower.includes('bike') || lower.includes('kayak') || lower.includes('buceo')) return 'Deporte'
+    if (lower.includes('cama') || lower.includes('ropa') || lower.includes('sábana') || lower.includes('almohada') || lower.includes('wifi') || lower.includes('café') || lower.includes('cafetera') || lower.includes('toalla')) return 'Confort'
+    if (lower.includes('camping') || lower.includes('mesa') || lower.includes('silla') || lower.includes('cocina') || lower.includes('solar') || lower.includes('ducha') || lower.includes('químico') || lower.includes('wc') || lower.includes('gas') || lower.includes('kit')) return 'Equipamiento'
+    return 'Otros'
+  }
+
+  if (Array.isArray(rawExtras)) {
+    parsedExtrasList = rawExtras.map((item: any, idx: number) => {
+      if (typeof item === 'string') {
+        return {
+          id: String(idx),
+          name: item,
+          category: categorizeName(item),
+          quantity: 1,
+          unit_price: 0,
+          total: 0
+        }
+      }
+      const name = item.name_es || item.name || item.extra?.name_es || item.extra?.name || item.title || 'Extra'
+      const cat = (item.category && ['Equipamiento', 'Deporte', 'Confort'].includes(item.category))
+        ? item.category
+        : categorizeName(name)
+      const qty = Number(item.quantity || 1)
+      const unit = Number(item.unit_price || item.price || 0)
+      const tot = Number(item.total || (qty * unit))
+      return {
+        id: item.id || String(idx),
+        name,
+        category: cat,
+        quantity: qty,
+        unit_price: unit,
+        total: tot,
+        price_type: item.price_type || item.pricingType
+      }
+    })
+  } else if (typeof rawExtras === 'string' && rawExtras.trim().startsWith('[')) {
+    try {
+      const parsed = JSON.parse(rawExtras)
+      if (Array.isArray(parsed)) {
+        parsedExtrasList = parsed.map((item: any, idx: number) => {
+          if (typeof item === 'string') {
+            return {
+              id: String(idx),
+              name: item,
+              category: categorizeName(item),
+              quantity: 1,
+              unit_price: 0,
+              total: 0
+            }
+          }
+          const name = item.name_es || item.name || item.title || 'Extra'
+          const cat = (item.category && ['Equipamiento', 'Deporte', 'Confort'].includes(item.category))
+            ? item.category
+            : categorizeName(name)
+          const qty = Number(item.quantity || 1)
+          const unit = Number(item.unit_price || item.price || 0)
+          const tot = Number(item.total || (qty * unit))
+          return {
+            id: item.id || String(idx),
+            name,
+            category: cat,
+            quantity: qty,
+            unit_price: unit,
+            total: tot
+          }
+        })
+      }
+    } catch {
+      parsedExtrasList = rawExtras.split(',').map((s, idx) => ({
+        id: String(idx),
+        name: s.trim(),
+        category: categorizeName(s.trim()),
+        quantity: 1,
+        unit_price: 0,
+        total: 0
+      }))
+    }
+  } else if (typeof rawExtras === 'string' && rawExtras.trim()) {
+    parsedExtrasList = rawExtras.split(',').map((s, idx) => ({
+      id: String(idx),
+      name: s.trim(),
+      category: categorizeName(s.trim()),
+      quantity: 1,
+      unit_price: 0,
+      total: 0
+    }))
+  }
+
+  const categorizedExtras: Record<string, NormalizedExtra[]> = {
+    Equipamiento: [],
+    Deporte: [],
+    Confort: [],
+    Otros: []
+  }
+  for (const item of parsedExtrasList) {
+    if (item.category in categorizedExtras) {
+      categorizedExtras[item.category].push(item)
+    } else {
+      categorizedExtras.Otros.push(item)
+    }
+  }
+  const extrasSubtotal = parsedExtrasList.reduce((acc, curr) => acc + curr.total, 0)
+
+  // 5. Itemized Financial Breakdown
+  const discountAmount = Number(booking.discount_amount || 0)
+  const basePrice = Number(
+    booking.base_price ??
+    booking.pricing_breakdown?.basePrice ??
+    Math.max(0, booking.total_price - kmSupplement - cancellationSupplement - extrasSubtotal + discountAmount)
+  )
+  const depositAmount = Number(booking.deposit_amount || 1000)
+  const redsysOrderId = booking.payment_intent_id || booking.payment_intent || booking.order_id || null
+  const isPaid = booking.payment_status === 'paid'
 
   return (
     <div className="bm-backdrop" onClick={onClose}>
@@ -60,7 +223,7 @@ export default function BookingDetailModal({ booking, onClose }: Props) {
               <Truck size={22} />
             </div>
             <div>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap' }}>
                 <h3 className="bm-title">Reserva #{booking.id.split('-')[0].toUpperCase()}</h3>
                 <span className={`status-badge status-${booking.status}`}>
                   {booking.status === 'confirmed' ? 'Confirmada' :
@@ -68,6 +231,11 @@ export default function BookingDetailModal({ booking, onClose }: Props) {
                    booking.status === 'pending' ? 'Pendiente' :
                    booking.status === 'completed' ? 'Completada' : 'Cancelada'}
                 </span>
+                {isPaid && (
+                  <span className="badge-paid">
+                    <Check size={11} /> Pagado Redsys
+                  </span>
+                )}
               </div>
               <p className="bm-subtitle">
                 Camper: <strong>{camperName}</strong> · Creada el {new Date(booking.created_at).toLocaleDateString('es-ES')}
@@ -81,11 +249,12 @@ export default function BookingDetailModal({ booking, onClose }: Props) {
 
         {/* Content Body */}
         <div className="bm-body">
-          {/* Main Grid: Dates & Locations */}
+          {/* Main Grid: Dates & Locations + Options */}
           <div className="bm-grid">
+            {/* Periodo & Horarios + Packages */}
             <div className="bm-card">
               <h4 className="bm-card-title">
-                <Calendar size={16} className="bm-icon-green" /> Periodo & Horarios
+                <Calendar size={16} className="bm-icon-green" /> Periodo & Opciones de Viaje
               </h4>
               <div className="bm-field-list">
                 <div className="bm-field">
@@ -114,13 +283,43 @@ export default function BookingDetailModal({ booking, onClose }: Props) {
                     <MapPin size={13} style={{ color: '#6b7280', flexShrink: 0 }} /> {pickupLocation}
                   </div>
                 </div>
+
+                {/* KM Package */}
+                <div className="bm-field" style={{ paddingTop: 8, borderTop: '1px dashed #E5E7EB' }}>
+                  <span className="bm-label">Paquete de Kilometraje</span>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginTop: 2 }}>
+                    <span className={`bm-opt-badge ${kmBadgeClass}`}>
+                      <Gauge size={13} /> {kmLabel}
+                    </span>
+                  </div>
+                  <p style={{ fontSize: '0.78rem', color: '#6B7280', margin: '3px 0 0' }}>
+                    {isUnlimitedKm
+                      ? `Kilometraje ilimitado sin recargos (+15 €/día × ${nights} días = +${formatPrice(kmSupplement)})`
+                      : '150 km/día incluidos en tarifa de alquiler sin coste adicional.'}
+                  </p>
+                </div>
+
+                {/* Cancellation Policy */}
+                <div className="bm-field" style={{ paddingTop: 8, borderTop: '1px dashed #E5E7EB' }}>
+                  <span className="bm-label">Política de Cancelación</span>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginTop: 2 }}>
+                    <span className={`bm-opt-badge ${cancellationBadgeClass}`}>
+                      <Shield size={13} /> {cancellationLabel}
+                    </span>
+                  </div>
+                  <p style={{ fontSize: '0.78rem', color: '#6B7280', margin: '3px 0 0' }}>
+                    {isFlexibleCancel
+                      ? `Reembolso 100% >30d, 50% 29-15d, 1 cambio gratis >15d (+8 €/día × ${nights} días = +${formatPrice(cancellationSupplement)})`
+                      : 'Modificación de fechas gratuita hasta 60 días antes de la recogida.'}
+                  </p>
+                </div>
               </div>
             </div>
 
-            {/* Customer Details */}
+            {/* Customer Details & Billing Info */}
             <div className="bm-card">
               <h4 className="bm-card-title">
-                <User size={16} className="bm-icon-green" /> Datos del Cliente
+                <User size={16} className="bm-icon-green" /> Cliente & Datos de Facturación
               </h4>
               <div className="bm-field-list">
                 <div className="bm-field">
@@ -128,21 +327,30 @@ export default function BookingDetailModal({ booking, onClose }: Props) {
                   <strong className="bm-val">{clientName}</strong>
                 </div>
                 <div className="bm-field">
-                  <span className="bm-label">Email</span>
-                  <div className="bm-val flex-align">
-                    <Mail size={13} style={{ color: '#6b7280' }} /> {clientEmail}
+                  <span className="bm-label">DNI / NIE / Pasaporte</span>
+                  <div className="bm-val" style={{ fontFamily: 'monospace' }}>
+                    {clientDni}
                   </div>
                 </div>
                 <div className="bm-field">
-                  <span className="bm-label">Teléfono</span>
+                  <span className="bm-label">Email</span>
+                  <div className="bm-val flex-align">
+                    <Mail size={13} style={{ color: '#6b7280' }} />
+                    <a href={`mailto:${clientEmail}`} style={{ color: '#166534', textDecoration: 'none' }}>
+                      {clientEmail}
+                    </a>
+                  </div>
+                </div>
+                <div className="bm-field">
+                  <span className="bm-label">Teléfono de Contacto</span>
                   <div className="bm-val flex-align" style={{ flexWrap: 'wrap', gap: '8px' }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
                       <Phone size={13} style={{ color: '#6b7280' }} /> {clientPhone}
                     </div>
-                    {clientPhone && clientPhone !== '-' && (
+                    {telLink && (
                       <div style={{ display: 'inline-flex', gap: '6px' }}>
                         <a
-                          href={`tel:${clientPhone}`}
+                          href={telLink}
                           style={{
                             fontSize: '0.72rem',
                             fontWeight: 700,
@@ -155,61 +363,167 @@ export default function BookingDetailModal({ booking, onClose }: Props) {
                         >
                           Llamar
                         </a>
-                        <a
-                          href={`https://wa.me/${clientPhone.replace(/\D/g, '')}`}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          style={{
-                            fontSize: '0.72rem',
-                            fontWeight: 700,
-                            color: '#0369a1',
-                            background: '#e0f2fe',
-                            padding: '2px 8px',
-                            borderRadius: '9999px',
-                            textDecoration: 'none',
-                          }}
-                        >
-                          WhatsApp
-                        </a>
+                        {whatsAppLink && (
+                          <a
+                            href={whatsAppLink}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            style={{
+                              fontSize: '0.72rem',
+                              fontWeight: 700,
+                              color: '#0369a1',
+                              background: '#e0f2fe',
+                              padding: '2px 8px',
+                              borderRadius: '9999px',
+                              textDecoration: 'none',
+                            }}
+                          >
+                            WhatsApp
+                          </a>
+                        )}
                       </div>
                     )}
                   </div>
                 </div>
+
+                <div className="bm-field" style={{ paddingTop: 8, borderTop: '1px dashed #E5E7EB' }}>
+                  <span className="bm-label">Dirección de Facturación</span>
+                  <div className="bm-val-sub" style={{ color: '#374151' }}>
+                    {billingAddress}
+                  </div>
+                </div>
+
                 <div className="bm-field">
-                  <span className="bm-label">DNI / NIE / Carnet</span>
-                  <div className="bm-val" style={{ fontFamily: 'monospace' }}>
-                    {booking.users?.dni_nie || booking.users?.driver_license_id || 'No registrado'}
+                  <span className="bm-label">Número de Viajeros</span>
+                  <div className="bm-val">
+                    {travelersCount} {travelersCount === 1 ? 'persona' : 'personas'}
+                  </div>
+                </div>
+
+                <div className="bm-field">
+                  <span className="bm-label">Peticiones o Notas Especiales</span>
+                  <div className="bm-val-sub" style={{ fontStyle: specialNotes !== 'Ninguna' ? 'normal' : 'italic', color: '#4B5563' }}>
+                    {specialNotes}
                   </div>
                 </div>
               </div>
             </div>
           </div>
 
+          {/* Categorized Extras */}
+          <div className="bm-card bm-card--extras">
+            <h4 className="bm-card-title" style={{ color: '#1E293B', marginBottom: 12 }}>
+              <Package size={16} className="bm-icon-green" /> Extras y Experiencias Contratadas
+            </h4>
+
+            {parsedExtrasList.length === 0 ? (
+              <div style={{ padding: '8px 12px', background: '#F8FAFC', borderRadius: 8, fontSize: '0.85rem', color: '#64748B' }}>
+                ✨ <strong>Equipamiento de Serie Utopia incluido:</strong> Vajilla y menaje completo, kit de limpieza eco, cable eléctrico 220V, manguera y cuñas de nivelación. Sin extras de pago adicionales.
+              </div>
+            ) : (
+              <div className="bm-categories-grid">
+                {(['Equipamiento', 'Deporte', 'Confort', 'Otros'] as const).map(cat => {
+                  const items = categorizedExtras[cat]
+                  if (!items || items.length === 0) return null
+
+                  const icon = cat === 'Equipamiento' ? '🎒' : cat === 'Deporte' ? '🏄' : cat === 'Confort' ? '✨' : '📦'
+                  return (
+                    <div key={cat} className="bm-category-group">
+                      <div className="bm-category-header">
+                        <span>{icon} {cat}</span>
+                        <span className="bm-category-count">{items.length}</span>
+                      </div>
+                      <div className="bm-category-items">
+                        {items.map(item => (
+                          <div key={item.id} className="bm-extra-row">
+                            <div className="bm-extra-name">
+                              <span>{item.name}</span>
+                              {item.quantity > 1 && (
+                                <span className="bm-extra-qty">x{item.quantity}</span>
+                              )}
+                            </div>
+                            <div className="bm-extra-price">
+                              {item.unit_price > 0 && (
+                                <span className="bm-extra-unit">({formatPrice(item.unit_price)}{item.price_type === 'per_day' ? '/día' : ''})</span>
+                              )}
+                              <strong>{item.total > 0 ? formatPrice(item.total) : 'Incluido'}</strong>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )
+                })}
+              </div>
+            )}
+          </div>
+
           {/* Pricing & Financial Breakdown */}
           <div className="bm-card bm-card--pricing">
             <h4 className="bm-card-title" style={{ color: '#166534' }}>
-              <Euro size={16} /> Desglose Económico de la Reserva
+              <Euro size={16} /> Desglose Económico Pormenorizado
             </h4>
             <div className="bm-pricing-grid">
               <div className="bm-price-row">
-                <span>Alquiler camper ({nights} noches)</span>
-                <strong>{formatPrice(booking.total_price)}</strong>
+                <span>Alquiler base camper ({nights} noches)</span>
+                <strong>{formatPrice(basePrice)}</strong>
               </div>
-              <div className="bm-price-row">
-                <span>Fianza reembolsable (bloqueo)</span>
-                <strong>{formatPrice(booking.deposit_amount || 1000)}</strong>
-              </div>
-              {booking.extras && (
-                <div className="bm-price-row">
-                  <span>Extras incluidos</span>
-                  <span style={{ fontSize: '0.82rem', color: '#4b5563' }}>
-                    {Array.isArray(booking.extras) ? booking.extras.join(', ') : booking.extras}
-                  </span>
+
+              {discountAmount > 0 && (
+                <div className="bm-price-row" style={{ color: '#15803d' }}>
+                  <span>Descuento aplicado por estancia prolongada</span>
+                  <strong>- {formatPrice(discountAmount)}</strong>
                 </div>
               )}
+
+              <div className="bm-price-row">
+                <span>Paquete de KM: {kmLabel}</span>
+                <strong>{kmSupplement > 0 ? `+ ${formatPrice(kmSupplement)}` : '0,00 €'}</strong>
+              </div>
+
+              <div className="bm-price-row">
+                <span>Política de Cancelación: {cancellationLabel}</span>
+                <strong>{cancellationSupplement > 0 ? `+ ${formatPrice(cancellationSupplement)}` : '0,00 €'}</strong>
+              </div>
+
+              {extrasSubtotal > 0 && (
+                <div className="bm-price-row">
+                  <span>Extras y experiencias ({parsedExtrasList.length} seleccionados)</span>
+                  <strong>+ {formatPrice(extrasSubtotal)}</strong>
+                </div>
+              )}
+
               <div className="bm-price-total">
-                <span>Total Abonado</span>
+                <div>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
+                    <span>Total Abonado</span>
+                    {isPaid ? (
+                      <span className="badge-paid-pill">
+                        <Check size={11} /> Abonado 100% vía Redsys
+                      </span>
+                    ) : (
+                      <span className="badge-pending-pill">
+                        Pendiente de Pago
+                      </span>
+                    )}
+                  </div>
+                  {redsysOrderId && (
+                    <div style={{ fontSize: '0.75rem', fontWeight: 500, color: '#4B5563', marginTop: 2 }}>
+                      Ref. Transacción: <code style={{ color: '#166534' }}>{redsysOrderId}</code>
+                    </div>
+                  )}
+                </div>
                 <span className="bm-total-amount">{formatPrice(booking.total_price)}</span>
+              </div>
+
+              <div className="bm-deposit-box">
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <span style={{ fontWeight: 600, color: '#374151' }}>Fianza Informativa Reembolsable (bloqueo)</span>
+                  <strong style={{ color: '#111827' }}>{formatPrice(depositAmount)}</strong>
+                </div>
+                <p style={{ fontSize: '0.78rem', color: '#6B7280', margin: '4px 0 0' }}>
+                  Bloqueo preventivo en tarjeta de crédito al momento del check-in. No se cobra por adelantado y se libera íntegramente tras la devolución de la camper.
+                </p>
               </div>
             </div>
           </div>
@@ -222,7 +536,7 @@ export default function BookingDetailModal({ booking, onClose }: Props) {
                   <FileText size={16} /> Contrato de Alquiler Oficial
                 </h4>
                 <p style={{ fontSize: '0.82rem', color: '#6b7280', margin: '4px 0 0' }}>
-                  Contrato legal generado automáticamente con cláusulas, datos de la camper y firmas.
+                  Contrato legal de 31 artículos generado automáticamente con cláusulas, datos de la camper y firmas.
                 </p>
               </div>
 
@@ -442,6 +756,148 @@ export default function BookingDetailModal({ booking, onClose }: Props) {
           justify-content: space-between;
           font-size: 0.88rem;
           color: #374151;
+        }
+
+        .bm-opt-badge {
+          display: inline-flex;
+          align-items: center;
+          gap: 6px;
+          font-size: 0.78rem;
+          font-weight: 700;
+          padding: 3px 10px;
+          border-radius: 9999px;
+        }
+        .badge-km--unlimited {
+          background: #EDE9FE;
+          color: #6D28D9;
+          border: 1px solid #C4B5FD;
+        }
+        .badge-km--included {
+          background: #DCFCE7;
+          color: #166534;
+          border: 1px solid #86EFAC;
+        }
+        .badge-cancel--flexible {
+          background: #E0F2FE;
+          color: #0369A1;
+          border: 1px solid #7DD3FC;
+        }
+        .badge-cancel--standard {
+          background: #DCFCE7;
+          color: #166534;
+          border: 1px solid #86EFAC;
+        }
+
+        .badge-paid {
+          display: inline-flex;
+          align-items: center;
+          gap: 4px;
+          background: #DCFCE7;
+          color: #166534;
+          font-size: 0.72rem;
+          font-weight: 700;
+          padding: 2px 8px;
+          border-radius: 9999px;
+          border: 1px solid #86EFAC;
+        }
+        .badge-paid-pill {
+          display: inline-flex;
+          align-items: center;
+          gap: 4px;
+          background: #DCFCE7;
+          color: #166534;
+          font-size: 0.72rem;
+          font-weight: 700;
+          padding: 2px 8px;
+          border-radius: 9999px;
+        }
+        .badge-pending-pill {
+          display: inline-flex;
+          align-items: center;
+          gap: 4px;
+          background: #FEF3C7;
+          color: #92400E;
+          font-size: 0.72rem;
+          font-weight: 700;
+          padding: 2px 8px;
+          border-radius: 9999px;
+        }
+
+        .bm-card--extras {
+          background: #FFFFFF;
+          border: 1px solid #E2E8F0;
+        }
+        .bm-categories-grid {
+          display: grid;
+          grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+          gap: 12px;
+        }
+        .bm-category-group {
+          background: #F8FAFC;
+          border: 1px solid #E2E8F0;
+          border-radius: 8px;
+          padding: 10px 12px;
+        }
+        .bm-category-header {
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          font-size: 0.8rem;
+          font-weight: 700;
+          color: #334155;
+          margin-bottom: 8px;
+          padding-bottom: 6px;
+          border-bottom: 1px solid #E2E8F0;
+        }
+        .bm-category-count {
+          background: #E2E8F0;
+          color: #475569;
+          font-size: 0.68rem;
+          font-weight: 700;
+          padding: 1px 6px;
+          border-radius: 9999px;
+        }
+        .bm-category-items {
+          display: flex;
+          flex-direction: column;
+          gap: 6px;
+        }
+        .bm-extra-row {
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          font-size: 0.8rem;
+          color: #1E293B;
+        }
+        .bm-extra-name {
+          display: flex;
+          align-items: center;
+          gap: 6px;
+        }
+        .bm-extra-qty {
+          background: #E0F2FE;
+          color: #0369A1;
+          font-size: 0.68rem;
+          font-weight: 700;
+          padding: 1px 5px;
+          border-radius: 4px;
+        }
+        .bm-extra-price {
+          display: flex;
+          align-items: center;
+          gap: 6px;
+        }
+        .bm-extra-unit {
+          font-size: 0.72rem;
+          color: #64748B;
+        }
+
+        .bm-deposit-box {
+          margin-top: 10px;
+          padding: 10px 12px;
+          background: #F8FAFC;
+          border: 1px solid #E2E8F0;
+          border-radius: 8px;
         }
 
         .bm-price-total {

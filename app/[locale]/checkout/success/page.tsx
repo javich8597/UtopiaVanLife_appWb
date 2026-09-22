@@ -13,14 +13,23 @@ import {
   FileText,
   Upload,
   AlertCircle,
-  ShieldCheck
+  ShieldCheck,
+  Clock,
+  MessageCircle
 } from 'lucide-react'
 import { validateDriverLicense } from '@/lib/contracts/licenseValidator'
 
 function SuccessContent() {
   const router = useRouter()
   const searchParams = useSearchParams()
+  const orderId = searchParams.get('order') || searchParams.get('orderId') || searchParams.get('payment_intent') || ''
   const redirectStatus = searchParams.get('redirect_status') || 'succeeded'
+
+  const whatsappNumber = process.env.NEXT_PUBLIC_WHATSAPP_NUMBER || '34611560916'
+  const whatsappText = encodeURIComponent(
+    `Hola Utopia Van Life, acabo de abonar mi reserva${orderId ? ` con referencia #${orderId}` : ''}. ¿Podríais confirmarme cuando esté aprobada? ¡Muchas gracias!`
+  )
+  const whatsappUrl = `https://wa.me/${whatsappNumber}?text=${whatsappText}`
 
   // Steps: 1 (Personal & License Data), 2 (Upload 4 Document Photos), 3 (Completed)
   const [step, setStep] = useState<1 | 2 | 3>(1)
@@ -172,12 +181,62 @@ function SuccessContent() {
         }}>
           <CheckCircle2 size={44} style={{ color: '#16a34a' }} strokeWidth={2} />
         </div>
-        <h1 className="text-h2" style={{ marginBottom: 8, fontSize: 'clamp(1.7rem, 2.5vw, 2.2rem)' }}>
-          ¡Pago Recibido y Reserva Registrada!
+        <h1 className="text-h2" style={{ marginBottom: 12, fontSize: 'clamp(1.7rem, 2.5vw, 2.2rem)' }}>
+          ¡Pago Recibido con Éxito!
         </h1>
-        <p className="text-body" style={{ color: 'var(--gray-600)', maxWidth: 540, margin: '0 auto', fontSize: '1rem', lineHeight: 1.5 }}>
-          Hemos registrado tu solicitud de reserva. Para que el administrador pueda revisarla, emitir y auto-rellenar tu <strong>contrato de alquiler</strong>, necesitamos tus datos de conductor.
+
+        {/* Status Badge */}
+        <div style={{
+          display: 'inline-flex',
+          alignItems: 'center',
+          gap: 8,
+          padding: '8px 18px',
+          background: '#FEF3C7',
+          color: '#92400E',
+          borderRadius: 24,
+          fontSize: '0.9rem',
+          fontWeight: 600,
+          marginBottom: 14,
+          border: '1px solid #FCD34D'
+        }}>
+          <Clock size={16} />
+          Estado: Pendiente de confirmación por Utopia Van Life
+        </div>
+
+        {orderId && (
+          <p style={{ fontSize: '0.85rem', color: 'var(--gray-500)', marginBottom: 8 }}>
+            Referencia de Pago Redsys: <strong>#{orderId}</strong>
+          </p>
+        )}
+
+        <p className="text-body" style={{ color: 'var(--gray-600)', maxWidth: 580, margin: '0 auto 16px', fontSize: '0.98rem', lineHeight: 1.5 }}>
+          Hemos recibido tu abono a través de la pasarela segura Redsys y tus fechas están <strong>bloqueadas en el calendario</strong>. El equipo de Utopia Van Life confirmará formalmente tu reserva en breve.
         </p>
+
+        {/* WhatsApp direct contact */}
+        <div style={{ marginBottom: 28 }}>
+          <a
+            href={whatsappUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+            style={{
+              background: '#25D366',
+              color: 'white',
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: 8,
+              padding: '10px 20px',
+              borderRadius: 8,
+              fontWeight: 600,
+              fontSize: '0.9rem',
+              textDecoration: 'none',
+              boxShadow: '0 2px 6px rgba(37, 211, 102, 0.25)'
+            }}
+          >
+            <MessageCircle size={18} />
+            <span>Consultar por WhatsApp</span>
+          </a>
+        </div>
       </div>
 
       {step === 3 ? (

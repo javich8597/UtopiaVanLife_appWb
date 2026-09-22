@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
-import { stripe } from '@/lib/stripe'
 import { calculatePrice } from '@/lib/pricing/engine'
+import { generateRedsysOrderId, createRedsysPaymentForm } from '@/lib/redsys'
 
 export async function POST(req: Request) {
     try {
@@ -25,7 +25,9 @@ export async function POST(req: Request) {
             .eq('slug', camperSlug)
             .single()
 
-        if (camperErr || !camper) return NextResponse.json({ error: 'Camper no encontrado' }, { status: 404 })
+        if (camperErr || !camper) {
+            return NextResponse.json({ error: 'Camper no encontrada' }, { status: 404 })
+        }
 
         // 2. Comprobar disponibilidad real (evitar dobles reservas)
         const { data: activeBookings } = await supabase
@@ -47,14 +49,17 @@ export async function POST(req: Request) {
             .select('*')
             .in('id', extraIds && extraIds.length > 0 ? extraIds : ['__empty__'])
 
-        // 4. Calcular precio en el servidor as source of truth
+        // 4. Calcular precio en el servidor como source of truth
         const startDate = new Date(from)
         const endDate = new Date(to)
         const breakdown = calculatePrice(startDate, endDate, seasons || [], extras || [], camper.deposit_amount)
 
         if (breakdown.numNights <= 0) {
-            return NextResponse.json({ error: 'Fechas inválidas' }, { status: 400 })
+            return NextResponse.json({ error: 'Fechas de reserva inválidas' }, { status: 400 })
         }
+
+        // El importe a cobrar en Redsys es el 100% del viaje (alquiler + extras - descuentos)
+        const amountToCharge = breakdown.totalWithoutDeposit
 
         // Fetch user profile name and phone from public.users
         const { data: userProfile } = await supabase
@@ -67,7 +72,10 @@ export async function POST(req: Request) {
         const customerEmail = user.email || ''
         const customerPhone = userProfile?.phone || user.user_metadata?.phone || ''
 
-        // 5. Crear la reserva en BD como 'pending'
+        // 5. Generar identificador de pedido único de Redsys (12 caracteres)
+        const redsysOrderId = generateRedsysOrderId()
+
+        // 6. Crear la reserva en BD como 'pending' y 'unpaid'
         const { data: booking, error: bookingErr } = await supabase
             .from('bookings')
             .insert({
@@ -86,45 +94,33 @@ export async function POST(req: Request) {
                 extras_selected: extras || [],
                 total_price: breakdown.totalWithoutDeposit,
                 status: 'pending',
-                payment_status: 'unpaid'
+                payment_status: 'unpaid',
+                payment_intent_id: redsysOrderId, // Guardamos la referencia de pedido de Redsys
             })
             .select('id')
             .single()
 
         if (bookingErr || !booking) {
             console.error('Booking Error:', bookingErr)
-            return NextResponse.json({ error: 'Error al procesar reserva' }, { status: 500 })
+            return NextResponse.json({ error: 'Error al registrar la reserva previa' }, { status: 500 })
         }
 
-        // 6. Crear Stripe Payment Intent si Stripe está configurado
-        const amountInCents = Math.round(breakdown.grandTotal * 100)
-        let clientSecret = null
-
-        if (process.env.STRIPE_SECRET_KEY && process.env.STRIPE_SECRET_KEY !== 'sk_test_placeholder') {
-            const paymentIntent = await stripe.paymentIntents.create({
-                amount: amountInCents,
-                currency: 'eur',
-                metadata: {
-                    booking_id: booking.id,
-                    camper_slug: camperSlug,
-                    user_id: user.id,
-                },
-                automatic_payment_methods: { enabled: true },
-            })
-            clientSecret = paymentIntent.client_secret
-        } else {
-            // Mock intent secret for preview/dev mode
-            clientSecret = `mock_pi_${booking.id}_secret_preview`
-        }
-
-        return NextResponse.json({
-            clientSecret,
-            bookingId: booking.id,
-            breakdown,
+        // 7. Generar los parámetros y la firma criptográfica para Redsys
+        const formData = createRedsysPaymentForm({
+            amount: amountToCharge,
+            orderId: redsysOrderId,
+            description: `1x Camper ${camper.name || camperSlug.toUpperCase()} - Utopia Van Life`,
+            customerName,
         })
 
+        return NextResponse.json({
+            bookingId: booking.id,
+            orderId: redsysOrderId,
+            formData,
+            breakdown,
+        })
     } catch (error: any) {
-        console.error('CreateIntent Error:', error.message)
-        return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 })
+        console.error('Redsys CreateOrder Error:', error)
+        return NextResponse.json({ error: error.message || 'Error interno del servidor' }, { status: 500 })
     }
 }

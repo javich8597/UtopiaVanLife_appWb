@@ -17,6 +17,54 @@ interface Props {
     user: any
 }
 
+export function mapDashboardBookingBadge(booking: {
+    status: 'pending' | 'confirmed' | 'active' | 'completed' | 'cancelled' | string
+    payment_status?: 'pending' | 'paid' | 'failed' | string
+}) {
+    const isConfirmed = booking.status === 'confirmed' || booking.status === 'active'
+    const isPaidPending = booking.payment_status === 'paid' && booking.status === 'pending'
+
+    if (isConfirmed) {
+        return {
+            text: 'Reserva Confirmada',
+            badgeClass: 'status-badge--confirmed',
+            status: 'confirmed',
+        }
+    }
+
+    if (isPaidPending) {
+        return {
+            text: 'Pagada · En Aprobación Admin',
+            badgeClass: 'status-badge--paid-pending',
+            status: 'paid-pending',
+        }
+    }
+
+    if (booking.status === 'cancelled') {
+        return {
+            text: 'Cancelada',
+            badgeClass: 'status-badge--cancelled',
+            status: 'cancelled',
+        }
+    }
+
+    return {
+        text: 'Pendiente de Pago',
+        badgeClass: 'status-badge--pending',
+        status: 'pending',
+    }
+}
+
+export function formatBookingSlotTime(time?: string, fallback: string = '14:00 - 18:00') {
+    if (!time || !time.trim()) return fallback
+    const t = time.trim()
+    if (t.toLowerCase() === 'morning' || t.toLowerCase().includes('mañana')) return '09:00 - 12:00 (Mañana)'
+    if (t.toLowerCase() === 'afternoon' || t.toLowerCase().includes('tarde')) return '15:00 - 19:00 (Tarde)'
+    if (t.length === 5 && t.includes(':')) return `${t}h`
+    if (t.length === 8 && t.includes(':')) return `${t.slice(0, 5)}h`
+    return t
+}
+
 export default function DashboardClient({ bookings, profile, user }: Props) {
     const activeBookings = bookings?.filter(b => b.status === 'confirmed' || b.status === 'active') || []
     const pastBookings = bookings?.filter(b => b.status === 'completed' || b.status === 'cancelled') || []
@@ -151,14 +199,40 @@ export default function DashboardClient({ bookings, profile, user }: Props) {
                                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 'var(--space-4)', flexWrap: 'wrap', gap: 8 }}>
                                     <div>
                                         <h3 className="text-h3" style={{ color: 'var(--forest-green)' }}>Detalles del Viaje</h3>
-                                        <p className="text-small" style={{ color: 'var(--gray-600)' }}>
-                                            {nightsCount} Noches • {nextBooking.guests_count || 2} Viajeros
-                                        </p>
+                                        <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap', marginTop: 4 }}>
+                                            <p className="text-small" style={{ color: 'var(--gray-600)', margin: 0 }}>
+                                                {nightsCount} Noches • {nextBooking.guests_count || nextBooking.travelers_count || 2} Viajeros
+                                            </p>
+                                            {nextBooking.km_package && (
+                                                <span className="text-xs" style={{ background: '#f3f4f6', padding: '2px 8px', borderRadius: 6, color: '#374151', fontWeight: 600 }}>
+                                                    {nextBooking.km_package === 'unlimited' ? 'KM Ilimitado' : '150 km/día'}
+                                                </span>
+                                            )}
+                                            {nextBooking.cancellation_policy && (
+                                                <span className="text-xs" style={{ background: '#f3f4f6', padding: '2px 8px', borderRadius: 6, color: '#374151', fontWeight: 600 }}>
+                                                    {nextBooking.cancellation_policy === 'flexible' ? 'Cancelación Flexible' : 'Cancelación Estándar'}
+                                                </span>
+                                            )}
+                                        </div>
                                     </div>
-                                    <span className={`status-badge status-badge--${nextBooking.status}`}>
-                                        {nextBooking.status === 'confirmed' ? 'Confirmada' : 'Pendiente de Pago'}
-                                    </span>
+                                    {(() => {
+                                        const badge = mapDashboardBookingBadge(nextBooking)
+                                        return (
+                                            <span className={`status-badge ${badge.badgeClass}`}>
+                                                {badge.text}
+                                            </span>
+                                        )
+                                    })()}
                                 </div>
+
+                                {nextBooking.payment_status === 'paid' && nextBooking.status === 'pending' && (
+                                    <div className="paid-pending-banner">
+                                        <Sparkles size={16} style={{ color: '#D97706', flexShrink: 0, marginTop: 2 }} />
+                                        <div>
+                                            <strong>Pago confirmado vía Redsys.</strong> Tu viaje está pagado al 100% y en proceso de validación final por administración. Puedes subir ya tu carnet de conducir y firmar el contrato de alquiler oficial.
+                                        </div>
+                                    </div>
+                                )}
 
                                 <div className="trip-dates-grid">
                                     <div className="date-block">
@@ -166,14 +240,14 @@ export default function DashboardClient({ bookings, profile, user }: Props) {
                                         <p className="date-val">
                                             {new Date(nextBooking.start_date).toLocaleDateString('es-ES', { day: 'numeric', month: 'short', year: 'numeric' })}
                                         </p>
-                                        <span className="date-time">14:00 - 18:00</span>
+                                        <span className="date-time">{formatBookingSlotTime(nextBooking.pickup_time, '14:00 - 18:00')}</span>
                                     </div>
                                     <div className="date-block">
                                         <span className="date-label">Devolución</span>
                                         <p className="date-val">
                                             {new Date(nextBooking.end_date).toLocaleDateString('es-ES', { day: 'numeric', month: 'short', year: 'numeric' })}
                                         </p>
-                                        <span className="date-time">10:00 - 12:00</span>
+                                        <span className="date-time">{formatBookingSlotTime(nextBooking.dropoff_time, '10:00 - 12:00')}</span>
                                     </div>
                                 </div>
 
@@ -314,7 +388,7 @@ export default function DashboardClient({ bookings, profile, user }: Props) {
                                         </span>
                                     )}
                                     {!isVerified && !isPendingDoc && (
-                                        <Link href="/dashboard/profile" className="btn btn-forest btn-sm" style={{ padding: '4px 10px', fontSize: '0.75rem' }}>
+                                        <Link href="/dashboard/documentos" className="btn btn-forest btn-sm" style={{ padding: '4px 10px', fontSize: '0.75rem' }}>
                                             Subir Carnet
                                         </Link>
                                     )}
@@ -363,6 +437,17 @@ export default function DashboardClient({ bookings, profile, user }: Props) {
                                         </Link>
                                     </div>
                                 )}
+                            </div>
+
+                            <div style={{ marginTop: 'var(--space-3)', paddingTop: 'var(--space-3)', borderTop: '1px dashed var(--gray-200)' }}>
+                                <Link 
+                                    href="/dashboard/documentos" 
+                                    className="btn btn-forest btn-sm" 
+                                    style={{ width: '100%', justifyContent: 'center', gap: 6, fontSize: '0.8rem', padding: '8px 12px' }}
+                                >
+                                    <FileDown size={14} />
+                                    <span>Subir Carnet & Firmar Contrato →</span>
+                                </Link>
                             </div>
                         </div>
                     </div>
@@ -633,9 +718,32 @@ export default function DashboardClient({ bookings, profile, user }: Props) {
                     background: rgba(230, 126, 34, 0.15);
                     color: var(--warning);
                 }
+                .status-badge--paid-pending {
+                    background: #FEF3C7;
+                    color: #92400E;
+                    border: 1px solid #F59E0B;
+                }
                 .status-badge--completed {
                     background: var(--gray-200);
                     color: var(--gray-700);
+                }
+                .status-badge--cancelled {
+                    background: #FEE2E2;
+                    color: #991B1B;
+                }
+
+                .paid-pending-banner {
+                    display: flex;
+                    align-items: flex-start;
+                    gap: 10px;
+                    background: #FFFBEB;
+                    border: 1px solid #FDE68A;
+                    border-radius: var(--radius-md);
+                    padding: 10px 14px;
+                    margin-bottom: var(--space-4);
+                    font-size: 0.82rem;
+                    color: #92400E;
+                    line-height: 1.4;
                 }
 
                 .trip-dates-grid {

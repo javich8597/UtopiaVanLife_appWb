@@ -6,75 +6,30 @@
  *    (Precio Noche = Base Camper + Suplemento Temporada)
  * 2. Calcular suplemento por medio día de entrada (morning) y/o salida (afternoon)
  * 3. Calcular descuento por estancia según tramos dinámicos de días
- * 4. Sumar extras seleccionados
- * 5. Añadir la fianza de la camper
+ * 4. Sumar paquete de kilometraje (150 km incluidos vs ilimitado +15€/día)
+ * 5. Sumar política de cancelación (estándar vs flexible +8€/día)
+ * 6. Sumar extras categorizados (por día o fijos)
+ * 7. Fianza informativa reembolsable de la camper (1.000 €)
  */
 
-export type DaySlot = 'morning' | 'afternoon'
+import {
+    DaySlot,
+    KmPackage,
+    CancellationPolicy,
+    ExtraPricingType,
+    CategorizedExtra,
+    ItemizedExtra,
+    Season,
+    SeasonV2,
+    SeasonPeriod,
+    DurationDiscount,
+    Extra,
+    PricingBreakdown,
+    PriceBreakdown,
+    CalculatePriceV2Params,
+} from './types'
 
-// ==========================================
-// TIPOS V1 (Legacy para compatibilidad)
-// ==========================================
-export interface Season {
-    id: string
-    name: string
-    start_date: string
-    end_date: string
-    price_per_night: number
-    discount_7days_pct: number
-    min_nights?: number
-}
-
-// ==========================================
-// TIPOS V2 (Desacoplados: Categorías + Periodos + Tramos)
-// ==========================================
-export interface SeasonV2 {
-    id: string
-    code: 'baja' | 'media' | 'alta' | string
-    name: string
-    supplement_per_night: number
-    min_nights: number
-    is_default?: boolean
-    color_badge?: string
-}
-
-export interface SeasonPeriod {
-    id?: string
-    season_id: string
-    start_date: string // YYYY-MM-DD
-    end_date: string   // YYYY-MM-DD
-    label?: string | null
-}
-
-export interface DurationDiscount {
-    id?: string
-    min_days: number
-    discount_pct: number
-    is_active: boolean
-}
-
-export interface Extra {
-    id: string
-    name_es: string
-    name_en?: string
-    price: number
-    price_type?: 'per_rental' | 'per_day'
-    icon?: string
-    quantity?: number
-}
-
-export interface PriceBreakdown {
-    numNights: number
-    totalDays: number
-    nightsPerSeason: { season: string; nights: number; pricePerNight: number; subtotal: number }[]
-    baseTotal: number
-    discountPct: number
-    discountAmount: number
-    extrasTotal: number
-    deposit: number
-    totalWithoutDeposit: number
-    grandTotal: number
-}
+export * from './types'
 
 // ==========================================
 // UTILIDADES DE FECHA Y RANGOS
@@ -173,66 +128,66 @@ export function resolveDurationDiscount(
 }
 
 // ==========================================
-// CÁLCULO DE PRECIOS V2 (Base Camper + Suplemento)
+// CÁLCULO DE PRECIOS V2 (Base Camper + Suplementos + Paquetes + Cancelación + Extras)
 // ==========================================
 
-export interface CalculatePriceV2Params {
-    startDate: Date
-    startSlot?: DaySlot
-    endDate: Date
-    endSlot?: DaySlot
-    camperBasePrice: number
-    seasons: SeasonV2[]
-    periods: SeasonPeriod[]
-    discounts?: DurationDiscount[]
-    selectedExtras?: Extra[]
-    depositAmount?: number
-}
-
 export function calculatePriceV2({
-    startDate,
-    startSlot = 'afternoon',
-    endDate,
-    endSlot = 'morning',
+    startDate: rawStartDate,
+    startSlot,
+    pickupSlot,
+    endDate: rawEndDate,
+    endSlot,
+    dropoffSlot,
     camperBasePrice,
-    seasons,
-    periods,
+    camperId,
+    seasons = [],
+    periods = [],
     discounts = [],
+    kmPackage = 'included_150',
+    cancellationPolicy = 'standard',
+    extrasSelected,
     selectedExtras = [],
-    depositAmount = 0
-}: CalculatePriceV2Params): PriceBreakdown {
+    depositAmount = 1000
+}: CalculatePriceV2Params): PricingBreakdown {
+    const sDate = typeof rawStartDate === 'string' ? new Date(rawStartDate) : rawStartDate
+    const eDate = typeof rawEndDate === 'string' ? new Date(rawEndDate) : rawEndDate
     const msPerDay = 1000 * 60 * 60 * 24
-    const baseNights = Math.round((endDate.getTime() - startDate.getTime()) / msPerDay)
+    const baseNights = Math.round((eDate.getTime() - sDate.getTime()) / msPerDay)
+
+    const finalDeposit = typeof depositAmount === 'number' ? depositAmount : 1000
 
     if (baseNights <= 0) {
-        return emptyBreakdown(depositAmount)
+        return emptyBreakdown(finalDeposit, Number(camperBasePrice) || 0)
     }
 
-    const startSeason = resolveSeasonForDate(startDate, seasons, periods)
-    const endSeason = resolveSeasonForDate(endDate, seasons, periods)
+    const sSlot: DaySlot = pickupSlot || startSlot || 'afternoon'
+    const eSlot: DaySlot = dropoffSlot || endSlot || 'morning'
+
+    const startSeason = resolveSeasonForDate(sDate, seasons, periods)
+    const endSeason = resolveSeasonForDate(eDate, seasons, periods)
     const startPrice = Number(camperBasePrice) + Number(startSeason.supplement_per_night)
     const endPrice = Number(camperBasePrice) + Number(endSeason.supplement_per_night)
 
     let extraDays = 0
     let extraSlotCost = 0
 
-    if (startSlot === 'morning') {
+    if (sSlot === 'morning') {
         extraDays += 0.5
         extraSlotCost += startPrice * 0.5
     }
-    if (endSlot === 'afternoon') {
+    if (eSlot === 'afternoon') {
         extraDays += 0.5
         extraSlotCost += endPrice * 0.5
     }
 
     const totalDays = baseNights + extraDays
 
-    // Calcular precio por noche según temporada
+    // 1. Calcular precio por noche según temporada
     const nightsPerSeason: Record<string, { season: string; nights: number; pricePerNight: number; subtotal: number }> = {}
-    let baseTotal = 0
+    let baseNightsTotal = 0
 
     for (let i = 0; i < baseNights; i++) {
-        const currentDate = new Date(startDate)
+        const currentDate = new Date(sDate)
         currentDate.setDate(currentDate.getDate() + i)
 
         const activeSeason = resolveSeasonForDate(currentDate, seasons, periods)
@@ -244,36 +199,80 @@ export function calculatePriceV2({
         }
         nightsPerSeason[seasonName].nights++
         nightsPerSeason[seasonName].subtotal += pricePerNight
-        baseTotal += pricePerNight
+        baseNightsTotal += pricePerNight
     }
 
-    baseTotal += extraSlotCost
+    const baseRentalTotal = baseNightsTotal + extraSlotCost
 
-    // Descuento por estancia
+    // 2. Descuento por estancia
     const { discountPct } = resolveDurationDiscount(totalDays, discounts)
-    const discountAmount = Math.round(((baseTotal * discountPct) / 100) * 100) / 100
-    const discountedBase = baseTotal - discountAmount
+    const discountAmount = Math.round(((baseRentalTotal * discountPct) / 100) * 100) / 100
+    const discountedBaseTotal = Math.round((baseRentalTotal - discountAmount) * 100) / 100
 
-    // Extras
-    const extrasTotal = selectedExtras.reduce((sum, e) => {
-        const qty = e.quantity ?? 1
-        const price = Number(e.price) || 0
-        const multiplier = e.price_type === 'per_day' ? Math.ceil(totalDays) : 1
-        return sum + (price * multiplier * qty)
-    }, 0)
-    const numDeposit = Number(depositAmount) || 0
+    // 3. Suplemento Paquete de Kilometraje (150 km/día = 0 € | Ilimitado = 15.00 €/día * totalDays)
+    const kmRatePerDay = kmPackage === 'unlimited' ? 15 : 0
+    const kmSupplement = Math.round(kmRatePerDay * totalDays * 100) / 100
+
+    // 4. Suplemento Política de Cancelación (Estándar = 0 € | Flexible = 8.00 €/day * totalDays)
+    const cancellationRatePerDay = cancellationPolicy === 'flexible' ? 8 : 0
+    const cancellationSupplement = Math.round(cancellationRatePerDay * totalDays * 100) / 100
+
+    // 5. Extras Categorizados
+    const rawExtras = extrasSelected && extrasSelected.length > 0 ? extrasSelected : selectedExtras
+    const itemizedExtras: ItemizedExtra[] = (rawExtras || []).map((e: any, index: number) => {
+        const qty = typeof e.quantity === 'number' && e.quantity > 0 ? e.quantity : 1
+        const unitPrice = Number(e.price) || 0
+        const rawType = e.pricingType || e.pricing_type || e.price_type || 'per_rental'
+        const pricingType: ExtraPricingType = (rawType === 'per_day' || rawType === 'daily') ? 'per_day' : 'per_rental'
+        const multiplier = pricingType === 'per_day' ? Math.ceil(totalDays) : 1
+        const total = Math.round(unitPrice * multiplier * qty * 100) / 100
+        return {
+            id: String(e.id || e.extraId || `extra-${index}`),
+            name: String(e.name || e.name_es || 'Extra'),
+            category: String(e.category || 'Equipamiento'),
+            quantity: qty,
+            unitPrice,
+            pricingType,
+            total,
+        }
+    })
+
+    const extrasTotal = Math.round(itemizedExtras.reduce((sum, item) => sum + item.total, 0) * 100) / 100
+
+    // 6. Totales finales
+    const payableTotal = Math.round((discountedBaseTotal + kmSupplement + cancellationSupplement + extrasTotal) * 100) / 100
+    const grandTotalWithDeposit = Math.round((payableTotal + finalDeposit) * 100) / 100
 
     return {
+        basePrice: Number(camperBasePrice) || 0,
+        nights: baseNights,
         numNights: baseNights,
         totalDays,
+        baseRentalTotal,
+        baseTotal: baseRentalTotal,
+        slotSupplement: extraSlotCost,
         nightsPerSeason: Object.values(nightsPerSeason),
-        baseTotal,
         discountPct,
         discountAmount,
+        discountedBaseTotal,
+        kmPackage,
+        kmRatePerDay,
+        kmSupplement,
+        kmPrice: kmSupplement,
+        cancellationPolicy,
+        cancellationRatePerDay,
+        cancellationSupplement,
+        cancellationPrice: cancellationSupplement,
+        extrasSubtotal: extrasTotal,
         extrasTotal,
-        deposit: numDeposit,
-        totalWithoutDeposit: discountedBase + extrasTotal,
-        grandTotal: discountedBase + extrasTotal + numDeposit,
+        itemizedExtras,
+        totalPrice: payableTotal,
+        payableTotal,
+        depositAmount: finalDeposit,
+        deposit: finalDeposit,
+        totalWithoutDeposit: payableTotal,
+        grandTotal: grandTotalWithDeposit,
+        grandTotalWithDeposit,
     }
 }
 
@@ -400,16 +399,35 @@ export function calculatePrice(
     const numDeposit = Number(depositAmount) || 0
 
     return {
+        basePrice: baseNights > 0 ? Math.round(baseTotal / baseNights) : 120,
+        nights: baseNights,
         numNights: baseNights,
         totalDays,
-        nightsPerSeason: Object.values(nightsPerSeason),
+        baseRentalTotal: baseTotal,
         baseTotal,
+        slotSupplement: extraSlotCost,
+        nightsPerSeason: Object.values(nightsPerSeason),
         discountPct: maxDiscount,
         discountAmount,
+        discountedBaseTotal: discountedBase,
+        kmPackage: 'included_150',
+        kmRatePerDay: 0,
+        kmSupplement: 0,
+        kmPrice: 0,
+        cancellationPolicy: 'standard',
+        cancellationRatePerDay: 0,
+        cancellationSupplement: 0,
+        cancellationPrice: 0,
+        extrasSubtotal: extrasTotal,
         extrasTotal,
+        itemizedExtras: [],
+        totalPrice: discountedBase + extrasTotal,
+        payableTotal: discountedBase + extrasTotal,
+        depositAmount: numDeposit,
         deposit: numDeposit,
         totalWithoutDeposit: discountedBase + extrasTotal,
         grandTotal: discountedBase + extrasTotal + numDeposit,
+        grandTotalWithDeposit: discountedBase + extrasTotal + numDeposit,
     }
 }
 
@@ -418,18 +436,38 @@ function findSeason(date: Date, seasons: Season[]): Season | undefined {
     return seasons.find(s => s.start_date <= dateStr && s.end_date >= dateStr)
 }
 
-function emptyBreakdown(depositAmount: number): PriceBreakdown {
+function emptyBreakdown(depositAmount: number, camperBasePrice: number = 0): PricingBreakdown {
+    const numDeposit = Number(depositAmount) || 0
     return {
+        basePrice: camperBasePrice,
+        nights: 0,
         numNights: 0,
         totalDays: 0,
-        nightsPerSeason: [],
+        baseRentalTotal: 0,
         baseTotal: 0,
+        slotSupplement: 0,
+        nightsPerSeason: [],
         discountPct: 0,
         discountAmount: 0,
+        discountedBaseTotal: 0,
+        kmPackage: 'included_150',
+        kmRatePerDay: 0,
+        kmSupplement: 0,
+        kmPrice: 0,
+        cancellationPolicy: 'standard',
+        cancellationRatePerDay: 0,
+        cancellationSupplement: 0,
+        cancellationPrice: 0,
+        extrasSubtotal: 0,
         extrasTotal: 0,
-        deposit: depositAmount,
+        itemizedExtras: [],
+        totalPrice: 0,
+        payableTotal: 0,
+        depositAmount: numDeposit,
+        deposit: numDeposit,
         totalWithoutDeposit: 0,
-        grandTotal: depositAmount,
+        grandTotal: numDeposit,
+        grandTotalWithDeposit: numDeposit,
     }
 }
 

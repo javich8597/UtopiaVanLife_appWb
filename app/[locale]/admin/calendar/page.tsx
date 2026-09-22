@@ -21,6 +21,11 @@ export default async function AdminCalendarPage() {
         .neq('status', 'cancelled')
         .order('start_date', { ascending: true })
 
+    const { data: blockedDates } = await supabase
+        .from('blocked_dates')
+        .select('*')
+        .order('start_date', { ascending: true })
+
     return (
         <div>
             <div style={{ display: 'flex', alignItems: 'flex-end', gap: 'var(--space-3)', marginBottom: 'var(--space-6)' }}>
@@ -35,7 +40,12 @@ export default async function AdminCalendarPage() {
                 </div>
             </div>
 
-            <CalendarClient bookings={bookings || []} campers={campers || []} />
+            <CalendarClient 
+                bookings={bookings || []} 
+                campers={campers || []} 
+                blockedDates={blockedDates || []}
+                blocked_dates={blockedDates || []}
+            />
         </div>
     )
 }

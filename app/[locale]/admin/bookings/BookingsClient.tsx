@@ -28,15 +28,21 @@ export default function BookingsClient({ initialBookings }: Props) {
       const clientName = (b.customer_name || b.users?.full_name || '').toLowerCase()
       const clientEmail = (b.customer_email || b.users?.email || '').toLowerCase()
       const clientPhone = (b.customer_phone || b.users?.phone || '').toLowerCase()
+      const clientDni = (b.customer_dni || b.users?.dni_nie || '').toLowerCase()
       const camperName = (b.campers?.name || '').toLowerCase()
       const bookingId = (b.id || '').toLowerCase()
+      const orderId = (b.payment_intent_id || '').toLowerCase()
+      const city = (b.customer_city || '').toLowerCase()
 
       return (
         clientName.includes(query) ||
         clientEmail.includes(query) ||
         clientPhone.includes(query) ||
+        clientDni.includes(query) ||
         camperName.includes(query) ||
-        bookingId.includes(query)
+        bookingId.includes(query) ||
+        orderId.includes(query) ||
+        city.includes(query)
       )
     })
   }, [initialBookings, searchTerm, statusFilter])
@@ -164,7 +170,7 @@ export default function BookingsClient({ initialBookings }: Props) {
                     <div>
                       {sDate.toLocaleDateString('es-ES')} <span style={{ color: 'var(--gray-400)' }}>→</span> {eDate.toLocaleDateString('es-ES')}
                     </div>
-                    <div style={{ marginTop: 4 }}>
+                    <div style={{ marginTop: 4, display: 'flex', gap: 4, flexWrap: 'wrap' }}>
                       <span style={{
                         display: 'inline-flex',
                         alignItems: 'center',
@@ -178,6 +184,20 @@ export default function BookingsClient({ initialBookings }: Props) {
                       }}>
                         <Moon size={11} /> {nightsCount} {nightsCount === 1 ? 'noche' : 'noches'}
                       </span>
+                      {b.km_package === 'unlimited' && (
+                        <span style={{
+                          display: 'inline-flex',
+                          alignItems: 'center',
+                          fontSize: '0.68rem',
+                          fontWeight: 700,
+                          padding: '2px 6px',
+                          borderRadius: 10,
+                          background: '#EDE9FE',
+                          color: '#6D28D9'
+                        }}>
+                          KM Ilimitado
+                        </span>
+                      )}
                     </div>
                   </td>
                   <td style={{ fontWeight: 600 }}>
@@ -189,12 +209,26 @@ export default function BookingsClient({ initialBookings }: Props) {
                     ) : null}
                   </td>
                   <td>
-                    <span className={`status-badge status-${b.status}`}>
-                      {b.status === 'pending' ? 'Pendiente' :
-                        b.status === 'confirmed' ? 'Confirmada' :
-                        b.status === 'active' ? 'En Curso' :
-                        b.status === 'completed' ? 'Completada' : 'Cancelada'}
-                    </span>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: 4, alignItems: 'flex-start' }}>
+                      <span className={`status-badge status-${b.status}`}>
+                        {b.status === 'pending' ? 'Pendiente' :
+                          b.status === 'confirmed' ? 'Confirmada' :
+                          b.status === 'active' ? 'En Curso' :
+                          b.status === 'completed' ? 'Completada' : 'Cancelada'}
+                      </span>
+                      {b.payment_status === 'paid' && (
+                        <span style={{
+                          fontSize: '0.68rem',
+                          fontWeight: 700,
+                          color: '#15803d',
+                          background: '#DCFCE7',
+                          padding: '1px 6px',
+                          borderRadius: 8
+                        }}>
+                          Redsys ✓
+                        </span>
+                      )}
+                    </div>
                   </td>
                   <td style={{ textAlign: 'right' }}>
                     <div style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}>

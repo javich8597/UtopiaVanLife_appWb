@@ -208,7 +208,7 @@ export default function DocumentsClient({ bookings, profile, user, contractTempl
         tripName: `Reserva Actual · Camper ${camperName}`,
         bookingId: nextBooking.id,
         amount: priceTotal,
-        summary: `Factura con desglose de IVA (21%) por importe de ${formatPrice(priceTotal)}, abonada con éxito mediante pasarela segura Stripe.`,
+        summary: `Factura con desglose de IVA (21%) por importe de ${formatPrice(priceTotal)}, abonada con éxito mediante pasarela segura Redsys.`,
         contentDetails: {
           issuer: 'Utopia Van Life S.L.',
           cif: 'B-57984210',
@@ -229,7 +229,7 @@ export default function DocumentsClient({ bookings, profile, user, contractTempl
                 }))
               : []),
             { label: 'IVA General (21%)', value: '21% I.V.A.', price: priceTotal - Math.round(priceTotal / 1.21) },
-            { label: 'Importe Total Liquidado', value: 'Tarjeta • Stripe', price: priceTotal },
+            { label: 'Importe Total Liquidado', value: 'Tarjeta / Bizum • Redsys', price: priceTotal },
           ]
         }
       })
@@ -408,7 +408,7 @@ export default function DocumentsClient({ bookings, profile, user, contractTempl
             items: [
               { label: `Alquiler Camper ${pCamper} (${pRangeFormatted})`, value: 'Base Imponible', price: Math.round(pPrice / 1.21) },
               { label: 'IVA General (21%)', value: '21% I.V.A.', price: pPrice - Math.round(pPrice / 1.21) },
-              { label: 'Importe Total Liquidado', value: 'Pagado • Stripe', price: pPrice },
+              { label: 'Importe Total Liquidado', value: 'Pagado • Redsys', price: pPrice },
             ]
           }
         })

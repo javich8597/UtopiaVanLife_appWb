@@ -10,7 +10,7 @@ export default function RefundActionClient({ bookingId, status }: { bookingId: s
     const router = useRouter()
 
     const handleRefund = async () => {
-        if (!window.confirm('¿Estás seguro de que deseas cancelar la reserva y emitir el reembolso completo a través de Stripe? Esta acción es irreversible.')) {
+        if (!window.confirm('¿Estás seguro de que deseas cancelar la reserva y tramitar el reembolso en Redsys? Esta acción es irreversible.')) {
             return
         }
 

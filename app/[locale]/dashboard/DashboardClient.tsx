@@ -196,20 +196,20 @@ export default function DashboardClient({ bookings, profile, user }: Props) {
 
                         <div className="booking-hero-card__body">
                             <div>
-                                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 'var(--space-4)', flexWrap: 'wrap', gap: 8 }}>
+                                <div className="trip-header-row">
                                     <div>
                                         <h3 className="text-h3" style={{ color: 'var(--forest-green)' }}>Detalles del Viaje</h3>
-                                        <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap', marginTop: 4 }}>
+                                        <div className="trip-meta-pills">
                                             <p className="text-small" style={{ color: 'var(--gray-600)', margin: 0 }}>
                                                 {nightsCount} Noches • {nextBooking.guests_count || nextBooking.travelers_count || 2} Viajeros
                                             </p>
                                             {nextBooking.km_package && (
-                                                <span className="text-xs" style={{ background: '#f3f4f6', padding: '2px 8px', borderRadius: 6, color: '#374151', fontWeight: 600 }}>
+                                                <span className="text-xs trip-pill">
                                                     {nextBooking.km_package === 'unlimited' ? 'KM Ilimitado' : '150 km/día'}
                                                 </span>
                                             )}
                                             {nextBooking.cancellation_policy && (
-                                                <span className="text-xs" style={{ background: '#f3f4f6', padding: '2px 8px', borderRadius: 6, color: '#374151', fontWeight: 600 }}>
+                                                <span className="text-xs trip-pill">
                                                     {nextBooking.cancellation_policy === 'flexible' ? 'Cancelación Flexible' : 'Cancelación Estándar'}
                                                 </span>
                                             )}
@@ -286,17 +286,17 @@ export default function DashboardClient({ bookings, profile, user }: Props) {
                             </div>
 
                             <div className="price-summary-bar">
-                                <div>
-                                    <span className="text-xs" style={{ color: 'var(--gray-500)', textTransform: 'uppercase' }}>Total Alquiler</span>
-                                    <div style={{ fontWeight: 700, fontSize: '1.25rem', color: 'var(--forest-green)' }}>
+                                <div className="price-summary-row">
+                                    <span className="price-label">Total Alquiler</span>
+                                    <span className="price-value price-value--total">
                                         {formatPrice(Number(nextBooking.total_price || 0))}
-                                    </div>
+                                    </span>
                                 </div>
-                                <div className="price-deposit-col">
-                                    <span className="text-xs" style={{ color: 'var(--gray-500)', textTransform: 'uppercase' }}>Fianza Reembolsable</span>
-                                    <div style={{ fontWeight: 600, fontSize: '1rem', color: 'var(--black-matte)' }}>
+                                <div className="price-summary-row price-summary-row--deposit">
+                                    <span className="price-label">Fianza Reembolsable</span>
+                                    <span className="price-value price-value--deposit">
                                         {formatPrice(Number(nextBooking.deposit_amount || 0))}
-                                    </div>
+                                    </span>
                                 </div>
                             </div>
                         </div>
@@ -599,6 +599,10 @@ export default function DashboardClient({ bookings, profile, user }: Props) {
                     display: flex;
                     flex-direction: column;
                     gap: var(--space-6);
+                    width: 100%;
+                    max-width: 100%;
+                    min-width: 0;
+                    box-sizing: border-box;
                 }
                 .dash-header {
                     display: flex;
@@ -608,6 +612,8 @@ export default function DashboardClient({ bookings, profile, user }: Props) {
                     flex-wrap: wrap;
                     padding-bottom: var(--space-4);
                     border-bottom: 1px solid var(--gray-200);
+                    width: 100%;
+                    box-sizing: border-box;
                 }
                 .dash-title {
                     font-family: var(--font-heading);
@@ -640,8 +646,11 @@ export default function DashboardClient({ bookings, profile, user }: Props) {
 
                 .bento-layout {
                     display: grid;
-                    grid-template-columns: 1.45fr 1fr;
+                    grid-template-columns: 1.45fr minmax(0, 1fr);
                     gap: var(--space-6);
+                    width: 100%;
+                    min-width: 0;
+                    box-sizing: border-box;
                 }
 
                 .booking-hero-card {
@@ -653,6 +662,10 @@ export default function DashboardClient({ bookings, profile, user }: Props) {
                     display: flex;
                     flex-direction: column;
                     transition: transform 0.3s ease, box-shadow 0.3s ease;
+                    width: 100%;
+                    max-width: 100%;
+                    min-width: 0;
+                    box-sizing: border-box;
                 }
                 .booking-hero-card:hover {
                     transform: translateY(-2px);
@@ -662,6 +675,7 @@ export default function DashboardClient({ bookings, profile, user }: Props) {
                     position: relative;
                     aspect-ratio: 16/9;
                     background: var(--gray-100);
+                    width: 100%;
                 }
                 .booking-hero-card__img-overlay {
                     position: absolute;
@@ -707,6 +721,36 @@ export default function DashboardClient({ bookings, profile, user }: Props) {
                     justify-content: space-between;
                     flex: 1;
                     gap: var(--space-5);
+                    width: 100%;
+                    max-width: 100%;
+                    min-width: 0;
+                    box-sizing: border-box;
+                }
+
+                .trip-header-row {
+                    display: flex;
+                    justify-content: space-between;
+                    align-items: flex-start;
+                    margin-bottom: var(--space-4);
+                    gap: 12px;
+                    width: 100%;
+                    box-sizing: border-box;
+                }
+                .trip-meta-pills {
+                    display: flex;
+                    align-items: center;
+                    gap: 6px;
+                    flex-wrap: wrap;
+                    margin-top: 4px;
+                    width: 100%;
+                }
+                .trip-pill {
+                    background: #f3f4f6;
+                    padding: 2px 8px;
+                    border-radius: 6px;
+                    color: #374151;
+                    font-weight: 600;
+                    font-size: 0.72rem;
                 }
 
                 .status-badge {
@@ -762,6 +806,8 @@ export default function DashboardClient({ bookings, profile, user }: Props) {
                     border-radius: var(--radius-md);
                     padding: var(--space-4);
                     margin-bottom: var(--space-4);
+                    width: 100%;
+                    box-sizing: border-box;
                 }
                 .date-block {
                     display: flex;
@@ -788,11 +834,14 @@ export default function DashboardClient({ bookings, profile, user }: Props) {
                 .extras-section {
                     border-top: 1px solid var(--gray-100);
                     padding-top: var(--space-3);
+                    width: 100%;
+                    box-sizing: border-box;
                 }
                 .extras-chips {
                     display: flex;
                     gap: 6px;
                     flex-wrap: wrap;
+                    width: 100%;
                 }
                 .extra-chip {
                     font-size: 0.75rem;
@@ -809,15 +858,43 @@ export default function DashboardClient({ bookings, profile, user }: Props) {
                     align-items: center;
                     border-top: 1px solid var(--gray-200);
                     padding-top: var(--space-4);
+                    width: 100%;
+                    box-sizing: border-box;
+                    gap: 12px;
                 }
-                .price-deposit-col {
+                .price-summary-row {
+                    display: flex;
+                    flex-direction: column;
+                }
+                .price-summary-row--deposit {
                     text-align: right;
+                    align-items: flex-end;
+                }
+                .price-label {
+                    font-size: 0.7rem;
+                    font-weight: 700;
+                    letter-spacing: 0.04em;
+                    text-transform: uppercase;
+                    color: var(--gray-500);
+                }
+                .price-value--total {
+                    font-weight: 700;
+                    font-size: 1.25rem;
+                    color: var(--forest-green);
+                }
+                .price-value--deposit {
+                    font-weight: 600;
+                    font-size: 1rem;
+                    color: var(--black-matte);
                 }
 
                 .bento-side-col {
                     display: flex;
                     flex-direction: column;
                     gap: var(--space-6);
+                    width: 100%;
+                    min-width: 0;
+                    box-sizing: border-box;
                 }
                 .side-card {
                     background: white;
@@ -825,6 +902,10 @@ export default function DashboardClient({ bookings, profile, user }: Props) {
                     border-radius: var(--radius-lg);
                     padding: var(--space-6);
                     box-shadow: var(--shadow-sm);
+                    width: 100%;
+                    max-width: 100%;
+                    min-width: 0;
+                    box-sizing: border-box;
                 }
                 .side-card--accent {
                     border-color: rgba(200, 168, 130, 0.4);
@@ -1124,7 +1205,9 @@ export default function DashboardClient({ bookings, profile, user }: Props) {
                 /* ── TABLET ── */
                 @media (max-width: 992px) {
                     .bento-layout {
-                        grid-template-columns: 1fr;
+                        grid-template-columns: minmax(0, 1fr);
+                        width: 100%;
+                        min-width: 0;
                     }
                 }
 
@@ -1132,6 +1215,9 @@ export default function DashboardClient({ bookings, profile, user }: Props) {
                 @media (max-width: 640px) {
                     .dash-page-wrapper {
                         gap: var(--space-4);
+                        width: 100%;
+                        max-width: 100%;
+                        overflow-x: hidden;
                     }
                     .dash-header {
                         gap: var(--space-3);
@@ -1147,20 +1233,30 @@ export default function DashboardClient({ bookings, profile, user }: Props) {
                         padding: 7px 12px;
                     }
                     .booking-hero-card__body {
-                        padding: var(--space-4);
-                        gap: var(--space-3);
+                        padding: 14px 16px;
+                        gap: 12px;
+                    }
+                    .trip-header-row {
+                        flex-direction: column;
+                        align-items: flex-start;
+                        gap: 10px;
                     }
                     .booking-hero-card__img-content {
-                        bottom: var(--space-3);
-                        left: var(--space-3);
-                        right: var(--space-3);
+                        bottom: 12px;
+                        left: 12px;
+                        right: 12px;
                     }
                     .camper-overlay-title {
                         font-size: 1.35rem;
                     }
                     .trip-dates-grid {
-                        gap: 8px;
-                        padding: 10px;
+                        grid-template-columns: 1fr;
+                        gap: 10px;
+                        padding: 12px 14px;
+                    }
+                    .date-block:first-child {
+                        border-bottom: 1px dashed var(--gray-200);
+                        padding-bottom: 8px;
                     }
                     .date-val {
                         font-size: 0.88rem;
@@ -1178,18 +1274,19 @@ export default function DashboardClient({ bookings, profile, user }: Props) {
                     .price-summary-bar {
                         flex-direction: column;
                         align-items: stretch;
-                        gap: 10px;
+                        gap: 8px;
                     }
-                    .price-summary-bar > div {
-                        display: flex;
+                    .price-summary-row {
+                        flex-direction: row;
                         justify-content: space-between;
                         align-items: center;
                         width: 100%;
                     }
-                    .price-deposit-col {
-                        text-align: left;
+                    .price-summary-row--deposit {
                         border-top: 1px dashed var(--gray-200);
                         padding-top: 8px;
+                        text-align: left;
+                        align-items: center;
                     }
                     .emergency-grid {
                         grid-template-columns: 1fr;
@@ -1216,12 +1313,15 @@ export default function DashboardClient({ bookings, profile, user }: Props) {
                         padding: 14px;
                         gap: 12px;
                     }
+                    .action-tile:active {
+                        transform: scale(0.98);
+                    }
                     .action-tile__icon {
                         width: 40px;
                         height: 40px;
                     }
                     .side-card {
-                        padding: var(--space-4);
+                        padding: 14px 16px;
                     }
                     .past-grid {
                         grid-template-columns: 1fr;
@@ -1246,20 +1346,6 @@ export default function DashboardClient({ bookings, profile, user }: Props) {
                     .status-badge {
                         font-size: 0.7rem;
                         padding: 3px 8px;
-                    }
-                }
-
-                @media (max-width: 480px) {
-                    .trip-dates-grid {
-                        grid-template-columns: 1fr;
-                        gap: 10px;
-                    }
-                    .date-block:first-child {
-                        border-bottom: 1px dashed var(--gray-200);
-                        padding-bottom: 8px;
-                    }
-                    .action-tile:active {
-                        transform: scale(0.98);
                     }
                 }
             `}</style>

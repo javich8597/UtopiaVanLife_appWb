@@ -1930,6 +1930,8 @@ export default function DocumentsClient({ bookings, profile, user, contractTempl
           .mini-filter-btn {
             white-space: nowrap;
             flex-shrink: 0;
+            font-size: 0.75rem;
+            padding: 5px 10px;
           }
           .accordion-header {
             padding: 12px;
@@ -1942,9 +1944,36 @@ export default function DocumentsClient({ bookings, profile, user, contractTempl
           .accordion-header__actions button {
             flex: 1;
             justify-content: center;
+            min-height: 40px;
           }
           .doc-primary-title {
             white-space: normal;
+            font-size: 0.92rem;
+          }
+          .accordion-body-content {
+            padding: 12px;
+          }
+          .body-details-grid {
+            grid-template-columns: 1fr;
+          }
+          .modal-sheet-content {
+            padding: 14px;
+          }
+          .sheet-full-table th,
+          .sheet-full-table td {
+            padding: 8px 6px;
+            font-size: 0.75rem;
+          }
+          .sheet-footer-signatures {
+            flex-direction: column;
+            gap: 12px;
+            align-items: stretch;
+          }
+          .sheet-valid-seal {
+            text-align: center;
+          }
+          .sheet-box-row {
+            font-size: 0.78rem;
           }
           .empty-docs-container {
             padding: 36px 16px;
@@ -1957,6 +1986,15 @@ export default function DocumentsClient({ bookings, profile, user, contractTempl
           .empty-docs-cta-group button {
             width: 100%;
             justify-content: center;
+          }
+          .empty-docs-title {
+            font-size: 1.25rem;
+          }
+          .empty-docs-desc {
+            font-size: 0.88rem;
+          }
+          .empty-feature-item {
+            padding: 12px 14px;
           }
         }
 

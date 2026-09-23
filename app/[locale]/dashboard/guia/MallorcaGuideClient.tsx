@@ -1461,9 +1461,9 @@ export default function MallorcaGuideClient() {
       {/* ─── Suggested Routes Bar (Itinerarios Temáticos) ─── */}
       <div className="routes-bar">
         <div className="routes-bar__header">
-          <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-            <Route size={18} style={{ color: '#1A2B21' }} />
-            <span style={{ fontWeight: 700, fontSize: '0.9rem', color: '#1A2B21' }}>
+          <div className="routes-bar__title">
+            <Route size={18} className="routes-bar__icon" />
+            <span className="routes-bar__text">
               Rutas Sugeridas para tu Camper:
             </span>
           </div>
@@ -2114,6 +2114,19 @@ export default function MallorcaGuideClient() {
           display: flex;
           justify-content: space-between;
           align-items: center;
+        }
+        .routes-bar__title {
+          display: flex;
+          align-items: center;
+          gap: 8px;
+        }
+        .routes-bar__icon {
+          color: #1A2B21;
+        }
+        .routes-bar__text {
+          font-weight: 700;
+          font-size: 0.9rem;
+          color: #1A2B21;
         }
         .routes-bar__clear {
           font-size: 0.75rem;
@@ -2954,6 +2967,11 @@ export default function MallorcaGuideClient() {
           }
           .routes-pills {
             grid-template-columns: 1fr;
+          }
+          .routes-bar__header {
+            flex-direction: column;
+            align-items: flex-start;
+            gap: 10px;
           }
           .map-layer-bar {
             flex-direction: column;

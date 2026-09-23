@@ -149,7 +149,7 @@ export default function DashboardClient({ bookings, profile, user }: Props) {
     const camperImg = nextBooking?.camper?.thumbnail_url || FALLBACK_IMAGES[camperSlug] || FALLBACK_IMAGES['neo']
 
     return (
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-6)' }}>
+        <div className="dash-page-wrapper">
             {/* Page Header Section */}
             <div className="dash-header">
                 <div>
@@ -292,7 +292,7 @@ export default function DashboardClient({ bookings, profile, user }: Props) {
                                         {formatPrice(Number(nextBooking.total_price || 0))}
                                     </div>
                                 </div>
-                                <div style={{ textAlign: 'right' }}>
+                                <div className="price-deposit-col">
                                     <span className="text-xs" style={{ color: 'var(--gray-500)', textTransform: 'uppercase' }}>Fianza Reembolsable</span>
                                     <div style={{ fontWeight: 600, fontSize: '1rem', color: 'var(--black-matte)' }}>
                                         {formatPrice(Number(nextBooking.deposit_amount || 0))}
@@ -553,7 +553,7 @@ export default function DashboardClient({ bookings, profile, user }: Props) {
                     <p className="text-body" style={{ color: 'var(--gray-600)', maxWidth: 520, margin: 'var(--space-2) auto var(--space-6)' }}>
                         Descubre Mallorca a tu propio ritmo con nuestras furgonetas camper premium 100% autónomas.
                     </p>
-                    <div style={{ display: 'flex', gap: 'var(--space-3)', justifyContent: 'center', flexWrap: 'wrap' }}>
+                    <div className="empty-state-ctas">
                         <Link href="/campers" className="btn btn-forest btn-lg">
                             <Sparkles size={18} />
                             <span>Explorar Nuestras Campers</span>
@@ -595,6 +595,11 @@ export default function DashboardClient({ bookings, profile, user }: Props) {
             )}
 
             <style jsx>{`
+                .dash-page-wrapper {
+                    display: flex;
+                    flex-direction: column;
+                    gap: var(--space-6);
+                }
                 .dash-header {
                     display: flex;
                     justify-content: space-between;
@@ -709,6 +714,8 @@ export default function DashboardClient({ bookings, profile, user }: Props) {
                     border-radius: var(--radius-full);
                     font-size: 0.75rem;
                     font-weight: 600;
+                    white-space: nowrap;
+                    flex-shrink: 0;
                 }
                 .status-badge--confirmed {
                     background: var(--forest-green);
@@ -803,6 +810,9 @@ export default function DashboardClient({ bookings, profile, user }: Props) {
                     border-top: 1px solid var(--gray-200);
                     padding-top: var(--space-4);
                 }
+                .price-deposit-col {
+                    text-align: right;
+                }
 
                 .bento-side-col {
                     display: flex;
@@ -845,6 +855,8 @@ export default function DashboardClient({ bookings, profile, user }: Props) {
                     background: var(--gray-50);
                     border: 1px solid var(--gray-200);
                     border-radius: var(--radius-md);
+                    gap: 8px;
+                    flex-wrap: wrap;
                 }
                 .driver-row--dashed {
                     background: transparent;
@@ -861,6 +873,7 @@ export default function DashboardClient({ bookings, profile, user }: Props) {
                     display: flex;
                     align-items: center;
                     justify-content: center;
+                    flex-shrink: 0;
                 }
                 .driver-avatar-mini--dashed {
                     background: var(--gray-100);
@@ -955,6 +968,12 @@ export default function DashboardClient({ bookings, profile, user }: Props) {
                     font-size: 3.5rem;
                     line-height: 1;
                 }
+                .empty-state-ctas {
+                    display: flex;
+                    gap: var(--space-3);
+                    justify-content: center;
+                    flex-wrap: wrap;
+                }
 
                 .past-grid {
                     display: grid;
@@ -1015,7 +1034,7 @@ export default function DashboardClient({ bookings, profile, user }: Props) {
                 }
                 .emergency-grid {
                     display: grid;
-                    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+                    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
                     gap: var(--space-3);
                 }
                 .emergency-item {
@@ -1102,13 +1121,18 @@ export default function DashboardClient({ bookings, profile, user }: Props) {
                     filter: brightness(1.1);
                 }
 
+                /* ── TABLET ── */
                 @media (max-width: 992px) {
                     .bento-layout {
                         grid-template-columns: 1fr;
                     }
                 }
 
+                /* ── MOBILE ── */
                 @media (max-width: 640px) {
+                    .dash-page-wrapper {
+                        gap: var(--space-4);
+                    }
                     .dash-header {
                         gap: var(--space-3);
                         padding-bottom: var(--space-3);
@@ -1124,6 +1148,12 @@ export default function DashboardClient({ bookings, profile, user }: Props) {
                     }
                     .booking-hero-card__body {
                         padding: var(--space-4);
+                        gap: var(--space-3);
+                    }
+                    .booking-hero-card__img-content {
+                        bottom: var(--space-3);
+                        left: var(--space-3);
+                        right: var(--space-3);
                     }
                     .camper-overlay-title {
                         font-size: 1.35rem;
@@ -1138,6 +1168,13 @@ export default function DashboardClient({ bookings, profile, user }: Props) {
                     .date-time {
                         font-size: 0.72rem;
                     }
+                    .extras-chips {
+                        gap: 4px;
+                    }
+                    .extra-chip {
+                        font-size: 0.7rem;
+                        padding: 2px 8px;
+                    }
                     .price-summary-bar {
                         flex-direction: column;
                         align-items: stretch;
@@ -1149,7 +1186,7 @@ export default function DashboardClient({ bookings, profile, user }: Props) {
                         align-items: center;
                         width: 100%;
                     }
-                    .price-summary-bar > div:nth-child(2) {
+                    .price-deposit-col {
                         text-align: left;
                         border-top: 1px dashed var(--gray-200);
                         padding-top: 8px;
@@ -1161,17 +1198,54 @@ export default function DashboardClient({ bookings, profile, user }: Props) {
                         padding: 12px;
                         gap: 12px;
                     }
+                    .emergency-item__icon-wrap {
+                        width: 38px;
+                        height: 38px;
+                    }
                     .emergency-item__phone {
                         font-size: 0.92rem;
+                    }
+                    .emergency-item__btn {
+                        padding: 6px 12px;
+                        font-size: 0.72rem;
                     }
                     .quick-actions-grid {
                         grid-template-columns: 1fr;
                     }
                     .action-tile {
                         padding: 14px;
+                        gap: 12px;
+                    }
+                    .action-tile__icon {
+                        width: 40px;
+                        height: 40px;
                     }
                     .side-card {
                         padding: var(--space-4);
+                    }
+                    .past-grid {
+                        grid-template-columns: 1fr;
+                    }
+                    .past-card {
+                        padding: var(--space-4);
+                    }
+                    .paid-pending-banner {
+                        font-size: 0.78rem;
+                        padding: 10px 12px;
+                    }
+                    .empty-state-ctas {
+                        flex-direction: column;
+                        align-items: stretch;
+                    }
+                    .empty-state-ctas :global(.btn) {
+                        justify-content: center;
+                    }
+                    .driver-row {
+                        padding: 8px 10px;
+                    }
+                    .status-badge {
+                        font-size: 0.7rem;
+                        padding: 3px 8px;
                     }
                 }
             `}</style>

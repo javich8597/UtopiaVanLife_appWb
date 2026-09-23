@@ -461,7 +461,7 @@ export default function CamperManualClient() {
           <h1 className="text-h2" style={{ marginTop: 'var(--space-1)', textWrap: 'balance' }}>
             Manual de Uso & Videotutoriales
           </h1>
-          <p className="text-body" style={{ color: 'var(--gray-600)', marginTop: 'var(--space-1)', maxWidth: 620 }}>
+          <p className="text-body hero-subtitle">
             Aprende a utilizar todos los sistemas de tu camper (NEO & SPACE) con mini videotutoriales explicativos y pasos rápidos.
           </p>
         </div>
@@ -500,42 +500,21 @@ export default function CamperManualClient() {
       </div>
 
       {/* Emergency Assistance Bar */}
-      <div style={{
-        background: 'linear-gradient(135deg, #F0FDF4 0%, #FFFFFF 100%)',
-        border: '1px solid #BBF7D0',
-        borderRadius: 'var(--radius-lg)',
-        padding: '14px 18px',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'space-between',
-        flexWrap: 'wrap',
-        gap: 12
-      }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-          <div style={{ width: 34, height: 34, borderRadius: '50%', background: '#DCFCE7', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#16a34a' }}>
+      <div className="emergency-bar">
+        <div className="emergency-bar__left">
+          <div className="emergency-bar__icon">
             <PhoneCall size={17} />
           </div>
           <div>
-            <strong style={{ display: 'block', fontSize: '0.86rem', color: '#14532D' }}>¿Tienes una incidencia o avería en ruta?</strong>
-            <span style={{ fontSize: '0.78rem', color: '#166534' }}>Llámanos directamente o contacta con asistencia 24h</span>
+            <strong className="emergency-bar__title">¿Tienes una incidencia o avería en ruta?</strong>
+            <span className="emergency-bar__text">Llámanos directamente o contacta con asistencia 24h</span>
           </div>
         </div>
 
-        <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
+        <div className="emergency-bar__actions">
           <a 
             href="tel:+34611560916"
-            style={{
-              display: 'inline-flex',
-              alignItems: 'center',
-              gap: 6,
-              background: '#16a34a',
-              color: '#FFFFFF',
-              padding: '6px 14px',
-              borderRadius: 'var(--radius-md)',
-              fontSize: '0.78rem',
-              fontWeight: 700,
-              textDecoration: 'none'
-            }}
+            className="emergency-btn emergency-btn--utopia"
           >
             <Phone size={13} />
             <span>Utopia: +34 611 560 916</span>
@@ -543,18 +522,7 @@ export default function CamperManualClient() {
 
           <a 
             href="tel:+34662992060"
-            style={{
-              display: 'inline-flex',
-              alignItems: 'center',
-              gap: 6,
-              background: '#dc2626',
-              color: '#FFFFFF',
-              padding: '6px 14px',
-              borderRadius: 'var(--radius-md)',
-              fontSize: '0.78rem',
-              fontWeight: 700,
-              textDecoration: 'none'
-            }}
+            className="emergency-btn emergency-btn--arag"
           >
             <LifeBuoy size={13} />
             <span>ARAG 24h: +34 662 992 060</span>
@@ -1435,10 +1403,90 @@ export default function CamperManualClient() {
           }
         }
 
+        /* Hero subtitle */
+        .hero-subtitle {
+          color: var(--gray-600);
+          margin-top: var(--space-1);
+          max-width: 620px;
+        }
+
+        /* Emergency Bar */
+        .emergency-bar {
+          background: linear-gradient(135deg, #F0FDF4 0%, #FFFFFF 100%);
+          border: 1px solid #BBF7D0;
+          border-radius: var(--radius-lg);
+          padding: 14px 18px;
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          flex-wrap: wrap;
+          gap: 12px;
+        }
+        .emergency-bar__left {
+          display: flex;
+          align-items: center;
+          gap: 10px;
+        }
+        .emergency-bar__icon {
+          width: 34px;
+          height: 34px;
+          border-radius: 50%;
+          background: #DCFCE7;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          color: #16a34a;
+        }
+        .emergency-bar__title {
+          display: block;
+          font-size: 0.86rem;
+          color: #14532D;
+        }
+        .emergency-bar__text {
+          font-size: 0.78rem;
+          color: #166534;
+        }
+        .emergency-bar__actions {
+          display: flex;
+          gap: 10px;
+          flex-wrap: wrap;
+        }
+        .emergency-btn {
+          display: inline-flex;
+          align-items: center;
+          gap: 6px;
+          color: #FFFFFF;
+          padding: 6px 14px;
+          border-radius: var(--radius-md);
+          font-size: 0.78rem;
+          font-weight: 700;
+          text-decoration: none;
+        }
+        .emergency-btn--utopia {
+          background: #16a34a;
+        }
+        .emergency-btn--arag {
+          background: #dc2626;
+        }
+
         @media (max-width: 640px) {
           .manual-header {
             gap: 12px;
             padding-bottom: 12px;
+          }
+          .emergency-bar {
+            padding: 12px 14px;
+            gap: 10px;
+            flex-direction: column;
+            align-items: flex-start;
+          }
+          .emergency-bar__actions {
+            width: 100%;
+          }
+          .emergency-btn {
+            width: 100%;
+            justify-content: center;
+            padding: 8px 14px;
           }
           .search-card {
             min-width: 0;

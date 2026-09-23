@@ -216,27 +216,13 @@ export default function ProfileClient({ user, profile }: Props) {
 
       {/* Aviso de datos requeridos para el contrato */}
       {isMissingContractData && (
-        <div 
-          className="alert-box alert-box--warning" 
-          style={{ 
-            background: '#FFFBEB', 
-            borderColor: '#FDE68A', 
-            color: '#92400E', 
-            padding: '16px 20px', 
-            borderRadius: '12px', 
-            marginBottom: '24px', 
-            display: 'flex', 
-            gap: '14px', 
-            alignItems: 'flex-start', 
-            border: '1px solid #FCD34D' 
-          }}
-        >
-          <AlertCircle size={24} style={{ color: '#D97706', flexShrink: 0, marginTop: '2px' }} />
+        <div className="alert-box alert-box--warning profile-alert-box">
+          <AlertCircle size={24} className="profile-alert-icon" />
           <div>
-            <strong style={{ fontSize: '1rem', color: '#78350F', display: 'block', marginBottom: '4px' }}>
+            <strong className="profile-alert-title">
               Datos obligatorios pendientes para tu contrato de alquiler
             </strong>
-            <p style={{ margin: 0, fontSize: '0.88rem', color: '#92400E', lineHeight: 1.5 }}>
+            <p className="profile-alert-text">
               Para poder generar y firmar el contrato oficial de tu reserva en la sección de Documentos, es imprescindible completar tu nombre completo, DNI/NIE, teléfono, dirección y las fechas de expedición y caducidad de tu carnet de conducir (en vigor y con al menos 2 años de antigüedad).
             </p>
           </div>
@@ -1306,6 +1292,37 @@ export default function ProfileClient({ user, profile }: Props) {
           margin-top: 2px;
         }
 
+        /* Profile Alert Box */
+        .profile-alert-box {
+          background: #FFFBEB;
+          border-color: #FDE68A;
+          color: #92400E;
+          padding: 16px 20px;
+          border-radius: 12px;
+          margin-bottom: 24px;
+          display: flex;
+          gap: 14px;
+          align-items: flex-start;
+          border: 1px solid #FCD34D;
+        }
+        .profile-alert-icon {
+          color: #D97706;
+          flex-shrink: 0;
+          margin-top: 2px;
+        }
+        .profile-alert-title {
+          font-size: 1rem;
+          color: #78350F;
+          display: block;
+          margin-bottom: 4px;
+        }
+        .profile-alert-text {
+          margin: 0;
+          font-size: 0.88rem;
+          color: #92400E;
+          line-height: 1.5;
+        }
+
         @media (max-width: 640px) {
           .form-card {
             padding: 16px;
@@ -1326,6 +1343,10 @@ export default function ProfileClient({ user, profile }: Props) {
           }
           .dropzone-empty {
             height: 140px;
+          }
+          .profile-alert-box {
+            padding: 12px 14px;
+            gap: 10px;
           }
         }
       `}</style>

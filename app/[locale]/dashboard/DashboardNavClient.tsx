@@ -216,17 +216,17 @@ export default function DashboardNavClient({ user, profile }: Props) {
         </div>
       </aside>
 
-      {/* ─── 2. VISTA MÓVIL (HORIZONTAL APP-BAR <= 860px) ─── */}
-      <nav className="dashboard-mobile-nav" aria-label="Navegación Móvil de Usuario">
+      {/* ─── 2. VISTA MÓVIL (HEADER COMPACTO <= 860px) ─── */}
+      <nav className="dashboard-mobile-nav" aria-label="Cabecera Móvil de Usuario">
         {/* Fila superior compacta de usuario */}
         <div className="dash-mob-header">
           <div className="dash-mob-user">
             <div className="dash-mob-avatar">
-              {profile?.full_name?.charAt(0) || user.email?.charAt(0)}
+              {profile?.full_name?.charAt(0) || user?.email?.charAt(0)}
             </div>
             <div className="dash-mob-user-info">
               <span className="dash-mob-user-name">
-                {profile?.full_name?.split(' ')[0] || 'Viajero'}
+                {profile?.full_name?.split(' ')[0] || user?.email?.split('@')[0] || 'Viajero'}
               </span>
               {isVerified && (
                 <span className="dash-mob-chip dash-mob-chip--verified">
@@ -247,6 +247,17 @@ export default function DashboardNavClient({ user, profile }: Props) {
           </div>
 
           <div className="dash-mob-actions">
+            {isAdmin && (
+              <Link
+                href="/admin"
+                className="dash-mob-admin-btn"
+                title="Panel de Administración"
+              >
+                <ShieldCheck size={14} />
+                <span>Admin</span>
+              </Link>
+            )}
+
             <button
               type="button"
               onClick={() => setShowEmergencyModal(true)}
@@ -266,68 +277,6 @@ export default function DashboardNavClient({ user, profile }: Props) {
             >
               <LogOut size={16} />
             </button>
-          </div>
-        </div>
-
-        {/* Carrusel Horizontal de Pestañas Táctiles */}
-        <div className="dash-mob-tabs-container">
-          <div className="dash-mob-tabs">
-            {isAdmin && (
-              <Link
-                href="/admin"
-                className="dash-mob-tab dash-mob-tab--admin"
-              >
-                <ShieldCheck size={16} />
-                <span>Panel Admin</span>
-              </Link>
-            )}
-
-            <Link
-              href="/dashboard"
-              className={`dash-mob-tab ${isReservations ? 'dash-mob-tab--active' : ''}`}
-            >
-              <BookOpen size={16} />
-              <span>Mi Reserva</span>
-            </Link>
-
-            <Link
-              href="/dashboard/documentos"
-              className={`dash-mob-tab ${isDocuments ? 'dash-mob-tab--active' : ''}`}
-            >
-              <FileText size={16} />
-              <span>Documentos</span>
-            </Link>
-
-            <Link
-              href="/dashboard/guia"
-              className={`dash-mob-tab ${isGuide ? 'dash-mob-tab--active' : ''}`}
-            >
-              <MapPin size={16} />
-              <span>Guía Mallorca</span>
-            </Link>
-
-            <Link
-              href="/dashboard/manual"
-              className={`dash-mob-tab ${isManual ? 'dash-mob-tab--active' : ''}`}
-            >
-              <Compass size={16} />
-              <span>Manual Camper</span>
-            </Link>
-
-            <Link
-              href="/dashboard/profile"
-              className={`dash-mob-tab ${isProfile ? 'dash-mob-tab--active' : ''}`}
-            >
-              <UserCircle size={16} />
-              <span>Perfil</span>
-              {isVerified ? (
-                <span className="dash-mob-tab-dot dash-mob-tab-dot--success" />
-              ) : isPending ? (
-                <span className="dash-mob-tab-dot dash-mob-tab-dot--info" />
-              ) : (
-                <span className="dash-mob-tab-dot dash-mob-tab-dot--warning" />
-              )}
-            </Link>
           </div>
         </div>
       </nav>
@@ -573,25 +522,28 @@ export default function DashboardNavClient({ user, profile }: Props) {
             background: #FFFFFF;
             border: 1px solid #E2E8F0;
             border-radius: 14px;
-            padding: 10px 14px;
+            padding: 8px 12px;
             box-shadow: 0 2px 8px rgba(0, 0, 0, 0.03);
+            width: 100%;
+            box-sizing: border-box;
           }
 
           .dash-mob-user {
             display: flex;
             align-items: center;
-            gap: 10px;
+            gap: 8px;
             min-width: 0;
+            flex: 1;
           }
 
           .dash-mob-avatar {
-            width: 36px;
-            height: 36px;
+            width: 34px;
+            height: 34px;
             border-radius: 50%;
             background: var(--forest-green);
             color: #FFFFFF;
             font-weight: 700;
-            font-size: 0.95rem;
+            font-size: 0.9rem;
             display: flex;
             align-items: center;
             justify-content: center;
@@ -607,7 +559,7 @@ export default function DashboardNavClient({ user, profile }: Props) {
           }
 
           .dash-mob-user-name {
-            font-size: 0.88rem;
+            font-size: 0.84rem;
             font-weight: 700;
             color: #1A2B21;
             white-space: nowrap;
@@ -618,9 +570,9 @@ export default function DashboardNavClient({ user, profile }: Props) {
           .dash-mob-chip {
             display: inline-flex;
             align-items: center;
-            font-size: 0.68rem;
+            font-size: 0.65rem;
             font-weight: 700;
-            padding: 1px 7px;
+            padding: 1px 6px;
             border-radius: 9999px;
             align-self: flex-start;
           }
@@ -640,20 +592,37 @@ export default function DashboardNavClient({ user, profile }: Props) {
           .dash-mob-actions {
             display: flex;
             align-items: center;
-            gap: 8px;
+            gap: 5px;
             flex-shrink: 0;
+          }
+
+          .dash-mob-admin-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            background: #1A2B21;
+            color: #A7F3D0;
+            border-radius: 9999px;
+            padding: 4px 8px;
+            font-size: 0.68rem;
+            font-weight: 700;
+            text-decoration: none;
+            transition: all 0.15s ease;
+          }
+          .dash-mob-admin-btn:hover {
+            background: #2D4A39;
           }
 
           .dash-mob-sos-btn {
             display: inline-flex;
             align-items: center;
-            gap: 5px;
+            gap: 4px;
             background: #ECFDF5;
             color: #065F46;
             border: 1px solid #A7F3D0;
-            padding: 6px 10px;
+            padding: 4px 8px;
             border-radius: 9999px;
-            font-size: 0.74rem;
+            font-size: 0.70rem;
             font-weight: 700;
             cursor: pointer;
             transition: all 0.15s ease;
@@ -916,12 +885,10 @@ export default function DashboardNavClient({ user, profile }: Props) {
             bottom: 0;
             left: 0;
             right: 0;
-            height: 58px;
-            background: rgba(255, 255, 255, 0.97);
-            backdrop-filter: blur(16px);
-            -webkit-backdrop-filter: blur(16px);
-            border-top: 1px solid rgba(0, 0, 0, 0.08);
-            box-shadow: 0 -4px 16px rgba(0, 0, 0, 0.05);
+            height: 60px;
+            background: #FFFFFF;
+            border-top: 1px solid #E2E8F0;
+            box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.08);
             z-index: 1000;
             padding-bottom: env(safe-area-inset-bottom, 0px);
           }

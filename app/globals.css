@@ -645,9 +645,10 @@ h1, h2, h3, h4, h5, h6 {
         @media (max-width: 860px) {
           .dashboard-main {
             padding-top: 74px;
-            padding-bottom: calc(80px + env(safe-area-inset-bottom, 16px));
+            padding-bottom: calc(88px + env(safe-area-inset-bottom, 20px));
             width: 100%;
             max-width: 100vw;
+            box-sizing: border-box;
             overflow-x: hidden;
           }
           .dashboard-grid {
@@ -656,11 +657,15 @@ h1, h2, h3, h4, h5, h6 {
             width: 100%;
             max-width: 100%;
             min-width: 0;
+            box-sizing: border-box;
+            overflow-x: hidden;
           }
           .dashboard-content {
             width: 100%;
             max-width: 100%;
             min-width: 0;
+            box-sizing: border-box;
+            overflow-x: hidden;
           }
           .dashboard-sidebar {
             position: static;

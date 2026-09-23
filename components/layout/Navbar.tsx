@@ -180,19 +180,19 @@ export default function Navbar() {
           position: fixed;
           top: 0; left: 0; right: 0;
           z-index: var(--z-navbar);
-          background: rgba(255, 255, 255, 0.96);
+          background: #FFFFFF;
           backdrop-filter: blur(16px);
           -webkit-backdrop-filter: blur(16px);
-          box-shadow: 0 1px 20px rgba(26, 26, 26, 0.06);
-          border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+          box-shadow: 0 1px 12px rgba(0, 0, 0, 0.05);
+          border-bottom: 1px solid #E5E7EB;
           transition: background var(--transition-base), box-shadow var(--transition-base);
         }
         .navbar--scrolled {
-          background: rgba(255, 255, 255, 0.96);
+          background: #FFFFFF;
           backdrop-filter: blur(16px);
           -webkit-backdrop-filter: blur(16px);
-          box-shadow: 0 1px 20px rgba(26, 26, 26, 0.06);
-          border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+          box-shadow: 0 1px 12px rgba(0, 0, 0, 0.05);
+          border-bottom: 1px solid #E5E7EB;
         }
         .navbar__inner {
           display: flex;

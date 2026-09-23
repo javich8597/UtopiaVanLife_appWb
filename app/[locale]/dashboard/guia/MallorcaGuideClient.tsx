@@ -2990,6 +2990,10 @@ export default function MallorcaGuideClient() {
             flex-shrink: 0;
             white-space: nowrap;
           }
+          .spots-grid {
+            grid-template-columns: 1fr;
+            gap: 16px;
+          }
           .stitch-floating-modal {
             top: auto;
             bottom: 12px;
@@ -2997,6 +3001,8 @@ export default function MallorcaGuideClient() {
             right: 12px;
             width: auto;
             max-width: 100%;
+            max-height: 75vh;
+            overflow-y: auto;
           }
           .normativa-grid {
             grid-template-columns: 1fr;

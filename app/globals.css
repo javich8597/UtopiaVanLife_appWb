@@ -639,10 +639,13 @@ h1, h2, h3, h4, h5, h6 {
           min-width: 0;
           overflow-x: hidden;
         }
+        .dashboard-footer-wrap {
+          display: block;
+        }
         @media (max-width: 860px) {
           .dashboard-main {
             padding-top: 74px;
-            padding-bottom: 40px;
+            padding-bottom: calc(80px + env(safe-area-inset-bottom, 16px));
           }
           .dashboard-grid {
             grid-template-columns: 1fr;
@@ -650,6 +653,9 @@ h1, h2, h3, h4, h5, h6 {
           }
           .dashboard-sidebar {
             position: static;
+          }
+          .dashboard-footer-wrap {
+            display: none !important;
           }
         }
       

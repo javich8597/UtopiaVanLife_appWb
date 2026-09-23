@@ -105,6 +105,17 @@ export default function DocumentsClient({ bookings, profile, user, contractTempl
   const clientPhone = safeProfile.phone
   const isVerified = safeProfile.verification_status === 'verified'
 
+  // Bloquear scroll del body al abrir el visor de documentos
+  React.useEffect(() => {
+    if (activePreviewDoc) {
+      const originalOverflow = document.body.style.overflow
+      document.body.style.overflow = 'hidden'
+      return () => {
+        document.body.style.overflow = originalOverflow
+      }
+    }
+  }, [activePreviewDoc])
+
   // Toggle expandable accordion row
   const toggleExpand = (id: string) => {
     setExpandedIds(prev => {

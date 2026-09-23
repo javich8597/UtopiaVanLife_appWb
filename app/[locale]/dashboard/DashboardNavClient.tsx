@@ -17,7 +17,7 @@ import {
   ChevronRight
 } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 
 interface Props {
   user: any
@@ -29,6 +29,17 @@ export default function DashboardNavClient({ user, profile }: Props) {
   const pathname = usePathname()
   const [loggingOut, setLoggingOut] = useState(false)
   const [showEmergencyModal, setShowEmergencyModal] = useState(false)
+
+  // Bloquear scroll de la página al abrir el modal SOS en móvil
+  useEffect(() => {
+    if (showEmergencyModal) {
+      const orig = document.body.style.overflow
+      document.body.style.overflow = 'hidden'
+      return () => {
+        document.body.style.overflow = orig
+      }
+    }
+  }, [showEmergencyModal])
 
   const isReservations = pathname === '/dashboard'
   const isDocuments = pathname.startsWith('/dashboard/documentos')
@@ -403,6 +414,56 @@ export default function DashboardNavClient({ user, profile }: Props) {
         </div>
       )}
 
+      {/* ─── 4. BARRA DE NAVEGACIÓN INFERIOR PERSISTENTE (BOTTOM TABBAR <= 860px) ─── */}
+      <nav className="dashboard-bottom-bar" aria-label="Navegación Móvil Principal">
+        <Link
+          href="/dashboard"
+          className={`dash-bottom-item ${isReservations ? 'dash-bottom-item--active' : ''}`}
+        >
+          <BookOpen size={20} />
+          <span>Reserva</span>
+        </Link>
+
+        <Link
+          href="/dashboard/documentos"
+          className={`dash-bottom-item ${isDocuments ? 'dash-bottom-item--active' : ''}`}
+        >
+          <FileText size={20} />
+          <span>Documentos</span>
+          {!isVerified && <span className="dash-bottom-dot" />}
+        </Link>
+
+        <Link
+          href="/dashboard/guia"
+          className={`dash-bottom-item ${isGuide ? 'dash-bottom-item--active' : ''}`}
+        >
+          <MapPin size={20} />
+          <span>Guía</span>
+        </Link>
+
+        <Link
+          href="/dashboard/manual"
+          className={`dash-bottom-item ${isManual ? 'dash-bottom-item--active' : ''}`}
+        >
+          <Compass size={20} />
+          <span>Manual</span>
+        </Link>
+
+        <Link
+          href="/dashboard/profile"
+          className={`dash-bottom-item ${isProfile ? 'dash-bottom-item--active' : ''}`}
+        >
+          <UserCircle size={20} />
+          <span>Perfil</span>
+          {!isVerified && !isPending && (
+            <span className="dash-bottom-dot dash-bottom-dot--warning" />
+          )}
+          {isPending && (
+            <span className="dash-bottom-dot dash-bottom-dot--info" />
+          )}
+        </Link>
+      </nav>
+
       {/* ─── STYLES ─── */}
       <style jsx>{`
         /* Desktop styles */
@@ -410,6 +471,9 @@ export default function DashboardNavClient({ user, profile }: Props) {
           display: flex;
         }
         .dashboard-mobile-nav {
+          display: none;
+        }
+        .dashboard-bottom-bar {
           display: none;
         }
 
@@ -841,6 +905,68 @@ export default function DashboardNavClient({ user, profile }: Props) {
             font-weight: 600;
             color: #475569;
             cursor: pointer;
+          }
+
+          /* Bottom Persistent TabBar */
+          .dashboard-bottom-bar {
+            display: flex;
+            align-items: center;
+            justify-content: space-around;
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: 58px;
+            background: rgba(255, 255, 255, 0.97);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border-top: 1px solid rgba(0, 0, 0, 0.08);
+            box-shadow: 0 -4px 16px rgba(0, 0, 0, 0.05);
+            z-index: 1000;
+            padding-bottom: env(safe-area-inset-bottom, 0px);
+          }
+
+          .dash-bottom-item {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 2px;
+            height: 100%;
+            text-decoration: none;
+            color: #64748B;
+            font-size: 0.68rem;
+            font-weight: 600;
+            position: relative;
+            transition: color 0.15s ease, transform 0.15s ease;
+            -webkit-tap-highlight-color: transparent;
+          }
+
+          .dash-bottom-item:active {
+            transform: scale(0.92);
+          }
+
+          .dash-bottom-item--active {
+            color: var(--forest-green);
+            font-weight: 700;
+          }
+
+          .dash-bottom-dot {
+            position: absolute;
+            top: 7px;
+            right: calc(50% - 13px);
+            width: 7px;
+            height: 7px;
+            border-radius: 50%;
+            background: #EF4444;
+            border: 1.5px solid #FFFFFF;
+          }
+          .dash-bottom-dot--warning {
+            background: #F59E0B;
+          }
+          .dash-bottom-dot--info {
+            background: #3B82F6;
           }
         }
       `}</style>

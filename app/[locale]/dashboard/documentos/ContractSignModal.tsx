@@ -42,6 +42,15 @@ export default function ContractSignModal({ booking, profile, onClose, onSigned,
     return generateContractData(booking, profile, undefined, contractTemplate)
   }, [booking, profile, contractTemplate])
 
+  // Bloquear scroll del body al abrir el modal en móvil y escritorio
+  useEffect(() => {
+    const originalOverflow = document.body.style.overflow
+    document.body.style.overflow = 'hidden'
+    return () => {
+      document.body.style.overflow = originalOverflow
+    }
+  }, [])
+
   // Inicializar canvas con escalado Retina / Hi-DPI
   useEffect(() => {
     if (activeTab !== 'sign') return
@@ -760,6 +769,9 @@ export default function ContractSignModal({ booking, profile, onClose, onSigned,
           width: 100%;
           height: 100%;
           display: block;
+          touch-action: none;
+          -webkit-user-select: none;
+          user-select: none;
         }
 
         .csm-canvas-placeholder {

@@ -1335,8 +1335,10 @@ export default function ProfileClient({ user, profile }: Props) {
             gap: 10px;
           }
           .btn-save {
+            width: 100%;
             max-width: 100%;
-            padding: 13px 20px;
+            padding: 14px 20px;
+            justify-content: center;
           }
           .preview-container {
             height: 140px;

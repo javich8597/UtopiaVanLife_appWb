@@ -1248,6 +1248,20 @@ export default function DashboardClient({ bookings, profile, user }: Props) {
                         padding: 3px 8px;
                     }
                 }
+
+                @media (max-width: 480px) {
+                    .trip-dates-grid {
+                        grid-template-columns: 1fr;
+                        gap: 10px;
+                    }
+                    .date-block:first-child {
+                        border-bottom: 1px dashed var(--gray-200);
+                        padding-bottom: 8px;
+                    }
+                    .action-tile:active {
+                        transform: scale(0.98);
+                    }
+                }
             `}</style>
         </div>
     )

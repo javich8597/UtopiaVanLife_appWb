@@ -42,7 +42,9 @@ export default async function DashboardLayout({
           </div>
         </div>
       </main>
-      <Footer />
+            <div className="dashboard-footer-wrap">
+              <Footer />
+            </div>
     </>
   )
 }

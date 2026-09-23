@@ -133,7 +133,7 @@ const GUIDES: GuideSection[] = [
     tags: ['wc', 'baño', 'químico', 'váter', 'ducha', 'pastillas', 'limpieza'],
     videoUrl: '/videos/video_noche_min.mp4',
     videoDuration: '1:50 min',
-    posterUrl: '/images/campers/neo/360-panorama.png',
+    posterUrl: '/images/campers/neo/interior/neo-bathroom-shower.webp',
     steps: [
       'Uso del WC: Abre la guillotina con la palanca frontal antes de usar y presiona la bomba de descarga de agua.',
       'Pastilla química ecológica: Incluimos pastillas biodegradables en el kit de bienvenida para descomponer residuos.',

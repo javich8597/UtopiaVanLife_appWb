@@ -29,7 +29,7 @@ const DEMO_CAMPERS: Record<string, any> = {
         images: [
             '/images/campers/neo/neo-ext.png',
             '/images/campers/neo/neo-interior.png',
-            '/images/campers/neo/neo-top.webp',
+            '/images/campers/neo/blueprints/floorplan-closed.webp',
         ],
         is_available: true,
     },

@@ -1,4 +1,4 @@
-# Project: Utopia Van Life — User & Admin Portals & Premium Booking Flow
+# Project: Utopia Van Life — User & Admin Portals, Premium Booking Flow & Cinematic Redesign
 
 ## Architecture
 - **Framework**: Next.js 16 (App Router, Turbopack, React 19)
@@ -9,6 +9,7 @@
 - **Calendar**: FullCalendar v6 (DayGrid, TimeGrid, Interaction, YearGrid)
 - **PDF Generation**: `jspdf` for official 31-article multi-page contracts, check-in records, and rental invoices
 - **Payment Gateway**: Official Redsys TPV (Tarjeta bancaria / Bizum) with 3DES CBC key diversification and HMAC-SHA256 digital signature, online webhook notification (`/api/webhooks/redsys`)
+- **Visual Design (Round 3)**: Cinematic Dark Mode / Outdoor Nocturno aesthetic (charcoal matte surfaces #0B0D11 / #0F1115 / #14171D, warm gold/amber accents #E5C07B / #D4AF37 / #C8A882, dark glassmorphism backdrop-blur-md, editorial typography with italic accents, Framer Motion spring physics and layoutId indicators, interactive technical blueprints with engineering hotspots).
 
 ## Feature Inventory
 | # | Feature | Description | Milestone | Source |
@@ -44,6 +45,14 @@
 | 29 | User Dashboard Booking Sync | Update `/dashboard` to properly show `"Pagada · En Aprobación Admin"` when `payment_status === 'paid' && status === 'pending'`, render dynamic pickup/dropoff slots, link to `/dashboard/documentos` | M8 | Follow-up R3 |
 | 30 | E2E Test Suite (Tiers 1-4) & TEST_READY.md | 5 comprehensive integration test suites (`r4_pricing_flow`, `r4_wizard_validation`, `r4_redsys_gateway`, `r4_calendar_sync`, `r4_portals_sync`) via Node.js test runner | M9 | Follow-up R4 |
 | 31 | Final Verification & Adversarial Hardening | 100% tests passing (`npm test`), clean build (`npm run build`), Challenger verification, Forensic Audit CLEAN | M9 | Follow-up R4 |
+| 32 | Dark Mode Hero with Background Video & Search | Immersive night video (`public/videos/video_noche_min.mp4`, 4.2MB), poster fallback, gradient vignette, editorial typography, dark glassmorphic search bar linking to `/reserva/[slug]` or Showcase | M10 | Round 3 R1 |
+| 33 | Interactive Camper Showcase NEO & SPACE | Fluid spring toggle between NEO & SPACE, 4 exploration modes (Exterior, Interior, Technical Blueprint with hotspots, Video Tour), direct CTA -> `/[locale]/reserva/[slug]` | M11 | Round 3 R2 |
+| 34 | Editorial Craftsmanship & Engineering Section | "Ingeniería & Artesanía" section with `public/images/brand/` photography and spotlight hover cards with Framer Motion micro-interactions | M12 | Round 3 R3 |
+| 35 | Mallorca Experiences, Routes & Lifestyle Section | Mallorca outdoor lifestyle section using `public/images/lifestyle/`, video clips, fixing placeholder paths | M12 | Round 3 R3 |
+| 36 | Dark Mode FAQ & Footer Harmonization | Harmonized charcoal accordion cards, subtle borders, amber highlights, and polished dark footer | M12 | Round 3 R3 |
+| 37 | Enhanced Camper Detail Page & Reservation Linkage | Product detail update: fix `neo-top.webp` 404, embed technical blueprint tab, video clips, and update `PriceCalculator.tsx` booking button to route to `/[locale]/reserva/[slug]` | M12 | Round 3 R4 |
+| 38 | Performance, Accessibility & Full Test Suite Pass | Lazy loading for heavy media, `prefers-reduced-motion` compliance, 220/220 tests passing (`npm.cmd test`), clean production build (`npm.cmd run build`) | M13 | Round 3 R5 |
+| 39 | Challenger Adversarial Verification & Forensic Audit Gate | Code-executing adversarial challenge & independent forensic audit gate verification | M13 | Round 3 R5 |
 
 ## Milestones
 | # | Name | Scope | Dependencies | Status |
@@ -57,40 +66,48 @@
 | M7 | Dedicated Multi-Step Booking Wizard (/[locale]/reserva/[slug]) | 5-step wizard (Dates/Slots, KM, Cancellation, Categorized Extras, Personal Data & Checkout), Sticky Summary, Bottom Navigation | M6 | DONE |
 | M8 | Admin & User Portals Synchronization | `/admin/bookings` detail modal enhancements, `/admin/calendar` `blocked_dates` rendering, `/dashboard` status badge & dynamic time slots | M6, M7 | DONE |
 | M9 | Dual Track Convergence, E2E Testing & Quality Gate | Tiers 1-4 test execution, Tier 5 adversarial hardening, 100% test pass, exit code 0 build, Clean Forensic Audit | M6, M7, M8 | DONE |
+| M10 | Hero Cinematográfico Dark Mode & Buscador Integrado | Dark video background (`video_noche_min.mp4`), poster fallback, editorial typography, dark glassmorphic search bar linking to `/reserva/[slug]` or Showcase | none | DONE |
+| M11 | Showcase Interactivo de Campers NEO & SPACE | Model toggle (NEO/SPACE), 4 exploration modes (Exterior, Interior, Technical Blueprint with Hotspots, Video Tour), direct CTA -> `/[locale]/reserva/[slug]` | M10 | DONE |
+| M12 | Secciones Editoriales, FAQ Dark & Ficha Camper Detail | "Ingeniería & Artesanía" (brand photos), "Rutas y Experiencias" (lifestyle), FAQ dark mode, Camper Detail (/campers/[slug]) multimedia upgrade & PriceCalculator booking linkage fix | M11 | DONE |
+| M13 | Rendimiento, Accesibilidad & Verificación de Suite Completa | Lazy loading, prefers-reduced-motion, 243/243 test pass, clean production build, Challenger verification & Forensic Auditor Gate CLEAN | M12 | DONE |
 
 ## Interface Contracts
-### Booking Engine ↔ Pricing Engine
-- `calculatePriceV2(params)`:
-  - Input: `{ camperId, startDate, endDate, pickupSlot?, dropoffSlot?, kmPackage?: 'included_150' | 'unlimited', cancellationPolicy?: 'standard' | 'flexible', extrasSelected?: Array<{ extraId: string, quantity: number, pricingType: 'per_day' | 'fixed', price: number, name: string, category: string }> }`
-  - Output: `PricingBreakdown { basePrice, nights, kmPackage, kmSupplement, cancellationPolicy, cancellationSupplement, slotSupplement, extrasSubtotal, discountAmount, totalPrice, depositAmount, itemizedExtras }`
+### Hero Search & Showcase ↔ Booking Wizard
+- URL target: `/[locale]/reserva/[slug]`
+- Query parameters passed:
+  - `from`: string (`YYYY-MM-DD`) -> maps to `step1.startDate`
+  - `to`: string (`YYYY-MM-DD`) -> maps to `step1.endDate`
+  - `pax`: string / number -> maps to `step1.pax`
+- Consumed by `app/[locale]/reserva/[slug]/page.tsx` and `BookingWizardClient.tsx`.
 
-### Checkout API ↔ Redsys Gateway
-- `POST /api/bookings/checkout`:
-  - Input: `{ camperSlug, startDate, endDate, pickupSlot, dropoffSlot, kmPackage, cancellationPolicy, extras, customer: { fullName, email, phone, dniNie, address, city, postalCode, country, travelersCount, notes } }`
-  - Logic: Validates availability, creates/links Supabase user, verifies server-side price, persists `bookings` record with `payment_status: 'pending'`, signs Redsys parameters with `createRedsysPaymentForm`.
-  - Output: `{ success: true, bookingId, redsys: { url, params: Ds_MerchantParameters, signature: Ds_Signature, version: Ds_SignatureVersion } }`
+### Camper Detail PriceCalculator ↔ Booking Wizard
+- `PriceCalculator.tsx`:
+  - `handleReserve`: redirects to `/${locale}/reserva/${camperSlug}?from=${startDate}&to=${endDate}&startSlot=${startSlot}&endSlot=${endSlot}&pax=${pax}&extras=${extras}` instead of legacy `/checkout`.
 
-### Redsys Webhook ↔ Supabase Database
-- `POST /api/webhooks/redsys`:
-  - Validates `Ds_Signature` using HMAC-SHA256 and merchant key.
-  - Updates `bookings` record: `payment_status: 'paid'`, `payment_intent_id: orderId`, `status: 'pending'` (pending manual admin approval).
-  - Inserts auto-block into `blocked_dates`: `{ camper_id, start_date, end_date, session_id: 'redsys_' + orderId }`.
+### Blueprint Hotspots Data Contract
+- Each hotspot item contains:
+  - `id`: string
+  - `title`: string
+  - `description`: string
+  - `x`: number (percentage coordinate on blueprint 0-100)
+  - `y`: number (percentage coordinate on blueprint 0-100)
+  - `category`: 'electrical' | 'comfort' | 'interior' | 'tech' | 'storage'
+  - `image`: string (path in `public/images/campers/[slug]/...`)
+  - `specBadge`: string
 
-### Admin Bookings ↔ Booking Model
-- `BookingDetailModal` consumes `booking`:
-  - Reads `booking.km_package`, `booking.km_price`, `booking.cancellation_policy`, `booking.cancellation_price`, `booking.pricing_breakdown`, `booking.customer_dni`, `booking.customer_address`, `booking.travelers_count`.
-
-### Admin Calendar ↔ Availability Model
-- `app/[locale]/admin/calendar/page.tsx` fetches `campers`, `bookings`, and `blocked_dates`.
-- `CalendarClient.tsx` accepts `blocked_dates: any[]` and displays auto-blocks as locked calendar events (`🔒 Auto-Bloqueo Redsys / Bloqueo de Fechas`).
+### Color & Token System (Dark Mode / Outdoor Nocturno)
+- Base background: `#0B0D11` (void dark), `#0F1115` (charcoal primary), `#14171D` (card surface), `#1B1F27` (card elevated)
+- Warm accents: `#E5C07B` (antique gold), `#D4AF37` (champagne gold), `#D97706` (warm amber), `#C8A882` (warm sand)
+- Text: `#FFFFFF` (primary), `rgba(255, 255, 255, 0.72)` (secondary), `rgba(255, 255, 255, 0.45)` (muted)
+- Glassmorphism: `rgba(15, 17, 21, 0.78)` background with `backdrop-blur-md` (20px blur) and `rgba(255, 255, 255, 0.08)` border.
 
 ## Code Layout
-- `app/[locale]/reserva/[slug]/`: Dedicated multi-step booking page (`page.tsx`, `BookingWizardClient.tsx`, `WizardHeader.tsx`, `Step1Dates.tsx`, `Step2Mileage.tsx`, `Step3Cancellation.tsx`, `Step4Extras.tsx`, `Step5Checkout.tsx`, `StickyTripSummary.tsx`, `WizardBottomBar.tsx`)
-- `app/api/bookings/checkout/`: Checkout & Redsys form generation endpoint (`route.ts`)
-- `app/api/webhooks/redsys/`: Redsys payment webhook notification endpoint (`route.ts`)
-- `lib/pricing/`: Pricing calculation engine (`engine.ts`, `types.ts`)
-- `lib/redsys.ts`: Redsys cryptographic signing and verification utilities
-- `app/[locale]/admin/bookings/`: `BookingsClient.tsx`, `BookingDetailModal.tsx`
-- `app/[locale]/admin/calendar/`: `page.tsx`, `CalendarClient.tsx`
-- `app/[locale]/dashboard/`: `DashboardClient.tsx`, `DashboardNavClient.tsx`
-- `tests/`: Automated test suites (`r4_pricing_flow.test.ts`, `r4_wizard_validation.test.ts`, `r4_redsys_gateway.test.ts`, `r4_calendar_sync.test.ts`, `r4_portals_sync.test.ts`, `stress_adversarial_challenger_1.test.ts`)
+- `components/home/HeroSection.tsx`: Dark mode video hero, typography, and dark glass search bar
+- `components/home/CamperShowcase.tsx`: (New / Refactored) 4-mode interactive camper showcase (NEO/SPACE)
+- `components/home/WhyUtopia.tsx`: "Ingeniería & Artesanía" editorial section with spotlight cards
+- `components/home/ExperiencesSection.tsx`: Mallorca routes and lifestyle showcase
+- `components/home/FAQSection.tsx` & `components/faq/FAQAccordionList.tsx`: Dark mode FAQ
+- `app/[locale]/campers/[slug]/page.tsx` & `CamperDetailClient.tsx`: Camper detail page multimedia upgrade & blueprint
+- `components/booking/PriceCalculator.tsx`: Camper detail price calculation and wizard linkage
+- `components/layout/Navbar.tsx`: Transparent/dark glass aesthetic for public landing
+- `tests/`: Automated test suite (19 test files, 220 tests, must maintain 100% pass)

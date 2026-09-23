@@ -87,9 +87,10 @@ function FlagIcon({ code, size = 15 }: { code: string; size?: number }) {
 interface Props {
   isSolid?: boolean
   isMobile?: boolean
+  isDark?: boolean
 }
 
-export default function LanguageSwitcher({ isSolid = true, isMobile = false }: Props) {
+export default function LanguageSwitcher({ isSolid = true, isMobile = false, isDark = false }: Props) {
   const [isOpen, setIsOpen] = useState(false)
   const currentLocale = useLocale()
   const pathname = usePathname()
@@ -166,9 +167,17 @@ export default function LanguageSwitcher({ isSolid = true, isMobile = false }: P
           gap: 6,
           padding: '5px 10px',
           borderRadius: 'var(--radius-full)',
-          background: isSolid ? 'rgba(0, 0, 0, 0.05)' : 'rgba(255, 255, 255, 0.15)',
-          color: isSolid ? 'var(--black-matte)' : '#FFFFFF',
-          border: isSolid ? '1px solid rgba(0, 0, 0, 0.08)' : '1px solid rgba(255, 255, 255, 0.25)',
+          background: isDark
+            ? 'rgba(255, 255, 255, 0.08)'
+            : isSolid
+              ? 'rgba(0, 0, 0, 0.05)'
+              : 'rgba(255, 255, 255, 0.15)',
+          color: isDark ? '#FFFFFF' : isSolid ? 'var(--black-matte)' : '#FFFFFF',
+          border: isDark
+            ? '1px solid rgba(255, 255, 255, 0.15)'
+            : isSolid
+              ? '1px solid rgba(0, 0, 0, 0.08)'
+              : '1px solid rgba(255, 255, 255, 0.25)',
           backdropFilter: 'blur(8px)',
           WebkitBackdropFilter: 'blur(8px)',
           fontSize: '0.78rem',
@@ -189,10 +198,10 @@ export default function LanguageSwitcher({ isSolid = true, isMobile = false }: P
             position: 'absolute',
             top: 'calc(100% + 6px)',
             right: 0,
-            background: 'white',
-            border: '1px solid var(--gray-200)',
+            background: isDark ? '#14171D' : 'white',
+            border: isDark ? '1px solid rgba(255, 255, 255, 0.12)' : '1px solid var(--gray-200)',
             borderRadius: 'var(--radius-lg)',
-            boxShadow: '0 8px 24px rgba(0, 0, 0, 0.12)',
+            boxShadow: isDark ? '0 12px 32px rgba(0, 0, 0, 0.65)' : '0 8px 24px rgba(0, 0, 0, 0.12)',
             padding: '4px',
             minWidth: 140,
             zIndex: 100,
@@ -213,8 +222,12 @@ export default function LanguageSwitcher({ isSolid = true, isMobile = false }: P
                   padding: '7px 10px',
                   border: 'none',
                   borderRadius: 'var(--radius-md)',
-                  background: isSelected ? 'rgba(45, 58, 45, 0.06)' : 'transparent',
-                  color: isSelected ? 'var(--forest-green)' : 'var(--black-matte)',
+                  background: isSelected
+                    ? isDark ? 'rgba(229, 192, 123, 0.15)' : 'rgba(45, 58, 45, 0.06)'
+                    : 'transparent',
+                  color: isSelected
+                    ? isDark ? '#E5C07B' : 'var(--forest-green)'
+                    : isDark ? 'rgba(255, 255, 255, 0.85)' : 'var(--black-matte)',
                   fontSize: '0.82rem',
                   fontWeight: isSelected ? 700 : 500,
                   cursor: 'pointer',
@@ -222,7 +235,7 @@ export default function LanguageSwitcher({ isSolid = true, isMobile = false }: P
                   transition: 'background 0.15s ease'
                 }}
                 onMouseEnter={e => {
-                  if (!isSelected) e.currentTarget.style.background = 'var(--gray-100)'
+                  if (!isSelected) e.currentTarget.style.background = isDark ? 'rgba(255, 255, 255, 0.08)' : 'var(--gray-100)'
                 }}
                 onMouseLeave={e => {
                   if (!isSelected) e.currentTarget.style.background = 'transparent'
@@ -232,7 +245,7 @@ export default function LanguageSwitcher({ isSolid = true, isMobile = false }: P
                   <FlagIcon code={loc.code} size={13} />
                   <span>{loc.label}</span>
                 </span>
-                {isSelected && <Check size={14} style={{ color: 'var(--forest-green)' }} />}
+                {isSelected && <Check size={14} style={{ color: isDark ? '#E5C07B' : 'var(--forest-green)' }} />}
               </button>
             )
           })}

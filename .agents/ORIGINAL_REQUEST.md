@@ -110,3 +110,54 @@ Página a pantalla completa inspirada en Holo-Van:
 ### Calidad de Código y Validación
 - [ ] Todos los tests de la suite (npm test) se ejecutan y superan con 0 fallos.
 - [ ] El comando de compilación npm run build finaliza con éxito con 0 errores de TypeScript y linting.
+
+## 2026-09-22T23:38:33Z
+
+Rediseñar la experiencia visual de Utopia Van Life elevando la marca a un nivel premium con una estética **Cinematográfica Dark Mode / Outdoor Nocturno** (fondo carbón mate, acentos dorados y ámbar cálido, tipografía editorial y contrastes elegantes), aprovechando el rico catálogo multimedia de `public/` (vídeos de fondo, tours de vídeo, planos blueprint interactivos con hotspots, y fotografía de NEO y SPACE) con micro-animaciones interactivas fluidas inspiradas en Emil Kowalski y Framer Motion, manteniendo una interfaz limpia, visual y sin sobrecarga cognitiva.
+
+Working directory: c:\Users\javi_\Desktop\Proyectos\UtopiaVanLife\UtopiaVanLife_appWb
+Integrity mode: development
+
+## Requirements
+
+### R1. Hero Cinematográfico Dark Mode con Vídeo de Fondo y Buscador
+- Fondo inmersivo con vídeo cinematográfico nocturno/outdoor (`public/videos/video_noche_min.mp4` o `hero-bg.mov`) con fallback de póster de alta calidad y overlay oscuro graduado.
+- Tipografía editorial de alto impacto con titulares espaciados, badges sutiles y acentos cálidos.
+- Barra de búsqueda de fechas y pasajeros integrada con estética dark glassmorphism (desenfoque `backdrop-blur-md`, bordes sutiles y feedback interactivo).
+
+### R2. Showcase Interactivo de Campers NEO & SPACE
+- Selector de modelo fluido entre **NEO** y **SPACE** con animación de transición spring.
+- Cuatro modos de exploración interactiva por modelo:
+  1. *Exterior*: Renders y fotografías exteriores de alta definición (`public/images/campers/[slug]/exterior/`).
+  2. *Interior*: Vistas panorámicas y detalles de salón, cocina y dormitorio (`public/images/campers/[slug]/interior/`).
+  3. *Blueprint Técnico*: Plano acotado con puntos interactivos (*hotspots*) que despliegan detalles de ingeniería (540Ah Litio Victron, 400W Solar, A/C Dometic, etc.).
+  4. *Vídeo Tour*: Reproductor integrado para previsualizar los clips de `public/videos/campers/[slug]/` (tours interiores, cocina, garaje).
+- Botón destacado hacia el flujo de reserva (`/reserva/[slug]`).
+
+### R3. Secciones Editoriales: Ingeniería, Artesanía y Experiencias
+- Sección "Por qué Utopia / Ingeniería & Artesanía" con las fotografías de marca de `public/images/brand/` y tarjetas interactivas con iluminación sutil (spotlight hover effect y micro-animaciones Framer Motion).
+- Sección de Experiencias y Rutas por Mallorca aprovechando `public/images/lifestyle/`.
+- FAQ y pie de página alineados con la atmósfera cinematográfica oscura.
+
+### R4. Fichas de Producto de Camper (`/campers/[slug]`)
+- Actualización de la página individual de la camper para incorporar la galería multimedia completa, planos técnicos, reproductor de clips de vídeo y enlace directo al asistente `/reserva/[slug]`.
+
+### R5. Rendimiento, Accesibilidad y Verificación
+- Carga diferida (*lazy loading*) de vídeos e imágenes pesadas para garantizar máxima fluidez y tiempo de carga rápido.
+- Soporte para `prefers-reduced-motion`.
+- Verificación exhaustiva: 220/220 tests de la suite (`npm test`) pasando con 100% de éxito y compilación de producción `npm run build` sin errores.
+
+## Acceptance Criteria
+
+### Experiencia Visual e Interactiva
+- [ ] La página principal (`/[locale]`) presenta una atmósfera coherente Dark Mode / Outdoor Nocturno con vídeo de fondo funcional, tipografía de alta gama y buscador responsive.
+- [ ] El Showcase de Campers permite alternar entre NEO y SPACE y navegar entre las vistas de Exterior, Interior, Blueprint con hotspots interactivos y Vídeo Tour sin saltos bruscos.
+- [ ] Las tarjetas de características y experiencias cuentan con micro-animaciones fluidas (hover, active y transiciones) que responden de inmediato sin sobrecargar el navegador.
+
+### Conectividad y Rutas
+- [ ] Todos los botones de reserva en la Home y en las fichas de producto enlazan correctamente hacia la página de reserva dedicada `/[locale]/reserva/[slug]` conservando los parámetros seleccionados.
+- [ ] La página de detalle de camper `/[locale]/campers/[slug]` refleja la nueva estética premium e incorpora los assets multimedia correspondientes.
+
+### Calidad Técnica y Build
+- [ ] La suite de tests automatizados (`npm test`) mantiene el 100% de pruebas superadas (mínimo 220 tests sin fallos).
+- [ ] El comando de compilación npm run build finaliza con éxito con 0 errores de TypeScript y linting.

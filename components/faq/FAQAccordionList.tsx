@@ -41,12 +41,14 @@ export default function FAQAccordionList({
   initialCategory = 'all',
   title,
   subtitle,
+  theme = 'dark',
 }: {
   showSearch?: boolean
   showCategories?: boolean
   initialCategory?: string
   title?: string
   subtitle?: string
+  theme?: 'light' | 'dark'
 }) {
   const locale = useLocale()
   const isEs = locale === 'es'
@@ -157,11 +159,11 @@ export default function FAQAccordionList({
   }
 
   return (
-    <div className="faq-experience">
+    <div className={`faq-experience ${theme === 'dark' ? 'faq-experience--dark' : ''}`}>
       {/* Header */}
       <div className="faq-header text-center">
         <div className="faq-eyebrow-pill">
-          <Sparkles size={14} className="text-forest" />
+          <Sparkles size={14} style={{ color: theme === 'dark' ? '#E5C07B' : 'var(--forest-green)' }} />
           <span>{isEs ? 'PREGUNTAS FRECUENTES · TRANSPARENCIA TOTAL' : 'FREQUENTLY ASKED QUESTIONS'}</span>
         </div>
         <h2 className="faq-title text-display">
@@ -861,6 +863,136 @@ export default function FAQAccordionList({
             width: 100%;
             justify-content: center;
           }
+        }
+
+        /* Dark Theme overrides */
+        .faq-experience--dark .faq-title {
+          color: #F3F4F6;
+        }
+        .faq-experience--dark .faq-subtitle {
+          color: #9CA3AF;
+        }
+        .faq-experience--dark .faq-eyebrow-pill {
+          background: rgba(229, 192, 123, 0.1);
+          color: #E5C07B;
+          border-color: rgba(229, 192, 123, 0.25);
+        }
+        .faq-experience--dark .faq-search-bar {
+          background: #14171D;
+          border-color: rgba(255, 255, 255, 0.1);
+          box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+        }
+        .faq-experience--dark .faq-search-bar:focus-within {
+          border-color: #E5C07B;
+          box-shadow: 0 6px 24px rgba(229, 192, 123, 0.15);
+        }
+        .faq-experience--dark .faq-search-icon {
+          color: #9CA3AF;
+        }
+        .faq-experience--dark .faq-search-input {
+          color: #F3F4F6;
+        }
+        .faq-experience--dark .faq-search-input::placeholder {
+          color: #6B7280;
+        }
+        .faq-experience--dark .faq-search-clear {
+          color: #9CA3AF;
+        }
+        .faq-experience--dark .faq-search-clear:hover {
+          color: #F3F4F6;
+          background: rgba(255, 255, 255, 0.1);
+        }
+        .faq-experience--dark .faq-cat-btn {
+          background: #14171D;
+          border-color: rgba(255, 255, 255, 0.08);
+          color: #9CA3AF;
+        }
+        .faq-experience--dark .faq-cat-btn:hover {
+          border-color: rgba(229, 192, 123, 0.3);
+          color: #F3F4F6;
+        }
+        .faq-experience--dark .faq-cat-btn--active {
+          background: #E5C07B;
+          color: #0B0D11;
+          border-color: #E5C07B;
+        }
+        .faq-experience--dark .faq-cat-badge {
+          background: rgba(255, 255, 255, 0.08);
+          color: #9CA3AF;
+        }
+        .faq-experience--dark .faq-cat-badge--active {
+          background: rgba(0, 0, 0, 0.2);
+          color: #0B0D11;
+        }
+        .faq-experience--dark .faq-results-count {
+          color: #9CA3AF;
+        }
+        .faq-experience--dark .faq-action-link {
+          color: #E5C07B;
+        }
+        .faq-experience--dark .faq-action-link:hover {
+          color: #f3d498;
+        }
+        .faq-experience--dark .faq-card {
+          background: #14171D;
+          border-color: rgba(255, 255, 255, 0.08);
+        }
+        .faq-experience--dark .faq-card:hover {
+          border-color: rgba(229, 192, 123, 0.25);
+        }
+        .faq-experience--dark .faq-card--open {
+          border-color: rgba(229, 192, 123, 0.4);
+          box-shadow: 0 8px 30px rgba(0, 0, 0, 0.35);
+        }
+        .faq-experience--dark .faq-card__question {
+          color: #F3F4F6;
+        }
+        .faq-experience--dark .faq-card__chevron-wrap {
+          background: rgba(255, 255, 255, 0.05);
+          color: #9CA3AF;
+        }
+        .faq-experience--dark .faq-card--open .faq-card__chevron-wrap {
+          background: rgba(229, 192, 123, 0.15);
+          color: #E5C07B;
+        }
+        .faq-experience--dark .faq-card__category-chip {
+          background: rgba(255, 255, 255, 0.06);
+          color: #9CA3AF;
+        }
+        .faq-experience--dark .faq-answer-p {
+          color: #D1D5DB;
+        }
+        .faq-experience--dark .faq-answer-item {
+          color: #D1D5DB;
+        }
+        .faq-experience--dark .faq-strong-highlight {
+          color: #E5C07B;
+        }
+        .faq-experience--dark .faq-bullet-icon {
+          background: rgba(229, 192, 123, 0.15);
+          color: #E5C07B;
+        }
+        .faq-experience--dark .faq-contact-card {
+          background: linear-gradient(135deg, #181C24 0%, #101318 100%);
+          border-color: rgba(229, 192, 123, 0.2);
+        }
+        .faq-experience--dark .faq-contact-title {
+          color: #F3F4F6;
+        }
+        .faq-experience--dark .faq-contact-desc {
+          color: #9CA3AF;
+        }
+        .faq-experience--dark .faq-contact-badge {
+          background: rgba(229, 192, 123, 0.1);
+          color: #E5C07B;
+          border: 1px solid rgba(229, 192, 123, 0.2);
+        }
+        .faq-experience--dark .faq-contact-btn--fleet {
+          background: #E5C07B;
+          color: #0B0D11;
+        }
+        .faq-experience--dark .faq-contact-btn--fleet:hover {
+          background: #f3d498;
         }
       `}</style>
     </div>

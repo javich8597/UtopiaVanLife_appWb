@@ -27,7 +27,10 @@ import {
   Car,
   Award,
   Layers,
-  HeartHandshake
+  HeartHandshake,
+  PlayCircle,
+  Video,
+  X
 } from 'lucide-react'
 import PriceCalculator from '@/components/booking/PriceCalculator'
 import MapboxExperiences from '@/components/map/MapboxExperiences'
@@ -193,6 +196,60 @@ const PREMIUM_MEDIA_DATA: Record<string, {
   }
 }
 
+interface BlueprintHotspot {
+  id: string
+  x: number
+  y: number
+  title: string
+  desc: string
+  spec: string
+}
+
+const BLUEPRINT_DATA: Record<string, {
+  image: string
+  hotspots: BlueprintHotspot[]
+}> = {
+  neo: {
+    image: '/images/campers/neo/blueprints/floorplan-closed.webp',
+    hotspots: [
+      { id: 'victron', x: 28, y: 72, title: 'Sistema Pro Victron Energy', desc: '540Ah Litio + 400W Solar + Inversor Multiplus 2000W', spec: '100% Off-Grid' },
+      { id: 'ac', x: 60, y: 40, title: 'Climatización 12V Dometic', desc: 'Aire acondicionado CoolAir a 12V y calefacción diésel Truma Combi', spec: 'Confort 365 días' },
+      { id: 'bed', x: 82, y: 55, title: 'Cama Fija & Gran Maletero', desc: 'Colchón viscoelástico 192×130 cm y garaje de 2.230 L para equipaje/bicis', spec: '2.230 L Carga' },
+      { id: 'bath', x: 38, y: 38, title: 'Cabina de Baño Completa', desc: 'Ducha de agua caliente, WC químico de cassette y ducha exterior', spec: '113L Agua Limpia' },
+      { id: 'kitchen', x: 48, y: 70, title: 'Cocina & Nevera Compresor', desc: 'Nevera 86L a 12V con congelador y 2 fogones a gas GLP', spec: 'Gas Certificado' },
+      { id: 'garmin', x: 22, y: 40, title: 'Garmin RV Controls & Cerbo GX', desc: 'Centralita táctil y monitorización energética en smartphone', spec: 'Smart Cockpit' },
+    ]
+  },
+  space: {
+    image: '/images/campers/space/interior/space-spaces-floorplan.webp',
+    hotspots: [
+      { id: 'bed', x: 80, y: 48, title: 'Cama Elevable Eléctrica', desc: 'Desciende del techo sobre el salón en segundos sin mover cojines', spec: '200×150 cm' },
+      { id: 'lounge', x: 86, y: 52, title: 'Salón Panorámico en U', desc: 'Mesa giratoria 360° para teletrabajo y 5 comensales con vistas traseras', spec: '7m² Espacio Abierto' },
+      { id: 'victron', x: 25, y: 72, title: 'Sistema Pro Victron Energy', desc: '540Ah Litio + 400W Solar + Inversor Multiplus 2000W', spec: '100% Off-Grid' },
+      { id: 'cinema', x: 72, y: 30, title: 'Pack Cine HD & JBL', desc: 'Proyector Full HD retráctil y audio surround amplificado', spec: 'Entretenimiento' },
+      { id: 'ac', x: 58, y: 40, title: 'Climatización 12V Dometic', desc: 'Aire acondicionado a 12V y aislamiento integral Kaiflex 360º', spec: 'Aislamiento Térmico' },
+      { id: 'kitchen', x: 45, y: 65, title: 'Cocina Gourmet & Bodega', desc: 'Nevera compresor 86L, dos fogones y botellero de diseño', spec: 'Nevera + Bodega' },
+    ]
+  }
+}
+
+const VIDEO_CLIPS_DATA: Record<string, { id: string; title: string; src: string; duration: string }[]> = {
+  neo: [
+    { id: 'tour', title: 'Tour Interior Completo', src: '/videos/campers/neo/neo-interior-highlight-tour.mp4', duration: '1:45' },
+    { id: 'kitchen', title: 'Cocina & Acabados', src: '/videos/campers/neo/neo-kitchen-details.mp4', duration: '0:58' },
+    { id: 'bath', title: 'Ducha & Baño', src: '/videos/campers/neo/neo-bathroom-tour.mp4', duration: '0:42' },
+    { id: 'garage', title: 'Maletero & Carga Bicis', src: '/videos/campers/neo/neo-garage-bike-loading.mp4', duration: '1:10' },
+  ],
+  space: [
+    { id: 'complete', title: 'Tour Completo SPACE', src: '/videos/campers/space/space-complete-tour.mp4', duration: '2:15' },
+    { id: 'lounge', title: 'Salón & Distribución 7m²', src: '/videos/campers/space/space-walkthrough-interior.mp4', duration: '1:20' },
+    { id: 'kitchen', title: 'Cocina de Alta Gama', src: '/videos/campers/space/space-kitchen-counter-tour.mp4', duration: '0:50' },
+    { id: 'shower', title: 'Cabina de Ducha', src: '/videos/campers/space/space-shower-cabin-tour.mp4', duration: '0:45' },
+    { id: 'carplay', title: 'Tecnología CarPlay', src: '/videos/campers/space/space-tech-carplay.mp4', duration: '0:35' },
+    { id: 'cruise', title: 'Control de Crucero', src: '/videos/campers/space/space-tech-cruise-control.mp4', duration: '0:30' },
+  ]
+}
+
 export default function CamperDetailClient({
   camper,
   seasons,
@@ -207,12 +264,19 @@ export default function CamperDetailClient({
   const locale = useLocale()
   const [currentImg, setCurrentImg] = useState(0)
   
-  // Media Tabs: 'gallery' | 'tour360' | 'vibe'
-  const [mediaTab, setMediaTab] = useState<'gallery' | 'tour360' | 'vibe'>('gallery')
+  // Media Tabs: 'gallery' | 'blueprint' | 'videotour' | 'vibe' | 'tour360'
+  const [mediaTab, setMediaTab] = useState<'gallery' | 'blueprint' | 'videotour' | 'vibe' | 'tour360'>('gallery')
   // Vibe Modes: 'day' | 'night' | 'relax'
-  const [vibeMode, setVibeMode] = useState<'day' | 'night' | 'relax'>('day')
+  const [vibeMode, setVibeMode] = useState<'day' | 'night' | 'relax'>('night')
+  // Blueprint active hotspot
+  const [activeHotspotId, setActiveHotspotId] = useState<string | null>(null)
+  // Video tour active clip index
+  const [activeVideoIdx, setActiveVideoIdx] = useState(0)
 
   const premiumData = PREMIUM_MEDIA_DATA[camper.slug] || PREMIUM_MEDIA_DATA.neo
+  const blueprintInfo = BLUEPRINT_DATA[camper.slug] || BLUEPRINT_DATA.neo
+  const camperVideos = VIDEO_CLIPS_DATA[camper.slug] || VIDEO_CLIPS_DATA.neo
+  const currentVideo = camperVideos[activeVideoIdx] || camperVideos[0]
   const images = camper.images?.length ? camper.images : [camper.thumbnail_url]
 
   const prevImg = () => setCurrentImg(i => (i - 1 + images.length) % images.length)
@@ -245,7 +309,7 @@ export default function CamperDetailClient({
   const techDetails = locale === 'es' ? premiumData.techDetails_es : premiumData.techDetails_en
 
   return (
-    <div className="camper-detail bg-light-cream">
+    <div className="camper-detail">
       {/* Premium Media Viewport */}
       <div className="media-viewport">
         
@@ -281,6 +345,104 @@ export default function CamperDetailClient({
                   </div>
                 </>
               )}
+            </div>
+          )}
+
+          {mediaTab === 'blueprint' && (
+            <div className="media-viewport__slide blueprint-slide">
+              <div className="blueprint-stage">
+                <div className="blueprint-header-bar">
+                  <div className="blueprint-tag">
+                    <Layers size={13} />
+                    <span>PLANO ARQUITECTÓNICO · {camper.name}</span>
+                  </div>
+                  <span className="blueprint-hint">Haz clic en los puntos dorados para inspeccionar el equipamiento</span>
+                </div>
+                <div className="blueprint-canvas">
+                  <Image
+                    src={blueprintInfo.image}
+                    alt={`Blueprint técnico ${camper.name}`}
+                    fill
+                    style={{ objectFit: 'contain' }}
+                    priority
+                    sizes="(max-width: 1200px) 100vw, 1200px"
+                  />
+                  {blueprintInfo.hotspots.map((hs) => {
+                    const isActive = activeHotspotId === hs.id
+                    return (
+                      <div
+                        key={hs.id}
+                        className="blueprint-hotspot-container"
+                        style={{ left: `${hs.x}%`, top: `${hs.y}%` }}
+                      >
+                        <button
+                          type="button"
+                          onClick={() => setActiveHotspotId(isActive ? null : hs.id)}
+                          className={`blueprint-hotspot-btn ${isActive ? 'blueprint-hotspot-btn--active' : ''}`}
+                          aria-label={hs.title}
+                        >
+                          <span className="blueprint-hotspot-pulse" />
+                          <span className="blueprint-hotspot-dot" />
+                        </button>
+
+                        {isActive && (
+                          <div className="blueprint-popover">
+                            <button
+                              type="button"
+                              onClick={(e) => {
+                                e.stopPropagation()
+                                setActiveHotspotId(null)
+                              }}
+                              className="blueprint-popover-close"
+                              aria-label="Cerrar"
+                            >
+                              <X size={12} />
+                            </button>
+                            <span className="blueprint-popover-spec">{hs.spec}</span>
+                            <h4 className="blueprint-popover-title">{hs.title}</h4>
+                            <p className="blueprint-popover-desc">{hs.desc}</p>
+                          </div>
+                        )}
+                      </div>
+                    )
+                  })}
+                </div>
+              </div>
+            </div>
+          )}
+
+          {mediaTab === 'videotour' && (
+            <div className="media-viewport__slide videotour-slide">
+              <div className="videotour-player-wrap">
+                <video
+                  key={currentVideo.src}
+                  src={currentVideo.src}
+                  controls
+                  autoPlay
+                  playsInline
+                  className="videotour-video"
+                />
+                <div className="videotour-nav-bar">
+                  <div className="videotour-tag">
+                    <Video size={13} />
+                    <span>CLIPS EN ALTA DEFINICIÓN</span>
+                  </div>
+                  <div className="videotour-clips-scroll">
+                    {camperVideos.map((vid, idx) => (
+                      <button
+                        key={vid.id}
+                        type="button"
+                        onClick={() => setActiveVideoIdx(idx)}
+                        className={`videotour-pill ${idx === activeVideoIdx ? 'videotour-pill--active' : ''}`}
+                      >
+                        <PlayCircle size={12} />
+                        <span>{vid.title}</span>
+                        <span className="videotour-dur">{vid.duration}</span>
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              </div>
             </div>
           )}
 
@@ -347,22 +509,38 @@ export default function CamperDetailClient({
           </button>
           
           <button
-            onClick={() => setMediaTab('tour360')}
-            className={`media-capsule-btn ${mediaTab === 'tour360' ? 'media-capsule-btn--active' : ''}`}
+            onClick={() => setMediaTab('blueprint')}
+            className={`media-capsule-btn ${mediaTab === 'blueprint' ? 'media-capsule-btn--active' : ''}`}
           >
-            <Compass size={14} style={{ marginRight: 6 }} />
-            <span>{t('tourTab')}</span>
+            <Layers size={14} style={{ marginRight: 6 }} />
+            <span>Blueprint</span>
+          </button>
+
+          <button
+            onClick={() => setMediaTab('videotour')}
+            className={`media-capsule-btn ${mediaTab === 'videotour' ? 'media-capsule-btn--active' : ''}`}
+          >
+            <PlayCircle size={14} style={{ marginRight: 6 }} />
+            <span>Video Tour</span>
           </button>
 
           <button
             onClick={() => {
               setMediaTab('vibe')
-              setVibeMode('day')
+              setVibeMode('night')
             }}
             className={`media-capsule-btn ${mediaTab === 'vibe' ? 'media-capsule-btn--active' : ''}`}
           >
             <Sun size={14} style={{ marginRight: 6 }} />
             <span>{t('vibeTab')}</span>
+          </button>
+
+          <button
+            onClick={() => setMediaTab('tour360')}
+            className={`media-capsule-btn ${mediaTab === 'tour360' ? 'media-capsule-btn--active' : ''}`}
+          >
+            <Compass size={14} style={{ marginRight: 6 }} />
+            <span>{t('tourTab')}</span>
           </button>
         </div>
 
@@ -400,14 +578,14 @@ export default function CamperDetailClient({
             {/* Header Title & Tagline */}
             <div className="camper-detail__header">
               <div className="camper-detail__header-top">
-                <span className="text-label tracking-wide" style={{ color: 'var(--forest-green)', fontWeight: 700, letterSpacing: '0.08em' }}>
+                <span className="text-label tracking-wide" style={{ color: '#E5C07B', fontWeight: 700, letterSpacing: '0.08em' }}>
                   UTOPIA VAN LIFE · MALLORCA
                 </span>
                 <span className="camper-detail__badge-model">
-                  {camper.slug === 'neo' ? '3 Plazas · 2.230 L Maletero' : '2 Plazas · Open Concept 7m²'}
+                  {camper.slug === 'space' ? '2 Plazas · Open Concept 7m²' : '3 Plazas · 2.230 L Maletero'}
                 </span>
               </div>
-              <h1 className="text-display" style={{ marginTop: 'var(--space-2)', marginBottom: 'var(--space-2)' }}>
+              <h1 className="text-display" style={{ marginTop: 'var(--space-2)', marginBottom: 'var(--space-2)', color: '#FFFFFF' }}>
                 {camper.name}
               </h1>
               <p className="camper-detail__tagline">
@@ -442,18 +620,22 @@ export default function CamperDetailClient({
               <div style={{ marginTop: 'var(--space-4)', display: 'flex', alignItems: 'center', gap: 'var(--space-3)', flexWrap: 'wrap' }}>
                 <Link
                   href={`/${locale}/reserva/${camper.slug}${initialFrom && initialTo ? `?from=${initialFrom}&to=${initialTo}` : ''}`}
-                  className="btn btn-forest"
                   style={{
                     display: 'inline-flex',
                     alignItems: 'center',
                     gap: 8,
                     fontWeight: 700,
-                    boxShadow: '0 4px 14px rgba(45, 58, 45, 0.25)',
+                    fontSize: '14px',
+                    color: '#0B0D11',
+                    background: '#E5C07B',
+                    boxShadow: '0 4px 16px rgba(229, 192, 123, 0.35)',
                     padding: '12px 22px',
                     borderRadius: 'var(--radius-lg)',
+                    textDecoration: 'none',
+                    transition: 'all 0.2s ease',
                   }}
                 >
-                  <Sparkles size={16} style={{ color: '#E2D1C3' }} />
+                  <Sparkles size={16} style={{ color: '#0B0D11' }} />
                   <span>Reservar ahora · Asistente 5 Pasos</span>
                   <ChevronRight size={16} />
                 </Link>
@@ -628,30 +810,33 @@ export default function CamperDetailClient({
           {/* Sticky booking calculator panel */}
           <div className="camper-detail__sidebar">
             <div style={{
-              background: '#FAF8F5',
-              border: '1.5px solid var(--forest-green)',
+              background: '#14171D',
+              border: '1.5px solid rgba(229, 192, 123, 0.35)',
               borderRadius: 'var(--radius-lg)',
-              padding: '12px 16px',
+              padding: '14px 18px',
               marginBottom: 'var(--space-3)',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'space-between',
-              gap: 12
+              gap: 12,
+              boxShadow: '0 8px 24px rgba(0, 0, 0, 0.4)',
             }}>
               <div>
-                <span style={{ fontSize: '10px', fontWeight: 800, letterSpacing: '0.06em', color: 'var(--forest-green)', display: 'block' }}>NUEVO WIZARD HOLO-VAN</span>
-                <span style={{ fontSize: '13px', fontWeight: 700, color: 'var(--black-matte)' }}>Reserva en 5 pasos guiados</span>
+                <span style={{ fontSize: '10px', fontWeight: 800, letterSpacing: '0.08em', color: '#E5C07B', display: 'block' }}>NUEVO WIZARD HOLO-VAN</span>
+                <span style={{ fontSize: '13px', fontWeight: 700, color: '#FFFFFF' }}>Reserva en 5 pasos guiados</span>
               </div>
               <Link
                 href={`/${locale}/reserva/${camper.slug}${initialFrom && initialTo ? `?from=${initialFrom}&to=${initialTo}` : ''}`}
                 style={{
                   fontSize: '12px',
                   fontWeight: 700,
-                  color: '#ffffff',
-                  background: 'var(--forest-green)',
-                  padding: '7px 14px',
+                  color: '#0B0D11',
+                  background: '#E5C07B',
+                  padding: '8px 16px',
                   borderRadius: 'var(--radius-full)',
-                  whiteSpace: 'nowrap'
+                  whiteSpace: 'nowrap',
+                  textDecoration: 'none',
+                  boxShadow: '0 2px 10px rgba(229, 192, 123, 0.3)',
                 }}
               >
                 Empezar →
@@ -676,13 +861,19 @@ export default function CamperDetailClient({
       </div>
 
       <style jsx>{`
+        .camper-detail {
+          background-color: #0B0D11;
+          color: #F3F4F6;
+          min-height: 100vh;
+        }
+
         .media-viewport {
           position: relative;
           width: 100%;
           height: 65vh;
           min-height: 480px;
           max-height: 720px;
-          background: #141419;
+          background: #0B0D11;
           overflow: hidden;
         }
         .media-viewport__content {
@@ -700,7 +891,7 @@ export default function CamperDetailClient({
           width: 100%;
           height: 100%;
           border: 0;
-          background: #141419;
+          background: #0B0D11;
         }
         .vibe-media {
           width: 100%;
@@ -713,10 +904,10 @@ export default function CamperDetailClient({
           transform: translateY(-50%);
           width: 48px;
           height: 48px;
-          background: rgba(255, 255, 255, 0.2);
+          background: rgba(20, 23, 29, 0.65);
           backdrop-filter: blur(12px);
-          border: 1px solid rgba(255,255,255,0.25);
-          color: white;
+          border: 1px solid rgba(255, 255, 255, 0.15);
+          color: #FFFFFF;
           border-radius: 50%;
           display: flex;
           align-items: center;
@@ -726,8 +917,8 @@ export default function CamperDetailClient({
           z-index: 5;
         }
         .gallery-btn:hover {
-          background: white;
-          color: var(--black-matte);
+          background: #E5C07B;
+          color: #0B0D11;
           transform: translateY(-50%) scale(1.05);
         }
         .gallery-btn--prev { left: var(--space-6); }
@@ -745,18 +936,258 @@ export default function CamperDetailClient({
           width: 6px;
           height: 6px;
           border-radius: 50%;
-          background: rgba(255,255,255,0.4);
+          background: rgba(255, 255, 255, 0.3);
           border: none;
           cursor: pointer;
           transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
         }
         .gallery-dot--active {
-          background: white;
+          background: #E5C07B;
           width: 24px;
           border-radius: 3px;
         }
-        
-        /* Media control capsule (glassmorphism style) */
+
+        /* Blueprint Slide */
+        .blueprint-slide {
+          position: relative;
+          width: 100%;
+          height: 100%;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          background: radial-gradient(circle at center, #151921 0%, #0B0D11 100%);
+          padding: var(--space-6);
+        }
+        .blueprint-stage {
+          position: relative;
+          width: 100%;
+          max-width: 960px;
+          height: 100%;
+          display: flex;
+          flex-direction: column;
+          justify-content: center;
+        }
+        .blueprint-header-bar {
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          margin-bottom: var(--space-3);
+          flex-wrap: wrap;
+          gap: 8px;
+        }
+        .blueprint-tag {
+          display: inline-flex;
+          align-items: center;
+          gap: 6px;
+          font-size: 11px;
+          font-weight: 700;
+          letter-spacing: 0.08em;
+          color: #E5C07B;
+          background: rgba(229, 192, 123, 0.1);
+          padding: 4px 12px;
+          border-radius: var(--radius-full);
+          border: 1px solid rgba(229, 192, 123, 0.25);
+        }
+        .blueprint-hint {
+          font-size: 11px;
+          color: #9CA3AF;
+        }
+        .blueprint-canvas {
+          position: relative;
+          width: 100%;
+          height: calc(100% - 40px);
+          max-height: 480px;
+          border-radius: var(--radius-lg);
+          overflow: hidden;
+        }
+        .blueprint-hotspot-container {
+          position: absolute;
+          transform: translate(-50%, -50%);
+          z-index: 10;
+        }
+        .blueprint-hotspot-btn {
+          position: relative;
+          width: 26px;
+          height: 26px;
+          border-radius: 50%;
+          background: #E5C07B;
+          border: 2px solid #FFFFFF;
+          cursor: pointer;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          transition: transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
+          box-shadow: 0 0 14px rgba(229, 192, 123, 0.6);
+        }
+        .blueprint-hotspot-btn:hover {
+          transform: scale(1.25);
+        }
+        .blueprint-hotspot-btn--active {
+          background: #FFFFFF;
+          border-color: #E5C07B;
+          transform: scale(1.25);
+        }
+        .blueprint-hotspot-pulse {
+          position: absolute;
+          inset: -6px;
+          border-radius: 50%;
+          border: 2px solid #E5C07B;
+          animation: pulse-ring 2s cubic-bezier(0.215, 0.61, 0.355, 1) infinite;
+          pointer-events: none;
+        }
+        .blueprint-hotspot-dot {
+          width: 6px;
+          height: 6px;
+          border-radius: 50%;
+          background: #0B0D11;
+        }
+        @keyframes pulse-ring {
+          0% { transform: scale(0.8); opacity: 1; }
+          100% { transform: scale(2.2); opacity: 0; }
+        }
+        .blueprint-popover {
+          position: absolute;
+          bottom: calc(100% + 12px);
+          left: 50%;
+          transform: translateX(-50%);
+          width: 260px;
+          background: rgba(20, 23, 29, 0.95);
+          backdrop-filter: blur(16px);
+          border: 1px solid rgba(229, 192, 123, 0.4);
+          border-radius: 10px;
+          padding: 12px 16px;
+          color: #FFFFFF;
+          box-shadow: 0 12px 32px rgba(0, 0, 0, 0.6);
+          z-index: 30;
+          pointer-events: auto;
+        }
+        .blueprint-popover-close {
+          position: absolute;
+          top: 8px;
+          right: 8px;
+          background: rgba(255, 255, 255, 0.08);
+          border: none;
+          color: #9CA3AF;
+          width: 20px;
+          height: 20px;
+          border-radius: 50%;
+          cursor: pointer;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          transition: all 0.2s ease;
+        }
+        .blueprint-popover-close:hover {
+          color: #FFFFFF;
+          background: rgba(255, 255, 255, 0.2);
+        }
+        .blueprint-popover-spec {
+          font-size: 10px;
+          font-weight: 700;
+          color: #E5C07B;
+          text-transform: uppercase;
+          letter-spacing: 0.05em;
+          display: block;
+          margin-bottom: 4px;
+        }
+        .blueprint-popover-title {
+          font-size: 13px;
+          font-weight: 700;
+          color: #FFFFFF;
+          margin: 0 0 4px 0;
+        }
+        .blueprint-popover-desc {
+          font-size: 11px;
+          color: #9CA3AF;
+          line-height: 1.4;
+          margin: 0;
+        }
+
+        /* Video Tour Slide */
+        .videotour-slide {
+          position: relative;
+          width: 100%;
+          height: 100%;
+          background: #000000;
+          display: flex;
+        }
+        .videotour-player-wrap {
+          position: relative;
+          width: 100%;
+          height: 100%;
+        }
+        .videotour-video {
+          width: 100%;
+          height: 100%;
+          object-fit: cover;
+        }
+        .videotour-nav-bar {
+          position: absolute;
+          bottom: 80px;
+          left: 50%;
+          transform: translateX(-50%);
+          width: 90%;
+          max-width: 820px;
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          gap: 8px;
+          z-index: 10;
+        }
+        .videotour-tag {
+          display: inline-flex;
+          align-items: center;
+          gap: 6px;
+          font-size: 10px;
+          font-weight: 700;
+          letter-spacing: 0.08em;
+          color: #E5C07B;
+          background: rgba(11, 13, 17, 0.85);
+          backdrop-filter: blur(8px);
+          padding: 3px 10px;
+          border-radius: var(--radius-full);
+          border: 1px solid rgba(229, 192, 123, 0.25);
+        }
+        .videotour-clips-scroll {
+          display: flex;
+          gap: 8px;
+          background: rgba(14, 17, 23, 0.85);
+          backdrop-filter: blur(16px);
+          border: 1px solid rgba(255, 255, 255, 0.12);
+          padding: 6px;
+          border-radius: 9999px;
+          max-width: 100%;
+          overflow-x: auto;
+        }
+        .videotour-pill {
+          border: none;
+          background: transparent;
+          color: rgba(255, 255, 255, 0.7);
+          font-size: 11px;
+          font-weight: 600;
+          padding: 6px 14px;
+          border-radius: 9999px;
+          cursor: pointer;
+          display: flex;
+          align-items: center;
+          gap: 6px;
+          white-space: nowrap;
+          transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        .videotour-pill:hover {
+          color: #FFFFFF;
+          background: rgba(255, 255, 255, 0.08);
+        }
+        .videotour-pill--active {
+          background: #E5C07B;
+          color: #0B0D11;
+        }
+        .videotour-dur {
+          font-size: 9px;
+          opacity: 0.75;
+        }
+
+        /* Media Control Capsule */
         .media-capsule {
           position: absolute;
           bottom: var(--space-6);
@@ -764,13 +1195,15 @@ export default function CamperDetailClient({
           transform: translateX(-50%);
           display: flex;
           gap: 4px;
-          background: rgba(20, 20, 25, 0.65);
+          background: rgba(14, 17, 23, 0.85);
           backdrop-filter: blur(16px);
-          border: 1px solid rgba(255, 255, 255, 0.1);
+          border: 1px solid rgba(255, 255, 255, 0.12);
           padding: 5px;
           border-radius: 9999px;
           z-index: 10;
-          box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+          box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+          max-width: 95%;
+          overflow-x: auto;
         }
         .media-capsule-btn {
           border: none;
@@ -780,23 +1213,25 @@ export default function CamperDetailClient({
           text-transform: uppercase;
           letter-spacing: 0.05em;
           font-weight: 600;
-          padding: 8px 18px;
+          padding: 8px 16px;
           border-radius: 9999px;
           cursor: pointer;
           display: flex;
           align-items: center;
+          white-space: nowrap;
           transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
         }
         .media-capsule-btn:hover {
-          color: white;
+          color: #FFFFFF;
         }
         .media-capsule-btn--active {
-          background: white;
-          color: var(--black-matte);
-          box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+          background: #E5C07B;
+          color: #0B0D11;
+          font-weight: 700;
+          box-shadow: 0 4px 12px rgba(229, 192, 123, 0.3);
         }
 
-        /* Ambient vibe select overlay */
+        /* Ambient Vibe Select */
         .vibe-overlay-menu {
           position: absolute;
           top: var(--space-6);
@@ -804,8 +1239,8 @@ export default function CamperDetailClient({
           transform: translateX(-50%);
           display: flex;
           gap: 6px;
-          background: rgba(0, 0, 0, 0.5);
-          backdrop-filter: blur(8px);
+          background: rgba(14, 17, 23, 0.8);
+          backdrop-filter: blur(12px);
           border: 1px solid rgba(255, 255, 255, 0.1);
           padding: 4px;
           border-radius: var(--radius-md);
@@ -814,7 +1249,7 @@ export default function CamperDetailClient({
         .vibe-menu-btn {
           border: none;
           background: transparent;
-          color: rgba(255,255,255,0.7);
+          color: rgba(255, 255, 255, 0.7);
           font-size: var(--text-xs);
           font-weight: 500;
           padding: 6px 12px;
@@ -823,12 +1258,12 @@ export default function CamperDetailClient({
           transition: all 0.2s;
         }
         .vibe-menu-btn:hover {
-          color: white;
+          color: #FFFFFF;
         }
         .vibe-menu-btn--active {
-          background: rgba(255, 255, 255, 0.15);
-          color: white;
-          font-weight: 600;
+          background: rgba(229, 192, 123, 0.2);
+          color: #E5C07B;
+          font-weight: 700;
         }
 
         .camper-detail__layout {
@@ -844,7 +1279,7 @@ export default function CamperDetailClient({
           gap: var(--space-12);
         }
         .camper-detail__header {
-          border-bottom: 1px solid rgba(0, 0, 0, 0.08);
+          border-bottom: 1px solid rgba(255, 255, 255, 0.08);
           padding-bottom: var(--space-6);
         }
         .camper-detail__header-top {
@@ -861,17 +1296,17 @@ export default function CamperDetailClient({
           font-weight: 700;
           letter-spacing: 0.05em;
           text-transform: uppercase;
-          background: rgba(43, 76, 55, 0.08);
-          color: var(--forest-green);
+          background: rgba(229, 192, 123, 0.1);
+          color: #E5C07B;
           padding: 4px 12px;
           border-radius: var(--radius-full);
-          border: 1px solid rgba(43, 76, 55, 0.15);
+          border: 1px solid rgba(229, 192, 123, 0.25);
         }
         .camper-detail__tagline {
           font-size: 1.15rem;
           font-weight: 500;
           font-style: italic;
-          color: var(--earth-brown, #6e5849);
+          color: #D1D5DB;
           margin-bottom: var(--space-4);
           line-height: 1.4;
         }
@@ -885,20 +1320,20 @@ export default function CamperDetailClient({
           display: inline-flex;
           align-items: center;
           gap: 6px;
-          background: white;
-          border: 1px solid rgba(0, 0, 0, 0.08);
+          background: #14171D;
+          border: 1px solid rgba(255, 255, 255, 0.08);
           border-radius: var(--radius-full);
           padding: 6px 12px;
           font-size: 12px;
           font-weight: 500;
-          color: var(--gray-700);
-          box-shadow: 0 1px 3px rgba(0, 0, 0, 0.03);
+          color: #D1D5DB;
+          box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
           transition: all 0.2s ease;
         }
         .quick-pill--deposit {
-          background: rgba(43, 76, 55, 0.06);
-          border-color: rgba(43, 76, 55, 0.2);
-          color: var(--forest-green);
+          background: rgba(229, 192, 123, 0.1);
+          border-color: rgba(229, 192, 123, 0.25);
+          color: #E5C07B;
           font-weight: 600;
         }
 
@@ -925,26 +1360,26 @@ export default function CamperDetailClient({
           gap: var(--space-4);
         }
         .philosophy-card {
-          background: white;
-          border: 1px solid rgba(0, 0, 0, 0.06);
+          background: #14171D;
+          border: 1px solid rgba(255, 255, 255, 0.08);
           border-radius: var(--radius-lg);
           padding: var(--space-6);
           display: flex;
           flex-direction: column;
           gap: var(--space-2);
-          box-shadow: 0 4px 20px rgba(0, 0, 0, 0.02);
+          box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
           transition: all 0.25s ease;
         }
         .philosophy-card:hover {
           transform: translateY(-2px);
-          box-shadow: 0 8px 24px rgba(0, 0, 0, 0.05);
-          border-color: rgba(43, 76, 55, 0.15);
+          box-shadow: 0 8px 30px rgba(0, 0, 0, 0.4);
+          border-color: rgba(229, 192, 123, 0.3);
         }
         .philosophy-card__num {
           font-size: 11px;
           font-weight: 800;
-          color: var(--forest-green);
-          background: rgba(43, 76, 55, 0.08);
+          color: #E5C07B;
+          background: rgba(229, 192, 123, 0.12);
           padding: 2px 8px;
           border-radius: var(--radius-full);
           width: fit-content;
@@ -953,12 +1388,12 @@ export default function CamperDetailClient({
         .philosophy-card__title {
           font-size: 15px;
           font-weight: 700;
-          color: var(--black-matte);
+          color: #FFFFFF;
           margin: 0;
         }
         .philosophy-card__desc {
           font-size: 13px;
-          color: var(--gray-600);
+          color: #9CA3AF;
           line-height: 1.6;
           margin: 0;
         }
@@ -979,21 +1414,21 @@ export default function CamperDetailClient({
           align-items: flex-start;
           gap: var(--space-3);
           padding: var(--space-4);
-          background: white;
-          border: 1px solid rgba(0, 0, 0, 0.05);
+          background: #14171D;
+          border: 1px solid rgba(255, 255, 255, 0.08);
           border-radius: var(--radius-md);
-          box-shadow: 0 2px 8px rgba(0, 0, 0, 0.02);
+          box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
           transition: all 0.2s ease;
         }
         .included-card:hover {
-          border-color: rgba(43, 76, 55, 0.15);
+          border-color: rgba(229, 192, 123, 0.25);
         }
         .included-card__check {
           width: 22px;
           height: 22px;
           border-radius: 50%;
-          background: rgba(43, 76, 55, 0.1);
-          color: var(--forest-green);
+          background: rgba(229, 192, 123, 0.15);
+          color: #E5C07B;
           display: flex;
           align-items: center;
           justify-content: center;
@@ -1008,17 +1443,17 @@ export default function CamperDetailClient({
         .included-card__title {
           font-size: 13px;
           font-weight: 700;
-          color: var(--black-matte);
+          color: #FFFFFF;
           margin: 0;
         }
         .included-card__desc {
           font-size: 12px;
-          color: var(--gray-500);
+          color: #9CA3AF;
           line-height: 1.4;
           margin: 0;
         }
         
-        /* Specs card layout (glassmorphism/physical cards) */
+        /* Specs card layout */
         .camper-detail__specs {
           display: grid;
           grid-template-columns: repeat(3, 1fr);
@@ -1029,31 +1464,31 @@ export default function CamperDetailClient({
           align-items: center;
           gap: var(--space-4);
           padding: var(--space-5);
-          background: white;
-          border: 1px solid rgba(0,0,0,0.05);
+          background: #14171D;
+          border: 1px solid rgba(255, 255, 255, 0.08);
           border-radius: var(--radius-lg);
-          box-shadow: 0 4px 20px rgba(0, 0, 0, 0.02);
+          box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
           transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
         }
         .spec-card:hover {
           transform: translateY(-2px);
-          box-shadow: 0 8px 30px rgba(0, 0, 0, 0.06);
-          border-color: rgba(43,76,55,0.1);
+          box-shadow: 0 8px 30px rgba(0, 0, 0, 0.4);
+          border-color: rgba(229, 192, 123, 0.3);
         }
         .spec-card__icon {
           width: 44px;
           height: 44px;
-          background: rgba(43,76,55,0.06);
+          background: rgba(229, 192, 123, 0.1);
           border-radius: var(--radius-md);
           display: flex;
           align-items: center;
           justify-content: center;
-          color: var(--forest-green);
+          color: #E5C07B;
           flex-shrink: 0;
         }
         .spec-card__label {
           font-size: var(--text-xs);
-          color: var(--gray-400);
+          color: #6B7280;
           text-transform: uppercase;
           letter-spacing: 0.1em;
           font-weight: 600;
@@ -1062,7 +1497,7 @@ export default function CamperDetailClient({
         .spec-card__value {
           font-size: var(--text-base);
           font-weight: 600;
-          color: var(--black-matte);
+          color: #FFFFFF;
         }
 
         /* Equipment lists and Victron Pro card */
@@ -1072,11 +1507,11 @@ export default function CamperDetailClient({
           gap: var(--space-6);
         }
         .equipment-card {
-          background: white;
-          border: 1px solid rgba(0,0,0,0.05);
+          background: #14171D;
+          border: 1px solid rgba(255, 255, 255, 0.08);
           border-radius: var(--radius-lg);
           padding: var(--space-8);
-          box-shadow: 0 4px 20px rgba(0,0,0,0.02);
+          box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
         }
         .highlight-list {
           list-style: none;
@@ -1091,13 +1526,13 @@ export default function CamperDetailClient({
           align-items: flex-start;
           gap: var(--space-3);
           font-size: var(--text-base);
-          color: var(--gray-700);
+          color: #D1D5DB;
         }
         .check-bullet {
           width: 20px;
           height: 20px;
-          background: rgba(43,76,55,0.08);
-          color: var(--forest-green);
+          background: rgba(229, 192, 123, 0.15);
+          color: #E5C07B;
           border-radius: 50%;
           display: flex;
           align-items: center;
@@ -1109,16 +1544,16 @@ export default function CamperDetailClient({
         /* Cyberpunkish/wallet card premium look for Victron GX */
         .pro-power-card {
           position: relative;
-          background: linear-gradient(135deg, #101014 0%, #1e1f26 100%);
+          background: linear-gradient(135deg, #181C24 0%, #101318 100%);
           border-radius: var(--radius-lg);
           padding: var(--space-8);
           color: white;
           overflow: hidden;
-          box-shadow: 0 15px 35px rgba(0,0,0,0.25);
+          box-shadow: 0 15px 35px rgba(0, 0, 0, 0.35);
           display: flex;
           flex-direction: column;
           justify-content: space-between;
-          border: 1px solid rgba(255,255,255,0.08);
+          border: 1px solid rgba(229, 192, 123, 0.25);
         }
         .power-card-glow {
           position: absolute;
@@ -1126,7 +1561,7 @@ export default function CamperDetailClient({
           right: -50%;
           width: 150%;
           height: 150%;
-          background: radial-gradient(circle, rgba(234, 179, 8, 0.08) 0%, transparent 60%);
+          background: radial-gradient(circle, rgba(229, 192, 123, 0.1) 0%, transparent 60%);
           pointer-events: none;
         }
         .power-card-header {
@@ -1139,8 +1574,8 @@ export default function CamperDetailClient({
           font-size: 10px;
           text-transform: uppercase;
           letter-spacing: 0.1em;
-          background: rgba(234, 179, 8, 0.15);
-          color: #eab308;
+          background: rgba(229, 192, 123, 0.15);
+          color: #E5C07B;
           padding: 4px 10px;
           border-radius: var(--radius-full);
           font-weight: 700;
@@ -1149,12 +1584,12 @@ export default function CamperDetailClient({
           font-size: 20px;
           font-weight: 800;
           letter-spacing: 0.05em;
-          color: #ffffff;
+          color: #FFFFFF;
           margin: 0 0 var(--space-2) 0;
         }
         .power-card-desc {
           font-size: var(--text-sm);
-          color: rgba(255,255,255,0.6);
+          color: #9CA3AF;
           line-height: 1.5;
           margin-bottom: var(--space-4);
         }
@@ -1166,7 +1601,7 @@ export default function CamperDetailClient({
           flex-direction: column;
           gap: 6px;
           font-size: var(--text-sm);
-          color: rgba(255, 255, 255, 0.85);
+          color: #D1D5DB;
         }
         .power-card-footer {
           display: flex;
@@ -1180,23 +1615,23 @@ export default function CamperDetailClient({
         }
         .stat-label {
           font-size: 9px;
-          color: rgba(255, 255, 255, 0.4);
+          color: #6B7280;
           letter-spacing: 0.05em;
           margin-bottom: 2px;
         }
         .stat-val {
           font-size: var(--text-lg);
           font-weight: 700;
-          color: #eab308;
+          color: #E5C07B;
         }
 
         /* Tech checklist section */
         .technical-checklist {
-          background: white;
-          border: 1px solid rgba(0,0,0,0.05);
+          background: #14171D;
+          border: 1px solid rgba(255, 255, 255, 0.08);
           border-radius: var(--radius-lg);
           padding: var(--space-8);
-          box-shadow: 0 4px 20px rgba(0,0,0,0.02);
+          box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
         }
         .tech-details-grid {
           display: grid;
@@ -1208,13 +1643,13 @@ export default function CamperDetailClient({
           align-items: center;
           gap: var(--space-3);
           font-size: var(--text-sm);
-          color: var(--gray-600);
+          color: #D1D5DB;
         }
         .tech-dot {
           width: 6px;
           height: 6px;
           border-radius: 50%;
-          background: var(--forest-green);
+          background: #E5C07B;
           flex-shrink: 0;
         }
 
@@ -1222,6 +1657,7 @@ export default function CamperDetailClient({
           border-radius: var(--radius-lg);
           overflow: hidden;
           line-height: 0;
+          border: 1px solid rgba(255, 255, 255, 0.08);
         }
 
         @keyframes fade-in {

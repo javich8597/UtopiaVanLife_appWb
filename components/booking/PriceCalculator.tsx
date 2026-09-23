@@ -135,15 +135,16 @@ export default function PriceCalculator({
         const dropoffTime = endSlot === 'morning' ? '12:00' : '19:00'
 
         const params = new URLSearchParams({
-            camper: camperSlug,
             from: startDate,
-            pickup_time: pickupTime,
             to: endDate,
+            startSlot: startSlot || 'morning',
+            endSlot: endSlot || 'morning',
+            pickup_time: pickupTime,
             dropoff_time: dropoffTime,
             pax: String(Math.min(3, Math.max(1, pax))),
             extras: selectedExtras.map(e => e.id).join(','),
         })
-        router.push(`/checkout?${params.toString()}`)
+        router.push(`/reserva/${camperSlug}?${params.toString()}`)
     }
 
     const formatDisplayDate = (dateStr: string, slot?: DaySlot, isEnd?: boolean) => {

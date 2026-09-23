@@ -53,7 +53,17 @@ export default function HeroSection() {
     if (startDate) params.set('from', startDate)
     if (endDate) params.set('to', endDate)
     params.set('pax', String(Math.min(3, Math.max(1, pax))))
-    router.push(`/campers?${params.toString()}`)
+
+    if (startDate && endDate) {
+      router.push(`/reserva/neo?${params.toString()}`)
+    } else {
+      const target = document.getElementById('showcase') || document.getElementById('campers')
+      if (target) {
+        target.scrollIntoView({ behavior: 'smooth' })
+      } else {
+        router.push(`/reserva/neo?${params.toString()}`)
+      }
+    }
   }
 
   const handleDatesChange = (start: string, _startSlot: DaySlot, end: string, _endSlot: DaySlot) => {
@@ -85,22 +95,27 @@ export default function HeroSection() {
           muted
           loop
           playsInline
-          poster="/images/campers/neo/neo-ext.png"
+          poster="/images/camper-interior-sunset.jpg"
+          preload="auto"
           suppressHydrationWarning
         >
-          <source src="/videos/hero-bg.mov" type="video/mp4" />
+          <source src="/videos/hero/nomade-hero-mobile.mp4" type="video/mp4" media="(max-width: 768px)" />
+          <source src="/videos/video_noche_min.mp4" type="video/mp4" />
         </video>
         <div className="hero__overlay" />
       </div>
 
       {/* Editorial Content */}
       <div className="hero__content">
-        <div className="hero__eyebrow text-label">{t('eyebrow')}</div>
+        <div className="hero__eyebrow-pill">
+          <Sparkles size={12} style={{ color: '#E5C07B' }} />
+          <span>FLOTA 100% OFF-GRID · MALLORCA</span>
+        </div>
 
         {/* Main Headline */}
         <h1 className="hero__title text-display">
           Tu Utopía<br />
-          <em>te espera</em>
+          <em className="hero__title-accent">te espera</em>
         </h1>
 
         {/* Subtitle */}
@@ -108,9 +123,9 @@ export default function HeroSection() {
           {t('subtitle')}
         </p>
 
-        {/* Search Bar Container with Pro Max Glassmorphism */}
+        {/* Search Bar Container with Dark Glassmorphism */}
         <div className="hero__search-container" ref={containerRef}>
-          <form className="hero__searchbar glass-pro" onSubmit={handleSearch}>
+          <form className="hero__searchbar glass-dark" onSubmit={handleSearch}>
 
             {/* Selector Fechas: Salida */}
             <div
@@ -118,7 +133,7 @@ export default function HeroSection() {
               onClick={() => setIsCalendarOpen(true)}
             >
               <span className="hero__field-label">
-                <CalendarIcon size={13} className="text-sand" />
+                <CalendarIcon size={13} style={{ color: '#E5C07B' }} />
                 {t('salida')}
               </span>
               <div className="hero__field-display">
@@ -136,7 +151,7 @@ export default function HeroSection() {
               onClick={() => setIsCalendarOpen(true)}
             >
               <span className="hero__field-label">
-                <CalendarIcon size={13} className="text-sand" />
+                <CalendarIcon size={13} style={{ color: '#E5C07B' }} />
                 {t('llegada')}
               </span>
               <div className="hero__field-display">
@@ -151,7 +166,7 @@ export default function HeroSection() {
             {/* Selector de Viajeros (1 a 3) */}
             <div className="hero__field">
               <span className="hero__field-label">
-                <Users size={13} className="text-sand" />
+                <Users size={13} style={{ color: '#E5C07B' }} />
                 {t('viajeros')}
                 <span className="hero__pax-limit">Máx. 3</span>
               </span>
@@ -179,7 +194,7 @@ export default function HeroSection() {
             </div>
 
             {/* Botón Buscar */}
-            <button type="submit" className="hero__search-btn btn btn-forest btn-lg">
+            <button type="submit" className="hero__search-btn btn btn-lg">
               <Search size={17} />
               <span>{t('buscar')}</span>
             </button>
@@ -210,17 +225,17 @@ export default function HeroSection() {
           {/* Micro-guarantees badges */}
           <div className="hero__guarantees">
             <span className="hero__guarantee-item">
-              <Compass size={13} />
+              <Compass size={13} style={{ color: '#E5C07B' }} />
               {t('guarantee1')}
             </span>
             <span className="hero__guarantee-dot">•</span>
             <span className="hero__guarantee-item">
-              <Sun size={13} />
+              <Sun size={13} style={{ color: '#E5C07B' }} />
               {t('guarantee2')}
             </span>
             <span className="hero__guarantee-dot">•</span>
             <span className="hero__guarantee-item">
-              <Shield size={13} />
+              <Shield size={13} style={{ color: '#E5C07B' }} />
               {t('guarantee3')}
             </span>
           </div>
@@ -261,10 +276,20 @@ export default function HeroSection() {
           inset: 0;
           background: linear-gradient(
             to bottom,
-            rgba(20, 24, 20, 0.45) 0%,
-            rgba(20, 24, 20, 0.32) 40%,
-            rgba(20, 24, 20, 0.65) 100%
+            rgba(11, 13, 17, 0.65) 0%,
+            rgba(11, 13, 17, 0.4) 40%,
+            rgba(11, 13, 17, 0.95) 100%
           );
+        }
+        @media (prefers-reduced-motion: reduce) {
+          .hero__video {
+            display: none;
+          }
+          .hero__video-wrap {
+            background-image: url('/images/camper-interior-sunset.jpg');
+            background-size: cover;
+            background-position: center;
+          }
         }
         .hero__content {
           position: relative;
@@ -286,21 +311,18 @@ export default function HeroSection() {
           display: inline-flex;
           align-items: center;
           gap: 8px;
-          padding: 6px 16px;
+          padding: 6px 18px;
           border-radius: var(--radius-full);
-          background: rgba(255, 255, 255, 0.12);
-          backdrop-filter: blur(12px);
-          -webkit-backdrop-filter: blur(12px);
-          border: 1px solid rgba(255, 255, 255, 0.22);
-          box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+          background: rgba(15, 17, 21, 0.7);
+          backdrop-filter: blur(16px);
+          -webkit-backdrop-filter: blur(16px);
+          border: 1px solid rgba(229, 192, 123, 0.25);
+          box-shadow: 0 4px 20px rgba(0, 0, 0, 0.35);
           font-size: 0.76rem;
           font-weight: 600;
           letter-spacing: 0.14em;
           text-transform: uppercase;
-          color: var(--cream);
-        }
-        .hero__eyebrow-icon {
-          color: var(--sand);
+          color: #E5C07B;
         }
 
         /* Main Headline */
@@ -310,20 +332,22 @@ export default function HeroSection() {
           letter-spacing: -0.02em;
           line-height: 1.05;
           color: white;
-          text-shadow: 0 2px 24px rgba(0, 0, 0, 0.35);
+          text-shadow: 0 2px 24px rgba(0, 0, 0, 0.55);
           text-wrap: balance;
         }
-        .hero__title em {
-          font-style: normal;
-          color: var(--sand-dark);
-          font-weight: 700;
+        .hero__title em,
+        .hero__title-accent {
+          font-style: italic;
+          color: #E5C07B;
+          font-weight: 300;
+          text-shadow: 0 0 28px rgba(229, 192, 123, 0.4);
         }
         .hero__subtitle {
           font-size: clamp(1rem, 2vw, 1.18rem);
-          color: rgba(255, 255, 255, 0.9);
+          color: rgba(255, 255, 255, 0.85);
           line-height: 1.68;
           max-width: 580px;
-          text-shadow: 0 1px 12px rgba(0, 0, 0, 0.3);
+          text-shadow: 0 1px 12px rgba(0, 0, 0, 0.4);
           text-wrap: balance;
         }
 
@@ -346,18 +370,19 @@ export default function HeroSection() {
           z-index: 100;
           width: 350px;
           max-width: calc(100vw - 32px);
-          box-shadow: 0 24px 48px -12px rgba(0, 0, 0, 0.35), 0 0 0 1px rgba(255, 255, 255, 0.15);
+          box-shadow: 0 24px 60px rgba(0, 0, 0, 0.7), 0 0 0 1px rgba(255, 255, 255, 0.12);
           border-radius: var(--radius-lg);
           box-sizing: border-box;
+          background: #14171D;
         }
 
-        /* Search bar (Glassmorphism Pro Max) */
-        .glass-pro {
-          background: rgba(255, 255, 255, 0.94);
-          backdrop-filter: blur(24px);
-          -webkit-backdrop-filter: blur(24px);
-          border: 1px solid rgba(255, 255, 255, 0.6);
-          box-shadow: 0 16px 40px -10px rgba(0, 0, 0, 0.25), 0 0 0 1px rgba(255, 255, 255, 0.4);
+        /* Search bar (Dark Glassmorphic) */
+        .glass-dark {
+          background: rgba(15, 17, 21, 0.78);
+          backdrop-filter: blur(20px);
+          -webkit-backdrop-filter: blur(20px);
+          border: 1px solid rgba(255, 255, 255, 0.08);
+          box-shadow: 0 20px 50px rgba(0, 0, 0, 0.55), 0 0 0 1px rgba(255, 255, 255, 0.04);
         }
         .hero__searchbar {
           display: flex;
@@ -370,7 +395,8 @@ export default function HeroSection() {
           transition: all var(--transition-base);
         }
         .hero__searchbar:hover {
-          box-shadow: 0 20px 48px -10px rgba(0, 0, 0, 0.3), 0 0 0 1px rgba(255, 255, 255, 0.6);
+          border-color: rgba(229, 192, 123, 0.3);
+          box-shadow: 0 24px 56px rgba(0, 0, 0, 0.65), 0 0 0 1px rgba(229, 192, 123, 0.15);
         }
         .hero__field {
           display: flex;
@@ -386,10 +412,10 @@ export default function HeroSection() {
           cursor: pointer;
         }
         .hero__field--clickable:hover {
-          background: rgba(45, 58, 45, 0.05);
+          background: rgba(255, 255, 255, 0.05);
         }
         .hero__field--active {
-          background: rgba(45, 58, 45, 0.08);
+          background: rgba(229, 192, 123, 0.12);
         }
         .hero__field-label {
           display: flex;
@@ -399,13 +425,13 @@ export default function HeroSection() {
           font-weight: 700;
           letter-spacing: 0.08em;
           text-transform: uppercase;
-          color: var(--gray-600);
+          color: rgba(255, 255, 255, 0.65);
         }
         .hero__pax-limit {
           font-size: 0.65rem;
           font-weight: 600;
-          color: var(--forest-green);
-          background: rgba(45, 58, 45, 0.08);
+          color: #E5C07B;
+          background: rgba(229, 192, 123, 0.15);
           padding: 1px 6px;
           border-radius: var(--radius-full);
           text-transform: none;
@@ -416,16 +442,16 @@ export default function HeroSection() {
           font-weight: 500;
         }
         .hero__field-value {
-          color: var(--black-matte);
+          color: #FFFFFF;
           font-weight: 600;
         }
         .hero__field-placeholder {
-          color: var(--gray-400);
+          color: rgba(255, 255, 255, 0.35);
         }
         .hero__separator {
           width: 1px;
           height: 34px;
-          background: var(--gray-200);
+          background: rgba(255, 255, 255, 0.08);
           flex-shrink: 0;
         }
         .hero__pax-control {
@@ -437,30 +463,33 @@ export default function HeroSection() {
           width: 26px;
           height: 26px;
           border-radius: 50%;
-          border: 1px solid var(--gray-200);
+          border: 1px solid rgba(255, 255, 255, 0.15);
           display: flex;
           align-items: center;
           justify-content: center;
           font-size: 1rem;
           font-weight: 600;
-          color: var(--black-matte);
-          background: white;
+          color: white;
+          background: rgba(255, 255, 255, 0.06);
           transition: all var(--transition-fast);
           cursor: pointer;
         }
         .hero__pax-btn:hover:not(:disabled) {
-          border-color: var(--forest-green);
-          background: var(--forest-green);
-          color: white;
+          border-color: #E5C07B;
+          background: #E5C07B;
+          color: #0B0D11;
+        }
+        .hero__pax-btn:active:not(:disabled) {
+          transform: scale(0.95);
         }
         .hero__pax-btn:disabled {
-          opacity: 0.3;
+          opacity: 0.25;
           cursor: not-allowed;
         }
         .hero__pax-num {
           font-size: 0.95rem;
           font-weight: 600;
-          color: var(--black-matte);
+          color: #FFFFFF;
           min-width: 18px;
           text-align: center;
         }
@@ -470,12 +499,19 @@ export default function HeroSection() {
           gap: 8px;
           padding: 14px 26px;
           font-size: 0.92rem;
-          box-shadow: 0 6px 18px rgba(45, 58, 45, 0.28);
+          background: linear-gradient(135deg, #E5C07B 0%, #D4AF37 100%);
+          color: #0B0D11;
+          font-weight: 700;
+          border: none;
+          box-shadow: 0 4px 18px rgba(229, 192, 123, 0.35);
           transition: transform var(--transition-fast), box-shadow var(--transition-fast);
         }
         .hero__search-btn:hover {
-          transform: translateY(-1px);
-          box-shadow: 0 8px 22px rgba(45, 58, 45, 0.35);
+          transform: translateY(-2px);
+          box-shadow: 0 8px 24px rgba(229, 192, 123, 0.5);
+        }
+        .hero__search-btn:active {
+          transform: scale(0.97);
         }
 
         /* Micro-guarantees */

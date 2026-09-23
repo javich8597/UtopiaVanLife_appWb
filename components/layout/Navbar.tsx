@@ -6,10 +6,15 @@ import { Menu, X } from 'lucide-react'
 import { useTranslations } from 'next-intl'
 import LanguageSwitcher from './LanguageSwitcher'
 
-export default function Navbar() {
+interface NavbarProps {
+  variant?: 'light' | 'dark'
+}
+
+export default function Navbar({ variant }: NavbarProps) {
   const t = useTranslations('Navigation')
   const pathname = usePathname()
   const isHomePage = pathname === '/' || pathname === ''
+  const isDark = variant ? variant === 'dark' : (isHomePage || pathname?.includes('/campers/'))
 
   const [scrolled, setScrolled] = useState(false)
   const [menuOpen, setMenuOpen] = useState(false)
@@ -52,17 +57,14 @@ export default function Navbar() {
     })
   }, [])
 
-  // Top navbar is always solid white for maximum readability and brand visibility
-  const isSolid = true
-
   return (
     <>
-      <nav className="navbar navbar--scrolled">
+      <nav className={`navbar ${isDark ? 'navbar--dark' : ''} ${scrolled ? 'navbar--scrolled' : ''}`}>
         <div className="navbar__inner container">
           {/* Logo */}
           <Link href="/" className="navbar__logo">
             <img
-              src="/images/logo.png"
+              src={isDark ? "/images/logo-white.png" : "/images/logo.png"}
               alt="Utopia Van Life"
               style={{ height: '42px', width: 'auto', objectFit: 'contain', display: 'block' }}
             />
@@ -81,29 +83,62 @@ export default function Navbar() {
           {/* CTA + Menu */}
           <div className="navbar__actions">
             {/* Discreet Language Switcher */}
-            <LanguageSwitcher isSolid={true} />
+            <LanguageSwitcher isSolid={!isDark} isDark={isDark} />
 
             {isAdmin && (
-              <Link href="/admin" className="btn btn-outline btn-sm hide-mobile" style={{ borderColor: 'var(--forest-green)', color: 'var(--forest-green)', fontWeight: 700 }}>
+              <Link
+                href="/admin"
+                className="btn btn-outline btn-sm hide-mobile"
+                style={{
+                  borderColor: isDark ? '#E5C07B' : 'var(--forest-green)',
+                  color: isDark ? '#E5C07B' : 'var(--forest-green)',
+                  fontWeight: 700
+                }}
+              >
                 Panel Admin
               </Link>
             )}
             {user ? (
-              <Link href="/dashboard" className="btn btn-ghost btn-sm hide-mobile" style={{ display: 'flex', alignItems: 'center', gap: 6, fontWeight: 600 }}>
+              <Link
+                href="/dashboard"
+                className="btn btn-ghost btn-sm hide-mobile"
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 6,
+                  fontWeight: 600,
+                  color: isDark ? 'rgba(255, 255, 255, 0.9)' : undefined
+                }}
+              >
                 Mi Aventura
               </Link>
             ) : (
-              <Link href="/auth/login" className="btn btn-ghost btn-sm hide-mobile">
+              <Link
+                href="/auth/login"
+                className="btn btn-ghost btn-sm hide-mobile"
+                style={{ color: isDark ? 'rgba(255, 255, 255, 0.85)' : undefined }}
+              >
                 {t('login')}
               </Link>
             )}
-            <Link href="/campers" className="btn btn-forest btn-sm">
+            <Link
+              href="/campers"
+              className="btn btn-sm"
+              style={isDark ? {
+                background: 'linear-gradient(135deg, #E5C07B 0%, #C8A882 100%)',
+                color: '#0B0D11',
+                fontWeight: 700,
+                border: 'none',
+                boxShadow: '0 4px 14px rgba(229, 192, 123, 0.3)'
+              } : {}}
+            >
               Reservar
             </Link>
             <button
               className="navbar__burger hide-desktop"
               onClick={() => setMenuOpen(!menuOpen)}
               aria-label="Menú"
+              style={isDark ? { color: 'white', background: 'rgba(255, 255, 255, 0.08)' } : {}}
             >
               {menuOpen ? <X size={22} /> : <Menu size={22} />}
             </button>
@@ -113,12 +148,12 @@ export default function Navbar() {
 
       {/* Mobile menu */}
       {menuOpen && (
-        <div className="mobile-menu" onClick={() => setMenuOpen(false)}>
+        <div className={`mobile-menu ${isDark ? 'mobile-menu--dark' : ''}`} onClick={() => setMenuOpen(false)}>
           <nav className="mobile-menu__nav" onClick={e => e.stopPropagation()}>
             <div className="mobile-menu__header">
               <Link href="/" onClick={() => setMenuOpen(false)} style={{ display: 'block', flex: 1, paddingRight: '12px' }}>
                 <img
-                  src="/images/logo-bold.png"
+                  src={isDark ? "/images/logo-white.png" : "/images/logo-bold.png"}
                   alt="Utopia Van Life"
                   style={{
                     height: 'auto',
@@ -139,8 +174,8 @@ export default function Navbar() {
                   justifyContent: 'center',
                   padding: '8px',
                   borderRadius: '8px',
-                  color: 'var(--black-matte)',
-                  background: 'rgba(0,0,0,0.04)',
+                  color: isDark ? '#FFFFFF' : 'var(--black-matte)',
+                  background: isDark ? 'rgba(255, 255, 255, 0.08)' : 'rgba(0,0,0,0.04)',
                   flexShrink: 0
                 }}
               >
@@ -193,6 +228,31 @@ export default function Navbar() {
           -webkit-backdrop-filter: blur(16px);
           box-shadow: 0 1px 20px rgba(26, 26, 26, 0.06);
           border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+        }
+        .navbar--dark {
+          background: rgba(11, 13, 17, 0.85);
+          backdrop-filter: blur(16px);
+          -webkit-backdrop-filter: blur(16px);
+          border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+          box-shadow: 0 4px 30px rgba(0, 0, 0, 0.5);
+        }
+        .navbar--dark.navbar--scrolled {
+          background: rgba(11, 13, 17, 0.95);
+          border-bottom: 1px solid rgba(255, 255, 255, 0.12);
+        }
+        .navbar--dark .navbar__link {
+          color: rgba(255, 255, 255, 0.85);
+        }
+        .navbar--dark .navbar__link:hover {
+          color: #E5C07B;
+          opacity: 1;
+        }
+        .navbar--dark .btn-ghost {
+          color: rgba(255, 255, 255, 0.85);
+        }
+        .navbar--dark .btn-ghost:hover {
+          background: rgba(255, 255, 255, 0.08);
+          color: #FFFFFF;
         }
         .navbar__inner {
           display: flex;
@@ -285,6 +345,22 @@ export default function Navbar() {
           transition: background var(--transition-fast);
         }
         .mobile-menu__links li a:hover { background: var(--gray-100); }
+
+        .mobile-menu--dark .mobile-menu__nav {
+          background: #0F1115;
+          color: white;
+          border-left: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        .mobile-menu--dark .mobile-menu__header {
+          border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        .mobile-menu--dark .mobile-menu__links li a {
+          color: rgba(255, 255, 255, 0.9);
+        }
+        .mobile-menu--dark .mobile-menu__links li a:hover {
+          background: rgba(255, 255, 255, 0.08);
+          color: #E5C07B;
+        }
       `}</style>
     </>
   )

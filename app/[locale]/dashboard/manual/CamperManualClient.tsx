@@ -471,8 +471,8 @@ export default function CamperManualClient() {
             type="button"
             onClick={handleDownloadManualPdf}
             disabled={isGeneratingPdf}
-            className="btn btn-outline btn-sm"
-            style={{ gap: 6, cursor: isGeneratingPdf ? 'wait' : 'pointer' }}
+            className="btn btn-outline btn-sm manual-action-btn"
+            style={{ cursor: isGeneratingPdf ? 'wait' : 'pointer' }}
           >
             {isGeneratingPdf ? (
               <>
@@ -490,8 +490,7 @@ export default function CamperManualClient() {
             href="https://wa.me/34611560916" 
             target="_blank" 
             rel="noopener noreferrer"
-            className="btn btn-forest btn-sm"
-            style={{ gap: 6 }}
+            className="btn btn-forest btn-sm manual-action-btn"
           >
             <MessageCircle size={15} />
             <span>Dudas por WhatsApp</span>
@@ -579,7 +578,7 @@ export default function CamperManualClient() {
                   <Icon size={22} strokeWidth={1.75} />
                 </div>
                 <div className="guide-card__title-area">
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
+                  <div className="guide-card__meta-row">
                     <span className="guide-system-name">{guide.systemName}</span>
                     {guide.videoUrl && (
                       <span className="video-pill">
@@ -606,7 +605,7 @@ export default function CamperManualClient() {
                   {guide.videoUrl && (
                     <div className="video-player-box">
                       <div className="video-player-header">
-                        <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                        <div className="video-player-title-row">
                           <Video size={15} style={{ color: 'var(--forest-green)' }} />
                           <span className="text-xs" style={{ fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase', color: 'var(--black-matte)' }}>
                             Videotutorial Explicativo ({guide.videoDuration})
@@ -760,7 +759,7 @@ export default function CamperManualClient() {
                   </div>
 
                   <div className="troubleshoot-card__title-area">
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap', marginBottom: 2 }}>
+                    <div className="troubleshoot-card__meta-row">
                       <span className={`troubleshoot-cat-tag troubleshoot-cat-tag--${item.category}`}>
                         {item.categoryLabel}
                       </span>
@@ -1469,24 +1468,54 @@ export default function CamperManualClient() {
           background: #dc2626;
         }
 
+        .manual-action-btn {
+          display: inline-flex;
+          align-items: center;
+          gap: 6px;
+        }
+
+        .guide-card__meta-row {
+          display: flex;
+          align-items: center;
+          gap: 8px;
+          flex-wrap: wrap;
+        }
+
+        .video-player-title-row {
+          display: flex;
+          align-items: center;
+          gap: 6px;
+        }
+
+        .troubleshoot-card__meta-row {
+          display: flex;
+          align-items: center;
+          gap: 8px;
+          flex-wrap: wrap;
+          margin-bottom: 2px;
+        }
+
         @media (max-width: 640px) {
           .manual-header {
             gap: 12px;
             padding-bottom: 12px;
           }
-          .emergency-bar {
-            padding: 12px 14px;
-            gap: 10px;
-            flex-direction: column;
-            align-items: flex-start;
-          }
-          .emergency-bar__actions {
+          .manual-header__actions {
             width: 100%;
+            display: flex;
+            gap: 8px;
           }
-          .emergency-btn {
-            width: 100%;
+          .manual-action-btn {
+            flex: 1;
             justify-content: center;
-            padding: 8px 14px;
+            min-height: 44px;
+            padding: 10px 14px;
+          }
+          .manual-action-btn:active {
+            transform: scale(0.97);
+          }
+          .emergency-bar {
+            display: none;
           }
           .search-card {
             min-width: 0;
@@ -1496,9 +1525,16 @@ export default function CamperManualClient() {
             width: 100%;
             justify-content: center;
             padding: 10px 14px;
+            min-height: 42px;
+          }
+          .filter-video-btn:active {
+            transform: scale(0.98);
           }
           .guide-card__header {
             padding: 14px 16px;
+          }
+          .guide-card__header:active {
+            transform: scale(0.99);
           }
           .guide-card__content {
             padding: 12px 16px 16px 16px;
@@ -1530,6 +1566,9 @@ export default function CamperManualClient() {
           }
           .troubleshoot-card__header {
             padding: 14px;
+          }
+          .troubleshoot-card__header:active {
+            transform: scale(0.99);
           }
           .troubleshoot-card__body {
             padding: 12px 14px 14px 14px;

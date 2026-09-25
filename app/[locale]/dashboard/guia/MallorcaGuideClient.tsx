@@ -1241,7 +1241,7 @@ export default function MallorcaGuideClient() {
             <span>Guía de Viaje · Mallorca Edition</span>
           </div>
           <h1 className="guia-header__title">
-            Mapa Interactivo Premium –<br className="hidden sm:inline" /> Utopia Van Life
+            Mapa Interactivo & Guía Mallorca
           </h1>
           <p className="guia-header__subtitle">
             Descubre las mejores calas vírgenes, áreas de pernocta seleccionadas y puntos de servicio camper en la isla. Una selección cuidada para una experiencia nómada de lujo silencioso con cartografía y relieve real.
@@ -2665,6 +2665,10 @@ export default function MallorcaGuideClient() {
           margin-bottom: 24px;
           padding-bottom: 6px;
           -webkit-overflow-scrolling: touch;
+          scrollbar-width: none;
+        }
+        .guide-quick-nav::-webkit-scrollbar {
+          display: none;
         }
         .guide-nav-tab {
           padding: 8px 16px;
@@ -3003,6 +3007,28 @@ export default function MallorcaGuideClient() {
             max-width: 100%;
             max-height: 75vh;
             overflow-y: auto;
+          }
+          .stitch-map-controls {
+            top: 12px;
+            bottom: auto;
+            right: 12px;
+          }
+          .guide-info-block {
+            padding: 18px 14px;
+            border-radius: 14px;
+            margin-top: 24px;
+          }
+          .stitch-ctrl-btn:active {
+            transform: scale(0.92);
+          }
+          .spot-card__btn-view:active {
+            transform: scale(0.96);
+          }
+          .spot-card__btn-gmaps:active {
+            transform: scale(0.96);
+          }
+          .stitch-btn-primary:active {
+            transform: scale(0.97);
           }
           .normativa-grid {
             grid-template-columns: 1fr;

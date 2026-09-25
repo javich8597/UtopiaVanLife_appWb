@@ -261,11 +261,11 @@ export default function ProfileClient({ user, profile }: Props) {
       )}
 
       {licenseValidation.isNovel && !licenseValidation.isExpired && (
-        <div className="alert-box alert-box--warning" style={{ background: 'rgba(230, 126, 34, 0.12)', borderColor: 'var(--warning)', color: '#9c5208' }}>
-          <AlertCircle size={20} className="alert-icon" style={{ color: 'var(--warning)' }} />
+        <div className="alert-box alert-box--warning">
+          <AlertCircle size={20} className="alert-icon" />
           <div>
             <strong>Antigüedad del Carnet de Conducir</strong>
-            <p style={{ margin: 0, fontSize: '0.85rem' }}>{licenseValidation.warningMessage || 'Tu permiso de conducir tiene menos de 2 años de antigüedad. Para formalizar el contrato oficial se requiere un conductor principal con al menos 2 años de antigüedad.'}</p>
+            <p className="alert-text">{licenseValidation.warningMessage || 'Tu permiso de conducir tiene menos de 2 años de antigüedad. Para formalizar el contrato oficial se requiere un conductor principal con al menos 2 años de antigüedad.'}</p>
           </div>
         </div>
       )}
@@ -609,7 +609,7 @@ export default function ProfileClient({ user, profile }: Props) {
               </div>
 
               {/* Subida carnet segundo conductor */}
-              <div style={{ marginTop: 'var(--space-4)' }}>
+              <div className="second-driver-upload-section">
                 <span className="dropzone-section-title">CARNET DEL SEGUNDO CONDUCTOR</span>
                 <div className="dropzone-grid-2">
                   <div className="dropzone-card">
@@ -1287,6 +1287,25 @@ export default function ProfileClient({ user, profile }: Props) {
           border: 1px solid #FECACA;
         }
 
+        .alert-box--warning {
+          background: rgba(230, 126, 34, 0.12);
+          border: 1px solid var(--warning);
+          color: #9c5208;
+        }
+
+        .alert-box--warning .alert-icon {
+          color: var(--warning);
+        }
+
+        .alert-text {
+          margin: 0;
+          font-size: 0.85rem;
+        }
+
+        .second-driver-upload-section {
+          margin-top: var(--space-4);
+        }
+
         .alert-icon {
           flex-shrink: 0;
           margin-top: 2px;
@@ -1324,8 +1343,19 @@ export default function ProfileClient({ user, profile }: Props) {
         }
 
         @media (max-width: 640px) {
+          .driver-hero-pills {
+            gap: 8px;
+          }
+          .hero-pill {
+            background: rgba(255, 255, 255, 0.12);
+            padding: 4px 10px;
+            border-radius: 9999px;
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            font-size: 0.75rem;
+          }
           .form-card {
             padding: 16px;
+            border-radius: 14px;
           }
           .form-grid-3 {
             grid-template-columns: 1fr;
@@ -1337,14 +1367,28 @@ export default function ProfileClient({ user, profile }: Props) {
           .btn-save {
             width: 100%;
             max-width: 100%;
-            padding: 14px 20px;
+            padding: 15px 20px;
             justify-content: center;
+            min-height: 48px;
+          }
+          .btn-save:active:not(:disabled) {
+            transform: scale(0.97);
           }
           .preview-container {
             height: 140px;
           }
           .dropzone-empty {
             height: 140px;
+          }
+          .dropzone-empty-cta {
+            min-height: 44px;
+            padding: 8px 16px;
+          }
+          .dropzone-empty-cta:active {
+            transform: scale(0.96);
+          }
+          .preview-btn-clear:active {
+            transform: scale(0.96);
           }
           .profile-alert-box {
             padding: 12px 14px;

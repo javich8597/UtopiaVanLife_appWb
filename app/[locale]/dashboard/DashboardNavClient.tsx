@@ -363,53 +363,73 @@ export default function DashboardNavClient({ user, profile }: Props) {
         </div>
       )}
 
-      {/* ─── 4. BARRA DE NAVEGACIÓN INFERIOR PERSISTENTE (BOTTOM TABBAR <= 860px) ─── */}
+      {/* ─── 4. BARRA DE NAVEGACIÓN INFERIOR PERSISTENTE ESTILO REVOLUT (<= 860px) ─── */}
       <nav className="dashboard-bottom-bar" aria-label="Navegación Móvil Principal">
         <Link
           href="/dashboard"
           className={`dash-bottom-item ${isReservations ? 'dash-bottom-item--active' : ''}`}
         >
-          <BookOpen size={20} />
-          <span>Reserva</span>
+          <div className="dash-bottom-item-content">
+            <div className="dash-bottom-icon-wrap">
+              <BookOpen size={19} />
+            </div>
+            <span className="dash-bottom-label">Reserva</span>
+          </div>
         </Link>
 
         <Link
           href="/dashboard/documentos"
           className={`dash-bottom-item ${isDocuments ? 'dash-bottom-item--active' : ''}`}
         >
-          <FileText size={20} />
-          <span>Documentos</span>
-          {!isVerified && <span className="dash-bottom-dot" />}
+          <div className="dash-bottom-item-content">
+            <div className="dash-bottom-icon-wrap">
+              <FileText size={19} />
+              {!isVerified && <span className="dash-bottom-dot" />}
+            </div>
+            <span className="dash-bottom-label">Documentos</span>
+          </div>
         </Link>
 
         <Link
           href="/dashboard/guia"
           className={`dash-bottom-item ${isGuide ? 'dash-bottom-item--active' : ''}`}
         >
-          <MapPin size={20} />
-          <span>Guía</span>
+          <div className="dash-bottom-item-content">
+            <div className="dash-bottom-icon-wrap">
+              <MapPin size={19} />
+            </div>
+            <span className="dash-bottom-label">Guía</span>
+          </div>
         </Link>
 
         <Link
           href="/dashboard/manual"
           className={`dash-bottom-item ${isManual ? 'dash-bottom-item--active' : ''}`}
         >
-          <Compass size={20} />
-          <span>Manual</span>
+          <div className="dash-bottom-item-content">
+            <div className="dash-bottom-icon-wrap">
+              <Compass size={19} />
+            </div>
+            <span className="dash-bottom-label">Manual</span>
+          </div>
         </Link>
 
         <Link
           href="/dashboard/profile"
           className={`dash-bottom-item ${isProfile ? 'dash-bottom-item--active' : ''}`}
         >
-          <UserCircle size={20} />
-          <span>Perfil</span>
-          {!isVerified && !isPending && (
-            <span className="dash-bottom-dot dash-bottom-dot--warning" />
-          )}
-          {isPending && (
-            <span className="dash-bottom-dot dash-bottom-dot--info" />
-          )}
+          <div className="dash-bottom-item-content">
+            <div className="dash-bottom-icon-wrap">
+              <UserCircle size={19} />
+              {!isVerified && !isPending && (
+                <span className="dash-bottom-dot dash-bottom-dot--warning" />
+              )}
+              {isPending && (
+                <span className="dash-bottom-dot dash-bottom-dot--info" />
+              )}
+            </div>
+            <span className="dash-bottom-label">Perfil</span>
+          </div>
         </Link>
       </nav>
 
@@ -876,53 +896,86 @@ export default function DashboardNavClient({ user, profile }: Props) {
             cursor: pointer;
           }
 
-          /* Bottom Persistent TabBar */
+          /* Bottom Persistent TabBar Estilo Revolut (Floating Frosted Glass Pill) */
           .dashboard-bottom-bar {
             display: flex;
             align-items: center;
             justify-content: space-around;
             position: fixed;
-            bottom: 0;
-            left: 0;
-            right: 0;
-            height: 60px;
-            background: #FFFFFF;
-            border-top: 1px solid #E2E8F0;
-            box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.08);
+            bottom: calc(14px + env(safe-area-inset-bottom, 0px));
+            left: 14px;
+            right: 14px;
+            margin: 0 auto;
+            max-width: 440px;
+            height: 64px;
+            background: rgba(255, 255, 255, 0.88);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid rgba(226, 232, 240, 0.85);
+            border-radius: 9999px;
+            box-shadow: 0 12px 32px -4px rgba(0, 0, 0, 0.10), 0 4px 12px -2px rgba(0, 0, 0, 0.04);
             z-index: 1000;
-            padding-bottom: env(safe-area-inset-bottom, 0px);
+            padding: 5px 8px;
+            box-sizing: border-box;
           }
 
           .dash-bottom-item {
             flex: 1;
             display: flex;
+            align-items: center;
+            justify-content: center;
+            height: 100%;
+            text-decoration: none;
+            -webkit-tap-highlight-color: transparent;
+            user-select: none;
+            -webkit-user-select: none;
+          }
+
+          .dash-bottom-item-content {
+            display: flex;
             flex-direction: column;
             align-items: center;
             justify-content: center;
             gap: 2px;
-            height: 100%;
-            text-decoration: none;
+            padding: 4px 8px;
+            border-radius: 9999px;
             color: #64748B;
             font-size: 0.68rem;
             font-weight: 600;
-            position: relative;
-            transition: color 0.15s ease, transform 0.15s ease;
-            -webkit-tap-highlight-color: transparent;
+            transition: all 0.2s cubic-bezier(0.23, 1, 0.32, 1);
+            width: 100%;
+            max-width: 74px;
+            box-sizing: border-box;
           }
 
-          .dash-bottom-item:active {
-            transform: scale(0.92);
+          .dash-bottom-item:active .dash-bottom-item-content {
+            transform: scale(0.94);
+            transition: transform 160ms cubic-bezier(0.23, 1, 0.32, 1);
           }
 
-          .dash-bottom-item--active {
+          .dash-bottom-item--active .dash-bottom-item-content {
+            background: rgba(26, 43, 33, 0.09);
             color: var(--forest-green);
             font-weight: 700;
           }
 
+          .dash-bottom-icon-wrap {
+            position: relative;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+          }
+
+          .dash-bottom-label {
+            font-size: 0.67rem;
+            letter-spacing: -0.01em;
+            line-height: 1.1;
+          }
+
           .dash-bottom-dot {
             position: absolute;
-            top: 7px;
-            right: calc(50% - 13px);
+            top: -2px;
+            right: -4px;
             width: 7px;
             height: 7px;
             border-radius: 50%;

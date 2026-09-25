@@ -75,7 +75,7 @@ export default function DocumentsClient({ bookings, profile, user, contractTempl
   const [selectedFilter, setSelectedFilter] = useState<'all' | 'current' | 'invoices' | 'past'>('all')
   const [activePreviewDoc, setActivePreviewDoc] = useState<DocumentItem | null>(null)
   const [downloadingId, setDownloadingId] = useState<string | null>(null)
-  const [expandedIds, setExpandedIds] = useState<Set<string>>(new Set(['ctr-main']))
+  const [expandedIds, setExpandedIds] = useState<Set<string>>(new Set())
   const [searchQuery, setSearchQuery] = useState('')
   const [signingBooking, setSigningBooking] = useState<any | null>(null)
   const [signedContractsState, setSignedContractsState] = useState<Record<string, { signedAt: string; pdfUrl: string }>>({})
@@ -245,111 +245,9 @@ export default function DocumentsClient({ bookings, profile, user, contractTempl
         }
       })
 
-      // Insurance
-      list.push({
-        id: `pol-${nextBooking.id}`,
-        title: 'Certificado de Cobertura Allianz & Asistencia 24h',
-        category: 'insurance',
-        typeLabel: 'Póliza de Seguro',
-        refNumber: `POL-ALLIANZ-UTO-9821`,
-        date: dateFormatted,
-        isoDate: nextBooking.start_date || '2026-08-24',
-        status: 'valid',
-        statusLabel: 'Cobertura Activa',
-        fileFormat: 'PDF (1.1 MB)',
-        isPast: false,
-        tripName: `Reserva Actual · Camper ${camperName}`,
-        bookingId: nextBooking.id,
-        summary: 'Seguro a todo riesgo con franquicia de 1.000€, asistencia en carretera 24/7 en cualquier punto de Mallorca y vehículo de sustitución.',
-        contentDetails: {
-          issuer: 'Allianz Seguros / Utopia Van Life',
-          cif: 'W-0045819-A',
-          clientName,
-          clientDni,
-          clientEmail,
-          camperName: `Camper ${camperName}`,
-          camperPlate: '7482-LMB',
-          policyNumber: 'POL-ALLIANZ-UTO-9821-ESP',
-          datesRange: rangeFormatted,
-          coverageDetails: [
-            'Responsabilidad Civil Obligatoria y Voluntaria hasta 50.000.000 €',
-            'Daños propios al vehículo a todo riesgo con franquicia de 1.000 €',
-            'Asistencia en viaje y grúa rescate 24 horas en toda la isla de Mallorca',
-            'Rotura de lunas, daños por fenómenos atmosféricos y robo de accesorios fijos',
-            'Teléfono de Emergencia Exclusivo 24/7: +34 900 100 244 (Ref: Utopia)'
-          ]
-        }
-      })
-
-      // Check-in Sheet
-      list.push({
-        id: `chk-${nextBooking.id}`,
-        title: 'Acta Digital de Entrega & Check-in de la Camper',
-        category: 'checkin',
-        typeLabel: 'Parte de Entrega',
-        refNumber: `CHK-2026-${bId}`,
-        date: dateFormatted,
-        isoDate: nextBooking.start_date || '2026-08-24',
-        status: 'valid',
-        statusLabel: 'Listo para Entrega',
-        fileFormat: 'PDF (1.8 MB)',
-        isPast: false,
-        tripName: `Reserva Actual · Camper ${camperName}`,
-        bookingId: nextBooking.id,
-        summary: 'Inspección técnica previa, depósito diésel al 100%, depósito de agua 113L lleno y baterías Victron al 100%.',
-        contentDetails: {
-          issuer: 'Utopia Van Life S.L. • Taller & Flota',
-          cif: 'B-57984210',
-          clientName,
-          clientDni,
-          clientEmail,
-          camperName: `Camper ${camperName}`,
-          camperPlate: '7482-LMB',
-          items: [
-            { label: 'Depósito Diésel', value: '100% Lleno (Devolver lleno)' },
-            { label: 'Depósito Agua Limpia', value: '113 Litros (100% Lleno)' },
-            { label: 'Batería Litio Victron', value: '540Ah al 100% de carga' },
-            { label: 'Equipamiento Exterior', value: '2 Sillas camper + Mesa aluminio + Toldo Fiamma' },
-            { label: 'Limpieza y Desinfección', value: 'Realizada con protocolo de ozono' },
-          ]
-        }
-      })
     }
 
-    // 2. Identity & Driver's License Document
-    list.push({
-      id: 'doc-identity-verification',
-      title: 'Acreditación de Conductor & Permiso de Conducir B',
-      category: 'verification',
-      typeLabel: 'Identidad & Carnet',
-      refNumber: `ID-VER-${user.id.substring(0, 6).toUpperCase()}`,
-      date: isVerified ? '15 de Mayo, 2026' : 'Pendiente de validación',
-      isoDate: '2026-05-15',
-      status: isVerified ? 'verified' : 'pending',
-      statusLabel: isVerified ? 'Verificado ✓' : 'En Revisión',
-      fileFormat: 'PDF / JPG (1.5 MB)',
-      isPast: false,
-      tripName: 'Documentación del Conductor',
-      summary: isVerified
-        ? 'DNI/Pasaporte y Permiso de Conducir clase B verificados y validados por el equipo de Utopia Van Life.'
-        : 'Documentos en proceso de verificación por nuestro equipo de soporte.',
-      contentDetails: {
-        issuer: 'Utopia Van Life • Validación de Conductores',
-        cif: 'B-57984210',
-        clientName,
-        clientDni,
-        clientEmail,
-        camperName: 'Flota Utopia',
-        items: [
-          { label: 'Titular del Carnet', value: clientName },
-          { label: 'Documento DNI / NIE / Pasaporte', value: clientDni },
-          { label: 'Permiso de Conducción', value: 'Clase B (+2 años de antigüedad)' },
-          { label: 'Estado de Validación', value: isVerified ? 'Aprobado y Conductor Habilitado ✓' : 'Pendiente de revisión' }
-        ]
-      }
-    })
-
-    // 3. Past Bookings Documents (Histórico)
+    // 2. Past Bookings Documents (Histórico)
     if (pastBookings.length > 0) {
       pastBookings.forEach((past) => {
         const pId = past.id.substring(0, 8).toUpperCase()
@@ -706,7 +604,7 @@ export default function DocumentsClient({ bookings, profile, user, contractTempl
           </p>
         </div>
 
-        {hasBookings && (
+        {hasBookings && (documents.length > 2 || pastCount > 0) && (
           /* Filter Pills */
           <div className="mini-filter-bar">
             <button
@@ -727,12 +625,14 @@ export default function DocumentsClient({ bookings, profile, user, contractTempl
             >
               Facturas <span className="pill-qty">{invoiceCount}</span>
             </button>
-            <button
-              onClick={() => setSelectedFilter('past')}
-              className={`mini-filter-btn ${selectedFilter === 'past' ? 'mini-filter-btn--active' : ''}`}
-            >
-              Histórico <span className="pill-qty">{pastCount}</span>
-            </button>
+            {pastCount > 0 && (
+              <button
+                onClick={() => setSelectedFilter('past')}
+                className={`mini-filter-btn ${selectedFilter === 'past' ? 'mini-filter-btn--active' : ''}`}
+              >
+                Histórico <span className="pill-qty">{pastCount}</span>
+              </button>
+            )}
           </div>
         )}
       </div>
@@ -748,39 +648,8 @@ export default function DocumentsClient({ bookings, profile, user, contractTempl
           </div>
           <h2 className="empty-docs-title">Aún no tienes documentación generada</h2>
           <p className="empty-docs-desc">
-            En cuanto reserves tu camper Utopia, aquí tendrás disponible en tiempo real tu contrato oficial de alquiler con firma digitalizada, actas de check-in, certificados de póliza a todo riesgo y facturas con IVA desglosado.
+            En cuanto reserves tu camper Utopia, aquí tendrás disponible en tiempo real tu contrato oficial de alquiler con firma digital y tu factura oficial con IVA desglosado.
           </p>
-
-          <div className="empty-docs-features-grid">
-            <div className="empty-feature-item">
-              <div className="empty-feature-icon"><FileCheck size={18} /></div>
-              <div>
-                <h4 className="empty-feature-title">Contrato Oficial de Alquiler</h4>
-                <p className="empty-feature-text">31 artículos legales con cobertura completa, kilometraje oficial y condiciones de fianza.</p>
-              </div>
-            </div>
-            <div className="empty-feature-item">
-              <div className="empty-feature-icon"><ShieldCheck size={18} /></div>
-              <div>
-                <h4 className="empty-feature-title">Póliza Allianz & Asistencia 24h</h4>
-                <p className="empty-feature-text">Certificado oficial de cobertura en carretera y teléfono directo de asistencia.</p>
-              </div>
-            </div>
-            <div className="empty-feature-item">
-              <div className="empty-feature-icon"><ClipboardCheck size={18} /></div>
-              <div>
-                <h4 className="empty-feature-title">Acta de Entrega Digital</h4>
-                <p className="empty-feature-text">Check-in con fotos, niveles de fluidos al 100% y revisión del kit exterior.</p>
-              </div>
-            </div>
-            <div className="empty-feature-item">
-              <div className="empty-feature-icon"><Receipt size={18} /></div>
-              <div>
-                <h4 className="empty-feature-title">Facturas Oficiales</h4>
-                <p className="empty-feature-text">Desglose de IVA al 21%, recibos de pago y certificados de devolución de fianza.</p>
-              </div>
-            </div>
-          </div>
 
           <div className="empty-docs-cta-group">
             <Link href="/campers" className="btn btn-forest" style={{ padding: '12px 24px', gap: 8, textDecoration: 'none' }}>
@@ -1636,6 +1505,9 @@ export default function DocumentsClient({ bookings, profile, user, contractTempl
           font-size: 0.75rem;
           color: #64748B;
           line-height: 1.4;
+          max-height: 160px;
+          overflow-y: auto;
+          white-space: pre-line;
         }
 
         .drawer-footer-row {

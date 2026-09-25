@@ -32,7 +32,7 @@ export default async function DocumentsPage({
     .from('bookings')
     .select(`
       *,
-      camper:campers (slug, name, thumbnail_url, specs, plate_number)
+      camper:campers (slug, name, thumbnail_url, specs)
     `)
     .eq('user_id', user.id)
     .order('start_date', { ascending: false })

@@ -71,16 +71,241 @@ export default function StickyTripSummary({
     const numNights = breakdown ? breakdown.numNights : 0
     const depositAmount = breakdown ? breakdown.depositAmount : 1000
 
-    const summaryContent = (
+    const contentProps: TripSummaryContentProps = {
+        camper,
+        mainImage,
+        step1,
+        step2,
+        step3,
+        step4,
+        breakdown,
+        totalPayable,
+        depositAmount,
+        totalDays,
+        numNights,
+        formatDateSlot,
+    }
+
+    return (
+        <>
+            {/* Desktop Sticky Card */}
+            <aside className="sticky-summary-desktop">
+                <div className="sticky-summary-card">
+                    <div className="sticky-summary-card__header">
+                        <h3 className="summary-heading">Tu Viaje · Utopia Van Life</h3>
+                        <span className="summary-live-indicator">
+                            <span className="live-dot" />
+                            En vivo
+                        </span>
+                    </div>
+                    <TripSummaryContent {...contentProps} />
+                </div>
+            </aside>
+
+            {/* Mobile Bottom Sheet Drawer */}
+            {isOpenMobile && (
+                <div className="mobile-summary-backdrop" onClick={onCloseMobile}>
+                    <div
+                        className="mobile-summary-sheet"
+                        onClick={(e) => e.stopPropagation()}
+                    >
+                        <div className="mobile-summary-sheet__header">
+                            <div className="mobile-sheet-drag-handle" />
+                            <div className="mobile-sheet-title-row">
+                                <h3 className="summary-heading">Tu Viaje · Desglose Completo</h3>
+                                <button
+                                    type="button"
+                                    className="mobile-sheet-close-btn"
+                                    onClick={onCloseMobile}
+                                    aria-label="Cerrar desglose"
+                                >
+                                    <X size={18} />
+                                </button>
+                            </div>
+                        </div>
+                        <div className="mobile-summary-sheet__scrollable">
+                            <TripSummaryContent {...contentProps} />
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            <style jsx>{`
+                /* Desktop sticky aside */
+                .sticky-summary-desktop {
+                    display: block;
+                    width: 100%;
+                }
+
+                .sticky-summary-card {
+                    background: #ffffff;
+                    border: 1px solid var(--gray-200);
+                    border-radius: var(--radius-xl);
+                    padding: var(--space-5);
+                    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.04);
+                    position: sticky;
+                    top: 90px;
+                }
+
+                .sticky-summary-card__header {
+                    display: flex;
+                    align-items: center;
+                    justify-content: space-between;
+                    margin-bottom: var(--space-4);
+                    padding-bottom: var(--space-3);
+                    border-bottom: 1px solid var(--gray-100);
+                }
+
+                .summary-heading {
+                    font-family: var(--font-display);
+                    font-size: 15px;
+                    font-weight: 700;
+                    color: var(--black-matte);
+                    margin: 0;
+                }
+
+                .summary-live-indicator {
+                    display: flex;
+                    align-items: center;
+                    gap: 6px;
+                    font-size: 10px;
+                    font-weight: 700;
+                    text-transform: uppercase;
+                    letter-spacing: 0.06em;
+                    color: var(--forest-green);
+                    background: rgba(45, 58, 45, 0.08);
+                    padding: 2px 8px;
+                    border-radius: var(--radius-full);
+                }
+
+                .live-dot {
+                    width: 6px;
+                    height: 6px;
+                    border-radius: 50%;
+                    background: var(--forest-green);
+                    animation: pulse 1.8s infinite ease-in-out;
+                }
+
+                @keyframes pulse {
+                    0%, 100% { opacity: 1; transform: scale(1); }
+                    50% { opacity: 0.4; transform: scale(1.3); }
+                }
+
+                /* Mobile Drawer */
+                .mobile-summary-backdrop {
+                    position: fixed;
+                    inset: 0;
+                    background: rgba(0, 0, 0, 0.5);
+                    backdrop-filter: blur(4px);
+                    z-index: 60;
+                    display: flex;
+                    align-items: flex-end;
+                    animation: fadeIn 0.2s ease-out;
+                }
+
+                .mobile-summary-sheet {
+                    background: #ffffff;
+                    border-radius: var(--radius-xl) var(--radius-xl) 0 0;
+                    width: 100%;
+                    max-height: 85vh;
+                    display: flex;
+                    flex-direction: column;
+                    box-shadow: 0 -8px 32px rgba(0, 0, 0, 0.2);
+                    animation: slideUp 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+                }
+
+                .mobile-summary-sheet__header {
+                    padding: var(--space-3) var(--space-4);
+                    border-bottom: 1px solid var(--gray-100);
+                    display: flex;
+                    flex-direction: column;
+                    align-items: center;
+                    gap: 8px;
+                }
+
+                .mobile-sheet-drag-handle {
+                    width: 36px;
+                    height: 4px;
+                    background: var(--gray-300);
+                    border-radius: var(--radius-full);
+                }
+
+                .mobile-sheet-title-row {
+                    width: 100%;
+                    display: flex;
+                    align-items: center;
+                    justify-content: space-between;
+                }
+
+                .mobile-sheet-close-btn {
+                    border: none;
+                    background: var(--gray-100);
+                    width: 30px;
+                    height: 30px;
+                    border-radius: 50%;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    cursor: pointer;
+                }
+
+                .mobile-summary-sheet__scrollable {
+                    overflow-y: auto;
+                    padding: var(--space-4);
+                }
+
+                @keyframes fadeIn {
+                    from { opacity: 0; }
+                    to { opacity: 1; }
+                }
+
+                @keyframes slideUp {
+                    from { transform: translateY(100%); }
+                    to { transform: translateY(0); }
+                }
+            `}</style>
+        </>
+    )
+}
+
+interface TripSummaryContentProps {
+    camper: WizardCamper
+    mainImage: string
+    step1: Step1Data
+    step2: Step2Data
+    step3: Step3Data
+    step4: Step4Data
+    breakdown: PricingBreakdown | null
+    totalPayable: number
+    depositAmount: number
+    totalDays: number
+    numNights: number
+    formatDateSlot: (dateStr: string, slot: 'morning' | 'afternoon', isDropoff: boolean) => string
+}
+
+function TripSummaryContent({
+    camper,
+    mainImage,
+    step1,
+    step2,
+    step3,
+    breakdown,
+    depositAmount,
+    totalDays,
+    numNights,
+    formatDateSlot,
+}: TripSummaryContentProps) {
+    return (
         <div className="trip-summary-content">
             {/* Header info */}
             <div className="summary-camper-card">
-                <div className="summary-camper-thumb">
+                <div className="summary-camper-thumb" style={{ position: 'relative' }}>
                     <Image
                         src={mainImage}
                         alt={camper.name}
-                        width={90}
-                        height={60}
+                        fill
+                        priority
+                        sizes="90px"
                         className="summary-camper-img"
                     />
                 </div>
@@ -271,114 +496,8 @@ export default function StickyTripSummary({
                     <span>Bizum, Visa y Mastercard</span>
                 </div>
             </div>
-        </div>
-    )
-
-    return (
-        <>
-            {/* Desktop Sticky Card */}
-            <aside className="sticky-summary-desktop">
-                <div className="sticky-summary-card">
-                    <div className="sticky-summary-card__header">
-                        <h3 className="summary-heading">Tu Viaje · Utopia Van Life</h3>
-                        <span className="summary-live-indicator">
-                            <span className="live-dot" />
-                            En vivo
-                        </span>
-                    </div>
-                    {summaryContent}
-                </div>
-            </aside>
-
-            {/* Mobile Bottom Sheet Drawer */}
-            {isOpenMobile && (
-                <div className="mobile-summary-backdrop" onClick={onCloseMobile}>
-                    <div
-                        className="mobile-summary-sheet"
-                        onClick={(e) => e.stopPropagation()}
-                    >
-                        <div className="mobile-summary-sheet__header">
-                            <div className="mobile-sheet-drag-handle" />
-                            <div className="mobile-sheet-title-row">
-                                <h3 className="summary-heading">Tu Viaje · Desglose Completo</h3>
-                                <button
-                                    type="button"
-                                    className="mobile-sheet-close-btn"
-                                    onClick={onCloseMobile}
-                                    aria-label="Cerrar desglose"
-                                >
-                                    <X size={18} />
-                                </button>
-                            </div>
-                        </div>
-                        <div className="mobile-summary-sheet__scrollable">
-                            {summaryContent}
-                        </div>
-                    </div>
-                </div>
-            )}
 
             <style jsx>{`
-                /* Desktop sticky aside */
-                .sticky-summary-desktop {
-                    display: block;
-                    width: 100%;
-                }
-
-                .sticky-summary-card {
-                    background: #ffffff;
-                    border: 1px solid var(--gray-200);
-                    border-radius: var(--radius-xl);
-                    padding: var(--space-5);
-                    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.04);
-                    position: sticky;
-                    top: 90px;
-                }
-
-                .sticky-summary-card__header {
-                    display: flex;
-                    align-items: center;
-                    justify-content: space-between;
-                    margin-bottom: var(--space-4);
-                    padding-bottom: var(--space-3);
-                    border-bottom: 1px solid var(--gray-100);
-                }
-
-                .summary-heading {
-                    font-family: var(--font-display);
-                    font-size: 15px;
-                    font-weight: 700;
-                    color: var(--black-matte);
-                    margin: 0;
-                }
-
-                .summary-live-indicator {
-                    display: flex;
-                    align-items: center;
-                    gap: 6px;
-                    font-size: 10px;
-                    font-weight: 700;
-                    text-transform: uppercase;
-                    letter-spacing: 0.06em;
-                    color: var(--forest-green);
-                    background: rgba(45, 58, 45, 0.08);
-                    padding: 2px 8px;
-                    border-radius: var(--radius-full);
-                }
-
-                .live-dot {
-                    width: 6px;
-                    height: 6px;
-                    border-radius: 50%;
-                    background: var(--forest-green);
-                    animation: pulse 1.8s infinite ease-in-out;
-                }
-
-                @keyframes pulse {
-                    0%, 100% { opacity: 1; transform: scale(1); }
-                    50% { opacity: 0.4; transform: scale(1.3); }
-                }
-
                 .trip-summary-content {
                     display: flex;
                     flex-direction: column;
@@ -397,6 +516,7 @@ export default function StickyTripSummary({
                 }
 
                 .summary-camper-thumb {
+                    position: relative;
                     width: 78px;
                     height: 52px;
                     border-radius: var(--radius-md);
@@ -406,8 +526,6 @@ export default function StickyTripSummary({
                 }
 
                 .summary-camper-img {
-                    width: 100%;
-                    height: 100%;
                     object-fit: cover;
                 }
 
@@ -721,80 +839,7 @@ export default function StickyTripSummary({
                     font-size: 10px;
                     color: var(--gray-500);
                 }
-
-                /* Mobile Drawer */
-                .mobile-summary-backdrop {
-                    position: fixed;
-                    inset: 0;
-                    background: rgba(0, 0, 0, 0.5);
-                    backdrop-filter: blur(4px);
-                    z-index: 60;
-                    display: flex;
-                    align-items: flex-end;
-                    animation: fadeIn 0.2s ease-out;
-                }
-
-                .mobile-summary-sheet {
-                    background: #ffffff;
-                    border-radius: var(--radius-xl) var(--radius-xl) 0 0;
-                    width: 100%;
-                    max-height: 85vh;
-                    display: flex;
-                    flex-direction: column;
-                    box-shadow: 0 -8px 32px rgba(0, 0, 0, 0.2);
-                    animation: slideUp 0.3s cubic-bezier(0.16, 1, 0.3, 1);
-                }
-
-                .mobile-summary-sheet__header {
-                    padding: var(--space-3) var(--space-4);
-                    border-bottom: 1px solid var(--gray-100);
-                    display: flex;
-                    flex-direction: column;
-                    align-items: center;
-                    gap: 8px;
-                }
-
-                .mobile-sheet-drag-handle {
-                    width: 36px;
-                    height: 4px;
-                    background: var(--gray-300);
-                    border-radius: var(--radius-full);
-                }
-
-                .mobile-sheet-title-row {
-                    width: 100%;
-                    display: flex;
-                    align-items: center;
-                    justify-content: space-between;
-                }
-
-                .mobile-sheet-close-btn {
-                    border: none;
-                    background: var(--gray-100);
-                    width: 30px;
-                    height: 30px;
-                    border-radius: 50%;
-                    display: flex;
-                    align-items: center;
-                    justify-content: center;
-                    cursor: pointer;
-                }
-
-                .mobile-summary-sheet__scrollable {
-                    overflow-y: auto;
-                    padding: var(--space-4);
-                }
-
-                @keyframes fadeIn {
-                    from { opacity: 0; }
-                    to { opacity: 1; }
-                }
-
-                @keyframes slideUp {
-                    from { transform: translateY(100%); }
-                    to { transform: translateY(0); }
-                }
             `}</style>
-        </>
+        </div>
     )
 }

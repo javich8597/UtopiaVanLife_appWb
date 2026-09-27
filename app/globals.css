@@ -557,6 +557,11 @@ h1, h2, h3, h4, h5, h6 {
   .hide-desktop { display: none !important; }
 }
 
+.about-page {
+  min-height: 100vh;
+  background: var(--white-broken);
+}
+
 /* === INJECTED CSS FROM SERVER COMPONENTS === */
 /* From app/dashboard/layout.tsx */
 

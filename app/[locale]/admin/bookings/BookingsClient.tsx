@@ -61,6 +61,9 @@ export default function BookingsClient({ initialBookings }: Props) {
           <div className="search-bar" style={{ background: 'white', border: '1px solid var(--gray-300)', borderRadius: 'var(--radius-md)', display: 'flex', alignItems: 'center', padding: '6px 12px', gap: 8, width: '100%', minWidth: 200 }}>
             <Search size={16} style={{ color: 'var(--gray-400)', flexShrink: 0 }} />
             <input
+              id="admin-bookings-search"
+              name="admin_bookings_search"
+              aria-label="Buscar por cliente, email, camper o ID"
               type="text"
               placeholder="Buscar por cliente, email, camper o ID..."
               className="search-input"

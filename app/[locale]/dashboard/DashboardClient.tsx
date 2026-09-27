@@ -183,6 +183,7 @@ export default function DashboardClient({ bookings, profile, user }: Props) {
                                 src={camperImg}
                                 alt={camperName}
                                 fill
+                                sizes="(max-width: 768px) 100vw, 600px"
                                 style={{ objectFit: 'cover' }}
                                 priority
                             />
@@ -318,6 +319,7 @@ export default function DashboardClient({ bookings, profile, user }: Props) {
                                     src="/images/experiences/exp2.png" 
                                     alt="Palma de Mallorca" 
                                     fill 
+                                    sizes="(max-width: 768px) 100vw, 360px"
                                     style={{ objectFit: 'cover' }} 
                                 />
                                 <div style={{ position: 'absolute', inset: 0, background: 'rgba(45,58,45,0.4)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>

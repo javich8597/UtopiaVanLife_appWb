@@ -184,6 +184,16 @@ export async function PATCH(request: Request, { params }: RouteParams) {
       updatePayload.specs = newSpecs
     }
 
+    const targetPrice = price_per_night ?? base_price
+    let parsedPrice: number | undefined
+    if (targetPrice !== undefined) {
+      const p = parseFloat(targetPrice)
+      if (!isNaN(p) && p >= 0) {
+        parsedPrice = p
+        updatePayload.base_price_per_night = p
+      }
+    }
+
     if (Object.keys(updatePayload).length > 0) {
       const { data: updated, error: updateErr } = await auth.clientToUse
         .from('campers')
@@ -201,27 +211,23 @@ export async function PATCH(request: Request, { params }: RouteParams) {
     }
 
     // Update pricing if requested
-    const targetPrice = price_per_night ?? base_price
-    if (targetPrice !== undefined) {
-      const parsedPrice = parseFloat(targetPrice)
-      if (!isNaN(parsedPrice) && parsedPrice >= 0) {
-        try {
-          const { data: seasons } = await auth.clientToUse.from('seasons').select('id, name')
-          if (seasons && seasons.length > 0) {
-            const pricingRows = seasons.map((s: any) => ({
-              camper_id: id,
-              season_id: s.id,
-              price_per_night: s.name.toLowerCase().includes('alta') ? Math.round(parsedPrice * 1.35) : (s.name.toLowerCase().includes('baja') ? Math.round(parsedPrice * 0.8) : parsedPrice),
-              discount_7days_pct: s.name.toLowerCase().includes('alta') ? 10 : 5,
-            }))
+    if (parsedPrice !== undefined) {
+      try {
+        const { data: seasons } = await auth.clientToUse.from('seasons').select('id, name')
+        if (seasons && seasons.length > 0) {
+          const pricingRows = seasons.map((s: any) => ({
+            camper_id: id,
+            season_id: s.id,
+            price_per_night: s.name.toLowerCase().includes('alta') ? Math.round(parsedPrice * 1.35) : (s.name.toLowerCase().includes('baja') ? Math.round(parsedPrice * 0.8) : parsedPrice),
+            discount_7days_pct: s.name.toLowerCase().includes('alta') ? 10 : 5,
+          }))
 
-            await auth.clientToUse
-              .from('camper_pricing')
-              .upsert(pricingRows, { onConflict: 'camper_id,season_id' })
-          }
-        } catch (priceErr) {
-          console.warn('Could not update camper_pricing for camper:', priceErr)
+          await auth.clientToUse
+            .from('camper_pricing')
+            .upsert(pricingRows, { onConflict: 'camper_id,season_id' })
         }
+      } catch (priceErr) {
+        console.warn('Could not update camper_pricing for camper:', priceErr)
       }
     }
 

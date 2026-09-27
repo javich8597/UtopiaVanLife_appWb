@@ -16,9 +16,9 @@ import {
   HelpCircle,
   Sparkles,
   MessageCircle,
-  Mail,
   ArrowRight,
-  Check
+  Check,
+  Zap,
 } from 'lucide-react'
 import { useLocale } from 'next-intl'
 import { Link } from '@/i18n/routing'
@@ -34,6 +34,18 @@ const CATEGORY_ICONS: Record<string, any> = {
   normas: AlertCircle,
   tranquilidad: HeartHandshake,
 }
+
+// 4 essential questions shown by default so users are never overloaded
+const CURATED_DEFAULT_IDS = ['faq-1', 'faq-12', 'faq-14', 'faq-21']
+
+const QUICK_SEARCH_TAGS = [
+  { label_es: 'Fianza', label_en: 'Deposit', query: 'fianza' },
+  { label_es: 'Seguro a todo riesgo', label_en: 'Full insurance', query: 'seguro' },
+  { label_es: 'Pernocta en Mallorca', label_en: 'Overnight in Mallorca', query: 'pernocta' },
+  { label_es: 'Autonomía Victron', label_en: 'Solar autonomy', query: 'autonomía' },
+  { label_es: 'Carnet de conducir', label_en: 'Driver license', query: 'carnet' },
+  { label_es: 'Qué incluye', label_en: 'What is included', query: 'incluye' },
+]
 
 export default function FAQAccordionList({
   showSearch = true,
@@ -53,18 +65,19 @@ export default function FAQAccordionList({
 
   const [activeCategory, setActiveCategory] = useState<string>(initialCategory)
   const [searchQuery, setSearchQuery] = useState('')
+  const [showAll, setShowAll] = useState(false)
   const [openIds, setOpenIds] = useState<Record<string, boolean>>({ 'faq-1': true }) // First item open by default
 
   const toggleItem = (id: string) => {
     setOpenIds(prev => ({
       ...prev,
-      [id]: !prev[id]
+      [id]: !prev[id],
     }))
   }
 
   const expandAll = () => {
     const allOpen: Record<string, boolean> = {}
-    filteredItems.forEach(item => {
+    displayItems.forEach(item => {
       allOpen[item.id] = true
     })
     setOpenIds(allOpen)
@@ -103,12 +116,22 @@ export default function FAQAccordionList({
     return counts
   }, [])
 
-  // Helper to render formatted answer
+  // If user searched or explicitly toggled showAll, show filtered items;
+  // otherwise, show only the 4 essential curated questions
+  const isSearching = searchQuery.trim().length > 0
+  const displayItems = useMemo(() => {
+    if (isSearching || showAll || activeCategory !== 'all') {
+      return filteredItems
+    }
+    // Return curated 4 questions (falling back to first 4 if IDs not found)
+    const curated = FAQ_ITEMS.filter(item => CURATED_DEFAULT_IDS.includes(item.id))
+    return curated.length > 0 ? curated : FAQ_ITEMS.slice(0, 4)
+  }, [isSearching, showAll, activeCategory, filteredItems])
+
   const renderFormattedAnswer = (text: string) => {
     const paragraphs = text.split('\n\n')
 
     return paragraphs.map((para, pIdx) => {
-      // Check if paragraph is a list of bullet points
       if (para.includes('• ')) {
         const lines = para.split('\n')
         return (
@@ -129,7 +152,6 @@ export default function FAQAccordionList({
         )
       }
 
-      // Check if line contains markdown bold
       return (
         <p key={pIdx} className="faq-answer-p">
           {renderWithBold(para)}
@@ -156,44 +178,56 @@ export default function FAQAccordionList({
     })
   }
 
+  const handleQuickTagClick = (tagQuery: string) => {
+    setSearchQuery(tagQuery)
+    setShowAll(true)
+  }
+
+  const clearSearch = () => {
+    setSearchQuery('')
+  }
+
   return (
     <div className="faq-experience">
       {/* Header */}
-      <div className="faq-header text-center">
+      <div className="faq-header">
         <div className="faq-eyebrow-pill">
-          <Sparkles size={14} className="text-forest" />
-          <span>{isEs ? 'PREGUNTAS FRECUENTES · TRANSPARENCIA TOTAL' : 'FREQUENTLY ASKED QUESTIONS'}</span>
+          <Sparkles size={13} className="text-forest" />
+          <span>{isEs ? 'PREGUNTAS FRECUENTES · TRANSPARENCIA' : 'FREQUENTLY ASKED QUESTIONS'}</span>
         </div>
         <h2 className="faq-title text-display">
           {title || (isEs ? 'Todo lo que necesitas saber' : 'Everything You Need to Know')}
         </h2>
         <p className="faq-subtitle text-body-large">
           {subtitle || (isEs
-            ? 'Respuestas claras sobre nuestras campers, el seguro a todo riesgo, la autonomía eléctrica Victron y el alquiler en Mallorca.'
-            : 'Clear answers about our fleet, full insurance, Victron off-grid electrical system and traveling in Mallorca.')}
+            ? 'Busca cualquier duda sobre fianzas, seguro a todo riesgo, autonomía Victron o pernocta en Mallorca.'
+            : 'Search anything about deposits, full insurance, solar autonomy or traveling in Mallorca.')}
         </p>
       </div>
 
-      {/* Search Input */}
+      {/* Modern Search Experience */}
       {showSearch && (
-        <div className="faq-search-wrap">
+        <div className="faq-search-section">
           <div className="faq-search-bar">
-            <Search size={18} className="faq-search-icon" />
+            <Search size={19} className="faq-search-icon" />
             <input
+              id="faq-search-input"
+              name="faq-search"
               type="text"
               value={searchQuery}
               onChange={e => setSearchQuery(e.target.value)}
               placeholder={
                 isEs
-                  ? 'Buscar por tema (ej. fianza, aire acondicionado, kilometraje, seguro, pernocta...)'
-                  : 'Search by keyword (e.g. deposit, air conditioning, insurance, mileage...)'
+                  ? 'Escribe tu duda: fianza, seguro, aire acondicionado, pernocta...'
+                  : 'Type your question: deposit, insurance, air conditioning...'
               }
               className="faq-search-input"
+              aria-label={isEs ? 'Buscar preguntas frecuentes' : 'Search frequently asked questions'}
             />
             {searchQuery && (
               <button
                 type="button"
-                onClick={() => setSearchQuery('')}
+                onClick={clearSearch}
                 className="faq-search-clear"
                 aria-label={isEs ? 'Limpiar búsqueda' : 'Clear search'}
               >
@@ -201,11 +235,35 @@ export default function FAQAccordionList({
               </button>
             )}
           </div>
+
+          {/* Quick Search Tag Pills */}
+          <div className="faq-quick-tags">
+            <span className="faq-quick-label">
+              <Zap size={13} className="text-sand" />
+              {isEs ? 'Consultas rápidas:' : 'Quick topics:'}
+            </span>
+            <div className="faq-quick-chips">
+              {QUICK_SEARCH_TAGS.map(t => {
+                const label = isEs ? t.label_es : t.label_en
+                const isSelected = searchQuery.toLowerCase() === t.query.toLowerCase()
+                return (
+                  <button
+                    key={t.query}
+                    type="button"
+                    onClick={() => handleQuickTagClick(t.query)}
+                    className={`faq-quick-chip ${isSelected ? 'faq-quick-chip--active' : ''}`}
+                  >
+                    {label}
+                  </button>
+                )
+              })}
+            </div>
+          </div>
         </div>
       )}
 
-      {/* Categories Filter Pills */}
-      {showCategories && (
+      {/* Categories Filter Pills (Visible when expanded or searched) */}
+      {showCategories && (showAll || isSearching) && (
         <div className="faq-categories-container">
           <div className="faq-categories-scroll">
             {FAQ_CATEGORIES.map(cat => {
@@ -220,7 +278,7 @@ export default function FAQAccordionList({
                   onClick={() => setActiveCategory(cat.id)}
                   className={`faq-cat-btn ${isActive ? 'faq-cat-btn--active' : ''}`}
                 >
-                  <Icon size={16} className="faq-cat-icon" />
+                  <Icon size={15} className="faq-cat-icon" />
                   <span>{isEs ? cat.name_es : cat.name_en}</span>
                   <span className={`faq-cat-badge ${isActive ? 'faq-cat-badge--active' : ''}`}>
                     {count}
@@ -235,50 +293,71 @@ export default function FAQAccordionList({
       {/* Controls: count & expand/collapse all */}
       <div className="faq-controls">
         <span className="faq-results-count">
-          {filteredItems.length} {filteredItems.length === 1 ? (isEs ? 'pregunta' : 'question') : (isEs ? 'preguntas disponibles' : 'questions available')}
-          {searchQuery && (
-            <span className="faq-filter-tag">
-              · {isEs ? `Filtrado por "${searchQuery}"` : `Filtered by "${searchQuery}"`}
-            </span>
+          {isSearching ? (
+            isEs ? (
+              <>
+                Se encontraron <strong>{displayItems.length}</strong> {displayItems.length === 1 ? 'respuesta' : 'respuestas'} para &ldquo;{searchQuery}&rdquo;
+              </>
+            ) : (
+              <>
+                Found <strong>{displayItems.length}</strong> {displayItems.length === 1 ? 'result' : 'results'} for &ldquo;{searchQuery}&rdquo;
+              </>
+            )
+          ) : !showAll && activeCategory === 'all' ? (
+            isEs ? 'Preguntas esenciales más consultadas' : 'Essential most requested questions'
+          ) : (
+            isEs ? `${displayItems.length} preguntas disponibles` : `${displayItems.length} questions available`
           )}
         </span>
 
-        <div className="faq-toggle-actions">
-          <button type="button" onClick={expandAll} className="faq-action-link">
-            {isEs ? 'Expandir todas' : 'Expand all'}
-          </button>
-          <span className="faq-action-sep">•</span>
-          <button type="button" onClick={collapseAll} className="faq-action-link">
-            {isEs ? 'Cerrar todas' : 'Collapse all'}
-          </button>
-        </div>
+        {displayItems.length > 1 && (
+          <div className="faq-toggle-actions">
+            <button type="button" onClick={expandAll} className="faq-action-link">
+              {isEs ? 'Expandir todas' : 'Expand all'}
+            </button>
+            <span className="faq-action-sep">•</span>
+            <button type="button" onClick={collapseAll} className="faq-action-link">
+              {isEs ? 'Cerrar todas' : 'Collapse all'}
+            </button>
+          </div>
+        )}
       </div>
 
       {/* Questions Accordion List */}
       <div className="faq-list">
-        {filteredItems.length === 0 ? (
+        {displayItems.length === 0 ? (
           <div className="faq-empty-state">
-            <HelpCircle size={40} className="text-sand" />
+            <HelpCircle size={40} className="faq-empty-icon" />
             <h3 className="faq-empty-title">{isEs ? 'No encontramos respuestas para esa búsqueda' : 'No answers found for that search'}</h3>
             <p className="faq-empty-text">
               {isEs
-                ? 'Prueba con otras palabras o selecciona otra categoría superior.'
-                : 'Try searching for other terms or select another category above.'}
+                ? 'Prueba con otras palabras o contáctanos por WhatsApp para resolverlo al instante.'
+                : 'Try searching for other terms or chat with us on WhatsApp for instant help.'}
             </p>
-            <button
-              type="button"
-              onClick={() => {
-                setSearchQuery('')
-                setActiveCategory('all')
-              }}
-              className="btn btn-forest btn-sm"
-              style={{ marginTop: 12 }}
-            >
-              {isEs ? 'Ver todas las preguntas' : 'View all questions'}
-            </button>
+            <div className="faq-empty-actions">
+              <button
+                type="button"
+                onClick={() => {
+                  setSearchQuery('')
+                  setActiveCategory('all')
+                }}
+                className="btn btn-forest btn-sm"
+              >
+                {isEs ? 'Ver preguntas frecuentes' : 'View all questions'}
+              </button>
+              <a
+                href="https://wa.me/34600000000?text=Hola,%20tengo%20una%20duda%20sobre%20el%20alquiler%20de%20campers"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="btn btn-outline btn-sm"
+              >
+                <MessageCircle size={15} />
+                <span>{isEs ? 'Preguntar por WhatsApp' : 'Ask on WhatsApp'}</span>
+              </a>
+            </div>
           </div>
         ) : (
-          filteredItems.map(item => {
+          displayItems.map(item => {
             const isOpen = !!openIds[item.id]
             const qText = isEs ? item.question_es : item.question_en
             const aText = isEs ? item.answer_es : item.answer_en
@@ -297,9 +376,7 @@ export default function FAQAccordionList({
                   aria-controls={`faq-body-${item.id}`}
                 >
                   <div className="faq-card__header-content">
-                    {activeCategory === 'all' && (
-                      <span className="faq-card__category-chip">{catName}</span>
-                    )}
+                    <span className="faq-card__category-chip">{catName}</span>
                     <h3 className="faq-card__question">{qText}</h3>
                   </div>
                   <div className="faq-card__chevron-wrap">
@@ -318,7 +395,7 @@ export default function FAQAccordionList({
                       initial={{ opacity: 0, height: 0 }}
                       animate={{ opacity: 1, height: 'auto' }}
                       exit={{ opacity: 0, height: 0 }}
-                      transition={{ duration: 0.25, ease: 'easeInOut' }}
+                      transition={{ duration: 0.22, ease: 'easeInOut' }}
                       className="faq-card__collapse"
                     >
                       <div className="faq-card__body">
@@ -333,46 +410,56 @@ export default function FAQAccordionList({
         )}
       </div>
 
+      {/* Expand/Collapse Toggle Button (When not searching) */}
+      {!isSearching && activeCategory === 'all' && (
+        <div className="faq-view-all-wrap">
+          <button
+            type="button"
+            onClick={() => setShowAll(prev => !prev)}
+            className="faq-view-all-btn"
+          >
+            <span>
+              {showAll
+                ? (isEs ? 'Ver solo las preguntas principales' : 'Show only essential questions')
+                : (isEs ? `Ver todas las preguntas frecuentes (${FAQ_ITEMS.length})` : `View all frequently asked questions (${FAQ_ITEMS.length})`)}
+            </span>
+            <ChevronDown
+              size={16}
+              className={`faq-view-all-icon ${showAll ? 'faq-view-all-icon--up' : ''}`}
+            />
+          </button>
+        </div>
+      )}
+
       {/* Support & Concierge CTA Card */}
       <div className="faq-contact-card">
         <div className="faq-contact-card__glow" />
         <div className="faq-contact-card__content">
           <div className="faq-contact-badge">
             <MessageCircle size={14} />
-            <span>{isEs ? 'ATENCIÓN DIRECTA Y CERCANA' : 'DIRECT PERSONAL SUPPORT'}</span>
+            <span>{isEs ? 'ATENCIÓN PERSONALIZADA' : 'DIRECT PERSONAL SUPPORT'}</span>
           </div>
           <h3 className="faq-contact-title">
-            {isEs ? '¿Tienes alguna duda sobre tu viaje?' : 'Have any questions about your trip?'}
+            {isEs ? '¿Tienes alguna duda que no encuentras?' : 'Have a question not listed here?'}
           </h3>
           <p className="faq-contact-desc">
             {isEs
-              ? 'Estamos aquí para ayudarte a planificar tu aventura en Mallorca. Escríbenos directamente y te responderemos en minutos.'
-              : 'We are here to help you plan your Mallorca road trip. Message us directly and we will respond promptly.'}
+              ? 'Respondemos en menos de 15 minutos por WhatsApp para asesorarte con las fechas, normativas de pernocta o detalles de la camper.'
+              : 'We reply in under 15 minutes on WhatsApp to assist you with dates, parking regulations or camper specs.'}
           </p>
-
           <div className="faq-contact-actions">
             <a
-              href="https://wa.me/34611560916"
+              href="https://wa.me/34600000000?text=Hola%20Utopia%20Van%20Life,%20tengo%20una%20consulta"
               target="_blank"
               rel="noopener noreferrer"
-              className="faq-contact-btn faq-contact-btn--whatsapp"
+              className="btn btn-forest"
             >
-              <MessageCircle size={18} />
-              <span>{isEs ? 'WhatsApp (+34 611 560 916)' : 'WhatsApp Chat (+34 611 560 916)'}</span>
+              <MessageCircle size={16} />
+              <span>{isEs ? 'Hablar por WhatsApp' : 'Chat on WhatsApp'}</span>
             </a>
-            <a
-              href="mailto:hola@utopiavanlife.com"
-              className="faq-contact-btn faq-contact-btn--email"
-            >
-              <Mail size={18} />
-              <span>hola@utopiavanlife.com</span>
-            </a>
-            <Link
-              href="/campers"
-              className="faq-contact-btn faq-contact-btn--fleet"
-            >
-              <span>{isEs ? 'Ver Nuestras Campers' : 'View Our Campers'}</span>
-              <ArrowRight size={16} />
+            <Link href="/contacto" className="btn btn-outline">
+              <span>{isEs ? 'Enviar email' : 'Send email'}</span>
+              <ArrowRight size={14} />
             </Link>
           </div>
         </div>
@@ -380,484 +467,559 @@ export default function FAQAccordionList({
 
       <style jsx>{`
         .faq-experience {
+          max-width: 860px;
+          margin-inline: auto;
           display: flex;
           flex-direction: column;
           gap: var(--space-8);
-          max-width: 900px;
-          margin: 0 auto;
-          width: 100%;
         }
 
         .faq-header {
           display: flex;
           flex-direction: column;
           align-items: center;
+          text-align: center;
           gap: var(--space-3);
-          margin-bottom: var(--space-4);
+          max-width: 680px;
+          margin-inline: auto;
         }
+
         .faq-eyebrow-pill {
           display: inline-flex;
           align-items: center;
           gap: 6px;
-          background: rgba(43, 76, 55, 0.08);
-          color: var(--forest-green);
-          font-size: 11px;
-          font-weight: 700;
-          letter-spacing: 0.08em;
-          text-transform: uppercase;
           padding: 6px 14px;
           border-radius: var(--radius-full);
-          border: 1px solid rgba(43, 76, 55, 0.15);
-        }
-        .faq-title {
-          font-family: var(--font-display);
-          font-size: clamp(2rem, 3.5vw, 2.75rem);
-          font-weight: 700;
-          letter-spacing: -0.02em;
-          line-height: 1.15;
-          color: var(--black-matte);
-          margin: 0;
-        }
-        .faq-subtitle {
-          color: var(--gray-600);
-          max-width: 640px;
-          margin: 0 auto;
-          line-height: 1.6;
+          background: rgba(45, 58, 45, 0.08);
+          border: 1px solid rgba(45, 58, 45, 0.15);
+          font-size: 0.72rem;
+          font-weight: 600;
+          letter-spacing: 0.08em;
+          color: var(--forest-green);
+          text-transform: uppercase;
         }
 
-        /* Search Bar */
-        .faq-search-wrap {
-          position: relative;
+        .faq-title {
+          font-family: var(--font-serif, serif);
+          font-size: clamp(2rem, 3.8vw, 2.85rem);
+          font-weight: 400;
+          color: var(--black-matte);
+          letter-spacing: -0.02em;
+          line-height: 1.15;
+        }
+
+        .faq-subtitle {
+          color: var(--gray-600);
+          font-size: 1rem;
+          line-height: 1.6;
+          max-width: 580px;
+        }
+
+        /* Search Section */
+        .faq-search-section {
+          display: flex;
+          flex-direction: column;
+          gap: var(--space-3);
           width: 100%;
         }
+
         .faq-search-bar {
-          position: relative;
           display: flex;
           align-items: center;
           background: white;
-          border: 1px solid rgba(0, 0, 0, 0.1);
+          border: 1.5px solid var(--gray-200);
           border-radius: var(--radius-full);
-          padding: 6px 16px;
-          box-shadow: 0 4px 20px rgba(0, 0, 0, 0.03);
-          transition: all 0.25s ease;
+          padding: 10px 18px;
+          box-shadow: 0 4px 20px rgba(0, 0, 0, 0.04);
+          transition: border-color 200ms ease, box-shadow 200ms ease;
         }
+
         .faq-search-bar:focus-within {
           border-color: var(--forest-green);
-          box-shadow: 0 6px 24px rgba(43, 76, 55, 0.12);
+          box-shadow: 0 6px 24px rgba(45, 58, 45, 0.12);
         }
-        .faq-search-icon {
+
+        :global(.faq-search-icon) {
           color: var(--gray-400);
           margin-right: 12px;
           flex-shrink: 0;
         }
+
         .faq-search-input {
           flex: 1;
           border: none;
           outline: none;
           background: transparent;
-          font-size: 15px;
+          font-size: 0.95rem;
           color: var(--black-matte);
-          padding: 8px 0;
-          box-shadow: none;
-          height: auto;
+          font-family: inherit;
         }
+
         .faq-search-input::placeholder {
           color: var(--gray-400);
-          font-size: 14px;
         }
+
         .faq-search-clear {
-          background: rgba(0, 0, 0, 0.05);
+          background: var(--gray-100);
           border: none;
+          color: var(--gray-500);
           border-radius: 50%;
           width: 26px;
           height: 26px;
           display: flex;
           align-items: center;
           justify-content: center;
-          color: var(--gray-500);
           cursor: pointer;
-          transition: all 0.2s;
+          transition: background 150ms ease;
+          padding: 0;
         }
+
         .faq-search-clear:hover {
-          background: rgba(0, 0, 0, 0.1);
+          background: var(--gray-200);
           color: var(--black-matte);
         }
 
-        /* Category Selector Pills */
+        /* Quick Search Tag Pills */
+        .faq-quick-tags {
+          display: flex;
+          align-items: center;
+          flex-wrap: wrap;
+          gap: 8px;
+          padding-inline: 8px;
+        }
+
+        .faq-quick-label {
+          display: inline-flex;
+          align-items: center;
+          gap: 4px;
+          font-size: 0.76rem;
+          font-weight: 600;
+          color: var(--gray-500);
+          text-transform: uppercase;
+          letter-spacing: 0.04em;
+        }
+
+        .faq-quick-chips {
+          display: flex;
+          flex-wrap: wrap;
+          gap: 6px;
+        }
+
+        .faq-quick-chip {
+          background: white;
+          border: 1px solid var(--gray-200);
+          border-radius: 999px;
+          padding: 4px 12px;
+          font-size: 0.78rem;
+          color: var(--gray-700);
+          cursor: pointer;
+          transition: all 180ms ease;
+        }
+
+        .faq-quick-chip:hover {
+          border-color: var(--forest-green);
+          color: var(--forest-green);
+          background: rgba(45, 58, 45, 0.04);
+        }
+
+        .faq-quick-chip--active {
+          background: var(--forest-green);
+          border-color: var(--forest-green);
+          color: white;
+        }
+
+        /* Categories Filter */
         .faq-categories-container {
           width: 100%;
           overflow: hidden;
         }
+
         .faq-categories-scroll {
           display: flex;
-          flex-wrap: wrap;
           gap: 8px;
-          justify-content: center;
+          overflow-x: auto;
+          padding: 4px 0 10px;
+          scrollbar-width: none;
         }
+
+        .faq-categories-scroll::-webkit-scrollbar {
+          display: none;
+        }
+
         .faq-cat-btn {
           display: inline-flex;
           align-items: center;
-          gap: 8px;
+          gap: 6px;
           background: white;
-          border: 1px solid rgba(0, 0, 0, 0.08);
+          border: 1px solid var(--gray-200);
           border-radius: var(--radius-full);
-          padding: 8px 16px;
-          font-size: 13px;
+          padding: 6px 14px;
+          font-size: 0.82rem;
           font-weight: 500;
           color: var(--gray-700);
+          white-space: nowrap;
           cursor: pointer;
-          transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
-          box-shadow: 0 2px 6px rgba(0, 0, 0, 0.02);
+          transition: all 180ms ease;
         }
+
         .faq-cat-btn:hover {
           border-color: var(--forest-green);
           color: var(--forest-green);
-          transform: translateY(-1px);
         }
+
         .faq-cat-btn--active {
           background: var(--forest-green);
           border-color: var(--forest-green);
           color: white;
-          box-shadow: 0 4px 14px rgba(43, 76, 55, 0.25);
         }
-        .faq-cat-btn--active:hover {
-          background: #233e2d;
-          color: white;
-        }
+
         .faq-cat-badge {
-          font-size: 11px;
+          font-size: 0.7rem;
           font-weight: 700;
           background: rgba(0, 0, 0, 0.06);
-          padding: 2px 7px;
-          border-radius: var(--radius-full);
-          color: var(--gray-600);
+          padding: 1px 6px;
+          border-radius: 999px;
         }
+
         .faq-cat-badge--active {
-          background: rgba(255, 255, 255, 0.22);
+          background: rgba(255, 255, 255, 0.25);
           color: white;
         }
 
-        /* Controls bar */
+        /* Controls */
         .faq-controls {
           display: flex;
           justify-content: space-between;
           align-items: center;
-          font-size: 13px;
+          font-size: 0.85rem;
           color: var(--gray-500);
-          padding: 0 var(--space-2);
+          padding-inline: 4px;
         }
+
         .faq-results-count {
           font-weight: 500;
         }
-        .faq-filter-tag {
+
+        .faq-results-count strong {
           color: var(--forest-green);
-          font-weight: 600;
-          margin-left: 4px;
         }
+
         .faq-toggle-actions {
           display: flex;
           align-items: center;
           gap: 8px;
         }
+
         .faq-action-link {
           background: none;
           border: none;
           padding: 0;
-          font-size: 13px;
+          font-size: 0.82rem;
           font-weight: 600;
           color: var(--forest-green);
           cursor: pointer;
           text-decoration: underline;
-          text-underline-offset: 3px;
         }
-        .faq-action-link:hover {
-          color: #1e3626;
-        }
+
         .faq-action-sep {
           color: var(--gray-300);
         }
 
-        /* FAQ List & Cards */
+        /* FAQ List */
         .faq-list {
           display: flex;
           flex-direction: column;
           gap: 12px;
         }
+
         .faq-card {
           background: white;
-          border: 1px solid rgba(0, 0, 0, 0.07);
-          border-radius: var(--radius-lg);
+          border: 1px solid var(--gray-200);
+          border-radius: var(--radius-xl);
           overflow: hidden;
-          box-shadow: 0 2px 10px rgba(0, 0, 0, 0.02);
-          transition: all 0.25s ease;
+          transition: border-color 200ms ease, box-shadow 200ms ease;
         }
+
         .faq-card:hover {
-          border-color: rgba(43, 76, 55, 0.2);
-          box-shadow: 0 4px 18px rgba(0, 0, 0, 0.04);
+          border-color: rgba(45, 58, 45, 0.3);
+          box-shadow: 0 6px 20px rgba(0, 0, 0, 0.03);
         }
+
         .faq-card--open {
-          border-color: rgba(43, 76, 55, 0.3);
-          box-shadow: 0 6px 24px rgba(43, 76, 55, 0.06);
+          border-color: rgba(45, 58, 45, 0.35);
+          box-shadow: 0 8px 24px rgba(45, 58, 45, 0.06);
         }
+
         .faq-card__header {
           width: 100%;
           display: flex;
           align-items: center;
           justify-content: space-between;
-          padding: var(--space-5) var(--space-6);
+          gap: 16px;
+          padding: 20px 24px;
           background: none;
           border: none;
           cursor: pointer;
           text-align: left;
-          gap: var(--space-4);
-          transition: background 0.15s ease;
         }
-        .faq-card__header:hover {
-          background: rgba(0, 0, 0, 0.015);
-        }
+
         .faq-card__header-content {
           display: flex;
           flex-direction: column;
-          gap: 4px;
-          flex: 1;
+          align-items: flex-start;
+          gap: 6px;
         }
+
         .faq-card__category-chip {
-          font-size: 10px;
-          font-weight: 700;
-          letter-spacing: 0.08em;
+          display: inline-block;
+          font-size: 0.68rem;
+          font-weight: 600;
           text-transform: uppercase;
+          letter-spacing: 0.05em;
           color: var(--forest-green);
-          background: rgba(43, 76, 55, 0.07);
+          background: rgba(45, 58, 45, 0.06);
           padding: 2px 8px;
-          border-radius: var(--radius-full);
-          width: fit-content;
+          border-radius: 4px;
         }
+
         .faq-card__question {
-          font-family: var(--font-display);
-          font-size: 16px;
+          font-size: 1.05rem;
           font-weight: 600;
           color: var(--black-matte);
           margin: 0;
-          line-height: 1.4;
+          line-height: 1.35;
         }
+
         .faq-card__chevron-wrap {
+          flex-shrink: 0;
           width: 32px;
           height: 32px;
           border-radius: 50%;
-          background: rgba(43, 76, 55, 0.06);
+          background: var(--gray-100);
           display: flex;
           align-items: center;
           justify-content: center;
-          color: var(--forest-green);
-          flex-shrink: 0;
-          transition: all 0.2s ease;
+          color: var(--gray-600);
+          transition: background 200ms ease;
         }
-        .faq-card--open .faq-card__chevron-wrap {
-          background: var(--forest-green);
-          color: white;
+
+        :global(.faq-card__chevron) {
+          transition: transform 220ms ease;
         }
-        .faq-card__chevron {
-          transition: transform 0.25s cubic-bezier(0.4, 0, 0.2, 1);
-        }
-        .faq-card__chevron--rotated {
+
+        :global(.faq-card__chevron--rotated) {
           transform: rotate(180deg);
         }
 
-        .faq-card__collapse {
-          overflow: hidden;
-        }
         .faq-card__body {
-          padding: 0 var(--space-6) var(--space-6) var(--space-6);
-          border-top: 1px solid rgba(0, 0, 0, 0.04);
-          padding-top: var(--space-4);
-          font-size: 15px;
+          padding: 0 24px 22px;
           color: var(--gray-700);
-          line-height: 1.75;
-          display: flex;
-          flex-direction: column;
-          gap: var(--space-3);
+          font-size: 0.94rem;
+          line-height: 1.65;
+          border-top: 1px solid var(--gray-100);
+          padding-top: 16px;
         }
-        .faq-answer-p {
-          margin: 0;
+
+        :global(.faq-answer-p) {
+          margin-bottom: 12px;
         }
-        .faq-strong-highlight {
-          color: var(--black-matte);
-          font-weight: 700;
+
+        :global(.faq-answer-p:last-child) {
+          margin-bottom: 0;
         }
-        .faq-answer-list {
+
+        :global(.faq-answer-list) {
           list-style: none;
           padding: 0;
-          margin: 4px 0;
+          margin: 0 0 12px;
           display: flex;
           flex-direction: column;
           gap: 8px;
         }
-        .faq-answer-item {
+
+        :global(.faq-answer-item) {
           display: flex;
-          align-items: flex-start;
-          gap: 10px;
+          align-items: baseline;
+          gap: 8px;
         }
-        .faq-bullet-icon {
+
+        :global(.faq-bullet-icon) {
+          display: inline-flex;
+          align-items: center;
+          justify-content: center;
           width: 18px;
           height: 18px;
           border-radius: 50%;
-          background: rgba(43, 76, 55, 0.1);
+          background: rgba(45, 58, 45, 0.1);
           color: var(--forest-green);
-          display: flex;
-          align-items: center;
-          justify-content: center;
           flex-shrink: 0;
-          margin-top: 3px;
         }
 
-        /* Empty State */
-        .faq-empty-state {
-          padding: var(--space-12) var(--space-6);
-          text-align: center;
+        :global(.faq-strong-highlight) {
+          font-weight: 600;
+          color: var(--black-matte);
+        }
+
+        /* View all button */
+        .faq-view-all-wrap {
+          display: flex;
+          justify-content: center;
+          margin-top: 8px;
+        }
+
+        .faq-view-all-btn {
+          display: inline-flex;
+          align-items: center;
+          gap: 8px;
           background: white;
-          border-radius: var(--radius-lg);
-          border: 1px dashed var(--gray-300);
+          border: 1.5px solid var(--forest-green);
+          color: var(--forest-green);
+          font-weight: 600;
+          font-size: 0.92rem;
+          padding: 12px 24px;
+          border-radius: var(--radius-full);
+          cursor: pointer;
+          transition: all 200ms ease;
+          box-shadow: 0 2px 10px rgba(0, 0, 0, 0.04);
+        }
+
+        .faq-view-all-btn:hover {
+          background: var(--forest-green);
+          color: white;
+          box-shadow: 0 6px 18px rgba(45, 58, 45, 0.2);
+        }
+
+        :global(.faq-view-all-icon) {
+          transition: transform 200ms ease;
+        }
+
+        :global(.faq-view-all-icon--up) {
+          transform: rotate(180deg);
+        }
+
+        /* Empty state */
+        .faq-empty-state {
           display: flex;
           flex-direction: column;
           align-items: center;
-          gap: var(--space-2);
+          text-align: center;
+          padding: var(--space-12) var(--space-6);
+          background: white;
+          border-radius: var(--radius-xl);
+          border: 1px dashed var(--gray-300);
+          gap: 12px;
         }
+
+        :global(.faq-empty-icon) {
+          color: var(--sand-500, #c4a482);
+        }
+
         .faq-empty-title {
-          font-size: 18px;
+          font-size: 1.15rem;
           font-weight: 600;
           color: var(--black-matte);
           margin: 0;
         }
+
         .faq-empty-text {
-          font-size: 14px;
-          color: var(--gray-500);
-          max-width: 400px;
+          color: var(--gray-600);
+          font-size: 0.9rem;
+          max-width: 440px;
           margin: 0;
         }
 
-        /* Support / Concierge card */
+        .faq-empty-actions {
+          display: flex;
+          flex-wrap: wrap;
+          gap: 10px;
+          justify-content: center;
+          margin-top: 8px;
+        }
+
+        /* Concierge Contact Card */
         .faq-contact-card {
           position: relative;
-          background: linear-gradient(135deg, #18261e 0%, #0f1813 100%);
+          background: linear-gradient(135deg, #1b261e 0%, #111a13 100%);
           color: white;
           border-radius: var(--radius-xl);
-          padding: var(--space-8) var(--space-10);
-          box-shadow: 0 16px 40px rgba(0, 0, 0, 0.18);
+          padding: var(--space-8);
           overflow: hidden;
-          border: 1px solid rgba(255, 255, 255, 0.1);
-          margin-top: var(--space-6);
+          border: 1px solid rgba(255, 255, 255, 0.08);
+          margin-top: var(--space-4);
         }
+
         .faq-contact-card__glow {
           position: absolute;
-          top: -40%;
-          right: -20%;
-          width: 80%;
-          height: 180%;
-          background: radial-gradient(circle, rgba(197, 160, 89, 0.12) 0%, transparent 70%);
+          top: -40px;
+          right: -40px;
+          width: 200px;
+          height: 200px;
+          background: radial-gradient(circle, rgba(156, 209, 166, 0.25) 0%, transparent 70%);
           pointer-events: none;
         }
+
         .faq-contact-card__content {
           position: relative;
           z-index: 1;
           display: flex;
           flex-direction: column;
-          align-items: center;
-          text-align: center;
-          gap: var(--space-3);
+          align-items: flex-start;
+          gap: 12px;
         }
+
         .faq-contact-badge {
           display: inline-flex;
           align-items: center;
           gap: 6px;
-          background: rgba(197, 160, 89, 0.18);
-          color: #e5c07b;
-          font-size: 11px;
+          font-size: 0.72rem;
           font-weight: 700;
           letter-spacing: 0.08em;
+          color: #9cd1a6;
           text-transform: uppercase;
-          padding: 4px 12px;
-          border-radius: var(--radius-full);
         }
+
         .faq-contact-title {
-          font-size: 22px;
-          font-weight: 700;
+          font-family: var(--font-serif, serif);
+          font-size: 1.45rem;
+          font-weight: 400;
           color: white;
           margin: 0;
         }
+
         .faq-contact-desc {
-          font-size: 14px;
           color: rgba(255, 255, 255, 0.75);
-          max-width: 540px;
-          line-height: 1.6;
+          font-size: 0.92rem;
+          line-height: 1.55;
+          max-width: 600px;
           margin: 0;
         }
+
         .faq-contact-actions {
           display: flex;
           flex-wrap: wrap;
           gap: 12px;
-          justify-content: center;
-          margin-top: var(--space-3);
-        }
-        .faq-contact-btn {
-          display: inline-flex;
-          align-items: center;
-          gap: 8px;
-          padding: 10px 18px;
-          border-radius: var(--radius-full);
-          font-size: 13px;
-          font-weight: 600;
-          text-decoration: none;
-          transition: all 0.2s ease;
-        }
-        .faq-contact-btn--whatsapp {
-          background: #25D366;
-          color: white;
-          box-shadow: 0 4px 14px rgba(37, 211, 102, 0.25);
-        }
-        .faq-contact-btn--whatsapp:hover {
-          background: #20ba59;
-          transform: translateY(-1px);
-        }
-        .faq-contact-btn--email {
-          background: rgba(255, 255, 255, 0.12);
-          color: white;
-          border: 1px solid rgba(255, 255, 255, 0.2);
-        }
-        .faq-contact-btn--email:hover {
-          background: rgba(255, 255, 255, 0.2);
-          transform: translateY(-1px);
-        }
-        .faq-contact-btn--fleet {
-          background: white;
-          color: var(--forest-green);
-        }
-        .faq-contact-btn--fleet:hover {
-          background: #f4f5f4;
-          transform: translateY(-1px);
+          margin-top: 8px;
         }
 
-        @media (max-width: 768px) {
-          .faq-categories-scroll {
-            justify-content: flex-start;
-            overflow-x: auto;
-            flex-wrap: nowrap;
-            padding-bottom: 8px;
-            -webkit-overflow-scrolling: touch;
-          }
+        /* Mobile Responsive */
+        @media (max-width: 640px) {
           .faq-card__header {
-            padding: var(--space-4) var(--space-4);
+            padding: 16px 18px;
           }
           .faq-card__body {
-            padding: 0 var(--space-4) var(--space-4) var(--space-4);
+            padding: 0 18px 18px;
+          }
+          .faq-quick-tags {
+            flex-direction: column;
+            align-items: flex-start;
           }
           .faq-contact-card {
-            padding: var(--space-6) var(--space-4);
+            padding: var(--space-6);
           }
           .faq-contact-actions {
-            flex-direction: column;
             width: 100%;
           }
-          .faq-contact-btn {
+          .faq-contact-actions :global(.btn) {
             width: 100%;
             justify-content: center;
           }

@@ -92,6 +92,89 @@ export default function AboutContent() {
       </section>
 
       {/* ============================================================
+          EDITORIAL PHOTO TRIPTYCH: LA EXPERIENCIA UTOPIA
+          ============================================================ */}
+      <section className="about-gallery-strip" aria-label="Galería visual Utopia Van Life">
+        <div className="container">
+          <div className="about-gallery-header">
+            <span className="about-gallery-tagline">LA EXPERIENCIA VISUAL</span>
+            <h3 className="about-gallery-title">Naturaleza, calma y arquitectura sobre ruedas</h3>
+          </div>
+
+          <div className="about-gallery-grid">
+            <motion.div
+              className="about-gallery-item"
+              initial={{ opacity: 0, y: 16 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.5, delay: 0.05 }}
+            >
+              <div className="about-gallery-img-wrap">
+                <Image
+                  src="/images/hero/hero-breakfast-sea-horizon.webp"
+                  alt="Despertar frente al mar en cala virgen"
+                  fill
+                  className="about-gallery-img"
+                  sizes="(max-width: 768px) 100vw, 33vw"
+                />
+                <div className="about-gallery-scrim" />
+                <div className="about-gallery-caption">
+                  <span className="about-gallery-badge">Amanecer</span>
+                  <p>Despertar con vistas al mar en calas secretas de Mallorca</p>
+                </div>
+              </div>
+            </motion.div>
+
+            <motion.div
+              className="about-gallery-item"
+              initial={{ opacity: 0, y: 16 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.5, delay: 0.15 }}
+            >
+              <div className="about-gallery-img-wrap">
+                <Image
+                  src="/images/campers/space/interior/space-saloon-rear-doors-open.webp"
+                  alt="Salón panorámico en U abierto al océano"
+                  fill
+                  className="about-gallery-img"
+                  sizes="(max-width: 768px) 100vw, 33vw"
+                />
+                <div className="about-gallery-scrim" />
+                <div className="about-gallery-caption">
+                  <span className="about-gallery-badge">Confort 5★</span>
+                  <p>Salón diáfano de 7m² abierto a la brisa marina</p>
+                </div>
+              </div>
+            </motion.div>
+
+            <motion.div
+              className="about-gallery-item"
+              initial={{ opacity: 0, y: 16 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.5, delay: 0.25 }}
+            >
+              <div className="about-gallery-img-wrap">
+                <Image
+                  src="/images/campers/neo/interior/neo-salon-daylight.webp"
+                  alt="Salón nórdico con luz natural y calidez de roble"
+                  fill
+                  className="about-gallery-img"
+                  sizes="(max-width: 768px) 100vw, 33vw"
+                />
+                <div className="about-gallery-scrim" />
+                <div className="about-gallery-caption">
+                  <span className="about-gallery-badge">Artesanía</span>
+                  <p>Maderas nobles, luz natural y desconexión absoluta</p>
+                </div>
+              </div>
+            </motion.div>
+          </div>
+        </div>
+      </section>
+
+      {/* ============================================================
           SECTION 2: NUESTRA FORMA DE HACERLO
           ============================================================ */}
       <section className="section about-method-section">
@@ -179,8 +262,8 @@ export default function AboutContent() {
               <div className="about-image-card">
                 <div className="about-image-wrap">
                   <Image
-                    src="/images/about/interior-about.png"
-                    alt="Interior acogedor camper Utopia Van Life"
+                    src="/images/campers/uploads/1790382530493-2k_space_landscape_door_closed.jpeg"
+                    alt="Camper Utopia Van Life al atardecer frente al mar"
                     fill
                     className="about-img"
                     sizes="(max-width: 768px) 100vw, 50vw"
@@ -447,6 +530,117 @@ export default function AboutContent() {
 
         .about-badge-heart {
           color: #f28b82;
+        }
+
+        /* ============================================================
+           GALLERY TRIPTYCH STRIP
+           ============================================================ */
+        .about-gallery-strip {
+          background: var(--white-broken);
+          padding: 4.5rem 0 5rem;
+          border-top: 1px solid rgba(0, 0, 0, 0.04);
+        }
+
+        .about-gallery-header {
+          text-align: center;
+          margin-bottom: 2.5rem;
+        }
+
+        .about-gallery-tagline {
+          display: inline-block;
+          font-size: 0.72rem;
+          font-weight: 600;
+          letter-spacing: 0.1em;
+          color: var(--forest-green);
+          text-transform: uppercase;
+          margin-bottom: 0.5rem;
+        }
+
+        .about-gallery-title {
+          font-family: var(--font-serif, serif);
+          font-size: clamp(1.6rem, 2.8vw, 2.2rem);
+          font-weight: 400;
+          color: var(--black-matte);
+          letter-spacing: -0.02em;
+        }
+
+        .about-gallery-grid {
+          display: grid;
+          grid-template-columns: repeat(3, 1fr);
+          gap: 1.5rem;
+        }
+
+        .about-gallery-item {
+          border-radius: var(--radius-xl);
+          overflow: hidden;
+          background: white;
+          border: 1px solid rgba(0, 0, 0, 0.06);
+          box-shadow: 0 4px 20px rgba(0, 0, 0, 0.03);
+          transition: transform 240ms cubic-bezier(0.23, 1, 0.32, 1), box-shadow 240ms ease;
+        }
+
+        .about-gallery-item:hover {
+          transform: translateY(-4px);
+          box-shadow: 0 12px 30px rgba(45, 58, 45, 0.1);
+        }
+
+        .about-gallery-img-wrap {
+          position: relative;
+          width: 100%;
+          height: 280px;
+          overflow: hidden;
+        }
+
+        :global(.about-gallery-img) {
+          transition: transform 450ms cubic-bezier(0.23, 1, 0.32, 1);
+          object-fit: cover;
+        }
+
+        .about-gallery-item:hover :global(.about-gallery-img) {
+          transform: scale(1.05);
+        }
+
+        .about-gallery-scrim {
+          position: absolute;
+          inset: 0;
+          background: linear-gradient(
+            to top,
+            rgba(15, 20, 16, 0.85) 0%,
+            rgba(15, 20, 16, 0.3) 40%,
+            transparent 70%
+          );
+          z-index: 1;
+        }
+
+        .about-gallery-caption {
+          position: absolute;
+          bottom: 1rem;
+          left: 1rem;
+          right: 1rem;
+          z-index: 2;
+          color: white;
+        }
+
+        .about-gallery-badge {
+          display: inline-block;
+          font-size: 0.65rem;
+          font-weight: 700;
+          letter-spacing: 0.08em;
+          text-transform: uppercase;
+          background: rgba(255, 255, 255, 0.2);
+          backdrop-filter: blur(8px);
+          -webkit-backdrop-filter: blur(8px);
+          padding: 2px 8px;
+          border-radius: 4px;
+          margin-bottom: 0.35rem;
+        }
+
+        .about-gallery-caption p {
+          font-size: 0.82rem;
+          font-weight: 500;
+          line-height: 1.35;
+          margin: 0;
+          color: rgba(255, 255, 255, 0.95);
         }
 
         /* ============================================================
@@ -730,6 +924,13 @@ export default function AboutContent() {
             grid-template-columns: 1fr;
             gap: 1rem;
           }
+          .about-gallery-grid {
+            grid-template-columns: 1fr;
+            gap: 1.25rem;
+          }
+          .about-gallery-img-wrap {
+            height: 240px;
+          }
         }
 
         @media (max-width: 640px) {
@@ -739,6 +940,9 @@ export default function AboutContent() {
           }
           .about-method-section {
             padding: 4.5rem 0;
+          }
+          .about-gallery-strip {
+            padding: 3rem 0;
           }
           .about-cta-card {
             padding: 3rem 1.5rem;

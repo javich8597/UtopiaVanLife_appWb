@@ -1,6 +1,7 @@
 import Navbar from '@/components/layout/Navbar'
 import HeroSection from '@/components/home/HeroSection'
 import FeaturedCampers from '@/components/home/FeaturedCampers'
+import Rotating3DShowcase from '@/components/home/Rotating3DShowcase'
 import WhyUtopia from '@/components/home/WhyUtopia'
 import ExperiencesSection from '@/components/home/ExperiencesSection'
 import FAQSection from '@/components/home/FAQSection'
@@ -13,6 +14,7 @@ export default function HomePage() {
       <main>
         <HeroSection />
         <FeaturedCampers />
+        <Rotating3DShowcase />
         <WhyUtopia />
         <ExperiencesSection />
         <FAQSection />

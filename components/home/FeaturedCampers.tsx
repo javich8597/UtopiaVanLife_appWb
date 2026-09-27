@@ -8,7 +8,7 @@ import { useTranslations } from 'next-intl'
 
 const CAMPER_IMAGES = [
     '/images/campers/neo/neo-ext.png',
-    '/images/campers/space/space-ext.png',
+    '/images/campers/uploads/1790382530493-2k_space_landscape_door_closed.jpeg',
 ]
 
 // Static fallback campers

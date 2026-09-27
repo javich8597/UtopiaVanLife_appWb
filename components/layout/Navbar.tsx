@@ -64,7 +64,7 @@ export default function Navbar() {
             <img
               src="/images/logo.png"
               alt="Utopia Van Life"
-              style={{ height: '42px', width: 'auto', objectFit: 'contain', display: 'block' }}
+              className="navbar__logo-img"
             />
           </Link>
 
@@ -84,12 +84,12 @@ export default function Navbar() {
             <LanguageSwitcher isSolid={true} />
 
             {isAdmin && (
-              <Link href="/admin" className="btn btn-outline btn-sm hide-mobile" style={{ borderColor: 'var(--forest-green)', color: 'var(--forest-green)', fontWeight: 700 }}>
+              <Link href="/admin" className="btn btn-outline btn-sm hide-mobile navbar__admin-btn">
                 Panel Admin
               </Link>
             )}
             {user ? (
-              <Link href="/dashboard" className="btn btn-ghost btn-sm hide-mobile" style={{ display: 'flex', alignItems: 'center', gap: 6, fontWeight: 600 }}>
+              <Link href="/dashboard" className="btn btn-ghost btn-sm hide-mobile navbar__user-btn">
                 Mi Aventura
               </Link>
             ) : (
@@ -97,7 +97,7 @@ export default function Navbar() {
                 {t('login')}
               </Link>
             )}
-            <Link href="/campers" className="btn btn-forest btn-sm">
+            <Link href="/campers" className="btn btn-forest btn-sm navbar__cta-btn">
               Reservar
             </Link>
             <button
@@ -116,33 +116,17 @@ export default function Navbar() {
         <div className="mobile-menu" onClick={() => setMenuOpen(false)}>
           <nav className="mobile-menu__nav" onClick={e => e.stopPropagation()}>
             <div className="mobile-menu__header">
-              <Link href="/" onClick={() => setMenuOpen(false)} style={{ display: 'block', flex: 1, paddingRight: '12px' }}>
+              <Link href="/" onClick={() => setMenuOpen(false)} className="mobile-menu__logo-link">
                 <img
                   src="/images/logo-bold.png"
                   alt="Utopia Van Life"
-                  style={{
-                    height: 'auto',
-                    width: '100%',
-                    maxHeight: '75px',
-                    objectFit: 'contain',
-                    objectPosition: 'left center',
-                    display: 'block'
-                  }}
+                  className="mobile-menu__logo-img"
                 />
               </Link>
               <button
                 onClick={() => setMenuOpen(false)}
                 aria-label="Cerrar"
-                style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  padding: '8px',
-                  borderRadius: '8px',
-                  color: 'var(--black-matte)',
-                  background: 'rgba(0,0,0,0.04)',
-                  flexShrink: 0
-                }}
+                className="mobile-menu__close-btn"
               >
                 <X size={24} />
               </button>
@@ -155,10 +139,10 @@ export default function Navbar() {
               <li><Link href="/contacto" onClick={() => setMenuOpen(false)}>{t('contact')}</Link></li>
               <li><Link href="/#faqs" onClick={() => setMenuOpen(false)}>{t('faq')}</Link></li>
               {isAdmin && (
-                <li><Link href="/admin" onClick={() => setMenuOpen(false)} style={{ color: 'var(--forest-green)', fontWeight: 700 }}>🛡️ Panel Admin</Link></li>
+                <li><Link href="/admin" onClick={() => setMenuOpen(false)} className="mobile-menu__link--admin">🛡️ Panel Admin</Link></li>
               )}
               {user ? (
-                <li><Link href="/dashboard" onClick={() => setMenuOpen(false)} style={{ color: 'var(--forest-green)', fontWeight: 600 }}>Mi Aventura</Link></li>
+                <li><Link href="/dashboard" onClick={() => setMenuOpen(false)} className="mobile-menu__link--user">Mi Aventura</Link></li>
               ) : (
                 <li><Link href="/auth/login" onClick={() => setMenuOpen(false)}>{t('login')}</Link></li>
               )}
@@ -167,7 +151,7 @@ export default function Navbar() {
             {/* Mobile language switcher */}
             <LanguageSwitcher isMobile />
 
-            <Link href="/campers" className="btn btn-forest btn-lg" style={{ width: '100%', marginTop: 8 }}
+            <Link href="/campers" className="btn btn-forest btn-lg mobile-menu__book-btn"
               onClick={() => setMenuOpen(false)}>
               {t('bookNow')}
             </Link>
@@ -239,6 +223,30 @@ export default function Navbar() {
         }
         .navbar__burger:hover { background: var(--gray-100); }
 
+        .navbar__logo-img {
+          height: 42px;
+          width: auto;
+          object-fit: contain;
+          display: block;
+        }
+        .navbar__admin-btn {
+          border-color: var(--forest-green);
+          color: var(--forest-green);
+          font-weight: 700;
+        }
+        .navbar__user-btn {
+          display: flex;
+          align-items: center;
+          gap: 6px;
+          font-weight: 600;
+        }
+        .navbar__cta-btn {
+          transition: transform 160ms cubic-bezier(0.23, 1, 0.32, 1);
+        }
+        .navbar__cta-btn:active {
+          transform: scale(0.97);
+        }
+
         /* Mobile menu */
         .mobile-menu {
           position: fixed;
@@ -270,6 +278,29 @@ export default function Navbar() {
           margin-bottom: 0.25rem;
           border-bottom: 1px solid var(--gray-200);
         }
+        .mobile-menu__logo-link {
+          display: block;
+          flex: 1;
+          padding-right: 12px;
+        }
+        .mobile-menu__logo-img {
+          height: auto;
+          width: 100%;
+          max-height: 75px;
+          object-fit: contain;
+          object-position: left center;
+          display: block;
+        }
+        .mobile-menu__close-btn {
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          padding: 8px;
+          border-radius: 8px;
+          color: var(--black-matte);
+          background: rgba(0,0,0,0.04);
+          flex-shrink: 0;
+        }
         .mobile-menu__links {
           display: flex;
           flex-direction: column;
@@ -285,6 +316,18 @@ export default function Navbar() {
           transition: background var(--transition-fast);
         }
         .mobile-menu__links li a:hover { background: var(--gray-100); }
+        .mobile-menu__link--admin {
+          color: var(--forest-green);
+          font-weight: 700;
+        }
+        .mobile-menu__link--user {
+          color: var(--forest-green);
+          font-weight: 600;
+        }
+        .mobile-menu__book-btn {
+          width: 100%;
+          margin-top: 8px;
+        }
       `}</style>
     </>
   )

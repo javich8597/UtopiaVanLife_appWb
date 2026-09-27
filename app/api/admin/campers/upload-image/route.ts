@@ -37,12 +37,27 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'No se ha proporcionado ningún archivo' }, { status: 400 })
     }
 
+    // Maximum file size: 10MB
+    const MAX_FILE_SIZE_BYTES = 10 * 1024 * 1024
+    if (file.size > MAX_FILE_SIZE_BYTES) {
+      return NextResponse.json(
+        { error: 'El archivo excede el tamaño máximo permitido de 10 MB' },
+        { status: 400 }
+      )
+    }
+
+    const rawExt = file.name.split('.').pop()?.toLowerCase() || ''
+    const allowedExts = ['jpg', 'jpeg', 'png', 'webp', 'avif', 'heic', 'heif']
+    if (!allowedExts.includes(rawExt)) {
+      return NextResponse.json(
+        { error: `Formato de imagen no soportado (.${rawExt || 'desconocido'}). Formatos válidos: JPG, JPEG, PNG, WEBP, AVIF, HEIC.` },
+        { status: 400 }
+      )
+    }
+    const ext = rawExt
+
     const bytes = await file.arrayBuffer()
     const buffer = Buffer.from(bytes)
-
-    const rawExt = file.name.split('.').pop()?.toLowerCase() || 'jpg'
-    const allowedExts = ['jpg', 'jpeg', 'png', 'webp', 'avif']
-    const ext = allowedExts.includes(rawExt) ? rawExt : 'jpg'
 
     const safeBaseName = file.name
       .replace(/\.[^/.]+$/, '')

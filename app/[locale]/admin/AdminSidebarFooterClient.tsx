@@ -48,6 +48,10 @@ export default function AdminSidebarFooterClient({ email }: Props) {
         </Link>
 
         <button
+          id="admin-logout-btn"
+          name="admin_logout_btn"
+          type="button"
+          aria-label="Cerrar sesión de administrador"
           onClick={handleSignOut}
           disabled={loggingOut}
           className="admin-nav__link"

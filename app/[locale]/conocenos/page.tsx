@@ -34,7 +34,7 @@ export default async function AboutPage() {
   return (
     <>
       <Navbar />
-      <main className="about-page" style={{ minHeight: '100vh', background: 'var(--white-broken)' }}>
+      <main className="about-page">
         <AboutHero />
         <AboutContent />
       </main>

@@ -421,6 +421,9 @@ export default function SeasonsSupplementClient({
                       <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
                         <span style={{ fontSize: '0.92rem', fontWeight: 800, color: badgeColor }}>+</span>
                         <input
+                          id={`season-supplement-${season.id}`}
+                          name={`season_supplement_${season.id}`}
+                          aria-label={`Suplemento por noche para temporada ${season.name}`}
                           type="number"
                           min="0"
                           step="1"
@@ -471,7 +474,13 @@ export default function SeasonsSupplementClient({
                       <Clock size={11} style={{ color: 'var(--gray-400)' }} />
                     </div>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+                      <label htmlFor={`season-min-nights-${season.id}`} className="sr-only">
+                        Estancia mínima en noches para {season.name}
+                      </label>
                       <input
+                        id={`season-min-nights-${season.id}`}
+                        name={`season_min_nights_${season.id}`}
+                        aria-label={`Estancia mínima en noches para ${season.name}`}
                         type="number"
                         min="1"
                         max="30"
@@ -825,10 +834,13 @@ export default function SeasonsSupplementClient({
 
             <form onSubmit={handleAddPeriodSubmit} style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-4)' }}>
               <div>
-                <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 600, color: 'var(--gray-700)', marginBottom: '4px' }}>
+                <label htmlFor="modal-season-select" style={{ display: 'block', fontSize: '0.85rem', fontWeight: 600, color: 'var(--gray-700)', marginBottom: '4px' }}>
                   Temporada
                 </label>
                 <select
+                  id="modal-season-select"
+                  name="modal_season_id"
+                  aria-label="Temporada"
                   value={modalSeasonId}
                   onChange={e => setModalSeasonId(e.target.value)}
                   style={{
@@ -849,10 +861,13 @@ export default function SeasonsSupplementClient({
               </div>
 
               <div>
-                <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 600, color: 'var(--gray-700)', marginBottom: '4px' }}>
+                <label htmlFor="modal-period-label" style={{ display: 'block', fontSize: '0.85rem', fontWeight: 600, color: 'var(--gray-700)', marginBottom: '4px' }}>
                   Etiqueta / Nombre Descriptivo (Opcional)
                 </label>
                 <input
+                  id="modal-period-label"
+                  name="modal_period_label"
+                  aria-label="Etiqueta o nombre descriptivo del periodo"
                   type="text"
                   placeholder="ej. Semana Santa, Verano Julio, Puente Octubre"
                   value={periodLabel}
@@ -869,10 +884,13 @@ export default function SeasonsSupplementClient({
 
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 'var(--space-3)' }}>
                 <div>
-                  <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 600, color: 'var(--gray-700)', marginBottom: '4px' }}>
+                  <label htmlFor="modal-period-start-date" style={{ display: 'block', fontSize: '0.85rem', fontWeight: 600, color: 'var(--gray-700)', marginBottom: '4px' }}>
                     Fecha Inicio
                   </label>
                   <input
+                    id="modal-period-start-date"
+                    name="modal_period_start_date"
+                    aria-label="Fecha Inicio"
                     type="date"
                     required
                     value={periodStartDate}
@@ -888,10 +906,13 @@ export default function SeasonsSupplementClient({
                 </div>
 
                 <div>
-                  <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 600, color: 'var(--gray-700)', marginBottom: '4px' }}>
+                  <label htmlFor="modal-period-end-date" style={{ display: 'block', fontSize: '0.85rem', fontWeight: 600, color: 'var(--gray-700)', marginBottom: '4px' }}>
                     Fecha Fin
                   </label>
                   <input
+                    id="modal-period-end-date"
+                    name="modal_period_end_date"
+                    aria-label="Fecha Fin"
                     type="date"
                     required
                     value={periodEndDate}

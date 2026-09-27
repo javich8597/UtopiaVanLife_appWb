@@ -28,7 +28,7 @@ const DEMO_CAMPERS: Record<string, any> = {
         specs: { beds: 2, seats: 2, length_m: 5.99, width_m: 2.05, height_m: 2.58, year: 2025, engine: 'Diésel 2.2L Multijet (140 CV)', transmission: 'Manual / Automático' },
         deposit_amount: 1000,
         images: [
-            '/images/campers/space/space-ext.png',
+            '/images/campers/uploads/1790382530493-2k_space_landscape_door_closed.jpeg',
             '/images/campers/space/space-interior.png',
         ],
         is_available: true,

@@ -40,7 +40,7 @@ export async function GET(request: Request) {
         // Fetch all active campers with their base price
         const { data: campers, error } = await supabase
             .from('campers')
-            .select('id, slug, name, description_es, thumbnail_url, specs, deposit_amount, base_price_per_night')
+            .select('id, slug, name, description_es, thumbnail_url, images, specs, deposit_amount, base_price_per_night')
             .eq('is_active', true)
 
         if (error || !campers || campers.length === 0) {
@@ -63,9 +63,11 @@ export async function GET(request: Request) {
             const basePrice = Number(c.base_price_per_night) || (c.slug === 'space' ? 135 : 110)
             const supplement = Number(activeSeason.supplement_per_night) || 0
             const calculatedPrice = basePrice + supplement
+            const effectiveThumbnail = c.thumbnail_url || (Array.isArray(c.images) && c.images.length > 0 ? c.images[0] : '/images/campers/neo/neo-ext.png')
 
             return {
                 ...c,
+                thumbnail_url: effectiveThumbnail,
                 pricePerNight: calculatedPrice,
                 seasonName: activeSeason.name,
                 isAvailable: true,

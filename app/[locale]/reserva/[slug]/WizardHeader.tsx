@@ -53,8 +53,8 @@ export default function WizardHeader({
                             <Image
                                 src={mainImage}
                                 alt={camper.name}
-                                width={54}
-                                height={36}
+                                fill
+                                sizes="54px"
                                 className="wizard-header__camper-img"
                                 priority
                             />
@@ -192,6 +192,7 @@ export default function WizardHeader({
                 }
 
                 .wizard-header__camper-thumb {
+                    position: relative;
                     width: 52px;
                     height: 34px;
                     border-radius: 6px;
@@ -202,8 +203,6 @@ export default function WizardHeader({
                 }
 
                 .wizard-header__camper-img {
-                    width: 100%;
-                    height: 100%;
                     object-fit: cover;
                 }
 

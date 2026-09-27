@@ -287,6 +287,8 @@ export default function ProfileClient({ user, profile }: Props) {
                 <User size={16} className="field-input-icon" />
                 <input 
                   id="fullName"
+                  name="fullName"
+                  autoComplete="name"
                   type="text" 
                   required
                   placeholder="Escribe tu nombre completo..."
@@ -303,6 +305,8 @@ export default function ProfileClient({ user, profile }: Props) {
                 <CreditCard size={16} className="field-input-icon" />
                 <input 
                   id="dniNie"
+                  name="dniNie"
+                  autoComplete="off"
                   type="text" 
                   required
                   placeholder="Ej. 12345678Z o Y1234567A"
@@ -319,6 +323,8 @@ export default function ProfileClient({ user, profile }: Props) {
                 <Phone size={16} className="field-input-icon" />
                 <input 
                   id="phone"
+                  name="phone"
+                  autoComplete="tel"
                   type="tel" 
                   required
                   placeholder="Ej. +34 611 222 333"
@@ -335,6 +341,8 @@ export default function ProfileClient({ user, profile }: Props) {
                 <Mail size={16} className="field-input-icon" />
                 <input 
                   id="email"
+                  name="email"
+                  autoComplete="email"
                   type="email" 
                   disabled
                   value={user?.email || ''}
@@ -349,6 +357,8 @@ export default function ProfileClient({ user, profile }: Props) {
                 <MapPin size={16} className="field-input-icon" />
                 <input 
                   id="address"
+                  name="address"
+                  autoComplete="street-address"
                   type="text" 
                   required
                   placeholder="Escribe tu calle, número, código postal, ciudad y país..."
@@ -375,6 +385,8 @@ export default function ProfileClient({ user, profile }: Props) {
                 <CreditCard size={16} className="field-input-icon" />
                 <input 
                   id="driverLicenseId"
+                  name="driverLicenseId"
+                  autoComplete="off"
                   type="text" 
                   required
                   placeholder="Ej. 12345678Z"
@@ -391,6 +403,7 @@ export default function ProfileClient({ user, profile }: Props) {
                 <Calendar size={16} className="field-input-icon" />
                 <input 
                   id="issueDate"
+                  name="issueDate"
                   type="date" 
                   required
                   value={driverLicenseIssueDate}
@@ -406,6 +419,7 @@ export default function ProfileClient({ user, profile }: Props) {
                 <Calendar size={16} className="field-input-icon" />
                 <input 
                   id="expiryDate"
+                  name="expiryDate"
                   type="date" 
                   required
                   value={driverLicenseExpiryDate}
@@ -437,7 +451,7 @@ export default function ProfileClient({ user, profile }: Props) {
                   </div>
                   {dniFront.previewUrl ? (
                     <div className="preview-container">
-                      <Image src={dniFront.previewUrl} alt="DNI Frontal" fill style={{ objectFit: 'cover' }} />
+                      <Image src={dniFront.previewUrl} alt="DNI Frontal" fill sizes="(max-width: 640px) 100vw, 360px" style={{ objectFit: 'cover' }} />
                       <div className="preview-overlay">
                         <button type="button" onClick={() => clearFile(setDniFront)} className="preview-btn-clear">
                           <Trash2 size={13} /> Cambiar Foto
@@ -445,13 +459,13 @@ export default function ProfileClient({ user, profile }: Props) {
                       </div>
                     </div>
                   ) : (
-                    <label className="dropzone-empty">
+                    <label className="dropzone-empty" htmlFor="dniFrontInput">
                       <UploadCloud size={24} className="dropzone-empty-icon" />
                       <span className="dropzone-empty-cta">
                         <FolderOpen size={14} /> Seleccionar archivo
                       </span>
                       <span className="dropzone-empty-hint">Haz clic o arrastra aquí (JPG, PNG, PDF)</span>
-                      <input type="file" accept="image/*,application/pdf" onChange={e => handleFileSelect(e, setDniFront)} className="file-input-hidden" />
+                      <input id="dniFrontInput" name="dniFrontInput" aria-label="Subir DNI frontal" type="file" accept="image/*,application/pdf" onChange={e => handleFileSelect(e, setDniFront)} className="file-input-hidden" />
                     </label>
                   )}
                 </div>
@@ -464,7 +478,7 @@ export default function ProfileClient({ user, profile }: Props) {
                   </div>
                   {dniBack.previewUrl ? (
                     <div className="preview-container">
-                      <Image src={dniBack.previewUrl} alt="DNI Reverso" fill style={{ objectFit: 'cover' }} />
+                      <Image src={dniBack.previewUrl} alt="DNI Reverso" fill sizes="(max-width: 640px) 100vw, 360px" style={{ objectFit: 'cover' }} />
                       <div className="preview-overlay">
                         <button type="button" onClick={() => clearFile(setDniBack)} className="preview-btn-clear">
                           <Trash2 size={13} /> Cambiar Foto
@@ -472,13 +486,13 @@ export default function ProfileClient({ user, profile }: Props) {
                       </div>
                     </div>
                   ) : (
-                    <label className="dropzone-empty">
+                    <label className="dropzone-empty" htmlFor="dniBackInput">
                       <UploadCloud size={24} className="dropzone-empty-icon" />
                       <span className="dropzone-empty-cta">
                         <FolderOpen size={14} /> Seleccionar archivo
                       </span>
                       <span className="dropzone-empty-hint">Haz clic o arrastra aquí (JPG, PNG, PDF)</span>
-                      <input type="file" accept="image/*,application/pdf" onChange={e => handleFileSelect(e, setDniBack)} className="file-input-hidden" />
+                      <input id="dniBackInput" name="dniBackInput" aria-label="Subir DNI reverso" type="file" accept="image/*,application/pdf" onChange={e => handleFileSelect(e, setDniBack)} className="file-input-hidden" />
                     </label>
                   )}
                 </div>
@@ -497,7 +511,7 @@ export default function ProfileClient({ user, profile }: Props) {
                   </div>
                   {licenseFront.previewUrl ? (
                     <div className="preview-container">
-                      <Image src={licenseFront.previewUrl} alt="Carnet Frontal" fill style={{ objectFit: 'cover' }} />
+                      <Image src={licenseFront.previewUrl} alt="Carnet Frontal" fill sizes="(max-width: 640px) 100vw, 360px" style={{ objectFit: 'cover' }} />
                       <div className="preview-overlay">
                         <button type="button" onClick={() => clearFile(setLicenseFront)} className="preview-btn-clear">
                           <Trash2 size={13} /> Cambiar Foto
@@ -505,13 +519,13 @@ export default function ProfileClient({ user, profile }: Props) {
                       </div>
                     </div>
                   ) : (
-                    <label className="dropzone-empty">
+                    <label className="dropzone-empty" htmlFor="licenseFrontInput">
                       <UploadCloud size={24} className="dropzone-empty-icon" />
                       <span className="dropzone-empty-cta">
                         <FolderOpen size={14} /> Seleccionar archivo
                       </span>
                       <span className="dropzone-empty-hint">Haz clic o arrastra aquí (JPG, PNG, PDF)</span>
-                      <input type="file" accept="image/*,application/pdf" onChange={e => handleFileSelect(e, setLicenseFront)} className="file-input-hidden" />
+                      <input id="licenseFrontInput" name="licenseFrontInput" aria-label="Subir carnet anverso" type="file" accept="image/*,application/pdf" onChange={e => handleFileSelect(e, setLicenseFront)} className="file-input-hidden" />
                     </label>
                   )}
                 </div>
@@ -524,7 +538,7 @@ export default function ProfileClient({ user, profile }: Props) {
                   </div>
                   {licenseBack.previewUrl ? (
                     <div className="preview-container">
-                      <Image src={licenseBack.previewUrl} alt="Carnet Reverso" fill style={{ objectFit: 'cover' }} />
+                      <Image src={licenseBack.previewUrl} alt="Carnet Reverso" fill sizes="(max-width: 640px) 100vw, 360px" style={{ objectFit: 'cover' }} />
                       <div className="preview-overlay">
                         <button type="button" onClick={() => clearFile(setLicenseBack)} className="preview-btn-clear">
                           <Trash2 size={13} /> Cambiar Foto
@@ -532,13 +546,13 @@ export default function ProfileClient({ user, profile }: Props) {
                       </div>
                     </div>
                   ) : (
-                    <label className="dropzone-empty">
+                    <label className="dropzone-empty" htmlFor="licenseBackInput">
                       <UploadCloud size={24} className="dropzone-empty-icon" />
                       <span className="dropzone-empty-cta">
                         <FolderOpen size={14} /> Seleccionar archivo
                       </span>
                       <span className="dropzone-empty-hint">Haz clic o arrastra aquí (JPG, PNG, PDF)</span>
-                      <input type="file" accept="image/*,application/pdf" onChange={e => handleFileSelect(e, setLicenseBack)} className="file-input-hidden" />
+                      <input id="licenseBackInput" name="licenseBackInput" aria-label="Subir carnet reverso" type="file" accept="image/*,application/pdf" onChange={e => handleFileSelect(e, setLicenseBack)} className="file-input-hidden" />
                     </label>
                   )}
                 </div>
@@ -555,8 +569,11 @@ export default function ProfileClient({ user, profile }: Props) {
               <p className="form-card__subtitle">Habilitar si otra persona va a compartir la conducción del vehículo</p>
             </div>
 
-            <label className="custom-switch">
+            <label className="custom-switch" htmlFor="hasSecondDriverToggle">
               <input 
+                id="hasSecondDriverToggle"
+                name="hasSecondDriver"
+                aria-label="Habilitar segundo conductor"
                 type="checkbox" 
                 checked={hasSecondDriver}
                 onChange={e => setHasSecondDriver(e.target.checked)}
@@ -569,9 +586,11 @@ export default function ProfileClient({ user, profile }: Props) {
             <div className="second-driver-body">
               <div className="form-grid-3">
                 <div className="field-block">
-                  <label className="field-label">Nombre y Apellidos</label>
+                  <label className="field-label" htmlFor="secondDriverFullName">Nombre y Apellidos</label>
                   <div className="field-input-box">
                     <input 
+                      id="secondDriverFullName"
+                      name="secondDriverFullName"
                       type="text" 
                       placeholder="Nombre del segundo conductor..."
                       value={secondDriverFullName}
@@ -582,9 +601,11 @@ export default function ProfileClient({ user, profile }: Props) {
                 </div>
 
                 <div className="field-block">
-                  <label className="field-label">DNI / Pasaporte</label>
+                  <label className="field-label" htmlFor="secondDriverDni">DNI / Pasaporte</label>
                   <div className="field-input-box">
                     <input 
+                      id="secondDriverDni"
+                      name="secondDriverDni"
                       type="text" 
                       placeholder="DNI o NIE..."
                       value={secondDriverDni}
@@ -595,9 +616,11 @@ export default function ProfileClient({ user, profile }: Props) {
                 </div>
 
                 <div className="field-block">
-                  <label className="field-label">Nº Carnet Conducir</label>
+                  <label className="field-label" htmlFor="secondDriverLicense">Nº Carnet Conducir</label>
                   <div className="field-input-box">
                     <input 
+                      id="secondDriverLicense"
+                      name="secondDriverLicense"
                       type="text" 
                       placeholder="Nº de carnet..."
                       value={secondDriverLicense}
@@ -616,7 +639,7 @@ export default function ProfileClient({ user, profile }: Props) {
                     <span className="dropzone-card-label">Anverso (Frontal)</span>
                     {secondLicenseFront.previewUrl ? (
                       <div className="preview-container">
-                        <Image src={secondLicenseFront.previewUrl} alt="Carnet 2 Frontal" fill style={{ objectFit: 'cover' }} />
+                        <Image src={secondLicenseFront.previewUrl} alt="Carnet 2 Frontal" fill sizes="(max-width: 640px) 100vw, 360px" style={{ objectFit: 'cover' }} />
                         <div className="preview-overlay">
                           <button type="button" onClick={() => clearFile(setSecondLicenseFront)} className="preview-btn-clear">
                             <Trash2 size={13} /> Cambiar Foto
@@ -624,10 +647,10 @@ export default function ProfileClient({ user, profile }: Props) {
                         </div>
                       </div>
                     ) : (
-                      <label className="dropzone-empty">
+                      <label className="dropzone-empty" htmlFor="secondLicenseFrontInput">
                         <UploadCloud size={24} className="dropzone-empty-icon" />
                         <span className="dropzone-empty-cta"><FolderOpen size={14} /> Subir Frontal</span>
-                        <input type="file" accept="image/*,application/pdf" onChange={e => handleFileSelect(e, setSecondLicenseFront)} className="file-input-hidden" />
+                        <input id="secondLicenseFrontInput" name="secondLicenseFrontInput" aria-label="Subir anverso carnet conductor 2" type="file" accept="image/*,application/pdf" onChange={e => handleFileSelect(e, setSecondLicenseFront)} className="file-input-hidden" />
                       </label>
                     )}
                   </div>
@@ -636,7 +659,7 @@ export default function ProfileClient({ user, profile }: Props) {
                     <span className="dropzone-card-label">Reverso (Trasera)</span>
                     {secondLicenseBack.previewUrl ? (
                       <div className="preview-container">
-                        <Image src={secondLicenseBack.previewUrl} alt="Carnet 2 Reverso" fill style={{ objectFit: 'cover' }} />
+                        <Image src={secondLicenseBack.previewUrl} alt="Carnet 2 Reverso" fill sizes="(max-width: 640px) 100vw, 360px" style={{ objectFit: 'cover' }} />
                         <div className="preview-overlay">
                           <button type="button" onClick={() => clearFile(setSecondLicenseBack)} className="preview-btn-clear">
                             <Trash2 size={13} /> Cambiar Foto
@@ -644,10 +667,10 @@ export default function ProfileClient({ user, profile }: Props) {
                         </div>
                       </div>
                     ) : (
-                      <label className="dropzone-empty">
+                      <label className="dropzone-empty" htmlFor="secondLicenseBackInput">
                         <UploadCloud size={24} className="dropzone-empty-icon" />
                         <span className="dropzone-empty-cta"><FolderOpen size={14} /> Subir Reverso</span>
-                        <input type="file" accept="image/*,application/pdf" onChange={e => handleFileSelect(e, setSecondLicenseBack)} className="file-input-hidden" />
+                        <input id="secondLicenseBackInput" name="secondLicenseBackInput" aria-label="Subir reverso carnet conductor 2" type="file" accept="image/*,application/pdf" onChange={e => handleFileSelect(e, setSecondLicenseBack)} className="file-input-hidden" />
                       </label>
                     )}
                   </div>

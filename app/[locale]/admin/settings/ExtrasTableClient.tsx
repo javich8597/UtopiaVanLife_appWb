@@ -578,10 +578,13 @@ export default function ExtrasTableClient({ initialExtras }: Props) {
               {/* Nombre ES y EN */}
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px', marginBottom: '14px' }}>
                 <div>
-                  <label style={{ display: 'block', fontSize: '0.8rem', fontWeight: 600, color: 'var(--gray-700)', marginBottom: '4px' }}>
+                  <label htmlFor="extra-form-name-es" style={{ display: 'block', fontSize: '0.8rem', fontWeight: 600, color: 'var(--gray-700)', marginBottom: '4px' }}>
                     Nombre (Español) <span style={{ color: '#ef4444' }}>*</span>
                   </label>
                   <input
+                    id="extra-form-name-es"
+                    name="extra_name_es"
+                    aria-label="Nombre del extra en español"
                     type="text"
                     required
                     placeholder="Ej. Kit Snorkel"
@@ -592,10 +595,13 @@ export default function ExtrasTableClient({ initialExtras }: Props) {
                 </div>
 
                 <div>
-                  <label style={{ display: 'block', fontSize: '0.8rem', fontWeight: 600, color: 'var(--gray-700)', marginBottom: '4px' }}>
+                  <label htmlFor="extra-form-name-en" style={{ display: 'block', fontSize: '0.8rem', fontWeight: 600, color: 'var(--gray-700)', marginBottom: '4px' }}>
                     Nombre (Inglés)
                   </label>
                   <input
+                    id="extra-form-name-en"
+                    name="extra_name_en"
+                    aria-label="Nombre del extra en inglés"
                     type="text"
                     placeholder="Ej. Snorkel Kit"
                     value={formData.name_en}
@@ -608,10 +614,13 @@ export default function ExtrasTableClient({ initialExtras }: Props) {
               {/* Precio y Tipo de Precio */}
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px', marginBottom: '14px' }}>
                 <div>
-                  <label style={{ display: 'block', fontSize: '0.8rem', fontWeight: 600, color: 'var(--gray-700)', marginBottom: '4px' }}>
+                  <label htmlFor="extra-form-price" style={{ display: 'block', fontSize: '0.8rem', fontWeight: 600, color: 'var(--gray-700)', marginBottom: '4px' }}>
                     Precio (€) <span style={{ color: '#ef4444' }}>*</span>
                   </label>
                   <input
+                    id="extra-form-price"
+                    name="extra_price"
+                    aria-label="Precio del extra"
                     type="number"
                     required
                     min="0"
@@ -624,10 +633,13 @@ export default function ExtrasTableClient({ initialExtras }: Props) {
                 </div>
 
                 <div>
-                  <label style={{ display: 'block', fontSize: '0.8rem', fontWeight: 600, color: 'var(--gray-700)', marginBottom: '4px' }}>
+                  <label htmlFor="extra-form-price-type" style={{ display: 'block', fontSize: '0.8rem', fontWeight: 600, color: 'var(--gray-700)', marginBottom: '4px' }}>
                     Tipo de Tarificación <span style={{ color: '#ef4444' }}>*</span>
                   </label>
                   <select
+                    id="extra-form-price-type"
+                    name="extra_price_type"
+                    aria-label="Tipo de tarificación del extra"
                     value={formData.price_type}
                     onChange={e => setFormData(prev => ({ ...prev, price_type: e.target.value as any }))}
                     style={{ width: '100%', padding: '8px 12px', borderRadius: '8px', border: '1px solid var(--gray-300)', fontSize: '0.875rem', background: 'white' }}
@@ -640,10 +652,13 @@ export default function ExtrasTableClient({ initialExtras }: Props) {
 
               {/* Descripción */}
               <div style={{ marginBottom: '14px' }}>
-                <label style={{ display: 'block', fontSize: '0.8rem', fontWeight: 600, color: 'var(--gray-700)', marginBottom: '4px' }}>
+                <label htmlFor="extra-form-desc-es" style={{ display: 'block', fontSize: '0.8rem', fontWeight: 600, color: 'var(--gray-700)', marginBottom: '4px' }}>
                   Descripción para el Viajero
                 </label>
                 <textarea
+                  id="extra-form-desc-es"
+                  name="extra_description_es"
+                  aria-label="Descripción del extra para el viajero"
                   rows={2}
                   placeholder="Detalle o características del extra para el checkout..."
                   value={formData.description_es}

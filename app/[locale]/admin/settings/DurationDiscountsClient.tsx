@@ -558,11 +558,14 @@ export default function DurationDiscountsClient({ initialDiscounts }: Props) {
 
             <form onSubmit={handleFormSubmit} style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-4)' }}>
               <div>
-                <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 600, color: 'var(--gray-700)', marginBottom: '4px' }}>
+                <label htmlFor="discount-form-min-days" style={{ display: 'block', fontSize: '0.85rem', fontWeight: 600, color: 'var(--gray-700)', marginBottom: '4px' }}>
                   Días Mínimos de Alquiler
                 </label>
                 <div style={{ position: 'relative' }}>
                   <input
+                    id="discount-form-min-days"
+                    name="discount_form_min_days"
+                    aria-label="Días Mínimos de Alquiler"
                     type="number"
                     min="2"
                     max="365"
@@ -585,11 +588,14 @@ export default function DurationDiscountsClient({ initialDiscounts }: Props) {
               </div>
 
               <div>
-                <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 600, color: 'var(--gray-700)', marginBottom: '4px' }}>
+                <label htmlFor="discount-form-discount-pct" style={{ display: 'block', fontSize: '0.85rem', fontWeight: 600, color: 'var(--gray-700)', marginBottom: '4px' }}>
                   Porcentaje de Descuento (%)
                 </label>
                 <div style={{ position: 'relative', display: 'flex', alignItems: 'center' }}>
                   <input
+                    id="discount-form-discount-pct"
+                    name="discount_form_discount_pct"
+                    aria-label="Porcentaje de Descuento (%)"
                     type="number"
                     min="0"
                     max="100"

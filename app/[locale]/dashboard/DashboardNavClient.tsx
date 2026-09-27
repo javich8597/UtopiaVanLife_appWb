@@ -205,6 +205,10 @@ export default function DashboardNavClient({ user, profile }: Props) {
 
         <div style={{ marginTop: 'auto', paddingTop: 'var(--space-3)', borderTop: '1px solid var(--gray-200)' }}>
           <button 
+            id="dashboard-logout-btn"
+            name="dashboard_logout_btn"
+            type="button"
+            aria-label="Cerrar sesión de usuario"
             onClick={handleClientSignOut}
             disabled={loggingOut}
             className="sidebar-link" 
@@ -259,21 +263,27 @@ export default function DashboardNavClient({ user, profile }: Props) {
             )}
 
             <button
+              id="dash-mob-sos-btn"
+              name="dash_mob_sos_btn"
               type="button"
               onClick={() => setShowEmergencyModal(true)}
               className="dash-mob-sos-btn"
               title="Asistencia y teléfonos 24h"
+              aria-label="Asistencia y teléfonos 24h"
             >
               <PhoneCall size={14} />
               <span>Ayuda 24h</span>
             </button>
 
             <button
+              id="dash-mob-logout-btn"
+              name="dash_mob_logout_btn"
               type="button"
               onClick={handleClientSignOut}
               disabled={loggingOut}
               className="dash-mob-logout-btn"
               title="Cerrar sesión"
+              aria-label="Cerrar sesión"
             >
               <LogOut size={16} />
             </button>

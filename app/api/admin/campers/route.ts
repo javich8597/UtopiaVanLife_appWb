@@ -145,6 +145,7 @@ export async function POST(request: Request) {
       images: Array.isArray(images) && images.length > 0 ? images : [defaultThumbnail],
       specs,
       deposit_amount: parsedDeposit,
+      base_price_per_night: parsedPrice,
       is_active: is_active !== undefined ? Boolean(is_active) : true,
       is_available: is_available !== undefined ? Boolean(is_available) : true,
     }

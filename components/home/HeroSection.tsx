@@ -88,6 +88,8 @@ export default function HeroSection() {
           poster="/images/campers/neo/neo-ext.png"
           suppressHydrationWarning
         >
+          <source src="/videos/hero/nomade-hero-road.mp4" type="video/mp4" media="(min-width: 768px)" />
+          <source src="/videos/hero/nomade-hero-mobile.mp4" type="video/mp4" media="(max-width: 767px)" />
           <source src="/videos/hero-bg.mov" type="video/mp4" />
         </video>
         <div className="hero__overlay" />
@@ -95,17 +97,20 @@ export default function HeroSection() {
 
       {/* Editorial Content */}
       <div className="hero__content">
-        <div className="hero__eyebrow text-label">{t('eyebrow')}</div>
+        <div className="hero__eyebrow-pill">
+          <Sparkles size={12} className="hero__eyebrow-icon" />
+          <span>Mallorca · Parejas · Quiet Luxury</span>
+        </div>
 
         {/* Main Headline */}
         <h1 className="hero__title text-display">
-          Tu Utopía<br />
-          <em>te espera</em>
+          El viaje que recordaréis<br />
+          <em>toda la vida</em>
         </h1>
 
         {/* Subtitle */}
         <p className="hero__subtitle">
-          {t('subtitle')}
+          Campers boutique diseñadas para parejas en Mallorca. Máximo confort, autonomía off-grid total con litio y libertad para despertar frente a calas secretas.
         </p>
 
         {/* Search Bar Container with Pro Max Glassmorphism */}
@@ -453,6 +458,9 @@ export default function HeroSection() {
           background: var(--forest-green);
           color: white;
         }
+        .hero__pax-btn:active:not(:disabled) {
+          transform: scale(0.93);
+        }
         .hero__pax-btn:disabled {
           opacity: 0.3;
           cursor: not-allowed;
@@ -471,11 +479,14 @@ export default function HeroSection() {
           padding: 14px 26px;
           font-size: 0.92rem;
           box-shadow: 0 6px 18px rgba(45, 58, 45, 0.28);
-          transition: transform var(--transition-fast), box-shadow var(--transition-fast);
+          transition: transform 160ms cubic-bezier(0.23, 1, 0.32, 1), box-shadow 160ms ease;
         }
         .hero__search-btn:hover {
           transform: translateY(-1px);
           box-shadow: 0 8px 22px rgba(45, 58, 45, 0.35);
+        }
+        .hero__search-btn:active {
+          transform: scale(0.97);
         }
 
         /* Micro-guarantees */

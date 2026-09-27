@@ -372,8 +372,10 @@ export default function ContractTemplateClient({ initialTemplate }: Props) {
                 <div className="editor-card-body">
                   <div className="form-grid-3">
                     <div className="editor-field-group">
-                      <label className="editor-label">Fianza Obligatoria (€)</label>
+                      <label className="editor-label" htmlFor="term-depositAmount">Fianza Obligatoria (€)</label>
                       <input
+                        id="term-depositAmount"
+                        name="term_depositAmount"
                         type="number"
                         className="editor-input"
                         value={template.terms.depositAmount}
@@ -381,8 +383,10 @@ export default function ContractTemplateClient({ initialTemplate }: Props) {
                       />
                     </div>
                     <div className="editor-field-group">
-                      <label className="editor-label">Km Incluidos / Día</label>
+                      <label className="editor-label" htmlFor="term-includedKmPerDay">Km Incluidos / Día</label>
                       <input
+                        id="term-includedKmPerDay"
+                        name="term_includedKmPerDay"
                         type="number"
                         className="editor-input"
                         value={template.terms.includedKmPerDay}
@@ -390,8 +394,10 @@ export default function ContractTemplateClient({ initialTemplate }: Props) {
                       />
                     </div>
                     <div className="editor-field-group">
-                      <label className="editor-label">Precio Km Extra (€/km)</label>
+                      <label className="editor-label" htmlFor="term-extraKmPrice">Precio Km Extra (€/km)</label>
                       <input
+                        id="term-extraKmPrice"
+                        name="term_extraKmPrice"
                         type="number"
                         step="0.01"
                         className="editor-input"
@@ -400,8 +406,10 @@ export default function ContractTemplateClient({ initialTemplate }: Props) {
                       />
                     </div>
                     <div className="editor-field-group">
-                      <label className="editor-label">Edad Mínima Conductor</label>
+                      <label className="editor-label" htmlFor="term-conductorMinAge">Edad Mínima Conductor</label>
                       <input
+                        id="term-conductorMinAge"
+                        name="term_conductorMinAge"
                         type="number"
                         className="editor-input"
                         value={template.terms.conductorMinAge}
@@ -409,8 +417,10 @@ export default function ContractTemplateClient({ initialTemplate }: Props) {
                       />
                     </div>
                     <div className="editor-field-group">
-                      <label className="editor-label">Años Carnet Mínimo</label>
+                      <label className="editor-label" htmlFor="term-conductorMinLicenseYears">Años Carnet Mínimo</label>
                       <input
+                        id="term-conductorMinLicenseYears"
+                        name="term_conductorMinLicenseYears"
                         type="number"
                         className="editor-input"
                         value={template.terms.conductorMinLicenseYears}
@@ -418,8 +428,10 @@ export default function ContractTemplateClient({ initialTemplate }: Props) {
                       />
                     </div>
                     <div className="editor-field-group">
-                      <label className="editor-label">Plazo Liquidación Daños (Días)</label>
+                      <label className="editor-label" htmlFor="term-depositReturnDaysDamageAssessment">Plazo Liquidación Daños (Días)</label>
                       <input
+                        id="term-depositReturnDaysDamageAssessment"
+                        name="term_depositReturnDaysDamageAssessment"
                         type="number"
                         className="editor-input"
                         value={template.terms.depositReturnDaysDamageAssessment}
@@ -441,8 +453,10 @@ export default function ContractTemplateClient({ initialTemplate }: Props) {
                 <div className="editor-card-body">
                   <div className="form-grid-3">
                     <div className="editor-field-group">
-                      <label className="editor-label">Fumar en el vehículo (€)</label>
+                      <label className="editor-label" htmlFor="term-smokePenalty">Fumar en el vehículo (€)</label>
                       <input
+                        id="term-smokePenalty"
+                        name="term_smokePenalty"
                         type="number"
                         className="editor-input"
                         value={template.terms.smokePenalty}
@@ -450,8 +464,10 @@ export default function ContractTemplateClient({ initialTemplate }: Props) {
                       />
                     </div>
                     <div className="editor-field-group">
-                      <label className="editor-label">Pérdida de Llaves (€)</label>
+                      <label className="editor-label" htmlFor="term-keyPenalty">Pérdida de Llaves (€)</label>
                       <input
+                        id="term-keyPenalty"
+                        name="term_keyPenalty"
                         type="number"
                         className="editor-input"
                         value={template.terms.keyPenalty}
@@ -459,8 +475,10 @@ export default function ContractTemplateClient({ initialTemplate }: Props) {
                       />
                     </div>
                     <div className="editor-field-group">
-                      <label className="editor-label">Pérdida Documentación (€)</label>
+                      <label className="editor-label" htmlFor="term-documentPenalty">Pérdida Documentación (€)</label>
                       <input
+                        id="term-documentPenalty"
+                        name="term_documentPenalty"
                         type="number"
                         className="editor-input"
                         value={template.terms.documentPenalty}
@@ -468,8 +486,10 @@ export default function ContractTemplateClient({ initialTemplate }: Props) {
                       />
                     </div>
                     <div className="editor-field-group">
-                      <label className="editor-label">Gestión Combustible Faltante (€)</label>
+                      <label className="editor-label" htmlFor="term-fuelServiceCharge">Gestión Combustible Faltante (€)</label>
                       <input
+                        id="term-fuelServiceCharge"
+                        name="term_fuelServiceCharge"
                         type="number"
                         className="editor-input"
                         value={template.terms.fuelServiceCharge}
@@ -477,8 +497,10 @@ export default function ContractTemplateClient({ initialTemplate }: Props) {
                       />
                     </div>
                     <div className="editor-field-group">
-                      <label className="editor-label">Limpieza Básica (€)</label>
+                      <label className="editor-label" htmlFor="term-cleaningBasic">Limpieza Básica (€)</label>
                       <input
+                        id="term-cleaningBasic"
+                        name="term_cleaningBasic"
                         type="number"
                         className="editor-input"
                         value={template.terms.cleaningBasic}
@@ -486,8 +508,10 @@ export default function ContractTemplateClient({ initialTemplate }: Props) {
                       />
                     </div>
                     <div className="editor-field-group">
-                      <label className="editor-label">Limpieza Intensiva (€)</label>
+                      <label className="editor-label" htmlFor="term-cleaningIntensive">Limpieza Intensiva (€)</label>
                       <input
+                        id="term-cleaningIntensive"
+                        name="term_cleaningIntensive"
                         type="number"
                         className="editor-input"
                         value={template.terms.cleaningIntensive}
@@ -495,8 +519,10 @@ export default function ContractTemplateClient({ initialTemplate }: Props) {
                       />
                     </div>
                     <div className="editor-field-group">
-                      <label className="editor-label">WC sucio / no vaciado (€)</label>
+                      <label className="editor-label" htmlFor="term-cleaningWc">WC sucio / no vaciado (€)</label>
                       <input
+                        id="term-cleaningWc"
+                        name="term_cleaningWc"
                         type="number"
                         className="editor-input"
                         value={template.terms.cleaningWc}
@@ -504,8 +530,10 @@ export default function ContractTemplateClient({ initialTemplate }: Props) {
                       />
                     </div>
                     <div className="editor-field-group">
-                      <label className="editor-label">Combustible en Depósito Agua (€)</label>
+                      <label className="editor-label" htmlFor="term-waterFuelContaminationPenalty">Combustible en Depósito Agua (€)</label>
                       <input
+                        id="term-waterFuelContaminationPenalty"
+                        name="term_waterFuelContaminationPenalty"
                         type="number"
                         className="editor-input"
                         value={template.terms.waterFuelContaminationPenalty}
@@ -513,8 +541,10 @@ export default function ContractTemplateClient({ initialTemplate }: Props) {
                       />
                     </div>
                     <div className="editor-field-group">
-                      <label className="editor-label">Límite de Gálibo / Altura (m)</label>
+                      <label className="editor-label" htmlFor="term-heightLimitMeters">Límite de Gálibo / Altura (m)</label>
                       <input
+                        id="term-heightLimitMeters"
+                        name="term_heightLimitMeters"
                         type="number"
                         step="0.05"
                         className="editor-input"
@@ -540,8 +570,10 @@ export default function ContractTemplateClient({ initialTemplate }: Props) {
               <div className="editor-card-body">
                 <div className="form-grid-2">
                   <div className="editor-field-group">
-                    <label className="editor-label">Razón Social</label>
+                    <label className="editor-label" htmlFor="lessor-legalName">Razón Social</label>
                     <input
+                      id="lessor-legalName"
+                      name="lessor_legalName"
                       type="text"
                       className="editor-input"
                       value={template.lessor.legalName}
@@ -549,8 +581,10 @@ export default function ContractTemplateClient({ initialTemplate }: Props) {
                     />
                   </div>
                   <div className="editor-field-group">
-                    <label className="editor-label">CIF</label>
+                    <label className="editor-label" htmlFor="lessor-cif">CIF</label>
                     <input
+                      id="lessor-cif"
+                      name="lessor_cif"
                       type="text"
                       className="editor-input"
                       value={template.lessor.cif}
@@ -558,8 +592,10 @@ export default function ContractTemplateClient({ initialTemplate }: Props) {
                     />
                   </div>
                   <div className="editor-field-group" style={{ gridColumn: 'span 2' }}>
-                    <label className="editor-label">Domicilio Social</label>
+                    <label className="editor-label" htmlFor="lessor-address">Domicilio Social</label>
                     <input
+                      id="lessor-address"
+                      name="lessor_address"
                       type="text"
                       className="editor-input"
                       value={template.lessor.address}
@@ -567,8 +603,10 @@ export default function ContractTemplateClient({ initialTemplate }: Props) {
                     />
                   </div>
                   <div className="editor-field-group">
-                    <label className="editor-label">Representante Legal</label>
+                    <label className="editor-label" htmlFor="lessor-legalRepresentative">Representante Legal</label>
                     <input
+                      id="lessor-legalRepresentative"
+                      name="lessor_legalRepresentative"
                       type="text"
                       className="editor-input"
                       value={template.lessor.legalRepresentative}
@@ -576,8 +614,10 @@ export default function ContractTemplateClient({ initialTemplate }: Props) {
                     />
                   </div>
                   <div className="editor-field-group">
-                    <label className="editor-label">Email Oficial de Contacto</label>
+                    <label className="editor-label" htmlFor="lessor-contactEmail">Email Oficial de Contacto</label>
                     <input
+                      id="lessor-contactEmail"
+                      name="lessor_contactEmail"
                       type="email"
                       className="editor-input"
                       value={template.lessor.contactEmail}
@@ -585,8 +625,10 @@ export default function ContractTemplateClient({ initialTemplate }: Props) {
                     />
                   </div>
                   <div className="editor-field-group">
-                    <label className="editor-label">Teléfono de Asistencia</label>
+                    <label className="editor-label" htmlFor="lessor-contactPhone">Teléfono de Asistencia</label>
                     <input
+                      id="lessor-contactPhone"
+                      name="lessor_contactPhone"
                       type="text"
                       className="editor-input"
                       value={template.lessor.contactPhone}
@@ -605,6 +647,9 @@ export default function ContractTemplateClient({ initialTemplate }: Props) {
               <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '1rem', background: '#ffffff', border: '1px solid #CBD5E1', borderRadius: '10px', padding: '6px 12px' }}>
                 <Search size={16} color="#64748B" />
                 <input
+                  id="contract-article-search"
+                  name="contract_article_search"
+                  aria-label="Buscar por artículo legal"
                   type="text"
                   placeholder="Buscar por artículo (ej: 4, seguro, fianza, combustible)..."
                   value={articleSearch}
@@ -631,8 +676,11 @@ export default function ContractTemplateClient({ initialTemplate }: Props) {
                     {isExpanded && (
                       <div className="article-body">
                         <div className="editor-field-group">
-                          <label className="editor-label">Título del Artículo</label>
+                          <label className="editor-label" htmlFor={`art-title-${art.number}`}>Título del Artículo {art.number}</label>
                           <input
+                            id={`art-title-${art.number}`}
+                            name={`art_title_${art.number}`}
+                            aria-label={`Título del Artículo ${art.number}`}
                             type="text"
                             className="editor-input"
                             value={art.title}
@@ -641,8 +689,11 @@ export default function ContractTemplateClient({ initialTemplate }: Props) {
                         </div>
 
                         <div className="editor-field-group">
-                          <label className="editor-label">Contenido Legal (Párrafos separados por doble salto)</label>
+                          <label className="editor-label" htmlFor={`art-content-${art.number}`}>Contenido Legal (Párrafos separados por doble salto)</label>
                           <textarea
+                            id={`art-content-${art.number}`}
+                            name={`art_content_${art.number}`}
+                            aria-label={`Contenido Legal del Artículo ${art.number}`}
                             className="editor-textarea"
                             rows={art.content.length * 2 + 1}
                             value={art.content.join('\n\n')}

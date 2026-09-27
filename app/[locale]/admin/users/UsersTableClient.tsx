@@ -47,6 +47,9 @@ export default function UsersTableClient({ initialUsers }: Props) {
             style={{ position: 'absolute', left: 12, top: '50%', transform: 'translateY(-50%)', color: 'var(--gray-400)' }}
           />
           <input
+            id="admin-users-search"
+            name="admin_users_search"
+            aria-label="Buscar clientes por nombre, email o DNI"
             type="text"
             placeholder="Buscar por nombre, email o DNI..."
             value={search}

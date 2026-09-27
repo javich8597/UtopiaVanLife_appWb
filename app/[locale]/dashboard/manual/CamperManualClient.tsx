@@ -534,6 +534,9 @@ export default function CamperManualClient() {
         <div className="search-card">
           <Search size={18} style={{ color: 'var(--gray-400)', flexShrink: 0 }} />
           <input 
+            id="manual-search-query"
+            name="manual_search_query"
+            aria-label="Buscar en el manual de la camper"
             type="text"
             placeholder="¿Qué necesitas consultar? (ej. batería, agua caliente, calefacción, cama, diésel...)"
             className="search-input"
@@ -621,6 +624,7 @@ export default function CamperManualClient() {
                           preload="metadata"
                           poster={guide.posterUrl}
                           className="embedded-video"
+                          suppressHydrationWarning
                         >
                           <source src={guide.videoUrl} type="video/mp4" />
                           <source src={guide.videoUrl} type="video/quicktime" />
@@ -727,6 +731,9 @@ export default function CamperManualClient() {
           <div className="troubleshoot-search-box">
             <Search size={15} style={{ color: 'var(--gray-400)', flexShrink: 0 }} />
             <input
+              id="troubleshoot-search-query"
+              name="troubleshoot_search_query"
+              aria-label="Buscar síntoma o avería"
               type="text"
               placeholder="Buscar síntoma (ej. pita, no enfría, error...)"
               value={troubleshootSearch}

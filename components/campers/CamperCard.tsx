@@ -1,8 +1,9 @@
 'use client'
 
+import { useRef, useState } from 'react'
 import { Link } from '@/i18n/routing'
 import Image from 'next/image'
-import { Users, Moon, Ruler, Zap, ArrowRight } from 'lucide-react'
+import { Users, Moon, Ruler, Zap, ArrowRight, Play, Sparkles } from 'lucide-react'
 
 interface CamperCardProps {
     id: string
@@ -35,52 +36,170 @@ export default function CamperCard({
     searchParams = '',
 }: CamperCardProps) {
     const href = `/campers/${slug}${searchParams ? `?${searchParams}` : ''}`
+    const videoRef = useRef<HTMLVideoElement>(null)
+    const [isPlayingVideo, setIsPlayingVideo] = useState(false)
+
+    // Interior video tours for experiential previews
+    const videoPreviewUrl = slug === 'neo'
+        ? '/videos/campers/neo/neo-interior-highlight-tour.mp4'
+        : slug === 'space'
+            ? '/videos/campers/space/space-complete-tour.mp4'
+            : null
 
     const subtitleTagline = slug === 'neo' 
-        ? 'Máxima polivalencia y maletero de 2.230L'
-        : 'Salón panorámico en U y distribución diáfana 7m²'
+        ? 'Aventura todoterreno, litio 540Ah y maletero 2.230L'
+        : slug === 'space'
+            ? 'Suite diáfana 7m², salón en U y proyector de cine'
+            : (description_es ? (description_es.length > 55 ? `${description_es.slice(0, 52)}...` : description_es) : 'Camper de lujo totalmente equipada')
+
+    const handleMouseEnter = () => {
+        if (typeof window !== 'undefined' && !window.matchMedia('(hover: hover)').matches) {
+            return
+        }
+        if (videoRef.current && videoPreviewUrl) {
+            setIsPlayingVideo(true)
+            videoRef.current.play().catch(() => {})
+        }
+    }
+
+    const handleMouseLeave = () => {
+        if (videoRef.current && videoPreviewUrl) {
+            setIsPlayingVideo(false)
+            videoRef.current.pause()
+            videoRef.current.currentTime = 0
+        }
+    }
+
+    const [activeImgIndex, setActiveImgIndex] = useState(0)
+
+    // Curated high-res photo gallery per camper
+    const galleryImages: string[] = (() => {
+        if (slug === 'space') {
+            return [
+                thumbnail_url || '/images/campers/uploads/1790382530493-2k_space_landscape_door_closed.jpeg',
+                '/images/campers/space/interior/space-saloon-rear-doors-open.webp',
+                '/images/campers/space/interior/space-cinema-projector-lounge.webp',
+                '/images/campers/space/interior/space-electric-drop-down-bed.webp',
+            ]
+        }
+        if (slug === 'neo') {
+            return [
+                thumbnail_url || '/images/campers/neo/neo-ext.png',
+                '/images/campers/neo/interior/neo-salon-daylight.webp',
+                '/images/campers/neo/interior/neo-kitchen-wine-cooler.webp',
+                '/images/campers/neo/tech-details/neo-design-hero.webp',
+            ]
+        }
+        return [thumbnail_url || '/images/campers/neo/neo-ext.png']
+    })()
+
+    const currentImg = galleryImages[activeImgIndex] || galleryImages[0]
+
+    const handleNextImg = (e: React.MouseEvent) => {
+        e.preventDefault()
+        e.stopPropagation()
+        setActiveImgIndex(prev => (prev + 1) % galleryImages.length)
+    }
+
+    const handlePrevImg = (e: React.MouseEvent) => {
+        e.preventDefault()
+        e.stopPropagation()
+        setActiveImgIndex(prev => (prev - 1 + galleryImages.length) % galleryImages.length)
+    }
+
+    const handleDotClick = (index: number, e: React.MouseEvent) => {
+        e.preventDefault()
+        e.stopPropagation()
+        setActiveImgIndex(index)
+    }
 
     return (
-        <article className={`camper-card ${!isAvailable ? 'camper-card--unavailable' : ''}`}>
-            {/* Image Wrap */}
+        <article 
+            className={`camper-card ${!isAvailable ? 'camper-card--unavailable' : ''}`}
+            onMouseEnter={handleMouseEnter}
+            onMouseLeave={handleMouseLeave}
+        >
+            {/* Image Wrap — Completely free of overlay badges */}
             <div className="camper-card__img-wrap">
-                <Image
-                    src={thumbnail_url || '/images/campers/neo/neo-ext.png'}
-                    alt={name}
-                    fill
-                    className="camper-card__img"
-                    style={{ objectFit: 'cover' }}
-                    sizes="(max-width: 768px) 100vw, 520px"
-                    priority
-                />
-                <div className="camper-card__overlay-gradient" />
+                <Link href={isAvailable ? (href as any) : '#'} className="camper-card__img-link" style={{ position: 'relative' }} tabIndex={-1}>
+                    <Image
+                        src={currentImg}
+                        alt={`${name} - Vista ${activeImgIndex + 1}`}
+                        fill
+                        className={`camper-card__img ${isPlayingVideo ? 'camper-card__img--hidden' : ''}`}
+                        style={{ objectFit: 'cover' }}
+                        sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 560px"
+                        priority
+                    />
+                </Link>
 
-                {/* Floating Top Badges */}
-                <div className="camper-card__top-badges">
-                    <span className="camper-card__badge camper-card__badge--brand">
-                        Utopia Van Life
-                    </span>
-                    {isAvailable ? (
-                        <span className="camper-card__badge camper-card__badge--eco">
-                            <Zap size={11} /> Autonomía 100%
-                        </span>
-                    ) : (
-                        <span className="camper-card__badge camper-card__badge--unavailable">
-                            No disponible
-                        </span>
-                    )}
-                </div>
+                {videoPreviewUrl && (
+                    <video
+                        ref={videoRef}
+                        className={`camper-card__preview-video ${isPlayingVideo ? 'camper-card__preview-video--active' : ''}`}
+                        muted
+                        loop
+                        playsInline
+                        preload="none"
+                        suppressHydrationWarning
+                    >
+                        <source src={videoPreviewUrl} type="video/mp4" />
+                    </video>
+                )}
 
-                {/* Subtle Season Tag */}
-                {seasonName && isAvailable && (
-                    <div className="camper-card__season-tag">
-                        <span>{seasonName}</span>
+                {/* Subtle gradient scrim at the bottom for gallery dots */}
+                <div className="camper-card__scrim" />
+
+                {/* Left / Right Gallery Navigation Arrows */}
+                {galleryImages.length > 1 && (
+                    <div className="camper-card__gallery-controls">
+                        <button
+                            type="button"
+                            className="camper-card__nav-arrow camper-card__nav-arrow--left"
+                            onClick={handlePrevImg}
+                            aria-label={`Ver foto anterior de ${name}`}
+                        >
+                            ‹
+                        </button>
+                        <button
+                            type="button"
+                            className="camper-card__nav-arrow camper-card__nav-arrow--right"
+                            onClick={handleNextImg}
+                            aria-label={`Ver siguiente foto de ${name}`}
+                        >
+                            ›
+                        </button>
+                    </div>
+                )}
+
+                {/* Interactive Gallery Dots */}
+                {galleryImages.length > 1 && (
+                    <div className="camper-card__dots" role="tablist" aria-label={`Galería de fotos de ${name}`}>
+                        {galleryImages.map((_, idx) => (
+                            <button
+                                key={idx}
+                                type="button"
+                                className={`camper-card__dot ${idx === activeImgIndex ? 'camper-card__dot--active' : ''}`}
+                                onClick={(e) => handleDotClick(idx, e)}
+                                aria-label={`Foto ${idx + 1} de ${galleryImages.length}`}
+                            />
+                        ))}
                     </div>
                 )}
             </div>
 
             {/* Card Body */}
             <div className="camper-card__body">
+                {/* Meta Sub-header with Autonomy & Status */}
+                <div className="camper-card__meta">
+                    <span className="camper-card__tag">Utopia Signature</span>
+                    <span className="camper-card__dot-sep">·</span>
+                    <span className="camper-card__autonomy">
+                        <Zap size={11} className="camper-card__zap" />
+                        Autonomía 100% Off-Grid
+                    </span>
+                </div>
+
                 {/* Header: Name + Price */}
                 <div className="camper-card__header">
                     <div className="camper-card__title-group">
@@ -98,25 +217,65 @@ export default function CamperCard({
                     <p className="camper-card__desc text-small">{description_es}</p>
                 )}
 
-                {/* Specs Chips */}
+                {/* Specs Chips with Luxury Vanlife focus */}
                 <div className="camper-card__specs">
-                    {specs.seats && (
-                        <div className="camper-card__spec">
-                            <Users size={14} className="camper-card__spec-icon" />
-                            <span>{specs.seats} plazas</span>
-                        </div>
-                    )}
-                    {specs.beds && (
-                        <div className="camper-card__spec">
-                            <Moon size={14} className="camper-card__spec-icon" />
-                            <span>{specs.beds} camas</span>
-                        </div>
-                    )}
-                    {specs.length_m && (
-                        <div className="camper-card__spec">
-                            <Ruler size={14} className="camper-card__spec-icon" />
-                            <span>{specs.length_m}m</span>
-                        </div>
+                    {slug === 'neo' ? (
+                        <>
+                            <div className="camper-card__spec camper-card__spec--highlight">
+                                <Zap size={13} className="camper-card__spec-icon" />
+                                <span>Litio 540Ah Victron</span>
+                            </div>
+                            <div className="camper-card__spec">
+                                <Users size={13} className="camper-card__spec-icon" />
+                                <span>{specs?.seats || 3} plazas</span>
+                            </div>
+                            <div className="camper-card__spec">
+                                <Moon size={13} className="camper-card__spec-icon" />
+                                <span>Cama 135x190</span>
+                            </div>
+                            <div className="camper-card__spec">
+                                <Sparkles size={13} className="camper-card__spec-icon" />
+                                <span>Maletero 2.230L</span>
+                            </div>
+                        </>
+                    ) : slug === 'space' ? (
+                        <>
+                            <div className="camper-card__spec camper-card__spec--highlight">
+                                <Sparkles size={13} className="camper-card__spec-icon" />
+                                <span>Suite Abierta 7m²</span>
+                            </div>
+                            <div className="camper-card__spec">
+                                <Moon size={13} className="camper-card__spec-icon" />
+                                <span>Cama Eléctrica King</span>
+                            </div>
+                            <div className="camper-card__spec">
+                                <Users size={13} className="camper-card__spec-icon" />
+                                <span>Salón en U Panorámico</span>
+                            </div>
+                            <div className="camper-card__spec">
+                                <Zap size={13} className="camper-card__spec-icon" />
+                                <span>Pack Cine Proyector</span>
+                            </div>
+                        </>
+                    ) : (
+                        <>
+                            <div className="camper-card__spec camper-card__spec--highlight">
+                                <Sparkles size={13} className="camper-card__spec-icon" />
+                                <span>Luxury Edition</span>
+                            </div>
+                            <div className="camper-card__spec">
+                                <Users size={13} className="camper-card__spec-icon" />
+                                <span>{specs?.seats || 2} plazas</span>
+                            </div>
+                            <div className="camper-card__spec">
+                                <Moon size={13} className="camper-card__spec-icon" />
+                                <span>{specs?.beds || 2} camas</span>
+                            </div>
+                            <div className="camper-card__spec">
+                                <Zap size={13} className="camper-card__spec-icon" />
+                                <span>100% Equipada</span>
+                            </div>
+                        </>
                     )}
                 </div>
 
@@ -127,7 +286,7 @@ export default function CamperCard({
                     aria-disabled={!isAvailable}
                     tabIndex={isAvailable ? 0 : -1}
                 >
-                    <span>{isAvailable ? (searchParams ? 'Seleccionar camper' : 'Explorar Camper') : 'No disponible'}</span>
+                    <span>{isAvailable ? (searchParams ? 'Seleccionar camper' : `Ver detalles de ${name}`) : 'No disponible'}</span>
                     {isAvailable && <ArrowRight size={15} className="camper-card__btn-arrow" />}
                 </Link>
             </div>
@@ -152,7 +311,7 @@ export default function CamperCard({
           border-color: rgba(45, 58, 45, 0.28);
         }
         .camper-card:active {
-          transform: translateY(-1px) scale(0.99);
+          transform: translateY(-1px) scale(0.98);
           transition-duration: 100ms;
         }
         .camper-card--unavailable {
@@ -164,7 +323,7 @@ export default function CamperCard({
           box-shadow: 0 4px 16px rgba(26, 26, 26, 0.04);
         }
 
-        /* Image Wrap */
+        /* Image & Video Wrap */
         .camper-card__img-wrap {
           position: relative;
           aspect-ratio: 16/10;
@@ -172,84 +331,147 @@ export default function CamperCard({
           background: var(--gray-100);
         }
         .camper-card__img {
-          transition: transform 350ms cubic-bezier(0.23, 1, 0.32, 1);
+          transition: transform 350ms cubic-bezier(0.23, 1, 0.32, 1), opacity 240ms ease;
         }
         .camper-card:hover .camper-card__img {
-          transform: scale(1.04);
+          transform: scale(1.03);
         }
-        .camper-card__overlay-gradient {
+        .camper-card__img--hidden {
+          opacity: 0;
+        }
+
+        .camper-card__preview-video {
+          position: absolute;
+          inset: 0;
+          width: 100%;
+          height: 100%;
+          object-fit: cover;
+          opacity: 0;
+          transition: opacity 300ms cubic-bezier(0.23, 1, 0.32, 1);
+          pointer-events: none;
+        }
+        .camper-card__preview-video--active {
+          opacity: 1;
+        }
+
+        :global(.camper-card__img-link) {
+          position: absolute;
+          inset: 0;
+          display: block;
+          width: 100%;
+          height: 100%;
+        }
+
+        .camper-card__scrim {
           position: absolute;
           inset: 0;
           background: linear-gradient(
             to top, 
-            rgba(26, 26, 26, 0.35) 0%, 
-            rgba(26, 26, 26, 0.05) 45%, 
-            transparent 70%
+            rgba(0, 0, 0, 0.4) 0%, 
+            rgba(0, 0, 0, 0.05) 25%, 
+            transparent 50%
           );
           pointer-events: none;
         }
 
-        /* Floating Top Badges */
-        .camper-card__top-badges {
+        /* Gallery Controls (Chevrons) */
+        .camper-card__gallery-controls {
           position: absolute;
-          top: 14px;
-          left: 14px;
-          right: 14px;
+          inset: 0;
           display: flex;
-          justify-content: space-between;
           align-items: center;
-          gap: var(--space-2);
-          z-index: 2;
+          justify-content: space-between;
+          padding: 0 10px;
+          opacity: 0;
+          transition: opacity 200ms ease;
+          pointer-events: none;
+          z-index: 3;
         }
-        .camper-card__badge {
-          padding: 4px 10px;
+        .camper-card:hover .camper-card__gallery-controls {
+          opacity: 1;
+        }
+        .camper-card__nav-arrow {
+          pointer-events: auto;
+          width: 32px;
+          height: 32px;
+          border-radius: 50%;
+          background: rgba(255, 255, 255, 0.9);
+          backdrop-filter: blur(8px);
+          -webkit-backdrop-filter: blur(8px);
+          border: 1px solid rgba(0, 0, 0, 0.08);
+          color: var(--black-matte);
+          font-size: 1.4rem;
+          line-height: 1;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          cursor: pointer;
+          box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+          transition: transform 150ms ease, background 150ms ease;
+          user-select: none;
+        }
+        .camper-card__nav-arrow:hover {
+          background: #ffffff;
+          transform: scale(1.08);
+        }
+        .camper-card__nav-arrow:active {
+          transform: scale(0.95);
+        }
+
+        /* Gallery Dots */
+        .camper-card__dots {
+          position: absolute;
+          bottom: 12px;
+          left: 0;
+          right: 0;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          gap: 6px;
+          z-index: 3;
+        }
+        .camper-card__dot {
+          width: 7px;
+          height: 7px;
           border-radius: var(--radius-full);
-          font-size: 0.7rem;
-          font-weight: 600;
-          letter-spacing: 0.03em;
+          background: rgba(255, 255, 255, 0.5);
+          border: none;
+          padding: 0;
+          cursor: pointer;
+          transition: all 200ms cubic-bezier(0.23, 1, 0.32, 1);
+          box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+        }
+        .camper-card__dot--active {
+          width: 20px;
+          background: #ffffff;
+          box-shadow: 0 1px 4px rgba(0, 0, 0, 0.4);
+        }
+
+        /* Card Meta */
+        .camper-card__meta {
+          display: flex;
+          align-items: center;
+          gap: 8px;
+          font-size: 0.72rem;
+          letter-spacing: 0.04em;
+          text-transform: uppercase;
+          font-weight: 700;
+          color: var(--forest-green);
+        }
+        .camper-card__tag {
+          color: var(--forest-green);
+        }
+        .camper-card__dot-sep {
+          color: var(--gray-400);
+        }
+        .camper-card__autonomy {
           display: inline-flex;
           align-items: center;
           gap: 4px;
+          color: var(--gray-600);
         }
-        .camper-card__badge--brand {
-          background: rgba(255, 255, 255, 0.92);
-          backdrop-filter: blur(8px);
-          -webkit-backdrop-filter: blur(8px);
-          color: var(--black-matte);
-          border: 1px solid rgba(0, 0, 0, 0.06);
-          box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
-          text-transform: uppercase;
-          letter-spacing: 0.06em;
-          font-size: 0.65rem;
-        }
-        .camper-card__badge--eco {
-          background: rgba(45, 58, 45, 0.92);
-          backdrop-filter: blur(8px);
-          -webkit-backdrop-filter: blur(8px);
-          color: var(--sand);
-          border: 1px solid rgba(226, 209, 195, 0.25);
-          box-shadow: 0 2px 8px rgba(0, 0, 0, 0.12);
-        }
-        .camper-card__badge--unavailable {
-          background: rgba(26, 26, 26, 0.85);
-          color: var(--white-broken);
-        }
-
-        /* Bottom Season Pill */
-        .camper-card__season-tag {
-          position: absolute;
-          bottom: 12px;
-          left: 14px;
-          z-index: 2;
-          background: rgba(250, 248, 245, 0.9);
-          backdrop-filter: blur(6px);
-          -webkit-backdrop-filter: blur(6px);
-          padding: 3px 9px;
-          border-radius: var(--radius-sm);
-          font-size: 0.68rem;
-          font-weight: 600;
-          color: var(--gray-800);
-          letter-spacing: 0.02em;
+        .camper-card__zap {
+          color: #D97706;
         }
 
         /* Body */
@@ -272,19 +494,20 @@ export default function CamperCard({
         .camper-card__title-group {
           display: flex;
           flex-direction: column;
-          gap: 2px;
+          gap: 3px;
         }
         .camper-card__name {
           font-size: 1.85rem;
-          font-weight: 500;
+          font-weight: 600;
           color: var(--black-matte);
           line-height: 1.1;
           letter-spacing: -0.01em;
         }
         .camper-card__tagline {
-          font-size: 0.78rem;
+          font-size: 0.8rem;
           color: var(--gray-600);
           font-weight: 500;
+          line-height: 1.4;
         }
 
         /* Price */
@@ -293,15 +516,15 @@ export default function CamperCard({
           flex-direction: column;
           align-items: flex-end;
           flex-shrink: 0;
-          padding: 4px 10px;
+          padding: 6px 12px;
           background: #FAF8F5;
           border-radius: var(--radius-md);
-          border: 1px solid var(--gray-100);
+          border: 1px solid var(--gray-200);
         }
         .camper-card__price-amount {
           font-family: var(--font-display);
           font-size: 1.65rem;
-          font-weight: 600;
+          font-weight: 700;
           color: var(--forest-green);
           line-height: 1;
         }
@@ -328,19 +551,25 @@ export default function CamperCard({
           display: flex;
           gap: var(--space-2);
           flex-wrap: wrap;
-          padding-top: var(--space-2);
+          padding-top: var(--space-1);
         }
         .camper-card__spec {
           display: inline-flex;
           align-items: center;
           gap: 6px;
-          font-size: 0.78rem;
+          font-size: 0.76rem;
           font-weight: 500;
           color: var(--gray-800);
           background: #FAF8F5;
           border: 1px solid var(--gray-200);
           padding: 5px 10px;
           border-radius: var(--radius-full);
+        }
+        .camper-card__spec--highlight {
+          background: rgba(45, 58, 45, 0.06);
+          border-color: rgba(45, 58, 45, 0.2);
+          color: var(--forest-green);
+          font-weight: 600;
         }
         .camper-card__spec-icon {
           color: var(--forest-green);
@@ -358,7 +587,7 @@ export default function CamperCard({
           border-radius: var(--radius-full);
           font-weight: 600;
           font-size: 0.9rem;
-          transition: all 180ms ease-out;
+          transition: transform 160ms cubic-bezier(0.23, 1, 0.32, 1), background-color 160ms ease, box-shadow 160ms ease;
         }
         .camper-card__btn:hover .camper-card__btn-arrow {
           transform: translateX(3px);
@@ -373,6 +602,19 @@ export default function CamperCard({
           opacity: 0.5;
           cursor: not-allowed;
           pointer-events: none;
+        }
+
+        @media (max-width: 640px) {
+          .camper-card__body {
+            padding: var(--space-5);
+            gap: var(--space-3);
+          }
+          .camper-card__name {
+            font-size: 1.6rem;
+          }
+          .camper-card__video-hint {
+            display: none;
+          }
         }
       `}</style>
         </article>

@@ -25,6 +25,7 @@ import {
   Calendar,
   Droplets,
   Wind,
+  Star,
 } from 'lucide-react'
 import { formatPrice } from '@/lib/pricing/engine'
 import { useRouter } from 'next/navigation'
@@ -244,11 +245,17 @@ export default function CampersClient({ initialCampers }: Props) {
           thumbnail_url: json.url,
           images: prev.images.includes(json.url) ? prev.images : [json.url, ...prev.images],
         }))
+        showToast('success', 'Foto de portada actualizada correctamente.')
       } else {
-        setFormData(prev => ({
-          ...prev,
-          images: [...prev.images, json.url],
-        }))
+        setFormData(prev => {
+          const isDefaultThumb = !prev.thumbnail_url || prev.thumbnail_url.includes('/neo-ext') || prev.thumbnail_url.includes('/space-ext')
+          return {
+            ...prev,
+            thumbnail_url: isDefaultThumb ? json.url : prev.thumbnail_url,
+            images: [...prev.images, json.url],
+          }
+        })
+        showToast('success', 'Foto añadida a la galería.')
       }
     } catch (err: any) {
       setFormError(err.message || 'Error al procesar la imagen')
@@ -257,6 +264,16 @@ export default function CampersClient({ initialCampers }: Props) {
       else setIsUploadingGallery(false)
       if (e.target) e.target.value = ''
     }
+  }
+
+  // Set gallery image as main thumbnail
+  const handleSetAsThumbnail = (url: string) => {
+    setFormData(prev => ({
+      ...prev,
+      thumbnail_url: url,
+      images: prev.images.includes(url) ? prev.images : [url, ...prev.images],
+    }))
+    showToast('success', 'Foto fijada como portada principal de la tarjeta.')
   }
 
   // Add URL to gallery
@@ -349,8 +366,12 @@ export default function CampersClient({ initialCampers }: Props) {
         price_per_night: Number(formData.price_per_night),
         is_active: formData.is_active,
         is_available: formData.is_available,
-        thumbnail_url: formData.thumbnail_url,
-        images: formData.images.length > 0 ? formData.images : [formData.thumbnail_url],
+        thumbnail_url: formData.thumbnail_url || (formData.images.length > 0 ? formData.images[0] : '/images/campers/neo/neo-ext.png'),
+        images: formData.images.length > 0
+          ? (formData.thumbnail_url && !formData.images.includes(formData.thumbnail_url)
+              ? [formData.thumbnail_url, ...formData.images]
+              : formData.images)
+          : [formData.thumbnail_url || '/images/campers/neo/neo-ext.png'],
         description_es: formData.description_es,
         specs: {
           ...formData.specs,
@@ -489,17 +510,25 @@ export default function CampersClient({ initialCampers }: Props) {
         </div>
       )}
       {/* Hidden File Inputs */}
+      <label htmlFor="camper-file-upload-thumb" className="sr-only">Subir foto de miniatura del vehículo</label>
       <input
         ref={thumbFileRef}
+        id="camper-file-upload-thumb"
+        name="camper_file_upload_thumb"
         type="file"
         accept="image/*"
+        aria-label="Subir foto de miniatura del vehículo"
         style={{ display: 'none' }}
         onChange={e => handleFileUpload(e, 'thumbnail')}
       />
+      <label htmlFor="camper-file-upload-gallery" className="sr-only">Añadir foto a la galería del vehículo</label>
       <input
         ref={galleryFileRef}
+        id="camper-file-upload-gallery"
+        name="camper_file_upload_gallery"
         type="file"
         accept="image/*"
+        aria-label="Añadir foto a la galería del vehículo"
         style={{ display: 'none' }}
         onChange={e => handleFileUpload(e, 'gallery')}
       />
@@ -550,15 +579,19 @@ export default function CampersClient({ initialCampers }: Props) {
       <div className="filters-bar">
         <div className="search-input-wrap">
           <Search size={16} className="search-icon" />
+          <label htmlFor="camper-admin-search" className="sr-only">Buscar camper por nombre o slug</label>
           <input
+            id="camper-admin-search"
+            name="camper_admin_search"
             type="text"
             placeholder="Buscar por nombre o slug..."
             value={searchQuery}
             onChange={e => setSearchQuery(e.target.value)}
             className="search-input"
+            aria-label="Buscar camper por nombre o identificador"
           />
           {searchQuery && (
-            <button onClick={() => setSearchQuery('')} className="clear-search-btn">
+            <button onClick={() => setSearchQuery('')} className="clear-search-btn" aria-label="Limpiar búsqueda">
               <X size={14} />
             </button>
           )}
@@ -781,10 +814,12 @@ export default function CampersClient({ initialCampers }: Props) {
               {/* Fila 1: Nombre y Slug */}
               <div className="form-grid-2">
                 <div className="form-group">
-                  <label className="form-label">
+                  <label htmlFor="camper-form-name" className="form-label">
                     Nombre del Vehículo <span className="text-error">*</span>
                   </label>
                   <input
+                    id="camper-form-name"
+                    name="camper_name"
                     type="text"
                     required
                     placeholder="Ej. NEO, SPACE, HORIZON"
@@ -804,10 +839,12 @@ export default function CampersClient({ initialCampers }: Props) {
                 </div>
 
                 <div className="form-group">
-                  <label className="form-label">
+                  <label htmlFor="camper-form-slug" className="form-label">
                     Slug / Identificador URL <span className="text-error">*</span>
                   </label>
                   <input
+                    id="camper-form-slug"
+                    name="camper_slug"
                     type="text"
                     required
                     placeholder="ej. horizon"
@@ -821,10 +858,12 @@ export default function CampersClient({ initialCampers }: Props) {
               {/* Fila 2: Plazas y Camas */}
               <div className="form-grid-2">
                 <div className="form-group">
-                  <label className="form-label">
+                  <label htmlFor="camper-form-seats" className="form-label">
                     Plazas Homologadas (Asientos) <span className="text-error">*</span>
                   </label>
                   <input
+                    id="camper-form-seats"
+                    name="camper_seats"
                     type="number"
                     min="1"
                     max="9"
@@ -836,10 +875,12 @@ export default function CampersClient({ initialCampers }: Props) {
                 </div>
 
                 <div className="form-group">
-                  <label className="form-label">
+                  <label htmlFor="camper-form-beds" className="form-label">
                     Plazas para Dormir (Camas) <span className="text-error">*</span>
                   </label>
                   <input
+                    id="camper-form-beds"
+                    name="camper_beds"
                     type="number"
                     min="1"
                     max="6"
@@ -854,10 +895,12 @@ export default function CampersClient({ initialCampers }: Props) {
               {/* Fila 3: Fianza y Precio Base */}
               <div className="form-grid-2">
                 <div className="form-group">
-                  <label className="form-label">
+                  <label htmlFor="camper-form-deposit" className="form-label">
                     Fianza Reembolsable (€) <span className="text-error">*</span>
                   </label>
                   <input
+                    id="camper-form-deposit"
+                    name="camper_deposit"
                     type="number"
                     min="0"
                     step="50"
@@ -869,10 +912,12 @@ export default function CampersClient({ initialCampers }: Props) {
                 </div>
 
                 <div className="form-group">
-                  <label className="form-label">
+                  <label htmlFor="camper-form-price" className="form-label">
                     Tarifa Base por Noche (€) <span className="text-error">*</span>
                   </label>
                   <input
+                    id="camper-form-price"
+                    name="camper_price"
                     type="number"
                     min="0"
                     step="5"
@@ -890,8 +935,9 @@ export default function CampersClient({ initialCampers }: Props) {
                   <span className="toggle-title">Publicación en Web</span>
                   <p className="toggle-desc">Determina si los usuarios pueden ver y reservar este modelo.</p>
                   <div className="toggle-options">
-                    <label className={`toggle-option ${formData.is_active ? 'selected' : ''}`}>
+                    <label htmlFor="camper-is-active-true" className={`toggle-option ${formData.is_active ? 'selected' : ''}`}>
                       <input
+                        id="camper-is-active-true"
                         type="radio"
                         name="is_active"
                         checked={formData.is_active}
@@ -899,8 +945,9 @@ export default function CampersClient({ initialCampers }: Props) {
                       />
                       <span>Publicada</span>
                     </label>
-                    <label className={`toggle-option ${!formData.is_active ? 'selected' : ''}`}>
+                    <label htmlFor="camper-is-active-false" className={`toggle-option ${!formData.is_active ? 'selected' : ''}`}>
                       <input
+                        id="camper-is-active-false"
                         type="radio"
                         name="is_active"
                         checked={!formData.is_active}
@@ -915,8 +962,9 @@ export default function CampersClient({ initialCampers }: Props) {
                   <span className="toggle-title">Estado Operativo</span>
                   <p className="toggle-desc">Define si la furgoneta está operativa o en taller / revisión.</p>
                   <div className="toggle-options">
-                    <label className={`toggle-option ${formData.is_available ? 'selected' : ''}`}>
+                    <label htmlFor="camper-is-available-true" className={`toggle-option ${formData.is_available ? 'selected' : ''}`}>
                       <input
+                        id="camper-is-available-true"
                         type="radio"
                         name="is_available"
                         checked={formData.is_available}
@@ -924,8 +972,9 @@ export default function CampersClient({ initialCampers }: Props) {
                       />
                       <span>Disponible</span>
                     </label>
-                    <label className={`toggle-option ${!formData.is_available ? 'selected-amber' : ''}`}>
+                    <label htmlFor="camper-is-available-false" className={`toggle-option ${!formData.is_available ? 'selected-amber' : ''}`}>
                       <input
+                        id="camper-is-available-false"
                         type="radio"
                         name="is_available"
                         checked={!formData.is_available}
@@ -938,46 +987,47 @@ export default function CampersClient({ initialCampers }: Props) {
               </div>
 
               {/* Fila 5: Imagen Miniatura y Subida */}
-              <div className="form-group" style={{ background: '#f8fafc', padding: '16px', borderRadius: '12px', border: '1px solid #e2e8f0' }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
-                  <label className="form-label" style={{ margin: 0, fontWeight: 700 }}>
+              <div className="card-sub-box">
+                <div className="card-sub-box-header">
+                  <label htmlFor="camper-form-thumbnail" className="form-label" style={{ margin: 0, fontWeight: 700 }}>
                     Foto Principal / Miniatura
                   </label>
                   <button
                     type="button"
                     onClick={() => thumbFileRef.current?.click()}
                     disabled={isUploadingThumb}
-                    className="btn btn-outline btn-sm"
-                    style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', fontSize: '0.78rem', background: 'white' }}
+                    className="btn btn-outline btn-sm btn-sub-upload"
                   >
                     {isUploadingThumb ? <Loader2 size={13} className="animate-spin" /> : <Upload size={13} />}
                     <span>Subir desde este equipo</span>
                   </button>
                 </div>
 
-                <div style={{ display: 'flex', gap: '12px', alignItems: 'center' }}>
+                <div className="thumb-input-row">
                   {formData.thumbnail_url && (
-                    <div style={{ position: 'relative', width: '70px', height: '52px', borderRadius: '8px', overflow: 'hidden', border: '1px solid #cbd5e1', flexShrink: 0 }}>
+                    <div className="thumb-preview-square">
                       <Image
                         src={formData.thumbnail_url}
                         alt="Vista previa miniatura"
                         fill
+                        sizes="70px"
                         style={{ objectFit: 'cover' }}
                       />
                     </div>
                   )}
                   <input
+                    id="camper-form-thumbnail"
+                    name="camper_thumbnail"
                     type="text"
                     value={formData.thumbnail_url}
                     onChange={e => setFormData(prev => ({ ...prev, thumbnail_url: e.target.value }))}
-                    className="form-input"
+                    className="form-input flex-1"
                     placeholder="/images/campers/... o URL externa"
-                    style={{ flex: 1 }}
                   />
                 </div>
 
-                <div className="preset-images-row" style={{ marginTop: '10px' }}>
-                  <span className="text-xs" style={{ color: 'var(--gray-500)', marginRight: '4px' }}>Preajustes oficiales:</span>
+                <div className="preset-images-row">
+                  <span className="text-xs text-muted-inline">Preajustes oficiales:</span>
                   {PRESET_THUMBNAILS.map(preset => (
                     <button
                       key={preset.url}
@@ -989,17 +1039,44 @@ export default function CampersClient({ initialCampers }: Props) {
                     </button>
                   ))}
                 </div>
+
+                {/* Selección rápida de portada desde las fotos de la galería */}
+                {formData.images.length > 0 && (
+                  <div className="gallery-quick-picker">
+                    <span className="text-xs gallery-picker-title">
+                      O elige como portada una de las fotos de la galería:
+                    </span>
+                    <div className="gallery-chips-row">
+                      {formData.images.map((img, i) => (
+                        <button
+                          key={i}
+                          type="button"
+                          onClick={() => handleSetAsThumbnail(img)}
+                          className={`gallery-chip-btn ${formData.thumbnail_url === img ? 'is-active' : ''}`}
+                          title={formData.thumbnail_url === img ? 'Portada actual' : 'Fijar como portada'}
+                        >
+                          <Image src={img} alt={`Opción ${i + 1}`} fill sizes="64px" style={{ objectFit: 'cover' }} />
+                          {formData.thumbnail_url === img && (
+                            <span className="gallery-chip-check">
+                              ✓
+                            </span>
+                          )}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                )}
               </div>
 
               {/* Fila 6: Galería de Fotos del Vehículo */}
-              <div className="form-group" style={{ background: '#f8fafc', padding: '16px', borderRadius: '12px', border: '1px solid #e2e8f0' }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px' }}>
+              <div className="card-sub-box">
+                <div className="card-sub-box-header card-sub-box-header--mb10">
                   <div>
                     <label className="form-label" style={{ margin: 0, fontWeight: 700 }}>
                       Galería de Fotos ({formData.images.length})
                     </label>
-                    <p className="text-xs" style={{ margin: '2px 0 0', color: 'var(--gray-500)' }}>
-                      Fotos para el carrusel de detalle en la web.
+                    <p className="text-xs text-muted-sub">
+                      Fotos para el carrusel de detalle en la web. Puedes marcar cualquiera como portada.
                     </p>
                   </div>
 
@@ -1007,8 +1084,7 @@ export default function CampersClient({ initialCampers }: Props) {
                     type="button"
                     onClick={() => galleryFileRef.current?.click()}
                     disabled={isUploadingGallery}
-                    className="btn btn-outline btn-sm"
-                    style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', fontSize: '0.78rem', background: 'white' }}
+                    className="btn btn-outline btn-sm btn-sub-upload"
                   >
                     {isUploadingGallery ? <Loader2 size={13} className="animate-spin" /> : <Upload size={13} />}
                     <span>Añadir foto desde PC</span>
@@ -1016,73 +1092,73 @@ export default function CampersClient({ initialCampers }: Props) {
                 </div>
 
                 {/* Grid de fotos añadidas */}
-                <div style={{ display: 'flex', flexWrap: 'wrap', gap: '10px', marginBottom: '12px' }}>
-                  {formData.images.map((imgUrl, idx) => (
-                    <div
-                      key={idx}
-                      style={{
-                        position: 'relative',
-                        width: '80px',
-                        height: '60px',
-                        borderRadius: '8px',
-                        overflow: 'hidden',
-                        border: '1px solid #cbd5e1',
-                        background: '#e2e8f0',
-                      }}
-                    >
-                      <Image
-                        src={imgUrl}
-                        alt={`Foto ${idx + 1}`}
-                        fill
-                        style={{ objectFit: 'cover' }}
-                      />
-                      <button
-                        type="button"
-                        onClick={() => handleRemoveGalleryImage(idx)}
-                        style={{
-                          position: 'absolute',
-                          top: '3px',
-                          right: '3px',
-                          width: '20px',
-                          height: '20px',
-                          borderRadius: '50%',
-                          background: 'rgba(220, 38, 38, 0.9)',
-                          color: 'white',
-                          border: 'none',
-                          cursor: 'pointer',
-                          display: 'flex',
-                          alignItems: 'center',
-                          justifyContent: 'center',
-                          padding: 0,
-                        }}
-                        title="Eliminar foto"
+                <div className="gallery-cards-grid">
+                  {formData.images.map((imgUrl, idx) => {
+                    const isCover = formData.thumbnail_url === imgUrl
+                    return (
+                      <div
+                        key={idx}
+                        className={`gallery-card-thumb ${isCover ? 'is-cover' : ''}`}
                       >
-                        <X size={12} />
-                      </button>
-                    </div>
-                  ))}
+                        <Image
+                          src={imgUrl}
+                          alt={`Foto ${idx + 1}`}
+                          fill
+                          sizes="100px"
+                          style={{ objectFit: 'cover' }}
+                        />
+
+                        {/* Badge o botón de portada */}
+                        {isCover ? (
+                          <span className="gallery-cover-badge">
+                            <Star size={10} fill="#fef08a" color="#fef08a" /> Portada
+                          </span>
+                        ) : (
+                          <button
+                            type="button"
+                            onClick={() => handleSetAsThumbnail(imgUrl)}
+                            className="gallery-set-cover-btn"
+                            title="Establecer como foto de portada"
+                          >
+                            <Star size={10} /> Portada
+                          </button>
+                        )}
+
+                        <button
+                          type="button"
+                          onClick={() => handleRemoveGalleryImage(idx)}
+                          className="gallery-delete-btn"
+                          title="Eliminar foto de la galería"
+                        >
+                          <X size={12} />
+                        </button>
+                      </div>
+                    )
+                  })}
                   {formData.images.length === 0 && (
-                    <div style={{ padding: '10px', fontSize: '0.8rem', color: 'var(--gray-500)' }}>
+                    <div className="gallery-empty-state">
                       No hay fotos en la galería aún.
                     </div>
                   )}
                 </div>
 
                 {/* Input para añadir URL manual */}
-                <div style={{ display: 'flex', gap: '8px' }}>
+                <div className="gallery-url-input-row">
+                  <label htmlFor="camper-gallery-url-input" className="sr-only">URL externa de imagen para añadir a la galería</label>
                   <input
+                    id="camper-gallery-url-input"
+                    name="camper_gallery_url"
                     type="text"
                     value={galleryUrlInput}
                     onChange={e => setGalleryUrlInput(e.target.value)}
                     placeholder="O pega una URL de imagen..."
-                    className="form-input"
-                    style={{ flex: 1, fontSize: '0.82rem' }}
+                    className="form-input flex-1 font-small"
+                    aria-label="URL externa de imagen para añadir a la galería"
                   />
                   <button
                     type="button"
                     onClick={handleAddGalleryUrl}
-                    className="btn btn-ghost btn-sm"
-                    style={{ border: '1px solid var(--gray-300)', fontSize: '0.8rem', whiteSpace: 'nowrap' }}
+                    className="btn btn-ghost btn-sm btn-add-url"
                   >
                     + Añadir URL
                   </button>
@@ -1090,17 +1166,19 @@ export default function CampersClient({ initialCampers }: Props) {
               </div>
 
               {/* Fila 7: Especificaciones Técnicas Completas */}
-              <div className="form-group" style={{ background: '#f8fafc', padding: '16px', borderRadius: '12px', border: '1px solid #e2e8f0' }}>
-                <label className="form-label" style={{ fontWeight: 700, marginBottom: '8px' }}>
+              <div className="card-sub-box">
+                <label className="form-label font-bold mb-2">
                   Ficha Técnica y Medidas del Vehículo
                 </label>
 
-                <div className="form-grid-2" style={{ gap: '12px' }}>
+                <div className="specs-grid">
                   <div>
-                    <label className="text-xs" style={{ color: 'var(--gray-600)', display: 'block', marginBottom: '3px' }}>
+                    <label htmlFor="camper-spec-engine" className="text-xs spec-label">
                       Motorización
                     </label>
                     <input
+                      id="camper-spec-engine"
+                      name="spec_engine"
                       type="text"
                       placeholder="Ej. Diésel 2.2L Multijet 140 CV"
                       value={formData.specs.engine}
@@ -1110,10 +1188,12 @@ export default function CampersClient({ initialCampers }: Props) {
                   </div>
 
                   <div>
-                    <label className="text-xs" style={{ color: 'var(--gray-600)', display: 'block', marginBottom: '3px' }}>
+                    <label htmlFor="camper-spec-transmission" className="text-xs spec-label">
                       Transmisión
                     </label>
                     <input
+                      id="camper-spec-transmission"
+                      name="spec_transmission"
                       type="text"
                       placeholder="Ej. Manual 6 vel. / Automático"
                       value={formData.specs.transmission}
@@ -1123,10 +1203,12 @@ export default function CampersClient({ initialCampers }: Props) {
                   </div>
 
                   <div>
-                    <label className="text-xs" style={{ color: 'var(--gray-600)', display: 'block', marginBottom: '3px' }}>
+                    <label htmlFor="camper-spec-length" className="text-xs spec-label">
                       Longitud (m)
                     </label>
                     <input
+                      id="camper-spec-length"
+                      name="spec_length_m"
                       type="number"
                       step="0.01"
                       placeholder="5.99"
@@ -1137,10 +1219,12 @@ export default function CampersClient({ initialCampers }: Props) {
                   </div>
 
                   <div>
-                    <label className="text-xs" style={{ color: 'var(--gray-600)', display: 'block', marginBottom: '3px' }}>
+                    <label htmlFor="camper-spec-year" className="text-xs spec-label">
                       Año del Modelo
                     </label>
                     <input
+                      id="camper-spec-year"
+                      name="spec_year"
                       type="number"
                       placeholder="2025"
                       value={formData.specs.year}
@@ -1150,10 +1234,12 @@ export default function CampersClient({ initialCampers }: Props) {
                   </div>
 
                   <div>
-                    <label className="text-xs" style={{ color: 'var(--gray-600)', display: 'block', marginBottom: '3px' }}>
+                    <label htmlFor="camper-spec-ac" className="text-xs spec-label">
                       Aire Acondicionado
                     </label>
                     <input
+                      id="camper-spec-ac"
+                      name="spec_ac"
                       type="text"
                       placeholder="Ej. Dometic CoolAir 12V"
                       value={formData.specs.ac}
@@ -1163,10 +1249,12 @@ export default function CampersClient({ initialCampers }: Props) {
                   </div>
 
                   <div>
-                    <label className="text-xs" style={{ color: 'var(--gray-600)', display: 'block', marginBottom: '3px' }}>
+                    <label htmlFor="camper-spec-water" className="text-xs spec-label">
                       Agua Limpia (Litros)
                     </label>
                     <input
+                      id="camper-spec-water"
+                      name="spec_fresh_water_l"
                       type="number"
                       placeholder="113"
                       value={formData.specs.fresh_water_l}
@@ -1179,8 +1267,10 @@ export default function CampersClient({ initialCampers }: Props) {
 
               {/* Fila 8: Descripción */}
               <div className="form-group">
-                <label className="form-label">Descripción Detallada & Equipamiento</label>
+                <label htmlFor="camper-form-desc" className="form-label">Descripción Detallada & Equipamiento</label>
                 <textarea
+                  id="camper-form-desc"
+                  name="camper_description"
                   rows={3}
                   value={formData.description_es}
                   onChange={e => setFormData(prev => ({ ...prev, description_es: e.target.value }))}
@@ -1689,6 +1779,234 @@ export default function CampersClient({ initialCampers }: Props) {
           color: var(--forest-green);
           font-weight: 600;
           background: #e8f5e9;
+        }
+
+        .card-sub-box {
+          background: #f8fafc;
+          padding: 16px;
+          border-radius: 12px;
+          border: 1px solid #e2e8f0;
+          margin-bottom: 16px;
+        }
+
+        .card-sub-box-header {
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+          margin-bottom: 8px;
+        }
+
+        .card-sub-box-header--mb10 {
+          margin-bottom: 10px;
+        }
+
+        .btn-sub-upload {
+          display: inline-flex;
+          align-items: center;
+          gap: 6px;
+          font-size: 0.78rem;
+          background: white;
+        }
+
+        .thumb-input-row {
+          display: flex;
+          gap: 12px;
+          align-items: center;
+        }
+
+        .thumb-preview-square {
+          position: relative;
+          width: 70px;
+          height: 52px;
+          border-radius: 8px;
+          overflow: hidden;
+          border: 1px solid #cbd5e1;
+          flex-shrink: 0;
+        }
+
+        .text-muted-inline {
+          color: var(--gray-500);
+          margin-right: 4px;
+        }
+
+        .text-muted-sub {
+          margin: 2px 0 0;
+          color: var(--gray-500);
+        }
+
+        .gallery-quick-picker {
+          margin-top: 12px;
+          padding-top: 10px;
+          border-top: 1px dashed #cbd5e1;
+        }
+
+        .gallery-picker-title {
+          color: var(--gray-700);
+          font-weight: 600;
+          display: block;
+          margin-bottom: 6px;
+        }
+
+        .gallery-chips-row {
+          display: flex;
+          gap: 8px;
+          flex-wrap: wrap;
+        }
+
+        .gallery-chip-btn {
+          position: relative;
+          width: 64px;
+          height: 44px;
+          border-radius: 6px;
+          overflow: hidden;
+          border: 1px solid #cbd5e1;
+          padding: 0;
+          cursor: pointer;
+        }
+
+        .gallery-chip-btn.is-active {
+          border: 2px solid var(--forest-green);
+        }
+
+        .gallery-chip-check {
+          position: absolute;
+          bottom: 2px;
+          right: 2px;
+          background: var(--forest-green);
+          color: white;
+          border-radius: 50%;
+          width: 14px;
+          height: 14px;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          font-size: 9px;
+          font-weight: bold;
+        }
+
+        .gallery-cards-grid {
+          display: flex;
+          flex-wrap: wrap;
+          gap: 10px;
+          margin-bottom: 12px;
+        }
+
+        .gallery-card-thumb {
+          position: relative;
+          width: 100px;
+          height: 75px;
+          border-radius: 8px;
+          overflow: hidden;
+          border: 1px solid #cbd5e1;
+          background: #e2e8f0;
+        }
+
+        .gallery-card-thumb.is-cover {
+          border: 2px solid var(--forest-green);
+        }
+
+        .gallery-cover-badge {
+          position: absolute;
+          top: 4px;
+          left: 4px;
+          background: var(--forest-green);
+          color: white;
+          font-size: 0.65rem;
+          font-weight: 700;
+          padding: 2px 6px;
+          border-radius: 4px;
+          display: inline-flex;
+          align-items: center;
+          gap: 3px;
+          box-shadow: 0 2px 4px rgba(0,0,0,0.25);
+        }
+
+        .gallery-set-cover-btn {
+          position: absolute;
+          top: 4px;
+          left: 4px;
+          background: rgba(255, 255, 255, 0.92);
+          color: var(--gray-800);
+          font-size: 0.65rem;
+          font-weight: 600;
+          padding: 2px 5px;
+          border-radius: 4px;
+          border: 1px solid #cbd5e1;
+          cursor: pointer;
+          display: inline-flex;
+          align-items: center;
+          gap: 3px;
+          box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        }
+
+        .gallery-delete-btn {
+          position: absolute;
+          top: 4px;
+          right: 4px;
+          width: 20px;
+          height: 20px;
+          border-radius: 50%;
+          background: rgba(220, 38, 38, 0.9);
+          color: white;
+          border: none;
+          cursor: pointer;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          padding: 0;
+        }
+
+        .gallery-empty-state {
+          padding: 10px;
+          font-size: 0.8rem;
+          color: var(--gray-500);
+        }
+
+        .gallery-url-input-row {
+          display: flex;
+          gap: 8px;
+        }
+
+        .btn-add-url {
+          border: 1px solid var(--gray-300);
+          font-size: 0.8rem;
+          white-space: nowrap;
+        }
+
+        .specs-grid {
+          display: grid;
+          grid-template-columns: repeat(2, 1fr);
+          gap: 12px;
+        }
+
+        .spec-label {
+          color: var(--gray-600);
+          display: block;
+          margin-bottom: 3px;
+        }
+
+        .font-small {
+          font-size: 0.82rem;
+        }
+
+        .font-bold {
+          font-weight: 700;
+        }
+
+        .mb-2 {
+          margin-bottom: 8px;
+        }
+
+        .sr-only {
+          position: absolute;
+          width: 1px;
+          height: 1px;
+          padding: 0;
+          margin: -1px;
+          overflow: hidden;
+          clip: rect(0, 0, 0, 0);
+          white-space: nowrap;
+          border: 0;
         }
 
         .modal-footer {

@@ -5,19 +5,21 @@
    ============================================================ */
 
 :root {
-  /* Colors */
-  --white-broken: #F5F5F3;
-  --sand: #E2D1C3;
-  --sand-dark: #C8A882;
-  --black-matte: #1A1A1A;
-  --forest-green: #2D3A2D;
-  --forest-green-light: #3D5040;
-  --cream: #FAF8F5;
-  --gray-100: #F0EDEA;
-  --gray-200: #DDD8D2;
-  --gray-400: #9E9690;
-  --gray-600: #6B6560;
-  --gray-800: #3A3530;
+  /* Colors — Mediterráneo Botánico & Lujo Nómada */
+  --white-broken: #FBF9F5;
+  --cream: #F5EFEB;
+  --sand: #D8C7B5;
+  --sand-light: #EFE7DE;
+  --sand-dark: #C5A880;
+  --black-matte: #141715;
+  --forest-green: #18241B;
+  --forest-green-light: #253629;
+  --forest-green-accent: #3A4F3E;
+  --gray-100: #F2EDE8;
+  --gray-200: #E2DBD3;
+  --gray-400: #A19890;
+  --gray-600: #665F58;
+  --gray-800: #2E2A27;
   --error: #C0392B;
   --success: #27AE60;
   --warning: #E67E22;
@@ -48,16 +50,21 @@
   --radius-xl: 16px;
   --radius-full: 9999px;
 
-  /* Shadows - restrained depth without exaggerated blur */
-  --shadow-sm: 0 1px 3px rgba(26,26,26,0.06);
-  --shadow-md: 0 4px 12px rgba(26,26,26,0.08);
-  --shadow-lg: 0 8px 24px rgba(26,26,26,0.11);
-  --shadow-xl: 0 16px 36px rgba(26,26,26,0.14);
+  /* Shadows — Ambient diffuse luxury layering */
+  --shadow-sm: 0 1px 2px rgba(20, 24, 21, 0.04), 0 1px 4px rgba(20, 24, 21, 0.02);
+  --shadow-md: 0 4px 16px -2px rgba(20, 24, 21, 0.06), 0 2px 6px -1px rgba(20, 24, 21, 0.03);
+  --shadow-lg: 0 12px 32px -4px rgba(20, 24, 21, 0.08), 0 4px 12px -2px rgba(20, 24, 21, 0.04);
+  --shadow-xl: 0 24px 48px -8px rgba(20, 24, 21, 0.12), 0 8px 20px -4px rgba(20, 24, 21, 0.06);
+  --shadow-card: 0 2px 8px rgba(20, 24, 21, 0.03), 0 16px 32px -4px rgba(20, 24, 21, 0.05);
 
-  /* Transitions */
-  --transition-fast: 150ms ease;
-  --transition-base: 250ms ease;
-  --transition-slow: 400ms ease;
+  /* Transitions & Curves — Emil Kowalski physics */
+  --ease-spring: cubic-bezier(0.23, 1, 0.32, 1);
+  --ease-out: cubic-bezier(0.23, 1, 0.32, 1);
+  --ease-in-out: cubic-bezier(0.77, 0, 0.175, 1);
+  --ease-drawer: cubic-bezier(0.32, 0.72, 0, 1);
+  --transition-fast: 160ms var(--ease-spring);
+  --transition-base: 240ms var(--ease-spring);
+  --transition-slow: 380ms var(--ease-spring);
 
   /* Z-index */
   --z-navbar: 100;
@@ -230,19 +237,21 @@ h1, h2, h3, h4, h5, h6 {
   font-size: 0.9rem;
   font-weight: 500;
   letter-spacing: 0.02em;
-  transition: all var(--transition-base);
+  transition: transform 160ms var(--ease-spring), background-color 160ms ease, box-shadow 160ms ease, border-color 160ms ease, color 160ms ease;
   cursor: pointer;
   border: none;
   white-space: nowrap;
   position: relative;
   overflow: hidden;
+  user-select: none;
+  -webkit-user-select: none;
 }
 
 .btn::after {
   content: '';
   position: absolute;
   inset: 0;
-  background: rgba(255,255,255,0.1);
+  background: rgba(255,255,255,0.12);
   opacity: 0;
   transition: opacity var(--transition-fast);
 }
@@ -252,7 +261,12 @@ h1, h2, h3, h4, h5, h6 {
 }
 
 .btn:active {
-  transform: scale(0.98);
+  transform: scale(0.97);
+}
+
+.btn:focus-visible {
+  outline: 2px solid var(--sand-dark);
+  outline-offset: 2px;
 }
 
 .btn-primary {
@@ -265,10 +279,12 @@ h1, h2, h3, h4, h5, h6 {
 
 .btn-forest {
   background: var(--forest-green);
-  color: var(--white-broken);
+  color: #FBF9F5;
+  box-shadow: 0 2px 8px rgba(24, 36, 27, 0.12);
 }
 .btn-forest:hover {
   background: var(--forest-green-light);
+  box-shadow: 0 4px 14px rgba(24, 36, 27, 0.2);
 }
 
 .btn-sand {

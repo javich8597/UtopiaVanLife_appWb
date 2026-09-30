@@ -364,8 +364,8 @@ export default function Rotating3DShowcase() {
         }
 
         .showcase-card:hover {
-          border-color: rgba(156, 209, 166, 0.5);
-          box-shadow: 0 25px 50px rgba(0, 0, 0, 0.6), 0 0 20px rgba(156, 209, 166, 0.2);
+          border-color: rgba(197, 168, 128, 0.55);
+          box-shadow: 0 25px 50px rgba(0, 0, 0, 0.6), 0 0 24px rgba(197, 168, 128, 0.16);
         }
 
         :global(.showcase-card__link) {
@@ -410,16 +410,16 @@ export default function Rotating3DShowcase() {
           top: 14px;
           left: 14px;
           z-index: 2;
-          background: rgba(15, 20, 18, 0.7);
+          background: rgba(18, 24, 19, 0.75);
           backdrop-filter: blur(8px);
           -webkit-backdrop-filter: blur(8px);
-          border: 1px solid rgba(255, 255, 255, 0.15);
+          border: 1px solid rgba(212, 195, 179, 0.3);
           padding: 4px 10px;
           border-radius: 999px;
           font-size: 0.7rem;
           font-weight: 600;
           letter-spacing: 0.04em;
-          color: #e5ede7;
+          color: #F5EFEB;
         }
 
         .showcase-card__content {
@@ -440,8 +440,9 @@ export default function Rotating3DShowcase() {
           font-weight: 700;
           letter-spacing: 0.08em;
           text-transform: uppercase;
-          color: #9cd1a6;
-          background: rgba(45, 58, 45, 0.7);
+          color: var(--sand);
+          background: rgba(24, 36, 27, 0.85);
+          border: 1px solid rgba(212, 195, 179, 0.25);
           padding: 2px 8px;
           border-radius: 4px;
         }
@@ -472,9 +473,10 @@ export default function Rotating3DShowcase() {
           font-size: 0.7rem;
           font-weight: 600;
           color: #ffffff;
-          background: rgba(255, 255, 255, 0.15);
+          background: rgba(255, 255, 255, 0.18);
           backdrop-filter: blur(8px);
           -webkit-backdrop-filter: blur(8px);
+          border: 1px solid rgba(255, 255, 255, 0.25);
           padding: 4px 9px;
           border-radius: 999px;
           opacity: 0;

@@ -1,0 +1,958 @@
+<!DOCTYPE html>
+<html lang="es" class="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Preview Rediseño Campers | Utopia Van Life</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          colors: {
+            brand: {
+              gold: '#e6ca65',
+              darkgold: '#c9ab48',
+              obsidian: '#0b0c0e',
+              card: '#131518',
+              cardHover: '#181b20',
+              border: 'rgba(255, 255, 255, 0.08)',
+              borderHover: 'rgba(255, 255, 255, 0.16)'
+            }
+          },
+          fontFamily: {
+            sans: ['-apple-system', 'BlinkMacSystemFont', '"Plus Jakarta Sans"', 'Segoe UI', 'Roboto', 'sans-serif'],
+            serif: ['"Playfair Display"', 'Georgia', 'serif']
+          }
+        }
+      }
+    }
+  </script>
+  <style>
+    /* Custom scrollbar & smoothness */
+    ::-webkit-scrollbar { width: 6px; }
+    ::-webkit-scrollbar-track { background: #0b0c0e; }
+    ::-webkit-scrollbar-thumb { background: #262930; border-radius: 3px; }
+    ::-webkit-scrollbar-thumb:hover { background: #3a3f4a; }
+    
+    .bento-card {
+      transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.4s cubic-bezier(0.16, 1, 0.3, 1), border-color 0.4s ease;
+    }
+    .bento-card:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 20px 40px -15px rgba(0, 0, 0, 0.7);
+      border-color: rgba(230, 202, 101, 0.3);
+    }
+    .bento-img {
+      transition: transform 0.7s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    .bento-card:hover .bento-img {
+      transform: scale(1.04);
+    }
+    .glass-pill {
+      background: rgba(11, 12, 14, 0.75);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+    }
+    .accordion-content {
+      transition: max-height 0.4s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.3s ease;
+    }
+  </style>
+</head>
+<body class="bg-[#0b0c0e] text-[#f5f5f7] min-h-screen font-sans selection:bg-[#e6ca65] selection:text-black antialiased pb-32">
+
+  <!-- Header / Navigation Bar Preview -->
+  <header class="sticky top-0 z-40 bg-[#0b0c0e]/80 backdrop-blur-xl border-b border-white/5 px-6 py-4 transition-all">
+    <div class="max-w-7xl mx-auto flex items-center justify-between">
+      <div class="flex items-center gap-6">
+        <a href="/es/campers" class="flex items-center gap-3 group">
+          <div class="w-8 h-8 rounded-full bg-white/5 border border-white/10 flex items-center justify-center text-white/70 group-hover:text-white group-hover:border-white/20 transition-all">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/></svg>
+          </div>
+          <span class="text-xs uppercase tracking-[0.2em] text-white/50 group-hover:text-white/80 transition-colors">Volver a Campers</span>
+        </a>
+        <div class="hidden md:flex items-center gap-2 px-3 py-1 rounded-full bg-white/5 border border-white/10 text-[11px] text-white/60 font-mono">
+          <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span>
+          <span>39.6952° N, 3.0176° E · MALLORCA</span>
+        </div>
+      </div>
+
+      <!-- Live Model Switcher (Pill) -->
+      <div class="flex items-center bg-[#131518] p-1.5 rounded-full border border-white/10 shadow-2xl">
+        <button id="btn-neo" onclick="switchModel('neo')" class="px-5 py-2 rounded-full text-xs font-semibold tracking-wider uppercase transition-all duration-300 bg-white/10 text-white/60 hover:text-white">
+          NEO · 2 Plazas
+        </button>
+        <button id="btn-space" onclick="switchModel('space')" class="px-5 py-2 rounded-full text-xs font-semibold tracking-wider uppercase transition-all duration-300 bg-[#e6ca65] text-black shadow-lg">
+          SPACE · 4 Plazas
+        </button>
+      </div>
+
+      <div class="flex items-center gap-3">
+        <div class="hidden sm:flex flex-col text-right">
+          <span class="text-[10px] uppercase tracking-wider text-white/40">Tarifa Todo Incluido</span>
+          <span id="header-price" class="text-sm font-semibold text-[#e6ca65]">Desde 135€ / noche</span>
+        </div>
+        <button onclick="scrollToBooking()" class="px-4 py-2 rounded-full bg-white/10 hover:bg-white/20 border border-white/10 text-xs font-medium uppercase tracking-wider transition-all">
+          Reservar
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- Main Showcase Container -->
+  <main class="max-w-7xl mx-auto px-4 sm:px-6 pt-8 pb-16 space-y-16">
+
+    <!-- Top Breadcrumb & Title Header -->
+    <div class="flex flex-col md:flex-row md:items-end justify-between gap-6 border-b border-white/5 pb-8">
+      <div>
+        <div class="flex items-center gap-3 text-xs uppercase tracking-[0.25em] text-[#e6ca65] font-semibold mb-2">
+          <span id="badge-subtitle">UTOPIA VAN LIFE · COLECCIÓN EXCLUSIVA</span>
+          <span>•</span>
+          <span id="badge-spots" class="text-white/40">MÁXIMO ESPACIO & CONFORT</span>
+        </div>
+        <h1 id="camper-title" class="text-4xl sm:text-6xl font-extrabold tracking-tight text-white uppercase">
+          SPACE
+        </h1>
+        <p id="camper-tagline" class="text-lg sm:text-xl text-white/60 mt-2 max-w-2xl font-light">
+          Salón panorámico de 7m², cama elevable motorizada y distribución open concept.
+        </p>
+      </div>
+
+      <div class="flex flex-wrap items-center gap-3">
+        <div class="glass-pill px-4 py-2 rounded-2xl flex items-center gap-2.5">
+          <svg class="w-4 h-4 text-[#e6ca65]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"/></svg>
+          <span id="spec-passengers" class="text-xs font-medium text-white/90">4 Viaje / 4 Descanso</span>
+        </div>
+        <div class="glass-pill px-4 py-2 rounded-2xl flex items-center gap-2.5">
+          <svg class="w-4 h-4 text-[#e6ca65]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/></svg>
+          <span id="spec-bed" class="text-xs font-medium text-white/90">Cama Eléctrica King Size</span>
+        </div>
+        <div class="glass-pill px-4 py-2 rounded-2xl flex items-center gap-2.5">
+          <svg class="w-4 h-4 text-[#e6ca65]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z"/></svg>
+          <span id="spec-shower" class="text-xs font-medium text-white/90">Ducha Interior Caliente + WC</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- SECTION 1: Asymmetric Bento Grid Gallery (Matches User Photo 2) -->
+    <section>
+      <div class="flex items-center justify-between mb-4">
+        <div class="flex items-center gap-2">
+          <span class="w-2 h-2 rounded-full bg-[#e6ca65]"></span>
+          <h2 class="text-sm uppercase tracking-[0.2em] font-semibold text-white/70">Galería de Arquitectura & Espacio</h2>
+        </div>
+        <button onclick="openLightbox(0)" class="text-xs text-[#e6ca65] hover:underline flex items-center gap-1.5 font-medium">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 8V4m0 0h4M4 4l5 5m11-1V4m0 0h-4m4 0l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5l-5-5m5 5v-4m0 4h-4"/></svg>
+          Ver pantalla completa (Lightbox)
+        </button>
+      </div>
+
+      <!-- Bento Grid (5-6 Elements layout matching user reference) -->
+      <div id="bento-grid" class="grid grid-cols-1 md:grid-cols-12 gap-4 h-auto md:h-[620px]">
+        <!-- Card 1: Main Large Feature (Cols 1-7, Rows 1-7) -->
+        <div onclick="openLightbox(0)" class="bento-card md:col-span-7 md:row-span-7 bg-[#131518] rounded-3xl border border-white/10 overflow-hidden relative group cursor-pointer h-72 md:h-auto">
+          <img id="bento-img-0" src="../images/campers/space/exterior/space-vehicle-hero-lanzarote.webp" alt="Space Scenic" class="bento-img w-full h-full object-cover">
+          <div class="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent"></div>
+          <div class="absolute bottom-5 left-5 right-5 flex items-center justify-between">
+            <span id="bento-tag-0" class="glass-pill px-3.5 py-1.5 rounded-full text-xs text-white/90 font-medium">
+              Exterior SPACE en tres cuartos frente a la costa
+            </span>
+            <div class="w-8 h-8 rounded-full bg-white/10 backdrop-blur-md border border-white/20 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+              <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0zM10 7v3m0 0v3m0-3h3m-3 0H7"/></svg>
+            </div>
+          </div>
+        </div>
+
+        <!-- Card 2: Top Right (Cols 8-12, Rows 1-4) -->
+        <div onclick="openLightbox(1)" class="bento-card md:col-span-5 md:row-span-4 bg-[#131518] rounded-3xl border border-white/10 overflow-hidden relative group cursor-pointer h-56 md:h-auto">
+          <img id="bento-img-1" src="../images/campers/space/interior/space-dining-lounge-frontview.jpg" alt="Salón Comedor" class="bento-img w-full h-full object-cover">
+          <div class="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent"></div>
+          <div class="absolute bottom-4 left-4 right-4 flex items-center justify-between">
+            <span id="bento-tag-1" class="glass-pill px-3 py-1 rounded-full text-[11px] text-white/90 font-medium">
+              Salón comedor para 4 con luz natural
+            </span>
+          </div>
+        </div>
+
+        <!-- Card 3: Mid Right (Cols 8-12, Rows 5-7) -->
+        <div onclick="openLightbox(2)" class="bento-card md:col-span-5 md:row-span-3 bg-[#131518] rounded-3xl border border-white/10 overflow-hidden relative group cursor-pointer h-48 md:h-auto">
+          <img id="bento-img-2" src="../images/campers/space/interior/space-electric-drop-down-bed.jpg" alt="Cama elevable" class="bento-img w-full h-full object-cover">
+          <div class="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent"></div>
+          <div class="absolute bottom-4 left-4 right-4 flex items-center justify-between">
+            <span id="bento-tag-2" class="glass-pill px-3 py-1 rounded-full text-[11px] text-white/90 font-medium">
+              Cama eléctrica suspendida en techo
+            </span>
+          </div>
+        </div>
+
+        <!-- Card 4: Bottom Left Wide (Cols 1-5, Rows 8-12) -->
+        <div onclick="openLightbox(3)" class="bento-card md:col-span-5 md:row-span-5 bg-[#131518] rounded-3xl border border-white/10 overflow-hidden relative group cursor-pointer h-56 md:h-auto">
+          <img id="bento-img-3" src="../images/campers/space/interior/space-cinema-projector-lounge.jpg" alt="Cine Proyector" class="bento-img w-full h-full object-cover">
+          <div class="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent"></div>
+          <div class="absolute bottom-4 left-4 right-4 flex items-center justify-between">
+            <span id="bento-tag-3" class="glass-pill px-3 py-1 rounded-full text-[11px] text-white/90 font-medium">
+              Cine con pantalla motorizada y proyector HD
+            </span>
+          </div>
+        </div>
+
+        <!-- Card 5: Bottom Center (Cols 6-8, Rows 8-12) -->
+        <div onclick="openLightbox(4)" class="bento-card md:col-span-3 md:row-span-5 bg-[#131518] rounded-3xl border border-white/10 overflow-hidden relative group cursor-pointer h-56 md:h-auto">
+          <img id="bento-img-4" src="../images/campers/space/interior/space-kitchen-counter-cabin.jpg" alt="Cocina nórdica" class="bento-img w-full h-full object-cover">
+          <div class="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent"></div>
+          <div class="absolute bottom-4 left-4 right-4 flex items-center justify-between">
+            <span id="bento-tag-4" class="glass-pill px-3 py-1 rounded-full text-[11px] text-white/90 font-medium">
+              Cocina nórdica & fuegos gas
+            </span>
+          </div>
+        </div>
+
+        <!-- Card 6: Bottom Right Tall (Cols 9-12, Rows 8-12) -->
+        <div onclick="openLightbox(5)" class="bento-card md:col-span-4 md:row-span-5 bg-[#131518] rounded-3xl border border-white/10 overflow-hidden relative group cursor-pointer h-56 md:h-auto">
+          <img id="bento-img-5" src="../images/campers/space/interior/space-bathroom-shower.webp" alt="Baño cabina ducha" class="bento-img w-full h-full object-cover">
+          <div class="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent"></div>
+          <div class="absolute bottom-4 left-4 right-4 flex items-center justify-between">
+            <span id="bento-tag-5" class="glass-pill px-3 py-1 rounded-full text-[11px] text-white/90 font-medium">
+              Cabina de ducha interior de agua caliente
+            </span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- SECTION 2: Editorial 3-Pillars (Matches User Photo 1) -->
+    <section class="space-y-6">
+      <div class="flex items-center gap-2">
+        <span class="w-2 h-2 rounded-full bg-[#e6ca65]"></span>
+        <h2 class="text-sm uppercase tracking-[0.2em] font-semibold text-white/70">Diseño & Confort Nómada</h2>
+      </div>
+
+      <!-- Hero Banner Pillar (Photo 1 Top Card) -->
+      <div class="bento-card relative rounded-3xl overflow-hidden border border-white/10 bg-[#131518] h-80 sm:h-96">
+        <img id="pillar-hero-img" src="../images/campers/space/interior/space-lounge-spacious-daylight.jpg" alt="Pillar Hero" class="bento-img w-full h-full object-cover">
+        <div class="absolute inset-0 bg-gradient-to-r from-black/90 via-black/50 to-transparent"></div>
+        <div class="absolute inset-0 flex flex-col justify-end p-8 sm:p-12 max-w-2xl">
+          <span id="pillar-hero-badge" class="text-xs uppercase tracking-[0.3em] font-bold text-[#e6ca65] mb-2 font-mono">
+            02 · SPACE
+          </span>
+          <h3 id="pillar-hero-title" class="text-2xl sm:text-4xl font-extrabold text-white leading-tight">
+            Salón panorámico, cama elevable y vida interior amplia.
+          </h3>
+          <p id="pillar-hero-desc" class="text-sm sm:text-base text-white/70 mt-3 font-light leading-relaxed">
+            Diseñada para nómadas que priorizan el espacio habitable interior. En solo 5,99 metros de longitud, ofrece la sensación de amplitud de una suite de diseño.
+          </p>
+        </div>
+      </div>
+
+      <!-- 3 Columns Below (Photo 1 Bottom Cards: 01 Arquitectura, 02 Materiales, 03 Experiencia) -->
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <!-- 01 Arquitectura -->
+        <div class="bento-card bg-[#131518] rounded-3xl border border-white/10 overflow-hidden flex flex-col group">
+          <div class="h-52 overflow-hidden relative">
+            <img id="pillar-card-img-1" src="../images/campers/space/interior/space-dining-lounge-frontview.jpg" alt="Arquitectura" class="bento-img w-full h-full object-cover">
+            <div class="absolute top-4 left-4">
+              <span class="glass-pill px-3 py-1 rounded-full text-[10px] font-mono tracking-widest uppercase text-[#e6ca65]">
+                01 · ARQUITECTURA
+              </span>
+            </div>
+          </div>
+          <div class="p-6 flex-1 flex flex-col justify-between">
+            <div>
+              <h4 id="pillar-card-title-1" class="text-lg font-bold text-white mb-2">Open Concept & Cama Elevable</h4>
+              <p id="pillar-card-desc-1" class="text-xs text-white/60 leading-relaxed">
+                Sin necesidad de montar ni desmontar tu cama a diario. Con un botón desciende silenciosamente desde el techo, dejando libre un salón diáfano durante el día.
+              </p>
+            </div>
+            <div class="mt-4 pt-4 border-t border-white/5 flex items-center justify-between text-[11px] text-white/40">
+              <span>Altura interior: 1.95m</span>
+              <span class="text-[#e6ca65]">Optimizado 100%</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- 02 Materiales -->
+        <div class="bento-card bg-[#131518] rounded-3xl border border-white/10 overflow-hidden flex flex-col group">
+          <div class="h-52 overflow-hidden relative">
+            <img id="pillar-card-img-2" src="../images/campers/space/interior/space-kitchen-counter-cabin.jpg" alt="Materiales" class="bento-img w-full h-full object-cover">
+            <div class="absolute top-4 left-4">
+              <span class="glass-pill px-3 py-1 rounded-full text-[10px] font-mono tracking-widest uppercase text-[#e6ca65]">
+                02 · MATERIALES
+              </span>
+            </div>
+          </div>
+          <div class="p-6 flex-1 flex flex-col justify-between">
+            <div>
+              <h4 id="pillar-card-title-2" class="text-lg font-bold text-white mb-2">Madera Nórdica & Texturas Soft</h4>
+              <p id="pillar-card-desc-2" class="text-xs text-white/60 leading-relaxed">
+                Superficies táctiles de abedul fenólico con tratamiento antibacteriano, tapicería resistente al agua de mar y bisagras con cierre amortiguado en cada armario.
+              </p>
+            </div>
+            <div class="mt-4 pt-4 border-t border-white/5 flex items-center justify-between text-[11px] text-white/40">
+              <span>Aislamiento Kaiflex 20mm</span>
+              <span class="text-[#e6ca65]">Tacto acústico</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- 03 Experiencia -->
+        <div class="bento-card bg-[#131518] rounded-3xl border border-white/10 overflow-hidden flex flex-col group">
+          <div class="h-52 overflow-hidden relative">
+            <img id="pillar-card-img-3" src="../images/campers/space/interior/space-cinema-projector-lounge.jpg" alt="Experiencia" class="bento-img w-full h-full object-cover">
+            <div class="absolute top-4 left-4">
+              <span class="glass-pill px-3 py-1 rounded-full text-[10px] font-mono tracking-widest uppercase text-[#e6ca65]">
+                03 · EXPERIENCIA
+              </span>
+            </div>
+          </div>
+          <div class="p-6 flex-1 flex flex-col justify-between">
+            <div>
+              <h4 id="pillar-card-title-3" class="text-lg font-bold text-white mb-2">Cine Nómada & Conexión Total</h4>
+              <p id="pillar-card-desc-3" class="text-xs text-white/60 leading-relaxed">
+                Disfruta de tus películas favoritas en una pantalla desplegable de 50" con proyector de alta definición y sistema de sonido envolvente bajo las estrellas de Tramuntana.
+              </p>
+            </div>
+            <div class="mt-4 pt-4 border-t border-white/5 flex items-center justify-between text-[11px] text-white/40">
+              <span>Proyector HD + HDMI</span>
+              <span class="text-[#e6ca65]">Atmósfera única</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- SECTION 3: Micro-Video Tour Interactive Showcase -->
+    <section class="space-y-6">
+      <div class="flex items-center justify-between">
+        <div class="flex items-center gap-2">
+          <span class="w-2 h-2 rounded-full bg-[#e6ca65]"></span>
+          <h2 class="text-sm uppercase tracking-[0.2em] font-semibold text-white/70">Video Tours Interactivos</h2>
+        </div>
+        <span class="text-xs text-white/40">Haz clic para reproducir los clips de detalle</span>
+      </div>
+
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <!-- Video 1 -->
+        <div class="bento-card bg-[#131518] rounded-3xl border border-white/10 overflow-hidden relative group">
+          <div class="relative h-60 bg-black flex items-center justify-center">
+            <video id="video-tour-1" src="../videos/campers/space/space-complete-tour.mp4" controls preload="metadata" class="w-full h-full object-cover"></video>
+            <div class="absolute top-4 left-4 pointer-events-none">
+              <span class="glass-pill px-3 py-1 rounded-full text-[10px] font-mono uppercase text-white/90">
+                Tour Completo
+              </span>
+            </div>
+          </div>
+          <div class="p-5">
+            <h4 id="video-tour-title-1" class="text-sm font-semibold text-white">Recorrido por el habitáculo SPACE</h4>
+            <p class="text-xs text-white/50 mt-1">Conoce en 45 segundos la fluidez de paso y luminosidad interior.</p>
+          </div>
+        </div>
+
+        <!-- Video 2 -->
+        <div class="bento-card bg-[#131518] rounded-3xl border border-white/10 overflow-hidden relative group">
+          <div class="relative h-60 bg-black flex items-center justify-center">
+            <video id="video-tour-2" src="../videos/campers/space/space-kitchen-counter-tour.mp4" controls preload="metadata" class="w-full h-full object-cover"></video>
+            <div class="absolute top-4 left-4 pointer-events-none">
+              <span class="glass-pill px-3 py-1 rounded-full text-[10px] font-mono uppercase text-white/90">
+                Cocina & Almacenaje
+              </span>
+            </div>
+          </div>
+          <div class="p-5">
+            <h4 id="video-tour-title-2" class="text-sm font-semibold text-white">Detalle de cocina y muebles soft-close</h4>
+            <p class="text-xs text-white/50 mt-1">Organización inteligente de menaje y cajoneras de alta resistencia.</p>
+          </div>
+        </div>
+
+        <!-- Video 3 -->
+        <div class="bento-card bg-[#131518] rounded-3xl border border-white/10 overflow-hidden relative group">
+          <div class="relative h-60 bg-black flex items-center justify-center">
+            <video id="video-tour-3" src="../videos/campers/space/space-shower-cabin-tour.mp4" controls preload="metadata" class="w-full h-full object-cover"></video>
+            <div class="absolute top-4 left-4 pointer-events-none">
+              <span class="glass-pill px-3 py-1 rounded-full text-[10px] font-mono uppercase text-white/90">
+                Cabina de Ducha
+              </span>
+            </div>
+          </div>
+          <div class="p-5">
+            <h4 id="video-tour-title-3" class="text-sm font-semibold text-white">Espacio de baño independiente</h4>
+            <p class="text-xs text-white/50 mt-1">Mampara retráctil estanca, espejo retroiluminado y agua caliente instantánea.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- SECTION 4: Interactive Accordions (Desplegables fluidos y elegantes) -->
+    <section class="space-y-6">
+      <div class="flex items-center justify-between border-b border-white/5 pb-4">
+        <div>
+          <div class="flex items-center gap-2">
+            <span class="w-2 h-2 rounded-full bg-[#e6ca65]"></span>
+            <h2 class="text-sm uppercase tracking-[0.2em] font-semibold text-white/70">Especificaciones & Confort Nómada</h2>
+          </div>
+          <p class="text-xs text-white/40 mt-1">Toda la información técnica sin saturar la pantalla. Despliega lo que quieras conocer.</p>
+        </div>
+        <button onclick="toggleAllAccordions()" class="text-xs text-[#e6ca65] hover:underline font-medium">
+          Expandir / Colapsar todo
+        </button>
+      </div>
+
+      <div class="space-y-3">
+        <!-- Accordion 1: Electricidad & Autonomía -->
+        <div class="bg-[#131518] rounded-2xl border border-white/10 overflow-hidden transition-colors hover:border-white/20">
+          <button onclick="toggleAccordion('acc-1')" class="w-full px-6 py-5 flex items-center justify-between text-left">
+            <div class="flex items-center gap-4">
+              <div class="w-10 h-10 rounded-xl bg-amber-500/10 border border-amber-500/20 flex items-center justify-center text-[#e6ca65]">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
+              </div>
+              <div>
+                <h3 class="text-base font-semibold text-white">Autonomía Eléctrica & Energía Solar Off-Grid</h3>
+                <p class="text-xs text-white/50">Batería LiFePO4, placas solares monocristalinas e inversor Victron</p>
+              </div>
+            </div>
+            <div class="flex items-center gap-3">
+              <span class="hidden sm:inline text-xs text-white/40">100% Autosuficiente</span>
+              <svg id="acc-icon-acc-1" class="w-5 h-5 text-white/60 transition-transform duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+            </div>
+          </button>
+          <div id="acc-1" class="accordion-content hidden px-6 pb-6 pt-2 border-t border-white/5">
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 text-xs text-white/70">
+              <div class="p-4 rounded-xl bg-white/5 border border-white/5">
+                <span class="text-white/40 uppercase tracking-wider text-[10px] block mb-1">Capacidad Batería</span>
+                <span class="text-sm font-semibold text-white">Litio LiFePO4 150Ah</span>
+                <p class="mt-1 text-white/50">Hasta 4-5 días de autonomía sin arrancar motor ni conectar a camping.</p>
+              </div>
+              <div class="p-4 rounded-xl bg-white/5 border border-white/5">
+                <span class="text-white/40 uppercase tracking-wider text-[10px] block mb-1">Generación Solar</span>
+                <span class="text-sm font-semibold text-white">Placa Solar 320W</span>
+                <p class="mt-1 text-white/50">Regulador MPPT Victron SmartSolar con monitoreo Bluetooth desde tu móvil.</p>
+              </div>
+              <div class="p-4 rounded-xl bg-white/5 border border-white/5">
+                <span class="text-white/40 uppercase tracking-wider text-[10px] block mb-1">Inversor 220V</span>
+                <span class="text-sm font-semibold text-white">Onda Pura 1200W</span>
+                <p class="mt-1 text-white/50">Carga portátil, dron, cámara réflex o cafetera sin dañar ningún dispositivo.</p>
+              </div>
+              <div class="p-4 rounded-xl bg-white/5 border border-white/5">
+                <span class="text-white/40 uppercase tracking-wider text-[10px] block mb-1">Conectores Habitáculo</span>
+                <span class="text-sm font-semibold text-white">4x USB-C PD 65W + 3x 220V</span>
+                <p class="mt-1 text-white/50">Tomas situadas en cabecero de cama, salón y zona de trabajo nómada.</p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Accordion 2: Agua, Ducha & Sanitario -->
+        <div class="bg-[#131518] rounded-2xl border border-white/10 overflow-hidden transition-colors hover:border-white/20">
+          <button onclick="toggleAccordion('acc-2')" class="w-full px-6 py-5 flex items-center justify-between text-left">
+            <div class="flex items-center gap-4">
+              <div class="w-10 h-10 rounded-xl bg-cyan-500/10 border border-cyan-500/20 flex items-center justify-center text-cyan-400">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z"/></svg>
+              </div>
+              <div>
+                <h3 class="text-base font-semibold text-white">Agua, Baño & Ducha Interior con Agua Caliente</h3>
+                <p class="text-xs text-white/50">Depósito de 100L limpias, caldera Truma Combi y WC extraíble Dometic</p>
+              </div>
+            </div>
+            <div class="flex items-center gap-3">
+              <span class="hidden sm:inline text-xs text-white/40">Ducha Interior & Exterior</span>
+              <svg id="acc-icon-acc-2" class="w-5 h-5 text-white/60 transition-transform duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+            </div>
+          </button>
+          <div id="acc-2" class="accordion-content hidden px-6 pb-6 pt-2 border-t border-white/5">
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 text-xs text-white/70">
+              <div class="p-4 rounded-xl bg-white/5 border border-white/5">
+                <span class="text-white/40 uppercase tracking-wider text-[10px] block mb-1">Aguas Limpias</span>
+                <span class="text-sm font-semibold text-white">100 Litros</span>
+                <p class="mt-1 text-white/50">Llenado exterior con llave, manguera extensible incluida y sensor de nivel porcentual.</p>
+              </div>
+              <div class="p-4 rounded-xl bg-white/5 border border-white/5">
+                <span class="text-white/40 uppercase tracking-wider text-[10px] block mb-1">Aguas Grises</span>
+                <span class="text-sm font-semibold text-white">90 Litros con Válvula Eléctrica</span>
+                <p class="mt-1 text-white/50">Descarga sencilla y limpia accionada desde el interior o el arcón técnico.</p>
+              </div>
+              <div class="p-4 rounded-xl bg-white/5 border border-white/5">
+                <span class="text-white/40 uppercase tracking-wider text-[10px] block mb-1">Boiler de Agua Caliente</span>
+                <span class="text-sm font-semibold text-white">Truma Combi 4 (10 Litros a 60°C)</span>
+                <p class="mt-1 text-white/50">Agua caliente lista en 15 minutos tanto para la ducha interior como para la exterior.</p>
+              </div>
+              <div class="p-4 rounded-xl bg-white/5 border border-white/5">
+                <span class="text-white/40 uppercase tracking-wider text-[10px] block mb-1">Inodoro Químico</span>
+                <span class="text-sm font-semibold text-white">Dometic 976 con Tanque 19L</span>
+                <p class="mt-1 text-white/50">Completamente higiénico, sellado hermético y pastillas ecológicas incluidas.</p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Accordion 3: Climatización & Aislamiento -->
+        <div class="bg-[#131518] rounded-2xl border border-white/10 overflow-hidden transition-colors hover:border-white/20">
+          <button onclick="toggleAccordion('acc-3')" class="w-full px-6 py-5 flex items-center justify-between text-left">
+            <div class="flex items-center gap-4">
+              <div class="w-10 h-10 rounded-xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center text-emerald-400">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"/></svg>
+              </div>
+              <div>
+                <h3 class="text-base font-semibold text-white">Climatización & Aislamiento Cuatro Estaciones</h3>
+                <p class="text-xs text-white/50">Calefacción diésel estacionaria Webasto y claraboya MaxxFan Deluxe con mando</p>
+              </div>
+            </div>
+            <div class="flex items-center gap-3">
+              <span class="hidden sm:inline text-xs text-white/40">Confort 365 días</span>
+              <svg id="acc-icon-acc-3" class="w-5 h-5 text-white/60 transition-transform duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+            </div>
+          </button>
+          <div id="acc-3" class="accordion-content hidden px-6 pb-6 pt-2 border-t border-white/5">
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 text-xs text-white/70">
+              <div class="p-4 rounded-xl bg-white/5 border border-white/5">
+                <span class="text-white/40 uppercase tracking-wider text-[10px] block mb-1">Calefacción Estacionaria</span>
+                <span class="text-sm font-semibold text-white">Webasto Air Top 2000 STC</span>
+                <p class="mt-1 text-white/50">Conexión directa al depósito de combustible diésel. Termostato digital de precisión.</p>
+              </div>
+              <div class="p-4 rounded-xl bg-white/5 border border-white/5">
+                <span class="text-white/40 uppercase tracking-wider text-[10px] block mb-1">Ventilación Techo</span>
+                <span class="text-sm font-semibold text-white">MaxxFan Deluxe 10 Velocidades</span>
+                <p class="mt-1 text-white/50">Permite ventilación incluso lloviendo gracias a su cúpula protectora patentada.</p>
+              </div>
+              <div class="p-4 rounded-xl bg-white/5 border border-white/5">
+                <span class="text-white/40 uppercase tracking-wider text-[10px] block mb-1">Aislamiento Térmico</span>
+                <span class="text-sm font-semibold text-white">Kaiflex Elastómero 20mm</span>
+                <p class="mt-1 text-white/50">Cero puentes térmicos en chasis, suelo y techo para evitar condensación interior.</p>
+              </div>
+              <div class="p-4 rounded-xl bg-white/5 border border-white/5">
+                <span class="text-white/40 uppercase tracking-wider text-[10px] block mb-1">Mosquiteras & Oscurecedores</span>
+                <span class="text-sm font-semibold text-white">Remis Integrados en Cabina</span>
+                <p class="mt-1 text-white/50">Oscuridad y privacidad total en 10 segundos sin ventosas ni cortinas incómodas.</p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Accordion 4: Equipamiento Incluido & Sin Coste -->
+        <div class="bg-[#131518] rounded-2xl border border-white/10 overflow-hidden transition-colors hover:border-white/20">
+          <button onclick="toggleAccordion('acc-4')" class="w-full px-6 py-5 flex items-center justify-between text-left">
+            <div class="flex items-center gap-4">
+              <div class="w-10 h-10 rounded-xl bg-purple-500/10 border border-purple-500/20 flex items-center justify-center text-purple-400">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 8h14M5 8a2 2 0 110-4h14a2 2 0 110 4M5 8v10a2 2 0 002 2h10a2 2 0 002-2V8m-9 4h4"/></svg>
+              </div>
+              <div>
+                <h3 class="text-base font-semibold text-white">Equipamiento Premium Incluido Sin Coste Oculto</h3>
+                <p class="text-xs text-white/50">Menaje completo de cocina, sillas nómadas de exterior, mesa de picnic y ropa de cama</p>
+              </div>
+            </div>
+            <div class="flex items-center gap-3">
+              <span class="hidden sm:inline text-xs text-white/40">Listo para viajar</span>
+              <svg id="acc-icon-acc-4" class="w-5 h-5 text-white/60 transition-transform duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+            </div>
+          </button>
+          <div id="acc-4" class="accordion-content hidden px-6 pb-6 pt-2 border-t border-white/5">
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 text-xs text-white/70">
+              <div class="p-4 rounded-xl bg-white/5 border border-white/5">
+                <span class="text-white/40 uppercase tracking-wider text-[10px] block mb-1">Mobiliario Exterior</span>
+                <span class="text-sm font-semibold text-white">Mesa de camping + Sillas ergonómicas</span>
+                <p class="mt-1 text-white/50">Mesa enrollable de aluminio ligero y sillas plegables con respaldo alto.</p>
+              </div>
+              <div class="p-4 rounded-xl bg-white/5 border border-white/5">
+                <span class="text-white/40 uppercase tracking-wider text-[10px] block mb-1">Menaje Nómada Gourmet</span>
+                <span class="text-sm font-semibold text-white">Batería de cocina completa + Cafetera Italiana</span>
+                <p class="mt-1 text-white/50">Sartenes antiadherentes, vajilla de melamina irrompible, copas y cuchillos de chef.</p>
+              </div>
+              <div class="p-4 rounded-xl bg-white/5 border border-white/5">
+                <span class="text-white/40 uppercase tracking-wider text-[10px] block mb-1">Kit de Descanso & Baño</span>
+                <span class="text-sm font-semibold text-white">Ropa de cama 100% Algodón + Toallas de baño</span>
+                <p class="mt-1 text-white/50">Almohadas viscoelásticas, edredón nórdico transpirable y toallas de microfibra de secado rápido.</p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Accordion 5: Seguro, Fianza & Asistencia 24h -->
+        <div class="bg-[#131518] rounded-2xl border border-white/10 overflow-hidden transition-colors hover:border-white/20">
+          <button onclick="toggleAccordion('acc-5')" class="w-full px-6 py-5 flex items-center justify-between text-left">
+            <div class="flex items-center gap-4">
+              <div class="w-10 h-10 rounded-xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center text-emerald-400">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/></svg>
+              </div>
+              <div>
+                <h3 class="text-base font-semibold text-white">Seguro Todo Riesgo, Asistencia 24/7 en Mallorca & Fianza</h3>
+                <p class="text-xs text-white/50">Tranquilidad absoluta para descubrir la isla sin imprevistos</p>
+              </div>
+            </div>
+            <div class="flex items-center gap-3">
+              <span class="hidden sm:inline text-xs text-white/40">Kilometraje Ilimitado</span>
+              <svg id="acc-icon-acc-5" class="w-5 h-5 text-white/60 transition-transform duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+            </div>
+          </button>
+          <div id="acc-5" class="accordion-content hidden px-6 pb-6 pt-2 border-t border-white/5">
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 text-xs text-white/70">
+              <div class="p-4 rounded-xl bg-white/5 border border-white/5">
+                <span class="text-white/40 uppercase tracking-wider text-[10px] block mb-1">Seguro a Todo Riesgo</span>
+                <span class="text-sm font-semibold text-white">Franquicia de 800€ (Bloqueo en tarjeta)</span>
+                <p class="mt-1 text-white/50">No es un cobro, solo una retención de autorización liberada al revisar el vehículo.</p>
+              </div>
+              <div class="p-4 rounded-xl bg-white/5 border border-white/5">
+                <span class="text-white/40 uppercase tracking-wider text-[10px] block mb-1">Asistencia en Carretera</span>
+                <span class="text-sm font-semibold text-white">24 horas / 365 días en toda Mallorca</span>
+                <p class="mt-1 text-white/50">Vehículo de sustitución o remolque inmediato ante cualquier pinchazo o imprevisto.</p>
+              </div>
+              <div class="p-4 rounded-xl bg-white/5 border border-white/5">
+                <span class="text-white/40 uppercase tracking-wider text-[10px] block mb-1">Kilometraje Ilimitado</span>
+                <span class="text-sm font-semibold text-white">0€ por kilómetro extra</span>
+                <p class="mt-1 text-white/50">Recorre calas del norte, la Sierra de Tramuntana o el sureste con total libertad.</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- Sticky Bottom Floating Booking Bar (Responsive & Safe-Area Aware) -->
+  <aside id="sticky-booking-bar" class="fixed bottom-0 inset-x-0 z-40 bg-[#131518]/90 backdrop-blur-xl border-t border-white/10 px-4 sm:px-8 py-3.5 shadow-2xl transition-transform duration-300">
+    <div class="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-4">
+      <div class="flex items-center gap-5 w-full sm:w-auto justify-between sm:justify-start">
+        <div class="flex flex-col">
+          <div class="flex items-baseline gap-2">
+            <span id="bottom-price" class="text-2xl font-black text-[#e6ca65]">135€</span>
+            <span class="text-xs text-white/50 font-normal">/ noche</span>
+          </div>
+          <span class="text-[11px] text-white/40 flex items-center gap-1.5">
+            <span class="w-1.5 h-1.5 rounded-full bg-emerald-400"></span>
+            Cancelación flexible hasta 14 días antes
+          </span>
+        </div>
+
+        <div class="hidden md:flex items-center gap-3 border-l border-white/10 pl-5 text-xs text-white/60">
+          <div class="flex items-center gap-1">
+            <svg class="w-4 h-4 text-[#e6ca65]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+            <span>Seguro Todo Riesgo</span>
+          </div>
+          <div class="flex items-center gap-1">
+            <svg class="w-4 h-4 text-[#e6ca65]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+            <span>Km Ilimitados</span>
+          </div>
+          <div class="flex items-center gap-1">
+            <svg class="w-4 h-4 text-[#e6ca65]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+            <span>Asistencia 24h</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="flex items-center gap-3 w-full sm:w-auto">
+        <div class="hidden lg:flex items-center gap-2 px-3 py-2 rounded-xl bg-white/5 border border-white/10 text-xs text-white/70">
+          <svg class="w-4 h-4 text-[#e6ca65]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
+          <span>Mínimo 3 noches</span>
+        </div>
+        <button onclick="triggerBookingFlow()" class="flex-1 sm:flex-none px-8 py-3.5 rounded-full bg-[#e6ca65] hover:bg-[#d4af37] text-black font-bold text-xs uppercase tracking-wider transition-all duration-300 shadow-lg shadow-[#e6ca65]/20 flex items-center justify-center gap-2">
+          <span>Reservar esta Camper</span>
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"/></svg>
+        </button>
+      </div>
+    </div>
+  </aside>
+
+  <!-- Fullscreen Cinematic Lightbox Modal -->
+  <div id="lightbox-modal" class="fixed inset-0 z-50 bg-black/95 backdrop-blur-2xl hidden flex flex-col justify-between p-4 sm:p-8 opacity-0 transition-opacity duration-300">
+    <!-- Top Bar -->
+    <div class="flex items-center justify-between z-10">
+      <div class="flex items-center gap-3">
+        <span id="lb-counter" class="text-xs font-mono text-[#e6ca65] tracking-widest uppercase">1 / 6</span>
+        <span class="text-white/20">|</span>
+        <span id="lb-caption" class="text-xs text-white/80 font-medium">Exterior SPACE</span>
+      </div>
+      <button onclick="closeLightbox()" class="w-10 h-10 rounded-full bg-white/10 hover:bg-white/20 border border-white/20 flex items-center justify-center text-white transition-colors">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+      </button>
+    </div>
+
+    <!-- Center Stage with Prev / Next -->
+    <div class="relative flex-1 flex items-center justify-center py-4 overflow-hidden">
+      <button onclick="prevLightbox()" class="absolute left-2 sm:left-6 z-10 w-12 h-12 rounded-full bg-white/10 hover:bg-white/25 backdrop-blur-md border border-white/20 flex items-center justify-center text-white transition-all">
+        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/></svg>
+      </button>
+
+      <div class="max-w-5xl max-h-[75vh] flex items-center justify-center rounded-2xl overflow-hidden border border-white/10 shadow-2xl">
+        <img id="lb-main-image" src="" alt="Lightbox View" class="max-h-[75vh] w-auto max-w-full object-contain transition-all duration-300">
+      </div>
+
+      <button onclick="nextLightbox()" class="absolute right-2 sm:right-6 z-10 w-12 h-12 rounded-full bg-white/10 hover:bg-white/25 backdrop-blur-md border border-white/20 flex items-center justify-center text-white transition-all">
+        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
+      </button>
+    </div>
+
+    <!-- Bottom Thumbnail Strip -->
+    <div id="lb-thumbnails" class="flex items-center justify-center gap-2 overflow-x-auto py-2 z-10">
+      <!-- Generated via JS -->
+    </div>
+  </div>
+
+  <!-- Interactive JavaScript State Controller -->
+  <script>
+    // Camper Data Catalog
+    const camperCatalog = {
+      space: {
+        title: "SPACE",
+        tagline: "Salón panorámico de 7m², cama elevable motorizada y distribución open concept.",
+        badgeSubtitle: "UTOPIA VAN LIFE · COLECCIÓN EXCLUSIVA",
+        badgeSpots: "MÁXIMO ESPACIO & CONFORT",
+        headerPrice: "Desde 135€ / noche",
+        bottomPrice: "135€",
+        specs: {
+          passengers: "4 Viaje / 4 Descanso",
+          bed: "Cama Eléctrica King Size",
+          shower: "Ducha Interior Caliente + WC"
+        },
+        bentoImages: [
+          { src: "../images/campers/space/exterior/space-vehicle-scenic-coast.jpg", tag: "Exterior SPACE frente a la costa mallorquina" },
+          { src: "../images/campers/space/interior/space-dining-lounge-frontview.jpg", tag: "Salón comedor para 4 con luz natural" },
+          { src: "../images/campers/space/interior/space-electric-drop-down-bed.jpg", tag: "Cama eléctrica suspendida en techo" },
+          { src: "../images/campers/space/interior/space-cinema-projector-lounge.jpg", tag: "Cine con pantalla motorizada y proyector HD" },
+          { src: "../images/campers/space/interior/space-kitchen-counter-cabin.jpg", tag: "Cocina nórdica & fuegos gas" },
+          { src: "../images/campers/space/interior/space-bathroom-shower.webp", tag: "Cabina de ducha interior de agua caliente" }
+        ],
+        pillars: {
+          heroBadge: "02 · SPACE",
+          heroTitle: "Salón panorámico, cama elevable y vida interior amplia.",
+          heroDesc: "Diseñada para nómadas que priorizan el espacio habitable interior. En solo 5,99 metros de longitud, ofrece la sensación de amplitud de una suite de diseño.",
+          heroImg: "../images/campers/space/interior/space-lounge-spacious-daylight.jpg",
+          card1: {
+            title: "Open Concept & Cama Elevable",
+            desc: "Sin necesidad de montar ni desmontar tu cama a diario. Con un botón desciende silenciosamente desde el techo, dejando libre un salón diáfano durante el día.",
+            img: "../images/campers/space/interior/space-dining-lounge-frontview.jpg"
+          },
+          card2: {
+            title: "Madera Nórdica & Texturas Soft",
+            desc: "Superficies táctiles de abedul fenólico con tratamiento antibacteriano, tapicería resistente al agua de mar y bisagras con cierre amortiguado en cada armario.",
+            img: "../images/campers/space/interior/space-kitchen-counter-cabin.jpg"
+          },
+          card3: {
+            title: "Cine Nómada & Conexión Total",
+            desc: "Disfruta de tus películas favoritas en una pantalla desplegable de 50\" con proyector de alta definición y sistema de sonido envolvente bajo las estrellas de Tramuntana.",
+            img: "../images/campers/space/interior/space-cinema-projector-lounge.jpg"
+          }
+        },
+        videos: [
+          { src: "../videos/campers/space/space-complete-tour.mp4", title: "Recorrido por el habitáculo SPACE" },
+          { src: "../videos/campers/space/space-kitchen-counter-tour.mp4", title: "Detalle de cocina y muebles soft-close" },
+          { src: "../videos/campers/space/space-shower-cabin-tour.mp4", title: "Espacio de baño independiente" }
+        ]
+      },
+      neo: {
+        title: "NEO",
+        tagline: "Garaje interior para bicicletas, agilidad en curvas de montaña y máxima discreción.",
+        badgeSubtitle: "UTOPIA VAN LIFE · AVENTURA PURA",
+        badgeSpots: "DEPORTE & MOVILIDAD TOTAL",
+        headerPrice: "Desde 125€ / noche",
+        bottomPrice: "125€",
+        specs: {
+          passengers: "2 Viaje / 2 Descanso",
+          bed: "Cama Doble Trasera Fija",
+          shower: "Ducha Interior + Garaje XXL"
+        },
+        bentoImages: [
+          { src: "../images/campers/neo/exterior/neo-exterior-front-three-quarter.jpg", tag: "Exterior de la camper NEO en tres cuartos" },
+          { src: "../images/campers/neo/interior/neo-dining-room-daylight.jpg", tag: "Salón comedor de la NEO con luz natural" },
+          { src: "../images/campers/neo/interior/neo-interior-hero-anthracite.webp", tag: "Interior antracita de la NEO" },
+          { src: "../images/campers/neo/details/neo-garage-bike-storage.jpg", tag: "Garaje trasero de la NEO con bicicletas" },
+          { src: "../images/campers/neo/details/solar-tech.webp", tag: "Conectividad Starlink & Placa Solar en la NEO" },
+          { src: "../images/campers/neo/interior/neo-bathroom-shower.webp", tag: "Baño con ducha interior de la NEO" }
+        ],
+        pillars: {
+          heroBadge: "01 · NEO",
+          heroTitle: "Aventura sin límites, garaje integrado para bicis y espíritu nómada.",
+          heroDesc: "Pensada para ciclistas, escaladores y parejas aventureras. Permite llevar dos bicicletas de carretera o montaña aseguradas en el interior sin estorbar el espacio habitable.",
+          heroImg: "../images/campers/neo/details/neo-garage-bike-storage.jpg",
+          card1: {
+            title: "Garaje XXL Interior",
+            desc: "Almacenaje protegido bajo la cama con anclajes rápidos, toma de corriente de 12V/220V para cargar e-bikes y espacio para material deportivo de gran volumen.",
+            img: "../images/campers/neo/details/neo-garage-bike-storage.jpg"
+          },
+          card2: {
+            title: "Acabados Antracita & Aluminio",
+            desc: "Estética deportiva con materiales resistentes a rozaduras, panelado oscuro mate y perfilería de aluminio aeronáutico que garantiza ligereza y cero ruidos en marcha.",
+            img: "../images/campers/neo/interior/neo-interior-hero-anthracite.webp"
+          },
+          card3: {
+            title: "Conexión Starlink & Libertad Total",
+            desc: "Trabaja en remoto desde calas remotas o puertos de montaña con cobertura satelital de alta velocidad gracias a la antena Starlink integrada de bajo consumo.",
+            img: "../images/campers/neo/details/solar-tech.webp"
+          }
+        },
+        videos: [
+          { src: "../videos/campers/neo/neo-interior-highlight-tour.mp4", title: "Habitáculo ágil de la NEO" },
+          { src: "../videos/campers/neo/neo-garage-bike-loading.mp4", title: "Carga de bicicletas en garaje trasero" },
+          { src: "../videos/campers/neo/neo-kitchen-details.mp4", title: "Cocina compacta y optimizada" }
+        ]
+      }
+    };
+
+    let currentModel = 'space';
+    let currentLightboxIdx = 0;
+
+    function switchModel(modelKey) {
+      currentModel = modelKey;
+      const data = camperCatalog[modelKey];
+
+      // Update Buttons
+      const btnNeo = document.getElementById('btn-neo');
+      const btnSpace = document.getElementById('btn-space');
+      if (modelKey === 'neo') {
+        btnNeo.className = 'px-5 py-2 rounded-full text-xs font-semibold tracking-wider uppercase transition-all duration-300 bg-[#e6ca65] text-black shadow-lg';
+        btnSpace.className = 'px-5 py-2 rounded-full text-xs font-semibold tracking-wider uppercase transition-all duration-300 bg-white/10 text-white/60 hover:text-white';
+      } else {
+        btnSpace.className = 'px-5 py-2 rounded-full text-xs font-semibold tracking-wider uppercase transition-all duration-300 bg-[#e6ca65] text-black shadow-lg';
+        btnNeo.className = 'px-5 py-2 rounded-full text-xs font-semibold tracking-wider uppercase transition-all duration-300 bg-white/10 text-white/60 hover:text-white';
+      }
+
+      // Update Texts
+      document.getElementById('camper-title').textContent = data.title;
+      document.getElementById('camper-tagline').textContent = data.tagline;
+      document.getElementById('badge-subtitle').textContent = data.badgeSubtitle;
+      document.getElementById('badge-spots').textContent = data.badgeSpots;
+      document.getElementById('header-price').textContent = data.headerPrice;
+      document.getElementById('bottom-price').textContent = data.bottomPrice;
+
+      // Update Specs
+      document.getElementById('spec-passengers').textContent = data.specs.passengers;
+      document.getElementById('spec-bed').textContent = data.specs.bed;
+      document.getElementById('spec-shower').textContent = data.specs.shower;
+
+      // Update Bento Grid
+      data.bentoImages.forEach((item, idx) => {
+        const imgEl = document.getElementById(`bento-img-${idx}`);
+        const tagEl = document.getElementById(`bento-tag-${idx}`);
+        if (imgEl) imgEl.src = item.src;
+        if (tagEl) tagEl.textContent = item.tag;
+      });
+
+      // Update Pillars
+      document.getElementById('pillar-hero-img').src = data.pillars.heroImg;
+      document.getElementById('pillar-hero-badge').textContent = data.pillars.heroBadge;
+      document.getElementById('pillar-hero-title').textContent = data.pillars.heroTitle;
+      document.getElementById('pillar-hero-desc').textContent = data.pillars.heroDesc;
+
+      document.getElementById('pillar-card-img-1').src = data.pillars.card1.img;
+      document.getElementById('pillar-card-title-1').textContent = data.pillars.card1.title;
+      document.getElementById('pillar-card-desc-1').textContent = data.pillars.card1.desc;
+
+      document.getElementById('pillar-card-img-2').src = data.pillars.card2.img;
+      document.getElementById('pillar-card-title-2').textContent = data.pillars.card2.title;
+      document.getElementById('pillar-card-desc-2').textContent = data.pillars.card2.desc;
+
+      document.getElementById('pillar-card-img-3').src = data.pillars.card3.img;
+      document.getElementById('pillar-card-title-3').textContent = data.pillars.card3.title;
+      document.getElementById('pillar-card-desc-3').textContent = data.pillars.card3.desc;
+
+      // Update Videos
+      data.videos.forEach((vid, idx) => {
+        const vEl = document.getElementById(`video-tour-${idx + 1}`);
+        const tEl = document.getElementById(`video-tour-title-${idx + 1}`);
+        if (vEl) vEl.src = vid.src;
+        if (tEl) tEl.textContent = vid.title;
+      });
+    }
+
+    // Accordions Controller
+    function toggleAccordion(id) {
+      const el = document.getElementById(id);
+      const icon = document.getElementById(`acc-icon-${id}`);
+      if (el.classList.contains('hidden')) {
+        el.classList.remove('hidden');
+        if (icon) icon.classList.add('rotate-180');
+      } else {
+        el.classList.add('hidden');
+        if (icon) icon.classList.remove('rotate-180');
+      }
+    }
+
+    let allExpanded = false;
+    function toggleAllAccordions() {
+      allExpanded = !allExpanded;
+      for (let i = 1; i <= 5; i++) {
+        const el = document.getElementById(`acc-${i}`);
+        const icon = document.getElementById(`acc-icon-acc-${i}`);
+        if (el) {
+          if (allExpanded) {
+            el.classList.remove('hidden');
+            if (icon) icon.classList.add('rotate-180');
+          } else {
+            el.classList.add('hidden');
+            if (icon) icon.classList.remove('rotate-180');
+          }
+        }
+      }
+    }
+
+    // Lightbox Modal Controller
+    function openLightbox(idx) {
+      currentLightboxIdx = idx;
+      const modal = document.getElementById('lightbox-modal');
+      modal.classList.remove('hidden');
+      setTimeout(() => {
+        modal.classList.remove('opacity-0');
+      }, 10);
+      document.body.style.overflow = 'hidden'; // Lock background scroll per AGENTS.md rule
+      renderLightboxView();
+    }
+
+    function closeLightbox() {
+      const modal = document.getElementById('lightbox-modal');
+      modal.classList.add('opacity-0');
+      setTimeout(() => {
+        modal.classList.add('hidden');
+        document.body.style.overflow = '';
+      }, 300);
+    }
+
+    function renderLightboxView() {
+      const list = camperCatalog[currentModel].bentoImages;
+      const item = list[currentLightboxIdx];
+      document.getElementById('lb-main-image').src = item.src;
+      document.getElementById('lb-counter').textContent = `${currentLightboxIdx + 1} / ${list.length}`;
+      document.getElementById('lb-caption').textContent = item.tag;
+
+      // Render thumbnails
+      const thumbContainer = document.getElementById('lb-thumbnails');
+      thumbContainer.innerHTML = '';
+      list.forEach((t, i) => {
+        const thumbBtn = document.createElement('button');
+        thumbBtn.onclick = () => { currentLightboxIdx = i; renderLightboxView(); };
+        thumbBtn.className = `w-14 h-10 rounded-lg overflow-hidden border-2 transition-all flex-shrink-0 ${i === currentLightboxIdx ? 'border-[#e6ca65] scale-105' : 'border-transparent opacity-50 hover:opacity-80'}`;
+        thumbBtn.innerHTML = `<img src="${t.src}" class="w-full h-full object-cover">`;
+        thumbContainer.appendChild(thumbBtn);
+      });
+    }
+
+    function nextLightbox() {
+      const list = camperCatalog[currentModel].bentoImages;
+      currentLightboxIdx = (currentLightboxIdx + 1) % list.length;
+      renderLightboxView();
+    }
+
+    function prevLightbox() {
+      const list = camperCatalog[currentModel].bentoImages;
+      currentLightboxIdx = (currentLightboxIdx - 1 + list.length) % list.length;
+      renderLightboxView();
+    }
+
+    // Keyboard navigation
+    window.addEventListener('keydown', (e) => {
+      const modal = document.getElementById('lightbox-modal');
+      if (!modal.classList.contains('hidden')) {
+        if (e.key === 'Escape') closeLightbox();
+        if (e.key === 'ArrowRight') nextLightbox();
+        if (e.key === 'ArrowLeft') prevLightbox();
+      }
+    });
+
+    function scrollToBooking() {
+      window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' });
+    }
+
+    function triggerBookingFlow() {
+      alert(`Abriendo motor de reserva para Utopia ${currentModel.toUpperCase()}... En la versión final Next.js, esto abre el Wizard Holo-Van de 5 pasos con cálculo de fianza y extras.`);
+    }
+  </script>
+</body>
+</html>

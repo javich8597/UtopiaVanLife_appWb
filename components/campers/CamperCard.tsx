@@ -295,23 +295,23 @@ export default function CamperCard({
         .camper-card {
           display: flex;
           flex-direction: column;
-          background: white;
-          border-radius: var(--radius-xl);
+          background: #FFFFFF;
+          border-radius: 20px;
           border: 1px solid var(--gray-200);
           overflow: hidden;
-          box-shadow: 0 4px 16px rgba(26, 26, 26, 0.04);
-          transition: transform 220ms cubic-bezier(0.23, 1, 0.32, 1), 
-                      box-shadow 220ms cubic-bezier(0.23, 1, 0.32, 1), 
-                      border-color 220ms ease;
+          box-shadow: var(--shadow-card);
+          transition: transform 240ms cubic-bezier(0.23, 1, 0.32, 1), 
+                      box-shadow 240ms cubic-bezier(0.23, 1, 0.32, 1), 
+                      border-color 240ms ease;
           position: relative;
         }
         .camper-card:hover { 
           transform: translateY(-4px);
-          box-shadow: 0 16px 36px rgba(45, 58, 45, 0.12);
-          border-color: rgba(45, 58, 45, 0.28);
+          box-shadow: 0 16px 36px -4px rgba(24, 36, 27, 0.12);
+          border-color: rgba(197, 168, 128, 0.45);
         }
         .camper-card:active {
-          transform: translateY(-1px) scale(0.98);
+          transform: translateY(-1px) scale(0.985);
           transition-duration: 100ms;
         }
         .camper-card--unavailable {
@@ -320,7 +320,7 @@ export default function CamperCard({
         }
         .camper-card--unavailable:hover { 
           transform: none; 
-          box-shadow: 0 4px 16px rgba(26, 26, 26, 0.04);
+          box-shadow: var(--shadow-card);
         }
 
         /* Image & Video Wrap */
@@ -516,8 +516,8 @@ export default function CamperCard({
           flex-direction: column;
           align-items: flex-end;
           flex-shrink: 0;
-          padding: 6px 12px;
-          background: #FAF8F5;
+          padding: 6px 14px;
+          background: #FDFBF8;
           border-radius: var(--radius-md);
           border: 1px solid var(--gray-200);
         }
@@ -560,14 +560,14 @@ export default function CamperCard({
           font-size: 0.76rem;
           font-weight: 500;
           color: var(--gray-800);
-          background: #FAF8F5;
+          background: #FDFBF8;
           border: 1px solid var(--gray-200);
-          padding: 5px 10px;
+          padding: 5px 11px;
           border-radius: var(--radius-full);
         }
         .camper-card__spec--highlight {
-          background: rgba(45, 58, 45, 0.06);
-          border-color: rgba(45, 58, 45, 0.2);
+          background: rgba(24, 36, 27, 0.06);
+          border-color: rgba(24, 36, 27, 0.2);
           color: var(--forest-green);
           font-weight: 600;
         }
@@ -587,7 +587,14 @@ export default function CamperCard({
           border-radius: var(--radius-full);
           font-weight: 600;
           font-size: 0.9rem;
+          background: var(--forest-green);
+          color: #FBF9F5;
+          box-shadow: 0 2px 8px rgba(24, 36, 27, 0.12);
           transition: transform 160ms cubic-bezier(0.23, 1, 0.32, 1), background-color 160ms ease, box-shadow 160ms ease;
+        }
+        .camper-card__btn:hover {
+          background: var(--forest-green-light);
+          box-shadow: 0 4px 16px rgba(24, 36, 27, 0.2);
         }
         .camper-card__btn:hover .camper-card__btn-arrow {
           transform: translateX(3px);

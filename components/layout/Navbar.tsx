@@ -1,26 +1,68 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { Link, usePathname } from '@/i18n/routing'
-import { Menu, X } from 'lucide-react'
+import { Menu, X, ArrowRight } from 'lucide-react'
 import { useTranslations } from 'next-intl'
 import LanguageSwitcher from './LanguageSwitcher'
 
 export default function Navbar() {
   const t = useTranslations('Navigation')
   const pathname = usePathname()
-  const isHomePage = pathname === '/' || pathname === ''
 
-  const [scrolled, setScrolled] = useState(false)
+  const [isNavVisible, setIsNavVisible] = useState(true)
+  const [isScrolled, setIsScrolled] = useState(false)
   const [menuOpen, setMenuOpen] = useState(false)
   const [user, setUser] = useState<any>(null)
   const [isAdmin, setIsAdmin] = useState(false)
+  const lastScrollY = useRef(0)
 
+  // Smart Auto-Hide: smoothly slide out on scroll down, glide back on scroll up
   useEffect(() => {
-    const onScroll = () => setScrolled(window.scrollY > 40)
-    window.addEventListener('scroll', onScroll, { passive: true })
-    return () => window.removeEventListener('scroll', onScroll)
+    const handleScroll = () => {
+      const currentScrollY = window.scrollY
+
+      // At top of page: always visible and transparent-tinted
+      if (currentScrollY <= 40) {
+        setIsNavVisible(true)
+        setIsScrolled(false)
+      } else {
+        setIsScrolled(true)
+        const diff = currentScrollY - lastScrollY.current
+
+        // Scroll down (> 8px past 80px) -> hide navbar to let user immerse in content
+        if (diff > 8 && currentScrollY > 80) {
+          setIsNavVisible(false)
+        }
+        // Scroll up (> 6px) -> reveal navbar immediately for fluid navigation
+        else if (diff < -6) {
+          setIsNavVisible(true)
+        }
+      }
+
+      lastScrollY.current = currentScrollY
+    }
+
+    window.addEventListener('scroll', handleScroll, { passive: true })
+    return () => window.removeEventListener('scroll', handleScroll)
   }, [])
+
+  // Close mobile menu on route change
+  useEffect(() => {
+    setMenuOpen(false)
+  }, [pathname])
+
+  // Lock body scroll while mobile menu is open (AGENTS.md Rule 5)
+  useEffect(() => {
+    if (menuOpen) {
+      document.body.style.overflow = 'hidden'
+    } else {
+      document.body.style.overflow = ''
+    }
+    return () => {
+      document.body.style.overflow = ''
+    }
+  }, [menuOpen])
 
   useEffect(() => {
     import('@/lib/supabase/client').then(({ createClient }) => {
@@ -52,15 +94,15 @@ export default function Navbar() {
     })
   }, [])
 
-  // Top navbar is always solid white for maximum readability and brand visibility
-  const isSolid = true
-
   return (
     <>
-      <nav className="navbar navbar--scrolled">
+      <nav
+        className={`navbar ${isScrolled ? 'navbar--scrolled' : ''} ${!isNavVisible && !menuOpen ? 'navbar--hidden' : ''}`}
+        aria-label="Navegación principal"
+      >
         <div className="navbar__inner container">
           {/* Logo */}
-          <Link href="/" className="navbar__logo">
+          <Link href="/" className="navbar__logo" aria-label="Utopia Van Life Inicio">
             <img
               src="/images/logo.png"
               alt="Utopia Van Life"
@@ -97,13 +139,20 @@ export default function Navbar() {
                 {t('login')}
               </Link>
             )}
-            <Link href="/campers" className="btn btn-forest btn-sm navbar__cta-btn">
-              Reservar
+
+            {/* Senior Button-in-Button CTA */}
+            <Link href="/campers" className="navbar__cta-btn">
+              <span>Reservar</span>
+              <span className="navbar__cta-icon-circle">
+                <ArrowRight size={13} className="navbar__cta-arrow" />
+              </span>
             </Link>
+
             <button
               className="navbar__burger hide-desktop"
               onClick={() => setMenuOpen(!menuOpen)}
-              aria-label="Menú"
+              aria-label={menuOpen ? 'Cerrar menú' : 'Abrir menú'}
+              aria-expanded={menuOpen}
             >
               {menuOpen ? <X size={22} /> : <Menu size={22} />}
             </button>
@@ -111,14 +160,14 @@ export default function Navbar() {
         </div>
       </nav>
 
-      {/* Mobile menu */}
+      {/* Mobile menu modal */}
       {menuOpen && (
         <div className="mobile-menu" onClick={() => setMenuOpen(false)}>
           <nav className="mobile-menu__nav" onClick={e => e.stopPropagation()}>
             <div className="mobile-menu__header">
               <Link href="/" onClick={() => setMenuOpen(false)} className="mobile-menu__logo-link">
                 <img
-                  src="/images/logo-bold.png"
+                  src="/images/logo.png"
                   alt="Utopia Van Life"
                   className="mobile-menu__logo-img"
                 />
@@ -128,7 +177,7 @@ export default function Navbar() {
                 aria-label="Cerrar"
                 className="mobile-menu__close-btn"
               >
-                <X size={24} />
+                <X size={22} />
               </button>
             </div>
             <ul className="mobile-menu__links">
@@ -151,9 +200,15 @@ export default function Navbar() {
             {/* Mobile language switcher */}
             <LanguageSwitcher isMobile />
 
-            <Link href="/campers" className="btn btn-forest btn-lg mobile-menu__book-btn"
-              onClick={() => setMenuOpen(false)}>
-              {t('bookNow')}
+            <Link
+              href="/campers"
+              className="navbar__cta-btn mobile-menu__book-btn"
+              onClick={() => setMenuOpen(false)}
+            >
+              <span>{t('bookNow')}</span>
+              <span className="navbar__cta-icon-circle">
+                <ArrowRight size={14} className="navbar__cta-arrow" />
+              </span>
             </Link>
           </nav>
         </div>
@@ -164,19 +219,24 @@ export default function Navbar() {
           position: fixed;
           top: 0; left: 0; right: 0;
           z-index: var(--z-navbar);
-          background: #FFFFFF;
-          backdrop-filter: blur(16px);
-          -webkit-backdrop-filter: blur(16px);
-          box-shadow: 0 1px 12px rgba(0, 0, 0, 0.05);
-          border-bottom: 1px solid #E5E7EB;
-          transition: background var(--transition-base), box-shadow var(--transition-base);
+          background: rgba(251, 249, 245, 0.94);
+          backdrop-filter: blur(20px);
+          -webkit-backdrop-filter: blur(20px);
+          border-bottom: 1px solid rgba(212, 195, 179, 0.4);
+          transform: translateY(0);
+          transition: transform 280ms cubic-bezier(0.23, 1, 0.32, 1),
+                      background-color 220ms ease,
+                      box-shadow 220ms ease,
+                      border-color 220ms ease;
+          will-change: transform;
         }
         .navbar--scrolled {
-          background: #FFFFFF;
-          backdrop-filter: blur(16px);
-          -webkit-backdrop-filter: blur(16px);
-          box-shadow: 0 1px 12px rgba(0, 0, 0, 0.05);
-          border-bottom: 1px solid #E5E7EB;
+          background: rgba(251, 249, 245, 0.98);
+          border-bottom: 1px solid rgba(212, 195, 179, 0.55);
+          box-shadow: 0 4px 20px -2px rgba(24, 36, 27, 0.07);
+        }
+        .navbar--hidden {
+          transform: translateY(-100%);
         }
         .navbar__inner {
           display: flex;
@@ -186,85 +246,168 @@ export default function Navbar() {
         }
         .navbar__logo {
           display: flex;
-          flex-direction: column;
+          align-items: center;
           line-height: 1;
-          gap: 1px;
+          flex-shrink: 0;
+          transition: transform 160ms cubic-bezier(0.23, 1, 0.32, 1);
         }
+        .navbar__logo:active {
+          transform: scale(0.97);
+        }
+        .navbar__logo-img {
+          height: 60px;
+          width: auto;
+          max-width: 200px;
+          object-fit: contain;
+          display: block;
+        }
+
         .navbar__links {
           display: flex;
           align-items: center;
-          gap: var(--space-8);
+          gap: var(--space-6);
         }
-        .navbar__link {
-          font-size: 0.9rem;
+        .navbar :global(.navbar__link) {
+          font-size: 0.88rem;
           font-weight: 500;
           letter-spacing: 0.02em;
           color: var(--black-matte);
-          transition: opacity var(--transition-fast), color var(--transition-fast);
-          opacity: 0.9;
+          transition: color 160ms ease, opacity 160ms ease;
+          opacity: 0.85;
+          position: relative;
+          padding-bottom: 2px;
         }
-        .navbar__link:hover { 
+        .navbar :global(.navbar__link:hover) { 
           opacity: 1; 
           color: var(--forest-green);
         }
+        .navbar :global(.navbar__link)::after {
+          content: '';
+          position: absolute;
+          bottom: -2px;
+          left: 0;
+          width: 100%;
+          height: 1.5px;
+          background: var(--sand-dark);
+          transform: scaleX(0);
+          transform-origin: right;
+          transition: transform 200ms cubic-bezier(0.23, 1, 0.32, 1);
+        }
+        .navbar :global(.navbar__link:hover)::after {
+          transform: scaleX(1);
+          transform-origin: left;
+        }
+
         .navbar__actions {
           display: flex;
           align-items: center;
           gap: var(--space-3);
         }
+
         .navbar__burger {
           display: flex;
           align-items: center;
           justify-content: center;
-          width: 40px; height: 40px;
+          width: 42px; height: 42px;
           border-radius: var(--radius-md);
-          transition: background var(--transition-fast);
+          transition: background var(--transition-fast), transform 160ms cubic-bezier(0.23, 1, 0.32, 1);
           color: var(--black-matte);
         }
-        .navbar__burger:hover { background: var(--gray-100); }
+        .navbar__burger:hover { background: rgba(0, 0, 0, 0.05); }
+        .navbar__burger:active { transform: scale(0.95); }
 
-        .navbar__logo-img {
-          height: 42px;
-          width: auto;
-          object-fit: contain;
-          display: block;
-        }
-        .navbar__admin-btn {
+        .navbar :global(.navbar__admin-btn) {
           border-color: var(--forest-green);
           color: var(--forest-green);
           font-weight: 700;
+          padding: 6px 14px;
         }
-        .navbar__user-btn {
+        .navbar :global(.navbar__user-btn) {
           display: flex;
           align-items: center;
           gap: 6px;
           font-weight: 600;
-        }
-        .navbar__cta-btn {
-          transition: transform 160ms cubic-bezier(0.23, 1, 0.32, 1);
-        }
-        .navbar__cta-btn:active {
-          transform: scale(0.97);
+          padding: 6px 14px;
         }
 
-        /* Mobile menu */
+        /* Senior Button-in-Button CTA */
+        .navbar :global(.navbar__cta-btn) {
+          display: inline-flex;
+          align-items: center;
+          gap: 9px;
+          padding: 7px 7px 7px 18px;
+          background: var(--forest-green);
+          color: #FBF9F5 !important;
+          border-radius: var(--radius-full);
+          font-size: 0.85rem;
+          font-weight: 600;
+          letter-spacing: 0.02em;
+          white-space: nowrap;
+          flex-shrink: 0;
+          box-shadow: 0 2px 10px rgba(24, 36, 27, 0.2);
+          transition: transform 160ms cubic-bezier(0.23, 1, 0.32, 1),
+                      background-color 160ms ease,
+                      box-shadow 160ms ease;
+          user-select: none;
+          -webkit-user-select: none;
+          text-decoration: none;
+        }
+        .navbar :global(.navbar__cta-btn:hover) {
+          background: var(--forest-green-light);
+          box-shadow: 0 4px 16px rgba(24, 36, 27, 0.28);
+        }
+        .navbar :global(.navbar__cta-btn:active) {
+          transform: scale(0.97);
+        }
+        .navbar__cta-icon-circle {
+          width: 26px;
+          height: 26px;
+          border-radius: 50%;
+          background: rgba(255, 255, 255, 0.16);
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          transition: transform 160ms cubic-bezier(0.23, 1, 0.32, 1), background-color 160ms ease;
+          flex-shrink: 0;
+        }
+        .navbar :global(.navbar__cta-btn:hover) .navbar__cta-icon-circle {
+          background: rgba(255, 255, 255, 0.26);
+          transform: scale(1.05);
+        }
+        :global(.navbar__cta-arrow) {
+          color: #FBF9F5;
+          transition: transform 160ms cubic-bezier(0.23, 1, 0.32, 1);
+        }
+        .navbar :global(.navbar__cta-btn:hover) :global(.navbar__cta-arrow) {
+          transform: translateX(2px);
+        }
+
+        /* Mobile menu modal */
         .mobile-menu {
           position: fixed;
           inset: 0;
-          background: rgba(26,26,26,0.5);
+          background: rgba(18, 24, 19, 0.58);
+          backdrop-filter: blur(12px);
+          -webkit-backdrop-filter: blur(12px);
           z-index: calc(var(--z-navbar) + 10);
           display: flex;
           justify-content: flex-end;
+          animation: fadeIn 200ms ease;
+        }
+        @keyframes fadeIn {
+          from { opacity: 0; }
+          to { opacity: 1; }
         }
         .mobile-menu__nav {
           width: min(340px, 90vw);
           height: 100%;
-          background: var(--white-broken);
+          background: #FAF8F5;
           display: flex;
           flex-direction: column;
-          padding: 0.75rem 1.25rem 1.5rem 1.25rem;
+          padding: 0.85rem 1.25rem 1.75rem 1.25rem;
           gap: var(--space-4);
-          animation: slideFromRight 0.25s ease;
+          box-shadow: -10px 0 30px rgba(0, 0, 0, 0.15);
+          animation: slideFromRight 260ms cubic-bezier(0.23, 1, 0.32, 1);
         }
         @keyframes slideFromRight {
           from { transform: translateX(100%); }
@@ -278,7 +421,7 @@ export default function Navbar() {
           margin-bottom: 0.25rem;
           border-bottom: 1px solid var(--gray-200);
         }
-        .mobile-menu__logo-link {
+        .mobile-menu :global(.mobile-menu__logo-link) {
           display: block;
           flex: 1;
           padding-right: 12px;
@@ -286,7 +429,7 @@ export default function Navbar() {
         .mobile-menu__logo-img {
           height: auto;
           width: 100%;
-          max-height: 75px;
+          max-height: 70px;
           object-fit: contain;
           object-position: left center;
           display: block;
@@ -298,35 +441,84 @@ export default function Navbar() {
           padding: 8px;
           border-radius: 8px;
           color: var(--black-matte);
-          background: rgba(0,0,0,0.04);
+          background: rgba(0, 0, 0, 0.05);
           flex-shrink: 0;
+          transition: background 150ms ease;
+        }
+        .mobile-menu__close-btn:hover {
+          background: rgba(0, 0, 0, 0.1);
         }
         .mobile-menu__links {
           display: flex;
           flex-direction: column;
           gap: var(--space-2);
           flex: 1;
+          overflow-y: auto;
         }
-        .mobile-menu__links li a {
+        .mobile-menu :global(.mobile-menu__links li a) {
           display: block;
-          padding: var(--space-3) var(--space-2);
-          font-size: 1.1rem;
+          padding: 12px 14px;
+          font-size: 1.05rem;
           font-weight: 500;
+          color: var(--black-matte);
           border-radius: var(--radius-md);
-          transition: background var(--transition-fast);
+          transition: background var(--transition-fast), color var(--transition-fast);
         }
-        .mobile-menu__links li a:hover { background: var(--gray-100); }
-        .mobile-menu__link--admin {
+        .mobile-menu :global(.mobile-menu__links li a:hover) { 
+          background: rgba(0, 0, 0, 0.04);
+          color: var(--forest-green);
+        }
+        .mobile-menu :global(.mobile-menu__link--admin) {
           color: var(--forest-green);
           font-weight: 700;
         }
-        .mobile-menu__link--user {
+        .mobile-menu :global(.mobile-menu__link--user) {
           color: var(--forest-green);
           font-weight: 600;
         }
-        .mobile-menu__book-btn {
+        .mobile-menu :global(.mobile-menu__book-btn) {
           width: 100%;
+          justify-content: center;
+          padding: 12px 20px;
+          font-size: 0.95rem;
           margin-top: 8px;
+        }
+
+        /* Responsive Breakpoints */
+        @media (max-width: 1100px) and (min-width: 861px) {
+          .navbar__logo-img {
+            height: 38px;
+            max-width: 130px;
+          }
+          .navbar__links {
+            gap: var(--space-4);
+          }
+        }
+
+        @media (max-width: 860px) {
+          .navbar__inner {
+            height: 68px;
+          }
+          .navbar__logo-img {
+            height: 36px;
+            max-width: 125px;
+          }
+        }
+
+        @media (max-width: 640px) {
+          .navbar__inner {
+            height: 64px;
+          }
+          .navbar__logo-img {
+            height: 34px;
+            max-width: 120px;
+          }
+          .navbar :global(.navbar__cta-btn) {
+            display: none;
+          }
+          .navbar__actions {
+            gap: 6px;
+          }
         }
       `}</style>
     </>

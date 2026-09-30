@@ -541,7 +541,7 @@ export default function HeroSection() {
 
         @media (max-width: 768px) {
           .hero {
-            padding: 90px var(--space-4) 60px;
+            padding: 105px var(--space-4) 60px;
           }
           .hero__searchbar {
             flex-direction: column;

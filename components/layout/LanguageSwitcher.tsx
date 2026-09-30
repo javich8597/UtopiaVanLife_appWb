@@ -118,31 +118,18 @@ export default function LanguageSwitcher({ isSolid = true, isMobile = false }: P
 
   if (isMobile) {
     return (
-      <div className="mobile-lang-switcher" style={{ marginTop: 'auto', paddingTop: 16, borderTop: '1px solid var(--gray-200)' }}>
-        <span style={{ fontSize: '0.75rem', fontWeight: 600, color: 'var(--gray-500)', textTransform: 'uppercase', letterSpacing: '0.05em', display: 'block', marginBottom: 8 }}>
+      <div className="mobile-lang-switcher">
+        <span className="mobile-lang-label">
           Idioma / Language
         </span>
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 6 }}>
+        <div className="mobile-lang-grid">
           {LOCALES.map(loc => {
             const isSelected = loc.code === currentLocale
             return (
               <button
                 key={loc.code}
                 onClick={() => selectLocale(loc.code)}
-                style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  gap: 6,
-                  padding: '8px 4px',
-                  borderRadius: 'var(--radius-md)',
-                  border: isSelected ? '1.5px solid var(--forest-green)' : '1px solid var(--gray-200)',
-                  background: isSelected ? 'rgba(45, 58, 45, 0.06)' : 'white',
-                  color: isSelected ? 'var(--forest-green)' : 'var(--gray-700)',
-                  fontWeight: isSelected ? 700 : 500,
-                  fontSize: '0.82rem',
-                  cursor: 'pointer'
-                }}
+                className={`mobile-lang-btn ${isSelected ? 'mobile-lang-btn--selected' : ''}`}
               >
                 <FlagIcon code={loc.code} size={13} />
                 <span>{loc.short}</span>
@@ -150,33 +137,62 @@ export default function LanguageSwitcher({ isSolid = true, isMobile = false }: P
             )
           })}
         </div>
+
+        <style jsx>{`
+          .mobile-lang-switcher {
+            margin-top: auto;
+            padding-top: 16px;
+            border-top: 1px solid var(--gray-200);
+          }
+          .mobile-lang-label {
+            font-size: 0.72rem;
+            font-weight: 600;
+            color: var(--gray-600);
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            display: block;
+            margin-bottom: 8px;
+          }
+          .mobile-lang-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 6px;
+          }
+          .mobile-lang-btn {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+            padding: 8px 4px;
+            border-radius: var(--radius-md);
+            border: 1px solid var(--gray-200);
+            background: #FFFFFF;
+            color: var(--gray-800);
+            font-weight: 500;
+            font-size: 0.82rem;
+            cursor: pointer;
+            transition: all 160ms cubic-bezier(0.23, 1, 0.32, 1);
+          }
+          .mobile-lang-btn:active {
+            transform: scale(0.96);
+          }
+          .mobile-lang-btn--selected {
+            border: 1.5px solid var(--forest-green);
+            background: rgba(24, 36, 27, 0.06);
+            color: var(--forest-green);
+            font-weight: 700;
+          }
+        `}</style>
       </div>
     )
   }
 
   return (
-    <div ref={containerRef} style={{ position: 'relative', display: 'inline-block' }}>
+    <div ref={containerRef} className="lang-switcher">
       <button
         onClick={() => setIsOpen(!isOpen)}
         aria-label="Cambiar idioma / Switch language"
         aria-expanded={isOpen}
-        style={{
-          display: 'inline-flex',
-          alignItems: 'center',
-          gap: 6,
-          padding: '5px 10px',
-          borderRadius: 'var(--radius-full)',
-          background: isSolid ? 'rgba(0, 0, 0, 0.05)' : 'rgba(255, 255, 255, 0.15)',
-          color: isSolid ? 'var(--black-matte)' : '#FFFFFF',
-          border: isSolid ? '1px solid rgba(0, 0, 0, 0.08)' : '1px solid rgba(255, 255, 255, 0.25)',
-          backdropFilter: 'blur(8px)',
-          WebkitBackdropFilter: 'blur(8px)',
-          fontSize: '0.78rem',
-          fontWeight: 600,
-          letterSpacing: '0.03em',
-          cursor: 'pointer',
-          transition: 'all 0.2s ease'
-        }}
         className="lang-trigger-btn"
       >
         <FlagIcon code={currentObj.code} size={13} />
@@ -184,55 +200,20 @@ export default function LanguageSwitcher({ isSolid = true, isMobile = false }: P
       </button>
 
       {isOpen && (
-        <div
-          style={{
-            position: 'absolute',
-            top: 'calc(100% + 6px)',
-            right: 0,
-            background: 'white',
-            border: '1px solid var(--gray-200)',
-            borderRadius: 'var(--radius-lg)',
-            boxShadow: '0 8px 24px rgba(0, 0, 0, 0.12)',
-            padding: '4px',
-            minWidth: 140,
-            zIndex: 100,
-            animation: 'dropdownFadeIn 0.15s ease'
-          }}
-        >
+        <div className="lang-dropdown">
           {LOCALES.map(loc => {
             const isSelected = loc.code === currentLocale
             return (
               <button
                 key={loc.code}
                 onClick={() => selectLocale(loc.code)}
-                style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'space-between',
-                  width: '100%',
-                  padding: '7px 10px',
-                  border: 'none',
-                  borderRadius: 'var(--radius-md)',
-                  background: isSelected ? 'rgba(45, 58, 45, 0.06)' : 'transparent',
-                  color: isSelected ? 'var(--forest-green)' : 'var(--black-matte)',
-                  fontSize: '0.82rem',
-                  fontWeight: isSelected ? 700 : 500,
-                  cursor: 'pointer',
-                  textAlign: 'left',
-                  transition: 'background 0.15s ease'
-                }}
-                onMouseEnter={e => {
-                  if (!isSelected) e.currentTarget.style.background = 'var(--gray-100)'
-                }}
-                onMouseLeave={e => {
-                  if (!isSelected) e.currentTarget.style.background = 'transparent'
-                }}
+                className={`lang-dropdown-btn ${isSelected ? 'lang-dropdown-btn--selected' : ''}`}
               >
-                <span style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                <span className="lang-dropdown-item">
                   <FlagIcon code={loc.code} size={13} />
                   <span>{loc.label}</span>
                 </span>
-                {isSelected && <Check size={14} style={{ color: 'var(--forest-green)' }} />}
+                {isSelected && <Check size={14} className="lang-dropdown-check" />}
               </button>
             )
           })}
@@ -240,19 +221,104 @@ export default function LanguageSwitcher({ isSolid = true, isMobile = false }: P
       )}
 
       <style jsx>{`
+        .lang-switcher {
+          position: relative;
+          display: inline-block;
+        }
+
+        .lang-trigger-btn {
+          display: inline-flex;
+          align-items: center;
+          gap: 6px;
+          padding: 5px 11px;
+          border-radius: var(--radius-full);
+          background: rgba(24, 36, 27, 0.05);
+          color: var(--black-matte);
+          border: 1px solid rgba(212, 195, 179, 0.45);
+          backdrop-filter: blur(12px);
+          -webkit-backdrop-filter: blur(12px);
+          font-size: 0.78rem;
+          font-weight: 600;
+          letter-spacing: 0.03em;
+          cursor: pointer;
+          transition: transform 160ms cubic-bezier(0.23, 1, 0.32, 1), background-color 160ms ease, border-color 160ms ease;
+          user-select: none;
+          -webkit-user-select: none;
+        }
+
+        .lang-trigger-btn:hover {
+          background: rgba(24, 36, 27, 0.09);
+          border-color: rgba(212, 195, 179, 0.7);
+          transform: translateY(-1px);
+        }
+
+        .lang-trigger-btn:active {
+          transform: scale(0.96);
+        }
+
+        .lang-dropdown {
+          position: absolute;
+          top: calc(100% + 6px);
+          right: 0;
+          background: rgba(251, 249, 245, 0.96);
+          backdrop-filter: blur(20px);
+          -webkit-backdrop-filter: blur(20px);
+          border: 1px solid var(--gray-200);
+          border-radius: var(--radius-lg);
+          box-shadow: 0 10px 30px -4px rgba(24, 36, 27, 0.12), 0 2px 6px rgba(24, 36, 27, 0.04);
+          padding: 5px;
+          min-width: 145px;
+          z-index: 100;
+          animation: dropdownFadeIn 180ms cubic-bezier(0.23, 1, 0.32, 1);
+        }
+
         @keyframes dropdownFadeIn {
           from {
             opacity: 0;
-            transform: translateY(-4px);
+            transform: translateY(-6px) scale(0.96);
           }
           to {
             opacity: 1;
-            transform: translateY(0);
+            transform: translateY(0) scale(1);
           }
         }
-        .lang-trigger-btn:hover {
-          background: ${isSolid ? 'rgba(0, 0, 0, 0.09)' : 'rgba(255, 255, 255, 0.25)'} !important;
-          transform: translateY(-1px);
+
+        .lang-dropdown-btn {
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          width: 100%;
+          padding: 8px 10px;
+          border: none;
+          border-radius: var(--radius-md);
+          background: transparent;
+          color: var(--black-matte);
+          font-size: 0.82rem;
+          font-weight: 500;
+          cursor: pointer;
+          text-align: left;
+          transition: background-color 140ms ease, color 140ms ease;
+        }
+
+        .lang-dropdown-btn:hover {
+          background: rgba(24, 36, 27, 0.05);
+          color: var(--forest-green);
+        }
+
+        .lang-dropdown-btn--selected {
+          background: rgba(24, 36, 27, 0.07);
+          color: var(--forest-green);
+          font-weight: 600;
+        }
+
+        .lang-dropdown-item {
+          display: flex;
+          align-items: center;
+          gap: 8px;
+        }
+
+        :global(.lang-dropdown-check) {
+          color: var(--forest-green);
         }
       `}</style>
     </div>

@@ -103,13 +103,13 @@ export default function FeaturedCampers() {
           gap: 6px;
           padding: 4px 14px;
           border-radius: var(--radius-full);
-          background: rgba(200, 168, 130, 0.16);
-          border: 1px solid rgba(200, 168, 130, 0.35);
+          background: rgba(197, 168, 128, 0.14);
+          border: 1px solid rgba(197, 168, 128, 0.35);
           font-size: 0.72rem;
           font-weight: 600;
           letter-spacing: 0.12em;
           text-transform: uppercase;
-          color: var(--gray-800);
+          color: var(--forest-green);
         }
         .featured__eyebrow-icon {
           color: var(--sand-dark);
@@ -154,15 +154,16 @@ export default function FeaturedCampers() {
           border-radius: var(--radius-full);
           padding: 12px 28px;
           font-size: 0.92rem;
-          font-weight: 500;
+          font-weight: 600;
           border-color: var(--gray-400);
           color: var(--black-matte);
-          transition: all 180ms cubic-bezier(0.23, 1, 0.32, 1);
+          background: transparent;
+          transition: transform 160ms cubic-bezier(0.23, 1, 0.32, 1), background-color 160ms ease, border-color 160ms ease, color 160ms ease;
         }
         .featured__view-all-btn:hover {
           background: var(--forest-green);
           border-color: var(--forest-green);
-          color: #FAF8F5;
+          color: #FBF9F5;
         }
         .featured__view-all-btn:hover .featured__btn-arrow {
           transform: translateX(4px);

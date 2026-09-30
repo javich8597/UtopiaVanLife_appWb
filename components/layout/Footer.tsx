@@ -4,117 +4,117 @@ import { Link } from '@/i18n/routing'
 import { Instagram, MessageCircle, Mail, MapPin } from 'lucide-react'
 
 export default function Footer() {
-    return (
-        <footer className="footer">
-            <div className="container">
-                <div className="footer__grid">
-                    {/* Brand */}
-                    <div className="footer__brand">
-                        <div className="footer__logo">
-                            <img src="/images/logo-white.png" alt="Utopia Van Life" style={{ height: '48px', width: 'auto', objectFit: 'contain' }} />
-                        </div>
-                        <p className="text-small" style={{ color: 'var(--gray-400)', maxWidth: 260, lineHeight: 1.7 }}>
-                            Alquiler de campers premium en Mallorca. Tu aventura de lujo empieza aquí.
-                        </p>
-                        <div className="footer__social">
-                            <a href="https://www.instagram.com/utopiavanlife/" target="_blank" rel="noopener noreferrer" className="footer__social-btn" aria-label="Instagram">
-                                <Instagram size={18} />
-                            </a>
-                            <a href={`https://wa.me/${process.env.NEXT_PUBLIC_WHATSAPP_NUMBER || '34600000000'}`} target="_blank" rel="noopener noreferrer" className="footer__social-btn" aria-label="WhatsApp">
-                                <MessageCircle size={18} />
-                            </a>
-                            <a href="mailto:hola@utopiavanlife.com" className="footer__social-btn" aria-label="Email">
-                                <Mail size={18} />
-                            </a>
-                        </div>
-                    </div>
-
-                    {/* Links */}
-                    <div className="footer__col">
-                        <h4 className="footer__col-title">Campers</h4>
-                        <ul className="footer__links">
-                            <li><Link href="/campers">Ver flota</Link></li>
-                            <li><Link href="/campers/neo">Camper NEO</Link></li>
-                            <li><Link href="/campers/space">Camper SPACE</Link></li>
-                            <li><Link href="/#faqs">FAQs</Link></li>
-                        </ul>
-                    </div>
-
-                    <div className="footer__col">
-                        <h4 className="footer__col-title">Legal</h4>
-                        <ul className="footer__links">
-                            <li><Link href="/legal/privacidad">Privacidad & RGPD</Link></li>
-                            <li><Link href="/legal/terminos">Términos y condiciones</Link></li>
-                            <li><Link href="/legal/cookies">Política de cookies</Link></li>
-                        </ul>
-                    </div>
-
-                    {/* Contact */}
-                    <div className="footer__col">
-                        <h4 className="footer__col-title">Contacto</h4>
-                        <ul className="footer__links">
-                            <li>
-                                <a href="mailto:info@utopiavanlife.com">
-                                    <Mail size={14} style={{ display: 'inline', marginRight: 6 }} />
-                                    info@utopiavanlife.com
-                                </a>
-                            </li>
-                            <li>
-                                <a href="tel:+34611560916">
-                                    <span style={{ display: 'inline-flex', alignItems: 'center' }}>
-                                        +34 611 560 916
-                                    </span>
-                                </a>
-                            </li>
-                            <li>
-                                <a href="https://wa.me/34611560916" target="_blank" rel="noopener noreferrer">
-                                    <MessageCircle size={14} style={{ display: 'inline', marginRight: 6 }} />
-                                    WhatsApp
-                                </a>
-                            </li>
-                            <li>
-                                <span style={{ display: 'flex', alignItems: 'center', gap: 6, color: 'var(--gray-400)' }}>
-                                    <MapPin size={14} />
-                                    Carrer Son Oms, Palma de Mallorca
-                                </span>
-                            </li>
-                        </ul>
-                    </div>
-                </div>
-
-                {/* Instagram feed callout */}
-                <div className="footer__instagram">
-                    <div className="footer__instagram-header">
-                        <Instagram size={16} />
-                        <span>@utopiavanlife</span>
-                        <a 
-                            href="https://www.instagram.com/utopiavanlife/" 
-                            target="_blank" 
-                            rel="noopener noreferrer" 
-                            className="badge badge-sand" 
-                            style={{ marginLeft: 'auto', textDecoration: 'none' }}
-                        >
-                            Seguir en Instagram
-                        </a>
-                    </div>
-                    <div className="footer__instagram-placeholder">
-                        <p className="text-small" style={{ color: 'var(--gray-400)', textAlign: 'center' }}>
-                            ✨ Sigue nuestras rutas, calas secretas y puestas de sol en Mallorca.
-                        </p>
-                    </div>
-                </div>
-
-                <div className="footer__bottom">
-                    <p className="text-xs" style={{ color: 'var(--gray-400)' }}>
-                        © {new Date().getFullYear()} Utopia Van Life · Todos los derechos reservados
-                    </p>
-                    <p className="text-xs" style={{ color: 'var(--gray-400)' }}>
-                        Hecho con ♥ en Mallorca
-                    </p>
-                </div>
+  return (
+    <footer className="footer">
+      <div className="container">
+        <div className="footer__grid">
+          {/* Brand */}
+          <div className="footer__brand">
+            <div className="footer__logo">
+              <img src="/images/logo-white.png" alt="Utopia Van Life" className="footer__logo-img" />
             </div>
+            <p className="text-small" style={{ color: 'var(--gray-400)', maxWidth: 260, lineHeight: 1.7 }}>
+              Alquiler de campers premium en Mallorca. Tu aventura de lujo empieza aquí.
+            </p>
+            <div className="footer__social">
+              <a href="https://www.instagram.com/utopiavanlife/" target="_blank" rel="noopener noreferrer" className="footer__social-btn" aria-label="Instagram">
+                <Instagram size={18} />
+              </a>
+              <a href={`https://wa.me/${process.env.NEXT_PUBLIC_WHATSAPP_NUMBER || '34600000000'}`} target="_blank" rel="noopener noreferrer" className="footer__social-btn" aria-label="WhatsApp">
+                <MessageCircle size={18} />
+              </a>
+              <a href="mailto:hola@utopiavanlife.com" className="footer__social-btn" aria-label="Email">
+                <Mail size={18} />
+              </a>
+            </div>
+          </div>
 
-            <style jsx>{`
+          {/* Links */}
+          <div className="footer__col">
+            <h4 className="footer__col-title">Campers</h4>
+            <ul className="footer__links">
+              <li><Link href="/campers">Ver flota</Link></li>
+              <li><Link href="/campers/neo">Camper NEO</Link></li>
+              <li><Link href="/campers/space">Camper SPACE</Link></li>
+              <li><Link href="/#faqs">FAQs</Link></li>
+            </ul>
+          </div>
+
+          <div className="footer__col">
+            <h4 className="footer__col-title">Legal</h4>
+            <ul className="footer__links">
+              <li><Link href="/legal/privacidad">Privacidad & RGPD</Link></li>
+              <li><Link href="/legal/terminos">Términos y condiciones</Link></li>
+              <li><Link href="/legal/cookies">Política de cookies</Link></li>
+            </ul>
+          </div>
+
+          {/* Contact */}
+          <div className="footer__col">
+            <h4 className="footer__col-title">Contacto</h4>
+            <ul className="footer__links">
+              <li>
+                <a href="mailto:info@utopiavanlife.com">
+                  <Mail size={14} style={{ display: 'inline', marginRight: 6 }} />
+                  info@utopiavanlife.com
+                </a>
+              </li>
+              <li>
+                <a href="tel:+34611560916">
+                  <span style={{ display: 'inline-flex', alignItems: 'center' }}>
+                    +34 611 560 916
+                  </span>
+                </a>
+              </li>
+              <li>
+                <a href="https://wa.me/34611560916" target="_blank" rel="noopener noreferrer">
+                  <MessageCircle size={14} style={{ display: 'inline', marginRight: 6 }} />
+                  WhatsApp
+                </a>
+              </li>
+              <li>
+                <span style={{ display: 'flex', alignItems: 'center', gap: 6, color: 'var(--gray-400)' }}>
+                  <MapPin size={14} />
+                  Carrer Son Oms, Palma de Mallorca
+                </span>
+              </li>
+            </ul>
+          </div>
+        </div>
+
+        {/* Instagram feed callout */}
+        <div className="footer__instagram">
+          <div className="footer__instagram-header">
+            <Instagram size={16} />
+            <span>@utopiavanlife</span>
+            <a
+              href="https://www.instagram.com/utopiavanlife/"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="badge badge-sand"
+              style={{ marginLeft: 'auto', textDecoration: 'none' }}
+            >
+              Seguir en Instagram
+            </a>
+          </div>
+          <div className="footer__instagram-placeholder">
+            <p className="text-small" style={{ color: 'var(--gray-400)', textAlign: 'center' }}>
+              ✨ Sigue nuestras rutas, calas secretas y puestas de sol en Mallorca.
+            </p>
+          </div>
+        </div>
+
+        <div className="footer__bottom">
+          <p className="text-xs" style={{ color: 'var(--gray-400)' }}>
+            © {new Date().getFullYear()} Utopia Van Life · Todos los derechos reservados
+          </p>
+          <p className="text-xs" style={{ color: 'var(--gray-400)' }}>
+            Hecho con ♥ en Mallorca
+          </p>
+        </div>
+      </div>
+
+      <style jsx>{`
         .footer {
           background: var(--black-matte);
           color: var(--white-broken);
@@ -136,6 +136,13 @@ export default function Footer() {
           flex-direction: column;
           margin-bottom: var(--space-4);
           gap: 2px;
+        }
+        .footer__logo-img {
+          height: 60px;
+          width: auto;
+          max-width: 200px;
+          object-fit: contain;
+          display: block;
         }
         .footer__social {
           display: flex;
@@ -228,6 +235,6 @@ export default function Footer() {
           }
         }
       `}</style>
-        </footer>
-    )
+    </footer>
+  )
 }

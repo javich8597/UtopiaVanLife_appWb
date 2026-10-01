@@ -196,6 +196,13 @@ export default function CamperStickyBookingBar({
           box-shadow: 0 6px 18px rgba(230, 202, 101, 0.35);
         }
 
+        /* Desktop: sidebar is visible, so hide bottom bar */
+        @media (min-width: 861px) {
+          .sticky-booking-bar {
+            display: none !important;
+          }
+        }
+
         /* Mobile Rules per AGENTS.md */
         @media (max-width: 860px) {
           .guarantees-list {

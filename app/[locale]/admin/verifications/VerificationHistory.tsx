@@ -1,6 +1,7 @@
 'use client'
 
 import { useMemo, useState } from 'react'
+import { History } from 'lucide-react'
 import { normalizeVerificationStatus } from '@/lib/admin/auth'
 
 interface Props {
@@ -22,8 +23,12 @@ export default function VerificationHistory({ users }: Props) {
 
   return (
     <section className="adm-card" aria-labelledby="verif-history-title">
-      <div className="vh-head">
-        <h2 id="verif-history-title" className="vh-title">Historial</h2>
+      <div className="adm-card-head adm-card-head--line">
+        <h2 id="verif-history-title" className="adm-card-title">
+          <span className="adm-icon-square"><History size={22} /></span>
+          Historial
+          <span className="adm-card-count">{rows.length}</span>
+        </h2>
         <div className="adm-tabs" role="tablist" aria-label="Filtrar historial">
           {([
             ['all', 'Todo'],

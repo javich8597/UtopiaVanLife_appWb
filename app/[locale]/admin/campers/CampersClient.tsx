@@ -2,6 +2,8 @@
 
 import type { CamperLiveStatus } from '@/lib/admin/dashboardMetrics'
 import AdminPageHeader from '../AdminPageHeader'
+import AdminStatTiles from '../AdminStatTiles'
+import { Eye as EyeIcon, Wrench as WrenchIcon, Navigation as NavIcon, Gauge } from 'lucide-react'
 
 import React, { useState, useRef } from 'react'
 import Image from 'next/image'
@@ -546,6 +548,23 @@ export default function CampersClient({ initialCampers, liveStatus = {} }: Props
             <Plus size={16} /> Añadir camper
           </button>
         }
+      />
+
+      <AdminStatTiles
+        label="Resumen de la flota"
+        tiles={[
+          { key: 'pub', label: 'Publicadas', value: `${activeCount}/${totalCount}`, tone: 'sage', icon: EyeIcon, hint: 'Visibles en la web' },
+          { key: 'ok', label: 'Operativas', value: availableCount, tone: maintenanceCount ? 'amber' : 'sage', icon: WrenchIcon, hint: maintenanceCount ? `${maintenanceCount} en taller` : 'Ninguna en taller' },
+          { key: 'trip', label: 'En viaje hoy', value: Object.values(liveStatus).filter(l => l.state === 'on_trip').length, tone: 'gold', icon: NavIcon, hint: 'Ahora mismo' },
+          {
+            key: 'occ',
+            label: 'Ocupación del mes',
+            value: `${Object.values(liveStatus).length ? Math.round(Object.values(liveStatus).reduce((s, l) => s + l.occupancyPercent, 0) / Object.values(liveStatus).length) : 0}%`,
+            tone: 'sky',
+            icon: Gauge,
+            hint: 'Media de la flota',
+          },
+        ]}
       />
 
       {/* Con pocos vehículos, fichas; con más de 6, buscador, filtros y tabla */}

@@ -192,52 +192,27 @@ export default function DurationDiscountsClient({ initialDiscounts }: Props) {
       style={{
         padding: 'var(--space-6)',
         background: 'var(--adm-surface)',
-        borderRadius: 'var(--radius-xl)',
-        boxShadow: '0 4px 20px rgba(0,0,0,0.04)',
-        border: '1px solid var(--adm-border)',
+        borderRadius: '20px',
+        boxShadow: 'var(--adm-card-shadow)',
+        border: '1px solid var(--adm-card-border)',
         display: 'flex',
         flexDirection: 'column',
         gap: 'var(--space-5)',
       }}
     >
-      {/* 1. Header & Actions */}
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: 'var(--space-4)' }}>
+      <div className="settings-section__head">
         <div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-2)' }}>
-            <Percent size={22} style={{ color: 'var(--adm-primary-bg)' }} />
-            <h2 className="text-h3" style={{ margin: 0, fontWeight: 700, fontSize: '1.35rem' }}>
-              Descuentos por Larga Estancia
-            </h2>
-          </div>
-          <p className="text-body text-small" style={{ color: 'var(--adm-text-2)', margin: '6px 0 0', maxWidth: 750 }}>
-            Configura los tramos de descuento según los días de duración de la reserva. El motor aplicará de forma automática
-            el tramo más beneficioso sobre la tarifa de alquiler del vehículo (excluyendo extras y fianza).
+          <h2 className="adm-card-title">
+            <span className="adm-icon-square"><Percent size={22} /></span>
+            Descuentos por duración
+          </h2>
+          <p className="settings-section__desc">
+            Se aplica automáticamente el tramo más ventajoso sobre el alquiler (sin extras ni fianza).
           </p>
         </div>
-
-        <button
-          type="button"
-          onClick={handleOpenAdd}
-          style={{
-            display: 'inline-flex',
-            alignItems: 'center',
-            gap: '8px',
-            background: 'var(--adm-primary-bg)',
-            color: 'var(--adm-surface)',
-            border: 'none',
-            borderRadius: 'var(--radius-md)',
-            padding: '10px 18px',
-            fontSize: '0.9rem',
-            fontWeight: 700,
-            cursor: 'pointer',
-            boxShadow: '0 3px 10px var(--adm-border-strong)',
-            transition: 'all 0.15s ease',
-          }}
-          onMouseEnter={e => (e.currentTarget.style.filter = 'brightness(1.08)')}
-          onMouseLeave={e => (e.currentTarget.style.filter = 'none')}
-        >
-          <Plus size={18} strokeWidth={2.5} />
-          <span>Añadir Nuevo Tramo</span>
+        <button type="button" onClick={handleOpenAdd} className="adm-btn adm-btn--primary">
+          <Plus size={16} />
+          <span>Añadir tramo</span>
         </button>
       </div>
 

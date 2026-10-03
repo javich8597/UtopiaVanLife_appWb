@@ -219,27 +219,22 @@ export default function SeasonsSupplementClient({
       style={{
         padding: 'var(--space-6)',
         background: 'var(--adm-surface)',
-        borderRadius: 'var(--radius-xl)',
-        boxShadow: '0 4px 20px rgba(0,0,0,0.04)',
-        border: '1px solid var(--adm-border)',
+        borderRadius: '20px',
+        boxShadow: 'var(--adm-card-shadow)',
+        border: '1px solid var(--adm-card-border)',
         display: 'flex',
         flexDirection: 'column',
         gap: 'var(--space-6)',
       }}
     >
-      {/* 1. Header con Resumen */}
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: 'var(--space-4)' }}>
+      <div className="settings-section__head">
         <div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-2)' }}>
-            <CalendarRange size={22} style={{ color: 'var(--adm-primary-bg)' }} />
-            <h2 className="text-h3" style={{ margin: 0, fontWeight: 700, fontSize: '1.35rem' }}>
-              Temporadas & Suplementos por Noche
-            </h2>
-          </div>
-          <p className="text-body text-small" style={{ color: 'var(--adm-text-2)', margin: '6px 0 0', maxWidth: 750 }}>
-            Configura los suplementos por noche (+ €) según la temporada. El precio de alquiler será{' '}
-            <strong style={{ color: 'var(--adm-text)' }}>Precio Base de la Camper + Suplemento de Temporada</strong>.
-            Puedes asignar múltiples periodos de fechas no continuos a cada temporada.
+          <h2 className="adm-card-title">
+            <span className="adm-icon-square"><CalendarRange size={22} /></span>
+            Temporadas y suplementos
+          </h2>
+          <p className="settings-section__desc">
+            Precio por noche = precio base del camper + suplemento de la temporada. Cada temporada puede tener varios periodos.
           </p>
         </div>
       </div>

@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useState } from 'react'
 import { useSearchParams } from 'next/navigation'
-import { Eye, Search, X, UserMinus } from 'lucide-react'
+import { Eye, Search, X, UserMinus, Contact } from 'lucide-react'
 import { normalizeVerificationStatus } from '@/lib/admin/auth'
 import { formatPrice } from '@/lib/pricing/engine'
 import CustomerDetailModal from './CustomerDetailModal'
@@ -89,7 +89,13 @@ export default function UsersTableClient({ initialUsers, stats = {} }: Props) {
 
   return (
     <>
-      <div className="adm-toolbar">
+      <section className="adm-card users-card" aria-labelledby="users-list-title">
+      <div className="adm-card-head">
+        <h2 id="users-list-title" className="adm-card-title">
+          <span className="adm-icon-square"><Contact size={22} /></span>
+          {segment === 'customers' ? 'Clientes' : segment === 'team' ? 'Equipo' : 'Cuentas internas'}
+          <span className="adm-card-count">{filteredUsers.length}</span>
+        </h2>
         <div className="adm-search">
           <Search size={16} className="adm-search__icon" aria-hidden="true" />
           <input
@@ -108,7 +114,9 @@ export default function UsersTableClient({ initialUsers, stats = {} }: Props) {
             </button>
           )}
         </div>
+      </div>
 
+      <div className="adm-card-tabs">
         <div className="adm-tabs" role="tablist" aria-label="Tipo de cuenta">
           {([
             ['customers', 'Clientes'],
@@ -130,9 +138,8 @@ export default function UsersTableClient({ initialUsers, stats = {} }: Props) {
         </div>
       </div>
 
-      {roleError && <div className="adm-note" role="alert">{roleError}</div>}
+      {roleError && <div className="adm-note adm-card-note" role="alert">{roleError}</div>}
 
-      <div className="adm-card">
         <div className="adm-table-wrap">
           <table className="adm-table adm-table--cards">
             <thead>
@@ -209,7 +216,8 @@ export default function UsersTableClient({ initialUsers, stats = {} }: Props) {
             </tbody>
           </table>
         </div>
-      </div>
+      </section>
+
 
       {selectedUserId && (
         <CustomerDetailModal

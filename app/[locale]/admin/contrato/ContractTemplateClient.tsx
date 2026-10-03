@@ -295,26 +295,13 @@ export default function ContractTemplateClient({ initialTemplate }: Props) {
         {/* PANEL IZQUIERDO: Formulario de Edición */}
         <div className="contract-form-panel">
           {/* Navegación por pestañas del editor */}
-          <div style={{ display: 'flex', gap: '8px', background: 'var(--adm-surface-2)', padding: '6px', borderRadius: '12px' }}>
+          <div className="adm-tabs contract-tabs" role="tablist" aria-label="Secciones de la plantilla">
             <button
               type="button"
               onClick={() => setActiveSection('terms')}
-              style={{
-                flex: 1,
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                gap: '6px',
-                padding: '8px 14px',
-                borderRadius: '8px',
-                fontSize: '0.82rem',
-                fontWeight: 600,
-                border: 'none',
-                cursor: 'pointer',
-                background: activeSection === 'terms' ? 'var(--adm-surface)' : 'transparent',
-                color: activeSection === 'terms' ? 'var(--adm-text)' : 'var(--adm-text-2)',
-                boxShadow: activeSection === 'terms' ? '0 2px 4px rgba(0,0,0,0.05)' : 'none'
-              }}
+              role="tab"
+              aria-selected={activeSection === 'terms'}
+              className={`adm-tab contract-tab ${activeSection === 'terms' ? 'adm-tab--on' : ''}`}
             >
               <DollarSign size={15} />
               <span>Tarifas & Penalizaciones</span>
@@ -323,22 +310,9 @@ export default function ContractTemplateClient({ initialTemplate }: Props) {
             <button
               type="button"
               onClick={() => setActiveSection('lessor')}
-              style={{
-                flex: 1,
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                gap: '6px',
-                padding: '8px 14px',
-                borderRadius: '8px',
-                fontSize: '0.82rem',
-                fontWeight: 600,
-                border: 'none',
-                cursor: 'pointer',
-                background: activeSection === 'lessor' ? 'var(--adm-surface)' : 'transparent',
-                color: activeSection === 'lessor' ? 'var(--adm-text)' : 'var(--adm-text-2)',
-                boxShadow: activeSection === 'lessor' ? '0 2px 4px rgba(0,0,0,0.05)' : 'none'
-              }}
+              role="tab"
+              aria-selected={activeSection === 'lessor'}
+              className={`adm-tab contract-tab ${activeSection === 'lessor' ? 'adm-tab--on' : ''}`}
             >
               <Building size={15} />
               <span>Datos Arrendador</span>
@@ -347,22 +321,9 @@ export default function ContractTemplateClient({ initialTemplate }: Props) {
             <button
               type="button"
               onClick={() => setActiveSection('articles')}
-              style={{
-                flex: 1,
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                gap: '6px',
-                padding: '8px 14px',
-                borderRadius: '8px',
-                fontSize: '0.82rem',
-                fontWeight: 600,
-                border: 'none',
-                cursor: 'pointer',
-                background: activeSection === 'articles' ? 'var(--adm-surface)' : 'transparent',
-                color: activeSection === 'articles' ? 'var(--adm-text)' : 'var(--adm-text-2)',
-                boxShadow: activeSection === 'articles' ? '0 2px 4px rgba(0,0,0,0.05)' : 'none'
-              }}
+              role="tab"
+              aria-selected={activeSection === 'articles'}
+              className={`adm-tab contract-tab ${activeSection === 'articles' ? 'adm-tab--on' : ''}`}
             >
               <Scale size={15} />
               <span>31 Artículos Legales</span>
@@ -729,15 +690,14 @@ export default function ContractTemplateClient({ initialTemplate }: Props) {
           <div className="preview-top-bar">
             <div className="preview-status-indicator">
               <Eye size={16} />
-              <span>Vista Previa del PDF en Tiempo Real</span>
+              <span>Vista previa del PDF</span>
             </div>
             <div className="preview-actions-bar">
               {previewUrl && (
                 <a
                   href={previewUrl}
                   download="plantilla-contrato-previsualizacion.pdf"
-                  className="btn-utopia-primary"
-                  style={{ background: '#2D4A39', padding: '4px 10px', fontSize: '0.75rem' }}
+                  className="preview-download"
                 >
                   <Download size={13} />
                   <span>Descargar PDF</span>

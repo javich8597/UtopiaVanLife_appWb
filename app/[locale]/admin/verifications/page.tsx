@@ -1,6 +1,9 @@
 import { createClient } from '@/lib/supabase/server'
 import { createClient as createAdminClient } from '@supabase/supabase-js'
+import { ShieldAlert, ShieldCheck, ShieldX, PlaneTakeoff } from 'lucide-react'
 import AdminPageHeader from '../AdminPageHeader'
+import AdminStatTiles from '../AdminStatTiles'
+import { normalizeVerificationStatus } from '@/lib/admin/auth'
 import VerificationsClient from './VerificationsClient'
 import VerificationHistory from './VerificationHistory'
 
@@ -83,6 +86,11 @@ export default async function AdminVerificationsPage() {
         })
     )
 
+    const in7 = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString().split('T')[0]
+    const soonCount = usersWithDocs.filter((u: any) => u.nextDepartureOn && u.nextDepartureOn <= in7).length
+    const verifiedCount = (reviewedUsers || []).filter((u: any) => normalizeVerificationStatus(u.verification_status) === 'verified').length
+    const rejectedCount = (reviewedUsers || []).filter((u: any) => normalizeVerificationStatus(u.verification_status) === 'rejected').length
+
     // Primero quien sale antes; sin salida prevista, al final
     usersWithDocs.sort((a: any, b: any) => {
         if (a.nextDepartureOn && b.nextDepartureOn) return a.nextDepartureOn.localeCompare(b.nextDepartureOn)
@@ -96,6 +104,16 @@ export default async function AdminVerificationsPage() {
             <AdminPageHeader
                 title="Verificación de carnets"
                 description="Revisa el DNI y el carnet de cada cliente antes de su salida."
+            />
+
+            <AdminStatTiles
+                label="Resumen de verificaciones"
+                tiles={[
+                    { key: 'pending', label: 'Por revisar', value: usersWithDocs.length, tone: usersWithDocs.length ? 'amber' : 'neutral', icon: ShieldAlert, hint: usersWithDocs.length ? 'Antes de su salida' : 'Cola vacía' },
+                    { key: 'soon', label: 'Salen esta semana', value: soonCount, tone: soonCount ? 'rose' : 'neutral', icon: PlaneTakeoff, hint: soonCount ? 'Prioridad alta' : 'Ninguno' },
+                    { key: 'ok', label: 'Validados', value: verifiedCount, tone: 'sage', icon: ShieldCheck, hint: 'Documentación correcta' },
+                    { key: 'ko', label: 'Rechazados', value: rejectedCount, tone: rejectedCount ? 'rose' : 'neutral', icon: ShieldX, hint: 'Pendientes de reenviar' },
+                ]}
             />
 
             <VerificationsClient initialUsers={usersWithDocs} />

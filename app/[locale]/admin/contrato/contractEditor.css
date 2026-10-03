@@ -115,9 +115,9 @@
 
 .editor-card {
   background: var(--adm-surface);
-  border-radius: 16px;
-  border: 1px solid var(--adm-border);
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.02);
+  border-radius: 20px;
+  border: 1px solid var(--adm-card-border);
+  box-shadow: var(--adm-card-shadow);
   overflow: hidden;
 }
 
@@ -125,11 +125,37 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 1rem 1.25rem;
-  background: var(--adm-surface-2);
+  padding: 22px 26px;
+  background: var(--adm-surface);
   border-bottom: 1px solid var(--adm-border);
   cursor: pointer;
   user-select: none;
+}
+
+/* Icono del título como cuadrado (estilo panel) */
+.editor-card-header-left > svg:first-child {
+  width: 42px;
+  height: 42px;
+  padding: 11px;
+  border-radius: 12px;
+  background: var(--adm-primary-bg);
+  color: var(--adm-primary-text) !important;
+  stroke: var(--adm-primary-text);
+  flex-shrink: 0;
+}
+.editor-card-header-left strong {
+  font-family: var(--font-heading);
+  font-size: 1.08rem !important;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  color: var(--adm-text) !important;
+}
+.contract-tabs {
+  margin-bottom: 4px;
+}
+.contract-tab {
+  flex: 1;
+  justify-content: center;
 }
 
 .editor-card-header:hover {
@@ -139,11 +165,11 @@
 .editor-card-header-left {
   display: flex;
   align-items: center;
-  gap: 0.75rem;
+  gap: 14px;
 }
 
 .editor-card-body {
-  padding: 1.25rem;
+  padding: 24px 26px;
 }
 
 .form-grid-2 {
@@ -245,9 +271,9 @@
   position: sticky;
   top: 1.5rem;
   background: var(--adm-surface);
-  border-radius: 16px;
-  border: 1px solid var(--adm-border);
-  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.04);
+  border-radius: 20px;
+  border: 1px solid var(--adm-card-border);
+  box-shadow: var(--adm-card-shadow);
   overflow: hidden;
   display: flex;
   flex-direction: column;
@@ -259,17 +285,34 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 0.85rem 1.25rem;
-  background: var(--adm-text);
-  color: var(--adm-surface);
+  padding: 16px 22px;
+  background: var(--adm-primary-bg);
+  color: var(--adm-primary-text);
 }
 
 .preview-status-indicator {
   display: flex;
   align-items: center;
   gap: 0.5rem;
-  font-size: 0.75rem;
-  color: var(--adm-sage-soft);
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--adm-primary-text);
+}
+.preview-download {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 32px;
+  padding: 4px 12px;
+  border-radius: 8px;
+  background: var(--adm-surface);
+  color: var(--adm-text);
+  font-size: 0.78rem;
+  font-weight: 600;
+  text-decoration: none;
+}
+.preview-download:hover {
+  background: var(--adm-surface-2);
 }
 
 .preview-actions-bar {

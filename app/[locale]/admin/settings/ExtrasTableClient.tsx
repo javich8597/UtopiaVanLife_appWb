@@ -250,38 +250,17 @@ export default function ExtrasTableClient({ initialExtras }: Props) {
   }
 
   return (
-    <div className="card" style={{ padding: 'var(--space-6)', background: 'var(--adm-surface)', borderRadius: 'var(--radius-xl)', boxShadow: '0 4px 20px rgba(0,0,0,0.04)', border: '1px solid var(--adm-border)' }}>
-      {/* Header */}
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 'var(--space-6)', flexWrap: 'wrap', gap: 'var(--space-3)' }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-3)' }}>
-          <div style={{ width: 40, height: 40, borderRadius: '10px', background: 'rgba(217, 119, 6, 0.1)', color: 'var(--adm-amber)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-            <Sparkles size={22} />
-          </div>
-          <div>
-            <h2 className="text-h4" style={{ margin: 0, fontWeight: 700 }}>Extras de Alquiler</h2>
-            <p className="text-xs" style={{ color: 'var(--adm-text-2)', margin: '2px 0 0' }}>
-              Catálogo de equipamiento adicional disponible para los viajeros en el checkout.
-            </p>
-          </div>
+    <div className="adm-card adm-card--pad settings-section">
+      <div className="settings-section__head">
+        <div>
+          <h2 className="adm-card-title">
+            <span className="adm-icon-square"><Sparkles size={22} /></span>
+            Extras del checkout
+          </h2>
+          <p className="settings-section__desc">Equipamiento que el viajero puede añadir al reservar.</p>
         </div>
-
-        <button
-          onClick={handleOpenCreate}
-          className="btn btn-forest"
-          style={{
-            display: 'inline-flex',
-            alignItems: 'center',
-            gap: '8px',
-            padding: '10px 18px',
-            borderRadius: 'var(--radius-md)',
-            fontSize: '0.9rem',
-            fontWeight: 700,
-            boxShadow: '0 3px 10px var(--adm-border-strong)',
-            border: 'none',
-            cursor: 'pointer',
-          }}
-        >
-          <Plus size={18} strokeWidth={2.5} /> Añadir Nuevo Extra
+        <button type="button" onClick={handleOpenCreate} className="adm-btn adm-btn--primary">
+          <Plus size={16} /> Añadir extra
         </button>
       </div>
 

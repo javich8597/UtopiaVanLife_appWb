@@ -1,3 +1,4 @@
+import { Suspense } from 'react'
 import { createClient } from '@/lib/supabase/server'
 import AdminPageHeader from '../AdminPageHeader'
 import UsersTableClient, { CustomerStats } from './UsersTableClient'
@@ -32,7 +33,9 @@ export default async function AdminUsersPage() {
     return (
         <div className="adm-page">
             <AdminPageHeader title="Clientes" description="Quién viaja con vosotros, cuánto y cuándo." />
-            <UsersTableClient initialUsers={users || []} stats={stats} />
+            <Suspense fallback={<div className="adm-empty">Cargando clientes…</div>}>
+                <UsersTableClient initialUsers={users || []} stats={stats} />
+            </Suspense>
         </div>
     )
 }

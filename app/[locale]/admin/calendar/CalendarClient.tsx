@@ -1023,7 +1023,7 @@ export default function CalendarClient({ bookings, campers, blockedDates, blocke
           font-weight: 600 !important;
           color: var(--adm-text-2) !important;
           text-transform: uppercase !important;
-          background: #FAFBFB;
+          background: var(--adm-surface-2);
         }
 
         .fc-theme-standard td {
@@ -1039,6 +1039,14 @@ export default function CalendarClient({ bookings, campers, blockedDates, blocke
 
         .fc-day-today {
           background: var(--adm-gold-soft) !important;
+        }
+        /* Días de otros meses: atenuados pero legibles (FullCalendar los deja al 30%) */
+        .fc .fc-day-other .fc-daygrid-day-top {
+          opacity: 1 !important;
+        }
+        .fc .fc-day-other .fc-daygrid-day-number {
+          color: var(--adm-text-3) !important;
+          font-weight: 500 !important;
         }
         .fc-day-today .fc-daygrid-day-number {
           background: var(--adm-gold-fill);

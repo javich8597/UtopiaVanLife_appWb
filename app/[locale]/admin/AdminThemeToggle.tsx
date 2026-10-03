@@ -3,18 +3,17 @@
 import { Moon, Sun } from 'lucide-react'
 import type { AdminTheme } from '@/lib/admin/theme'
 
-
 interface Props {
   theme: AdminTheme
   onChange: (theme: AdminTheme) => void
-  /** compact: solo icono (cabecera móvil) */
+  /** full: pastilla con texto (menú lateral) · compact: solo icono (cabecera móvil) */
   variant?: 'full' | 'compact'
 }
 
 export default function AdminThemeToggle({ theme, onChange, variant = 'full' }: Props) {
   const next: AdminTheme = theme === 'dark' ? 'light' : 'dark'
   const label = next === 'dark' ? 'Cambiar a tema oscuro grafito' : 'Cambiar a tema claro marfil'
-  const Icon = theme === 'dark' ? Sun : Moon
+  const Icon = theme === 'dark' ? Moon : Sun
 
   return (
     <button
@@ -24,8 +23,8 @@ export default function AdminThemeToggle({ theme, onChange, variant = 'full' }: 
       aria-label={label}
       title={label}
     >
-      <Icon size={16} aria-hidden="true" />
-      {variant === 'full' && <span>{theme === 'dark' ? 'Tema claro' : 'Tema oscuro'}</span>}
+      <Icon size={variant === 'full' ? 14 : 18} aria-hidden="true" />
+      {variant === 'full' && <span>{theme === 'dark' ? 'Oscuro' : 'Claro'}</span>}
     </button>
   )
 }

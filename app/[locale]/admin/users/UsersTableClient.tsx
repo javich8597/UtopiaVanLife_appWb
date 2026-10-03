@@ -1,6 +1,7 @@
 'use client'
 
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
+import { useSearchParams } from 'next/navigation'
 import { Eye, Search, X, UserMinus } from 'lucide-react'
 import { normalizeVerificationStatus } from '@/lib/admin/auth'
 import { formatPrice } from '@/lib/pricing/engine'
@@ -38,6 +39,16 @@ export default function UsersTableClient({ initialUsers, stats = {} }: Props) {
   const [segment, setSegment] = useState<Segment>('customers')
   const [selectedUserId, setSelectedUserId] = useState<string | null>(null)
   const [roleError, setRoleError] = useState<string | null>(null)
+  const searchParams = useSearchParams()
+
+  // Abrir con una búsqueda ya hecha (?search=… desde el buscador rápido)
+  useEffect(() => {
+    const q = searchParams.get('search')
+    if (!q) return
+    setSearch(q)
+    const match = initialUsers.find(u => (u.email || '').toLowerCase() === q.toLowerCase())
+    if (match) setSegment(segmentOf(match))
+  }, [searchParams, initialUsers])
 
   const removeAdmin = async (u: any) => {
     if (!window.confirm(`¿Quitar el acceso de administrador a ${u.email}? Pasará a ser una cuenta de cliente.`)) return

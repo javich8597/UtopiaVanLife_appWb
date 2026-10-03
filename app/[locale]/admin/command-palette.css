@@ -1,0 +1,146 @@
+/* Buscador / acceso rápido del backoffice */
+.cmdk {
+  position: fixed;
+  inset: 0;
+  z-index: 11000;
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  padding: 12vh 16px 16px;
+}
+.cmdk__backdrop {
+  position: fixed;
+  inset: 0;
+  background: var(--adm-scrim);
+  backdrop-filter: blur(4px);
+  animation: adminFadeIn 160ms ease;
+}
+.cmdk__panel {
+  position: relative;
+  width: 100%;
+  max-width: 600px;
+  max-height: 70vh;
+  display: flex;
+  flex-direction: column;
+  border-radius: 20px;
+  background: var(--adm-surface);
+  border: 1px solid var(--adm-border);
+  box-shadow: 0 30px 80px -20px var(--adm-shadow);
+  overflow: hidden;
+  animation: adminPopIn 180ms var(--ease-out);
+}
+.cmdk__field {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 0 18px;
+  height: 62px;
+  border-bottom: 1px solid var(--adm-border);
+  color: var(--adm-text-3);
+}
+.cmdk__input {
+  flex: 1;
+  min-width: 0;
+  height: 100%;
+  border: 0 !important;
+  background: transparent !important;
+  color: var(--adm-text);
+  font: inherit;
+  font-size: 1rem;
+  outline: none;
+}
+.cmdk__input::-webkit-search-cancel-button {
+  display: none;
+}
+.cmdk__list {
+  list-style: none;
+  margin: 0;
+  padding: 8px;
+  overflow-y: auto;
+}
+.cmdk__group {
+  padding: 10px 12px 6px;
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--adm-text-3);
+}
+.cmdk__item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  min-height: 48px;
+  padding: 8px 12px;
+  border: 0;
+  border-radius: 12px;
+  background: transparent;
+  color: var(--adm-text);
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+.cmdk__item--active {
+  background: var(--adm-gold-soft);
+}
+.cmdk__icon {
+  width: 32px;
+  height: 32px;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--adm-surface-2);
+  color: var(--adm-text-2);
+  flex-shrink: 0;
+}
+.cmdk__item--active .cmdk__icon {
+  background: var(--adm-surface);
+  color: var(--adm-gold-text);
+}
+.cmdk__text {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  flex: 1;
+}
+.cmdk__title {
+  font-size: 0.92rem;
+  font-weight: 600;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.cmdk__sub {
+  font-size: 0.76rem;
+  color: var(--adm-text-3);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.cmdk__enter {
+  color: var(--adm-gold-text);
+}
+.cmdk__empty {
+  padding: 28px 16px;
+  text-align: center;
+  font-size: 0.88rem;
+  color: var(--adm-text-3);
+}
+.admin-pop__item-text {
+  display: flex;
+  flex-direction: column;
+}
+@media (max-width: 640px) {
+  .cmdk {
+    padding: 0;
+    align-items: stretch;
+  }
+  .cmdk__panel {
+    max-width: none;
+    max-height: none;
+    border-radius: 0;
+    border: 0;
+  }
+}

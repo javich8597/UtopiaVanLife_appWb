@@ -2,16 +2,28 @@
 
 import { useState } from 'react'
 import { Link, useRouter } from '@/i18n/routing'
-import { LogOut, Globe } from 'lucide-react'
+import { LogOut, Globe, SunMoon } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
 
 interface Props {
-  email?: string
-  /** Acciones extra (p. ej. el selector de tema) */
-  children?: React.ReactNode
+  /** Selector de tema que se muestra en la fila "Tema" */
+  themeToggle?: React.ReactNode
+  /** Mostrar "Cerrar sesión" (en escritorio vive en el menú del avatar) */
+  showSignOut?: boolean
 }
 
-export default function AdminSidebarFooterClient({ email, children }: Props) {
+export async function signOutAdmin(router: ReturnType<typeof useRouter>) {
+  try {
+    const supabase = createClient()
+    await supabase.auth.signOut()
+    router.refresh()
+    router.push('/')
+  } catch {
+    window.location.href = '/es/auth/signout'
+  }
+}
+
+export default function AdminSidebarFooterClient({ themeToggle, showSignOut = false }: Props) {
   const [loggingOut, setLoggingOut] = useState(false)
   const router = useRouter()
 
@@ -19,36 +31,27 @@ export default function AdminSidebarFooterClient({ email, children }: Props) {
     e.preventDefault()
     if (loggingOut) return
     setLoggingOut(true)
-
-    try {
-      const supabase = createClient()
-      await supabase.auth.signOut()
-      router.refresh()
-      router.push('/')
-    } catch {
-      window.location.href = '/es/auth/signout'
-    }
+    await signOutAdmin(router)
   }
-
-  const initial = (email || 'A').trim().charAt(0).toUpperCase()
 
   return (
     <div className="admin-sidebar__footer">
-      <div className="admin-user">
-        <span className="admin-user__avatar" aria-hidden="true">{initial}</span>
-        <span className="admin-user__info">
-          <span className="admin-user__email">{email || 'Administrador'}</span>
-          <span className="admin-user__role">Administrador</span>
-        </span>
-      </div>
+      {themeToggle && (
+        <div className="admin-footer-row">
+          <span className="admin-footer-row__label">
+            <SunMoon size={20} />
+            Tema
+          </span>
+          {themeToggle}
+        </div>
+      )}
 
-      <div className="admin-sidebar__footer-actions">
-        {children}
-        <Link href="/" className="admin-footer-link">
-          <Globe size={16} />
-          <span>Ver la web</span>
-        </Link>
+      <Link href="/" target="_blank" className="admin-footer-link">
+        <Globe size={20} />
+        <span>Ir a la web</span>
+      </Link>
 
+      {showSignOut && (
         <button
           id="admin-logout-btn"
           name="admin_logout_btn"
@@ -58,10 +61,10 @@ export default function AdminSidebarFooterClient({ email, children }: Props) {
           disabled={loggingOut}
           className="admin-footer-link admin-footer-link--danger"
         >
-          <LogOut size={16} />
+          <LogOut size={20} />
           <span>{loggingOut ? 'Cerrando sesión…' : 'Cerrar sesión'}</span>
         </button>
-      </div>
+      )}
     </div>
   )
 }

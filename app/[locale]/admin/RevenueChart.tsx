@@ -95,9 +95,10 @@ export default function RevenueChart({ monthlyData }: Props) {
       <style jsx>{`
         .rev {
           background: var(--adm-surface);
-          border: 1px solid var(--adm-border);
-          border-radius: 16px;
-          padding: 22px 24px 20px;
+          border: 1px solid var(--adm-card-border);
+          border-radius: 20px;
+          box-shadow: var(--adm-card-shadow);
+          padding: 28px 30px 24px;
           display: flex;
           flex-direction: column;
           gap: 18px;
@@ -110,7 +111,9 @@ export default function RevenueChart({ monthlyData }: Props) {
           gap: 16px;
         }
         .rev__title {
-          font-size: 0.95rem;
+          font-family: var(--font-heading);
+          font-size: 1.25rem;
+          letter-spacing: -0.015em;
           font-weight: 600;
           color: var(--adm-text);
           margin: 0 0 6px;

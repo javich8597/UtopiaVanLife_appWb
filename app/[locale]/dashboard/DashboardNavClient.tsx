@@ -63,7 +63,7 @@ export default function DashboardNavClient({ user, profile }: Props) {
 
   const isVerified = profile?.verification_status === 'verified'
   const isPending = profile?.verification_status === 'pending'
-  const isAdmin = profile?.role === 'admin' || user?.email === 'javipn85@gmail.com' || user?.user_metadata?.is_admin === 'true'
+  const isAdmin = profile?.role === 'admin' || user?.email === 'javipn85@gmail.com' || user?.email === 'alba_admin@gmail.com' || user?.user_metadata?.is_admin === 'true' || user?.user_metadata?.is_admin === true
 
   return (
     <>

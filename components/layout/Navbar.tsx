@@ -74,7 +74,7 @@ export default function Navbar() {
           setIsAdmin(false)
           return
         }
-        if (u.email === 'javipn85@gmail.com' || u.user_metadata?.is_admin === 'true') {
+        if (u.email === 'javipn85@gmail.com' || u.email === 'alba_admin@gmail.com' || u.user_metadata?.is_admin === 'true' || u.user_metadata?.is_admin === true) {
           setIsAdmin(true)
           return
         }

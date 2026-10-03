@@ -103,3 +103,34 @@ describe('Admin Dashboard Metrics (TDD)', () => {
   })
 })
 
+
+describe('Admin Dashboard live metrics', () => {
+  const campers = [
+    { id: 'c1', name: 'NEO', slug: 'neo' },
+    { id: 'c2', name: 'SPACE', slug: 'space' }
+  ]
+  const bookings = [
+    { id: 'b1', camper_id: 'c1', start_date: '2026-10-01', end_date: '2026-10-05', total_price: 500, status: 'active', customer_name: 'Laura' },
+    { id: 'b2', camper_id: 'c1', start_date: '2026-10-12', end_date: '2026-10-19', total_price: 900, status: 'confirmed' },
+    { id: 'b3', camper_id: 'c2', start_date: '2026-10-07', end_date: '2026-10-14', total_price: 800, status: 'confirmed' },
+    { id: 'b4', camper_id: 'c2', start_date: '2026-10-02', end_date: '2026-10-04', total_price: 300, status: 'pending' }
+  ]
+
+  it('detects campers on trip and next departures', async () => {
+    const { calculateFleetLiveStatus } = await import('../lib/admin/dashboardMetrics')
+    const status = calculateFleetLiveStatus(campers, bookings, [], new Date(2026, 9, 3))
+    assert.equal(status[0].state, 'on_trip')
+    assert.equal(status[0].currentCustomer, 'Laura')
+    assert.equal(status[0].returnsOn, '2026-10-05')
+    assert.equal(status[0].nextDepartureOn, '2026-10-12')
+    assert.equal(status[1].state, 'available') // pending booking is ignored
+    assert.equal(status[1].nextDepartureOn, '2026-10-07')
+  })
+
+  it('builds a 12 month series and computes deltas', async () => {
+    const { calculateDelta } = await import('../lib/admin/dashboardMetrics')
+    assert.equal(calculateMonthlyRevenue(bookings, new Date(2026, 9, 3), 12).length, 12)
+    assert.equal(calculateDelta(1120, 1000), 12)
+    assert.equal(calculateDelta(500, 0), null)
+  })
+})

@@ -28,23 +28,22 @@ export default function AdminSidebarFooterClient({ email }: Props) {
     }
   }
 
+  const initial = (email || 'A').trim().charAt(0).toUpperCase()
+
   return (
     <div className="admin-sidebar__footer">
-      <div className="admin-user-info" style={{ marginBottom: 'var(--space-3)' }}>
-        <span className="text-small" style={{ fontWeight: 600, color: '#FFFFFF', wordBreak: 'break-all' }}>
-          {email || 'Administrador'}
+      <div className="admin-user">
+        <span className="admin-user__avatar" aria-hidden="true">{initial}</span>
+        <span className="admin-user__info">
+          <span className="admin-user__email">{email || 'Administrador'}</span>
+          <span className="admin-user__role">Administrador</span>
         </span>
-        <span className="text-xs" style={{ color: 'rgba(255,255,255,0.6)' }}>Backoffice Admin</span>
       </div>
 
-      <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
-        <Link
-          href="/"
-          className="admin-nav__link"
-          style={{ color: 'rgba(255, 255, 255, 0.75)', padding: '8px 12px', fontSize: '0.85rem' }}
-        >
+      <div className="admin-sidebar__footer-actions">
+        <Link href="/" className="admin-footer-link">
           <Globe size={16} />
-          <span>Volver a la Web</span>
+          <span>Ver la web</span>
         </Link>
 
         <button
@@ -54,23 +53,10 @@ export default function AdminSidebarFooterClient({ email }: Props) {
           aria-label="Cerrar sesión de administrador"
           onClick={handleSignOut}
           disabled={loggingOut}
-          className="admin-nav__link"
-          style={{
-            background: 'transparent',
-            border: 'none',
-            color: '#F87171',
-            cursor: 'pointer',
-            width: '100%',
-            padding: '8px 12px',
-            fontSize: '0.85rem',
-            textAlign: 'left',
-            display: 'flex',
-            alignItems: 'center',
-            gap: 'var(--space-3)'
-          }}
+          className="admin-footer-link admin-footer-link--danger"
         >
           <LogOut size={16} />
-          <span>{loggingOut ? 'Cerrando sesión...' : 'Cerrar Sesión'}</span>
+          <span>{loggingOut ? 'Cerrando sesión…' : 'Cerrar sesión'}</span>
         </button>
       </div>
     </div>

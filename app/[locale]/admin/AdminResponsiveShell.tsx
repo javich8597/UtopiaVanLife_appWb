@@ -2,16 +2,29 @@
 
 import React, { useState, useEffect } from 'react'
 import { Link, usePathname } from '@/i18n/routing'
-import { Menu, X, Globe, Sparkles } from 'lucide-react'
-import AdminNavClient from './AdminNavClient'
+import { Menu, X, Globe } from 'lucide-react'
+import AdminNavClient, { AdminNavCounts, isNavItemActive, navItems } from './AdminNavClient'
 import AdminSidebarFooterClient from './AdminSidebarFooterClient'
 
 interface Props {
   userEmail?: string
+  counts?: AdminNavCounts
   children: React.ReactNode
 }
 
-export default function AdminResponsiveShell({ userEmail, children }: Props) {
+// Accesos de la barra inferior móvil (el resto vive en el menú "Más")
+const TAB_HREFS = ['/admin', '/admin/calendar', '/admin/bookings', '/admin/verifications']
+
+function Brand({ onClick }: { onClick?: () => void }) {
+  return (
+    <Link href="/admin" onClick={onClick} className="admin-brand">
+      <span className="admin-brand__name">Utopia</span>
+      <span className="admin-brand__tag">Admin</span>
+    </Link>
+  )
+}
+
+export default function AdminResponsiveShell({ userEmail, counts = {}, children }: Props) {
   const [isDrawerOpen, setIsDrawerOpen] = useState(false)
   const pathname = usePathname()
 
@@ -22,11 +35,7 @@ export default function AdminResponsiveShell({ userEmail, children }: Props) {
 
   // Bloquear scroll del body cuando el drawer esté abierto en móvil
   useEffect(() => {
-    if (isDrawerOpen) {
-      document.body.style.overflow = 'hidden'
-    } else {
-      document.body.style.overflow = ''
-    }
+    document.body.style.overflow = isDrawerOpen ? 'hidden' : ''
     return () => {
       document.body.style.overflow = ''
     }
@@ -35,99 +44,54 @@ export default function AdminResponsiveShell({ userEmail, children }: Props) {
   // Cerrar con Escape
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === 'Escape' && isDrawerOpen) {
-        setIsDrawerOpen(false)
-      }
+      if (e.key === 'Escape' && isDrawerOpen) setIsDrawerOpen(false)
     }
     window.addEventListener('keydown', handleKeyDown)
     return () => window.removeEventListener('keydown', handleKeyDown)
   }, [isDrawerOpen])
 
+  const tabs = navItems.filter(item => TAB_HREFS.includes(item.href))
+  const moreIsActive = !tabs.some(item => isNavItemActive(pathname, item.href, item.exact))
+
   return (
     <div className="admin-layout">
-      {/* 1. Sidebar Fijo de Escritorio (>= 1024px) */}
+      {/* 1. Sidebar fijo de escritorio (>= 861px) */}
       <aside className="admin-sidebar admin-sidebar--desktop">
         <div className="admin-sidebar__header">
-          <Link href="/admin" className="navbar__logo" style={{ color: 'white' }}>
-            <span className="navbar__logo-text" style={{ color: 'white' }}>Utopia Admin</span>
-            <span className="navbar__logo-sub" style={{ color: 'rgba(255,255,255,0.7)' }}>Backoffice</span>
-          </Link>
+          <Brand />
         </div>
-
-        <AdminNavClient />
-
+        <AdminNavClient counts={counts} />
         <AdminSidebarFooterClient email={userEmail} />
       </aside>
 
-      {/* 2. Cabecera Móvil Sticky (< 1024px) */}
+      {/* 2. Cabecera móvil (<= 860px) */}
       <header className="admin-mobile-header">
-        <div className="admin-mobile-header__left">
-          <button
-            type="button"
-            className="admin-mobile-header__toggle"
-            onClick={() => setIsDrawerOpen(true)}
-            aria-label="Abrir menú de administración"
-            aria-expanded={isDrawerOpen}
-          >
-            <Menu size={22} />
-          </button>
-
-          <Link href="/admin" className="admin-mobile-header__brand">
-            <span className="admin-mobile-header__title">Utopia Admin</span>
-            <span className="admin-mobile-header__badge">Panel</span>
-          </Link>
-        </div>
-
-        <div className="admin-mobile-header__right">
-          <Link
-            href="/"
-            target="_blank"
-            className="admin-mobile-header__link"
-            title="Ver Sitio Web Público"
-          >
-            <Globe size={16} />
-            <span className="admin-mobile-header__link-text">Ver Web</span>
-          </Link>
-        </div>
+        <Brand />
+        <Link href="/" target="_blank" className="admin-mobile-header__link" title="Ver la web pública">
+          <Globe size={16} />
+          <span>Ver web</span>
+        </Link>
       </header>
 
-      {/* 3. Mobile Drawer & Backdrop (< 1024px) */}
+      {/* 3. Drawer móvil con la navegación completa */}
       {isDrawerOpen && (
         <div className="admin-drawer">
-          {/* Backdrop con Blur */}
-          <div
-            className="admin-drawer__backdrop"
-            onClick={() => setIsDrawerOpen(false)}
-            aria-hidden="true"
-          />
-
-          {/* Drawer Panel Deslizante */}
-          <aside
-            className="admin-drawer__panel"
-            role="dialog"
-            aria-modal="true"
-            aria-label="Menú de Navegación Móvil"
-          >
+          <div className="admin-drawer__backdrop" onClick={() => setIsDrawerOpen(false)} aria-hidden="true" />
+          <aside className="admin-drawer__panel" role="dialog" aria-modal="true" aria-label="Menú de administración">
             <div className="admin-drawer__header">
-              <Link href="/admin" onClick={() => setIsDrawerOpen(false)} className="navbar__logo" style={{ color: 'white' }}>
-                <span className="navbar__logo-text" style={{ color: 'white' }}>Utopia Admin</span>
-                <span className="navbar__logo-sub" style={{ color: 'rgba(255,255,255,0.7)' }}>Backoffice</span>
-              </Link>
-
+              <Brand onClick={() => setIsDrawerOpen(false)} />
               <button
                 type="button"
                 className="admin-drawer__close"
                 onClick={() => setIsDrawerOpen(false)}
                 aria-label="Cerrar menú"
               >
-                <X size={22} />
+                <X size={20} />
               </button>
             </div>
-
             <div className="admin-drawer__nav-wrap">
-              <AdminNavClient onNavigate={() => setIsDrawerOpen(false)} />
+              <AdminNavClient counts={counts} onNavigate={() => setIsDrawerOpen(false)} />
             </div>
-
             <div className="admin-drawer__footer">
               <AdminSidebarFooterClient email={userEmail} />
             </div>
@@ -135,12 +99,43 @@ export default function AdminResponsiveShell({ userEmail, children }: Props) {
         </div>
       )}
 
-      {/* 4. Contenido Principal */}
+      {/* 4. Contenido principal */}
       <main className="admin-main">
-        <div className="admin-main__inner">
-          {children}
-        </div>
+        <div className="admin-main__inner">{children}</div>
       </main>
+
+      {/* 5. Barra inferior móvil (<= 860px) */}
+      <nav className="admin-tabbar" aria-label="Accesos rápidos">
+        {tabs.map(item => {
+          const Icon = item.icon
+          const active = isNavItemActive(pathname, item.href, item.exact)
+          const count = item.countKey ? counts[item.countKey] || 0 : 0
+          return (
+            <Link
+              key={item.href}
+              href={item.href as any}
+              className={`admin-tabbar__item ${active ? 'admin-tabbar__item--active' : ''}`}
+              aria-current={active ? 'page' : undefined}
+            >
+              <span className="admin-tabbar__icon">
+                <Icon size={20} />
+                {count > 0 && <span className="admin-tabbar__dot">{count}</span>}
+              </span>
+              <span className="admin-tabbar__label">{item.short}</span>
+            </Link>
+          )
+        })}
+        <button
+          type="button"
+          className={`admin-tabbar__item ${moreIsActive ? 'admin-tabbar__item--active' : ''}`}
+          onClick={() => setIsDrawerOpen(true)}
+          aria-label="Abrir menú completo"
+          aria-expanded={isDrawerOpen}
+        >
+          <span className="admin-tabbar__icon"><Menu size={20} /></span>
+          <span className="admin-tabbar__label">Más</span>
+        </button>
+      </nav>
     </div>
   )
 }

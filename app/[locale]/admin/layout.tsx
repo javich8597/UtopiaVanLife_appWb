@@ -1,7 +1,5 @@
-import { redirect, Link } from '@/i18n/routing'
+import { redirect } from '@/i18n/routing'
 import { createClient } from '@/lib/supabase/server'
-import AdminNavClient from './AdminNavClient'
-import AdminSidebarFooterClient from './AdminSidebarFooterClient'
 import AdminResponsiveShell from './AdminResponsiveShell'
 import { isAdminUser } from '@/lib/admin/auth'
 
@@ -48,8 +46,17 @@ export default async function AdminLayout({
         return null
     }
 
+    // Contadores para los avisos de la navegación
+    const [{ count: pendingBookings }, { count: pendingVerifications }] = await Promise.all([
+        supabase.from('bookings').select('*', { count: 'exact', head: true }).eq('status', 'pending'),
+        supabase.from('users').select('*', { count: 'exact', head: true }).eq('verification_status', 'pending_validation'),
+    ])
+
     return (
-        <AdminResponsiveShell userEmail={user.email}>
+        <AdminResponsiveShell
+            userEmail={user.email}
+            counts={{ pendingBookings: pendingBookings || 0, pendingVerifications: pendingVerifications || 0 }}
+        >
             {children}
         </AdminResponsiveShell>
     )

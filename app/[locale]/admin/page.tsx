@@ -1,586 +1,400 @@
+import type { CSSProperties } from 'react'
+import Image from 'next/image'
 import { createClient } from '@/lib/supabase/server'
 import { formatPrice } from '@/lib/pricing/engine'
 import {
-    Calendar,
-    Euro,
-    Users,
-    Truck,
     ArrowRight,
-    ShieldCheck,
-    ShieldAlert,
-    AlertCircle,
-    SlidersHorizontal,
-    Navigation,
-    CheckCircle2,
+    ArrowUpRight,
+    ArrowDownRight,
+    Calendar,
+    CircleCheck,
     Clock,
-    Sparkles,
-    KeyRound
+    KeyRound,
+    LogOut,
+    Navigation,
+    ShieldCheck
 } from 'lucide-react'
 import { Link } from '@/i18n/routing'
-import DashboardCharts from './DashboardCharts'
-import BookingStatusAction from './BookingStatusAction'
+import RevenueChart from './RevenueChart'
 import {
     calculateMonthlyRevenue,
     calculateFleetOccupancy,
-    calculateAverageTicket,
-    calculateGlobalOccupancy
+    calculateGlobalOccupancy,
+    calculateFleetLiveStatus,
+    calculateDelta
 } from '@/lib/admin/dashboardMetrics'
+import './dashboard.css'
+
+const TZ = 'Europe/Madrid'
+const DAY_MS = 24 * 60 * 60 * 1000
+
+const STATUS_LABELS: Record<string, { label: string; tone: string }> = {
+    pending: { label: 'Pendiente de pago', tone: 'amber' },
+    confirmed: { label: 'Confirmada', tone: 'sage' },
+    active: { label: 'En viaje', tone: 'gold' },
+    completed: { label: 'Completada', tone: 'neutral' },
+    cancelled: { label: 'Cancelada', tone: 'rose' },
+}
+
+// Las fechas de reserva llegan como 'YYYY-MM-DD' (medianoche UTC): se formatean en UTC para no desplazar el día
+const formatDay = (value: string, opts: Intl.DateTimeFormatOptions = { day: 'numeric', month: 'short' }) =>
+    new Date(value).toLocaleDateString('es-ES', { ...opts, timeZone: 'UTC' })
+
+const nightsBetween = (start: string, end: string) => {
+    const diff = new Date(end).getTime() - new Date(start).getTime()
+    return isNaN(diff) ? 1 : Math.max(1, Math.round(diff / DAY_MS))
+}
 
 export default async function AdminDashboardPage() {
     const supabase = await createClient()
 
-    // 1. KPIs queries
-    const { count: pendingCount } = await supabase
-        .from('bookings')
-        .select('*', { count: 'exact', head: true })
-        .eq('status', 'pending')
+    const [
+        { count: pendingVerificationsCount },
+        { data: campersData },
+        { data: allBookingsData },
+        { data: recentBookings },
+    ] = await Promise.all([
+        supabase
+            .from('users')
+            .select('*', { count: 'exact', head: true })
+            .eq('verification_status', 'pending_validation'),
+        supabase
+            .from('campers')
+            .select('id, name, slug, thumbnail_url, is_active')
+            .order('name'),
+        supabase
+            .from('bookings')
+            .select('id, camper_id, start_date, end_date, total_price, status, created_at, customer_name'),
+        supabase
+            .from('bookings')
+            .select(`
+                id, start_date, end_date, total_price, status, created_at, customer_name, customer_email,
+                campers (name, slug),
+                users (id, full_name, email, verification_status)
+            `)
+            .order('created_at', { ascending: false })
+            .limit(8),
+    ])
 
-    const { count: activeCount } = await supabase
-        .from('bookings')
-        .select('*', { count: 'exact', head: true })
-        .in('status', ['confirmed', 'active'])
+    const bookings = allBookingsData || []
+    const campers = campersData || []
+    const camperName = (id?: string | null) => campers.find(c => c.id === id)?.name || 'Camper'
 
-    const { count: campersCount } = await supabase
-        .from('campers')
-        .select('*', { count: 'exact', head: true })
-
-    const { count: usersCount } = await supabase
-        .from('users')
-        .select('*', { count: 'exact', head: true })
-
-    const { count: pendingVerificationsCount } = await supabase
-        .from('users')
-        .select('*', { count: 'exact', head: true })
-        .eq('verification_status', 'pending_validation')
-
-    const { data: revenueData } = await supabase
-        .from('bookings')
-        .select('total_price')
-        .in('status', ['confirmed', 'active', 'completed'])
-
-    const totalRevenue = revenueData?.reduce((sum, b) => sum + (Number(b.total_price) || 0), 0) || 0
-
-    // Pendientes de cobro en €
-    const { data: pendingRevenueData } = await supabase
-        .from('bookings')
-        .select('total_price')
-        .eq('status', 'pending')
-
-    const pendingRevenue = pendingRevenueData?.reduce((sum, b) => sum + (Number(b.total_price) || 0), 0) || 0
-
-    // 2. Campers & All Bookings for visual analytics (Last 6 months + Fleet Occupancy)
-    const { data: campersData } = await supabase
-        .from('campers')
-        .select('id, name, slug, thumbnail_url, is_active')
-        .order('name')
-
-    const { data: allBookingsData } = await supabase
-        .from('bookings')
-        .select('id, camper_id, start_date, end_date, total_price, status, created_at')
-
+    // Fechas de referencia en hora de Mallorca
     const now = new Date()
-    const monthNames = [
-        'Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio',
-        'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'
-    ]
-    const currentMonthName = `${monthNames[now.getMonth()]} ${now.getFullYear()}`
+    const todayStr = now.toLocaleDateString('en-CA', { timeZone: TZ })
+    const tomorrowStr = new Date(now.getTime() + DAY_MS).toLocaleDateString('en-CA', { timeZone: TZ })
+    const in7DaysStr = new Date(now.getTime() + 7 * DAY_MS).toLocaleDateString('en-CA', { timeZone: TZ })
+    const hour = Number(now.toLocaleString('en-GB', { hour: '2-digit', hour12: false, timeZone: TZ }))
+    const greeting = hour < 13 ? 'Buenos días' : hour < 21 ? 'Buenas tardes' : 'Buenas noches'
+    const todayLabel = now.toLocaleDateString('es-ES', { weekday: 'long', day: 'numeric', month: 'long', timeZone: TZ })
 
-    const monthlyMetrics = calculateMonthlyRevenue(allBookingsData || [], now)
-    const fleetOccupancy = calculateFleetOccupancy(campersData || [], allBookingsData || [], now)
+    // Finanzas
+    const paidStatuses = ['confirmed', 'active', 'completed']
+    const paidBookings = bookings.filter(b => paidStatuses.includes(b.status))
+    const pendingBookings = bookings.filter(b => b.status === 'pending')
+    const pendingRevenue = pendingBookings.reduce((sum, b) => sum + (Number(b.total_price) || 0), 0)
+    const paidRevenue = paidBookings.reduce((sum, b) => sum + (Number(b.total_price) || 0), 0)
+    const averageTicket = paidBookings.length > 0 ? Math.round(paidRevenue / paidBookings.length) : 0
+    const averageNights = paidBookings.length > 0
+        ? Math.round((paidBookings.reduce((s, b) => s + nightsBetween(b.start_date, b.end_date), 0) / paidBookings.length) * 10) / 10
+        : 0
 
-    // Métricas ejecutivas derivadas
-    const confirmedCount = activeCount || 0
-    const averageTicket = calculateAverageTicket(totalRevenue, confirmedCount)
+    const monthly = calculateMonthlyRevenue(bookings, now, 12)
+    const currentMonth = monthly[monthly.length - 1]
+    const previousMonth = monthly[monthly.length - 2]
+    // Sin ingresos todavía este mes, un -100% solo alarma: se muestra la referencia del mes anterior
+    const revenueDelta = currentMonth.revenue > 0 ? calculateDelta(currentMonth.revenue, previousMonth.revenue) : null
+
+    // Flota
+    const fleetOccupancy = calculateFleetOccupancy(campers, bookings, now)
     const globalOccupancy = calculateGlobalOccupancy(fleetOccupancy)
     const totalBookedDays = fleetOccupancy.reduce((acc, c) => acc + c.bookedDays, 0)
-    const totalAvailableDays = fleetOccupancy.reduce((acc, c) => acc + c.availableDays, 0)
+    const totalFleetDays = fleetOccupancy.reduce((acc, c) => acc + c.totalDaysInMonth, 0)
+    const fleetLive = calculateFleetLiveStatus(campers, bookings, fleetOccupancy, now)
 
-    // 3. Próximos check-ins y check-outs (próximos 7 días)
-    const todayStr = now.toISOString().split('T')[0]
-    const nextWeekDate = new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000)
-    const nextWeekStr = nextWeekDate.toISOString().split('T')[0]
+    // Movimientos operativos
+    const liveBookings = bookings.filter(b => ['confirmed', 'active'].includes(b.status))
+    const departuresSoon = liveBookings.filter(b => b.start_date === todayStr || b.start_date === tomorrowStr)
+    const returnsSoon = liveBookings.filter(b => b.end_date === todayStr || b.end_date === tomorrowStr)
 
-    const { data: upcomingCheckins } = await supabase
-        .from('bookings')
-        .select(`
-            id, start_date, end_date, customer_name,
-            campers (name, slug)
-        `)
-        .in('status', ['confirmed', 'active'])
-        .gte('start_date', todayStr)
-        .lte('start_date', nextWeekStr)
-        .order('start_date', { ascending: true })
-        .limit(3)
+    const agenda = [
+        ...liveBookings
+            .filter(b => b.start_date >= todayStr && b.start_date <= in7DaysStr)
+            .map(b => ({ id: b.id, type: 'out' as const, date: b.start_date, customer: b.customer_name, camper: camperName(b.camper_id) })),
+        ...liveBookings
+            .filter(b => b.end_date >= todayStr && b.end_date <= in7DaysStr)
+            .map(b => ({ id: b.id, type: 'in' as const, date: b.end_date, customer: b.customer_name, camper: camperName(b.camper_id) })),
+    ].sort((a, b) => a.date.localeCompare(b.date) || (a.type === 'in' ? -1 : 1))
 
-    const { data: upcomingCheckouts } = await supabase
-        .from('bookings')
-        .select(`
-            id, start_date, end_date, customer_name,
-            campers (name, slug)
-        `)
-        .in('status', ['confirmed', 'active'])
-        .gte('end_date', todayStr)
-        .lte('end_date', nextWeekStr)
-        .order('end_date', { ascending: true })
-        .limit(3)
+    const dayLabel = (date: string) =>
+        date === todayStr ? 'Hoy' : date === tomorrowStr ? 'Mañana' : formatDay(date, { weekday: 'short', day: 'numeric' })
 
-    // 4. Últimas 8 reservas con relación de usuario y estado de verificación
-    const { data: recentBookings } = await supabase
-        .from('bookings')
-        .select(`
-            id, start_date, end_date, total_price, status, created_at, customer_name, customer_email,
-            campers (name, slug),
-            users (id, full_name, email, verification_status)
-        `)
-        .order('created_at', { ascending: false })
-        .limit(8)
+    const attention = [
+        {
+            key: 'out',
+            value: departuresSoon.length,
+            label: departuresSoon.length === 1 ? 'Salida hoy o mañana' : 'Salidas hoy o mañana',
+            href: '/admin/calendar',
+            icon: Navigation,
+            urgent: false,
+        },
+        {
+            key: 'in',
+            value: returnsSoon.length,
+            label: returnsSoon.length === 1 ? 'Devolución hoy o mañana' : 'Devoluciones hoy o mañana',
+            href: '/admin/calendar',
+            icon: KeyRound,
+            urgent: false,
+        },
+        {
+            key: 'pay',
+            value: pendingBookings.length,
+            label: pendingBookings.length === 1 ? 'Cobro pendiente' : 'Cobros pendientes',
+            href: '/admin/bookings?status=pending',
+            icon: Clock,
+            urgent: pendingBookings.length > 0,
+        },
+        {
+            key: 'docs',
+            value: pendingVerificationsCount || 0,
+            label: pendingVerificationsCount === 1 ? 'Carnet por validar' : 'Carnets por validar',
+            href: '/admin/verifications',
+            icon: ShieldCheck,
+            urgent: (pendingVerificationsCount || 0) > 0,
+        },
+    ]
+    const allClear = attention.every(a => a.value === 0)
 
-    // Función auxiliar para iniciales de viajero
-    const getInitials = (name: string) => {
-        const parts = name.trim().split(/\s+/)
-        if (parts.length >= 2 && parts[0] && parts[1]) {
-            return `${parts[0][0]}${parts[1][0]}`.toUpperCase()
-        }
-        return name.slice(0, 2).toUpperCase() || 'VI'
-    }
+    const getCamperImage = (slugOrName: string) =>
+        slugOrName.toLowerCase().includes('space') ? '/images/campers/space/space-ext.png' : '/images/campers/neo/neo-ext.png'
 
     return (
-        <div className="admin-cockpit-root">
-            {/* 1. Executive Cockpit Header */}
-            <header className="cockpit-header">
-                <div className="cockpit-header__left">
-                    <div className="cockpit-eyebrow">
-                        <span className="cockpit-eyebrow__pulse"></span>
-                        <span className="cockpit-eyebrow__text">UTOPIA EXECUTIVE BACKOFFICE · MALLORCA FLEET</span>
-                    </div>
-                    <h1 className="cockpit-header__title">Panel de Control</h1>
-                    <p className="cockpit-header__subtitle">
-                        Métricas financieras, monitorización de flota en tiempo real y flujo de reservas.
-                    </p>
+        <div className="dsh">
+            {/* 1. Cabecera */}
+            <header className="dsh-head">
+                <div>
+                    <p className="dsh-head__date">{todayLabel}</p>
+                    <h1 className="dsh-head__title">{greeting}</h1>
                 </div>
-
-                <div className="cockpit-header__actions">
-                    <div className="cockpit-period-chip">
-                        <span className="period-dot"></span>
-                        <span>Temporada {now.getFullYear()} · {monthNames[now.getMonth()]}</span>
-                    </div>
-                    <Link href="/admin/calendar" className="cockpit-header-btn cockpit-header-btn--primary">
-                        <Calendar size={15} />
-                        <span>Calendario Maestro</span>
+                <div className="dsh-head__actions">
+                    <Link href="/admin/bookings" className="dsh-btn dsh-btn--ghost">
+                        <span>Reservas</span>
+                    </Link>
+                    <Link href="/admin/calendar" className="dsh-btn dsh-btn--primary">
+                        <Calendar size={15} aria-hidden="true" />
+                        <span>Calendario</span>
                     </Link>
                 </div>
             </header>
 
-            {/* 2. Executive Barometer Cards (4 Tarjetas de Alto Rendimiento) */}
-            <section className="executive-barometer-grid" aria-label="Métricas Principales">
-                {/* Card 1: Facturación Confirmada */}
-                <Link
-                    href="/admin/bookings?status=confirmed"
-                    className="barometer-card barometer-card--finance"
-                    title="Ver reservas confirmadas y facturación"
-                >
-                    <div className="barometer-card__top">
-                        <span className="barometer-card__eyebrow">Facturación Confirmada</span>
-                        <div className="barometer-card__icon-box barometer-card__icon-box--green">
-                            <Euro size={18} />
-                        </div>
-                    </div>
-                    <div className="barometer-card__middle">
-                        <div className="barometer-card__value">{formatPrice(totalRevenue)}</div>
-                        <div className="barometer-card__context">
-                            <span>{confirmedCount} reservas activas</span>
-                            {averageTicket > 0 && (
-                                <>
-                                    <span className="barometer-card__dot">·</span>
-                                    <span>Ticket medio {formatPrice(averageTicket)}</span>
-                                </>
-                            )}
-                        </div>
-                    </div>
-                    <div className="barometer-card__footer">
-                        <span className="barometer-card__action-label">Ver historial de cobros</span>
-                        <ArrowRight size={13} className="barometer-card__arrow" />
-                    </div>
-                </Link>
-
-                {/* Card 2: Ocupación de Flota */}
-                <Link
-                    href="/admin/calendar"
-                    className="barometer-card barometer-card--occupancy"
-                    title="Abrir calendario de ocupación de flota"
-                >
-                    <div className="barometer-card__top">
-                        <span className="barometer-card__eyebrow">Ocupación de Flota</span>
-                        <div className="barometer-card__icon-box barometer-card__icon-box--emerald">
-                            <Truck size={18} />
-                        </div>
-                    </div>
-                    <div className="barometer-card__middle">
-                        <div className="barometer-card__value-row">
-                            <span className="barometer-card__value">{globalOccupancy}%</span>
-                            <span className={`barometer-badge ${globalOccupancy >= 60 ? 'barometer-badge--high' : 'barometer-badge--med'}`}>
-                                {globalOccupancy >= 60 ? 'Alta Demanda' : 'Ocupación Estable'}
-                            </span>
-                        </div>
-                        <div className="barometer-card__context">
-                            <span>{totalBookedDays} días reservados este mes</span>
-                            <span className="barometer-card__dot">·</span>
-                            <span>{totalAvailableDays} días libres</span>
-                        </div>
-                    </div>
-                    <div className="barometer-card__footer">
-                        <span className="barometer-card__action-label">Ver calendario de salidas</span>
-                        <ArrowRight size={13} className="barometer-card__arrow" />
-                    </div>
-                </Link>
-
-                {/* Card 3: Pendientes de Pago */}
-                <Link
-                    href="/admin/bookings?status=pending"
-                    className="barometer-card barometer-card--pending"
-                    title="Ver reservas pendientes de cobro"
-                >
-                    <div className="barometer-card__top">
-                        <span className="barometer-card__eyebrow">Cobros Pendientes</span>
-                        <div className="barometer-card__icon-box barometer-card__icon-box--amber">
-                            <Clock size={18} />
-                        </div>
-                    </div>
-                    <div className="barometer-card__middle">
-                        <div className="barometer-card__value-row">
-                            <span className="barometer-card__value">
-                                {pendingRevenue > 0 ? formatPrice(pendingRevenue) : `${pendingCount || 0} reservas`}
-                            </span>
-                            {(pendingCount || 0) > 0 && (
-                                <span className="barometer-badge barometer-badge--warning">
-                                    {pendingCount} por cobrar
-                                </span>
-                            )}
-                        </div>
-                        <div className="barometer-card__context">
-                            {(pendingCount || 0) > 0
-                                ? 'Requiere confirmación de pago para bloquear fechas'
-                                : 'Todos los pagos y reservas confirmados al día'}
-                        </div>
-                    </div>
-                    <div className="barometer-card__footer">
-                        <span className="barometer-card__action-label">
-                            {(pendingCount || 0) > 0 ? 'Gestionar cobros pendientes' : 'Sin cobros pendientes'}
+            {/* 2. Requiere tu atención */}
+            <section className="dsh-card dsh-attention" aria-labelledby="dsh-attention-title">
+                <div className="dsh-card__head">
+                    <h2 id="dsh-attention-title" className="dsh-card__title">Requiere tu atención</h2>
+                    {allClear && (
+                        <span className="dsh-chip dsh-chip--sage">
+                            <CircleCheck size={13} aria-hidden="true" /> Todo al día
                         </span>
-                        <ArrowRight size={13} className="barometer-card__arrow" />
-                    </div>
-                </Link>
-
-                {/* Card 4: Seguridad y Documentación */}
-                <Link
-                    href="/admin/verifications"
-                    className="barometer-card barometer-card--security"
-                    title="Ver documentación y permisos pendientes de validar"
-                >
-                    <div className="barometer-card__top">
-                        <span className="barometer-card__eyebrow">Documentación Viajeros</span>
-                        <div className="barometer-card__icon-box barometer-card__icon-box--blue">
-                            <ShieldCheck size={18} />
-                        </div>
-                    </div>
-                    <div className="barometer-card__middle">
-                        <div className="barometer-card__value-row">
-                            <span className="barometer-card__value">
-                                {pendingVerificationsCount || 0} {pendingVerificationsCount === 1 ? 'carnet' : 'carnets'}
-                            </span>
-                            {(pendingVerificationsCount || 0) > 0 ? (
-                                <span className="barometer-badge barometer-badge--info">
-                                    Por Revisar
-                                </span>
-                            ) : (
-                                <span className="barometer-badge barometer-badge--success">
-                                    100% Validado
-                                </span>
-                            )}
-                        </div>
-                        <div className="barometer-card__context">
-                            {(pendingVerificationsCount || 0) > 0
-                                ? 'Permisos de conducir y DNIs pendientes de validación'
-                                : 'Todos los conductores con documentación al día'}
-                        </div>
-                    </div>
-                    <div className="barometer-card__footer">
-                        <span className="barometer-card__action-label">
-                            {(pendingVerificationsCount || 0) > 0 ? 'Revisar carnets y DNIs' : 'Ver directorio verificado'}
-                        </span>
-                        <ArrowRight size={13} className="barometer-card__arrow" />
-                    </div>
-                </Link>
-            </section>
-
-            {/* 3. Analytics & Fleet Cockpit (Gráfico Semestral + Monitor de Flota Neo & Space) */}
-            <DashboardCharts
-                monthlyData={monthlyMetrics}
-                fleetOccupancy={fleetOccupancy}
-                currentMonthName={currentMonthName}
-                averageTicket={averageTicket}
-                globalOccupancy={globalOccupancy}
-                totalBookedDays={totalBookedDays}
-                totalAvailableDays={totalAvailableDays}
-            />
-
-            {/* 4. Operational Horizon Strip (Próximos Movimientos & Alertas de Salida) */}
-            <section className="horizon-strip" aria-label="Avisos Operativos Inmediatos">
-                <div className="horizon-strip__header">
-                    <div className="horizon-strip__title-row">
-                        <Navigation size={15} className="horizon-strip__icon" />
-                        <h3 className="horizon-strip__title">Pulso Operativo Inmediato</h3>
-                    </div>
-                    <Link href="/admin/calendar" className="horizon-strip__link">
-                        <span>Ver calendario completo</span>
-                        <ArrowRight size={13} />
-                    </Link>
-                </div>
-
-                <div className="horizon-grid">
-                    {/* Item 1: Próxima Salida / Check-in */}
-                    <Link href="/admin/calendar" className="horizon-card horizon-card--checkin">
-                        <div className="horizon-card__icon horizon-card__icon--green">
-                            <Navigation size={16} />
-                        </div>
-                        <div className="horizon-card__info">
-                            <div className="horizon-card__tag">Próxima Salida (Check-in)</div>
-                            <div className="horizon-card__title">
-                                {upcomingCheckins && upcomingCheckins.length > 0 ? (
-                                    <>
-                                        <strong>{upcomingCheckins[0].customer_name}</strong> · {upcomingCheckins[0].campers?.name}
-                                    </>
-                                ) : (
-                                    'Sin salidas programadas hoy'
-                                )}
-                            </div>
-                            <div className="horizon-card__meta">
-                                {upcomingCheckins && upcomingCheckins.length > 0 ? (
-                                    `Salida: ${new Date(upcomingCheckins[0].start_date).toLocaleDateString('es-ES', { day: 'numeric', month: 'long' })}`
-                                ) : (
-                                    'Consultar calendario maestro'
-                                )}
-                            </div>
-                        </div>
-                        <ArrowRight size={14} className="horizon-card__arrow" />
-                    </Link>
-
-                    {/* Item 2: Próxima Devolución / Check-out */}
-                    <Link href="/admin/calendar" className="horizon-card horizon-card--checkout">
-                        <div className="horizon-card__icon horizon-card__icon--blue">
-                            <KeyRound size={16} />
-                        </div>
-                        <div className="horizon-card__info">
-                            <div className="horizon-card__tag">Próxima Devolución (Check-out)</div>
-                            <div className="horizon-card__title">
-                                {upcomingCheckouts && upcomingCheckouts.length > 0 ? (
-                                    <>
-                                        <strong>{upcomingCheckouts[0].customer_name}</strong> · {upcomingCheckouts[0].campers?.name}
-                                    </>
-                                ) : (
-                                    'Sin devoluciones inmediatas'
-                                )}
-                            </div>
-                            <div className="horizon-card__meta">
-                                {upcomingCheckouts && upcomingCheckouts.length > 0 ? (
-                                    `Regreso: ${new Date(upcomingCheckouts[0].end_date).toLocaleDateString('es-ES', { day: 'numeric', month: 'long' })}`
-                                ) : (
-                                    'Revisar turnos de limpieza'
-                                )}
-                            </div>
-                        </div>
-                        <ArrowRight size={14} className="horizon-card__arrow" />
-                    </Link>
-
-                    {/* Item 3: Alerta de Documentación o Cobro */}
-                    {(pendingCount || 0) > 0 ? (
-                        <Link href="/admin/bookings?status=pending" className="horizon-card horizon-card--alert">
-                            <div className="horizon-card__icon horizon-card__icon--amber">
-                                <AlertCircle size={16} />
-                            </div>
-                            <div className="horizon-card__info">
-                                <div className="horizon-card__tag horizon-card__tag--warning">Atención Requerida</div>
-                                <div className="horizon-card__title">
-                                    <strong>{pendingCount} {pendingCount === 1 ? 'reserva por cobrar' : 'reservas por cobrar'}</strong>
-                                </div>
-                                <div className="horizon-card__meta">Confirmar justificante bancario o tarjeta</div>
-                            </div>
-                            <ArrowRight size={14} className="horizon-card__arrow" />
-                        </Link>
-                    ) : (pendingVerificationsCount || 0) > 0 ? (
-                        <Link href="/admin/verifications" className="horizon-card horizon-card--alert">
-                            <div className="horizon-card__icon horizon-card__icon--blue">
-                                <ShieldAlert size={16} />
-                            </div>
-                            <div className="horizon-card__info">
-                                <div className="horizon-card__tag horizon-card__tag--info">Seguridad Pre-Entrega</div>
-                                <div className="horizon-card__title">
-                                    <strong>{pendingVerificationsCount} {pendingVerificationsCount === 1 ? 'carnet por validar' : 'carnets por validar'}</strong>
-                                </div>
-                                <div className="horizon-card__meta">Verificar antes de la entrega del camper</div>
-                            </div>
-                            <ArrowRight size={14} className="horizon-card__arrow" />
-                        </Link>
-                    ) : (
-                        <div className="horizon-card horizon-card--clean">
-                            <div className="horizon-card__icon horizon-card__icon--green">
-                                <CheckCircle2 size={16} />
-                            </div>
-                            <div className="horizon-card__info">
-                                <div className="horizon-card__tag horizon-card__tag--success">Operaciones al día</div>
-                                <div className="horizon-card__title">Flujo de reservas y cobros sin incidencias</div>
-                                <div className="horizon-card__meta">Todas las salidas y pagos validados</div>
-                            </div>
-                        </div>
                     )}
                 </div>
+                <div className="dsh-attention__grid">
+                    {attention.map(item => {
+                        const Icon = item.icon
+                        return (
+                            <Link
+                                key={item.key}
+                                href={item.href as any}
+                                className={`dsh-task ${item.urgent ? 'dsh-task--urgent' : ''} ${item.value === 0 ? 'dsh-task--idle' : ''}`}
+                            >
+                                <span className="dsh-task__icon"><Icon size={16} aria-hidden="true" /></span>
+                                <span className="dsh-task__value">{item.value}</span>
+                                <span className="dsh-task__label">{item.label}</span>
+                                <ArrowRight size={14} className="dsh-task__arrow" aria-hidden="true" />
+                            </Link>
+                        )
+                    })}
+                </div>
             </section>
 
-            {/* 5. Master Bookings Table (Full-Width, Espaciosa y Cómoda) */}
-            <section className="master-table-section">
-                <div className="master-table-card">
-                    <div className="master-table-card__header">
-                        <div className="master-table-card__title-group">
-                            <h2 className="master-table-card__title">Registro de Reservas Recientes</h2>
-                            <p className="master-table-card__subtitle">
-                                Consulta expandida de clientes, vehículos, periodos de viaje y estado operativo.
-                            </p>
-                        </div>
+            {/* 3. KPIs */}
+            <section className="dsh-kpis" aria-label="Indicadores principales">
+                <Link href="/admin/bookings?status=confirmed" className="dsh-card dsh-kpi dsh-kpi--hero">
+                    <span className="dsh-kpi__label">Ingresos de {currentMonth.fullMonth.toLowerCase()}</span>
+                    <span className="dsh-kpi__value">{formatPrice(currentMonth.revenue)}</span>
+                    <span className="dsh-kpi__meta">
+                        {revenueDelta !== null ? (
+                            <span className={`dsh-delta ${revenueDelta >= 0 ? 'dsh-delta--up' : 'dsh-delta--down'}`}>
+                                {revenueDelta >= 0 ? <ArrowUpRight size={13} aria-hidden="true" /> : <ArrowDownRight size={13} aria-hidden="true" />}
+                                {Math.abs(revenueDelta)}%
+                            </span>
+                        ) : null}
+                        <span>
+                            {revenueDelta !== null
+                                ? `vs ${previousMonth.fullMonth.toLowerCase()}`
+                                : `${previousMonth.fullMonth}: ${formatPrice(previousMonth.revenue)}`}
+                        </span>
+                    </span>
+                </Link>
 
-                        <div className="master-table-card__actions">
-                            <Link href="/admin/bookings" className="master-table-view-all-link">
-                                <span>Ver todas las reservas</span>
-                                <ArrowRight size={14} />
-                            </Link>
-                        </div>
+                <Link href="/admin/calendar" className="dsh-card dsh-kpi">
+                    <span className="dsh-kpi__label">Ocupación del mes</span>
+                    <span className="dsh-kpi__value">{globalOccupancy}%</span>
+                    <span className="dsh-kpi__meta">{totalBookedDays} de {totalFleetDays} días reservados</span>
+                </Link>
+
+                <Link href="/admin/bookings?status=pending" className="dsh-card dsh-kpi">
+                    <span className="dsh-kpi__label">Pendiente de cobro</span>
+                    <span className="dsh-kpi__value">{formatPrice(pendingRevenue)}</span>
+                    <span className="dsh-kpi__meta">
+                        {pendingBookings.length} {pendingBookings.length === 1 ? 'reserva' : 'reservas'} sin pagar
+                    </span>
+                </Link>
+
+                <Link href="/admin/bookings" className="dsh-card dsh-kpi">
+                    <span className="dsh-kpi__label">Ticket medio</span>
+                    <span className="dsh-kpi__value">{formatPrice(averageTicket)}</span>
+                    <span className="dsh-kpi__meta">{String(averageNights).replace('.', ',')} noches de media</span>
+                </Link>
+            </section>
+
+            {/* 4. Ingresos + Flota ahora */}
+            <div className="dsh-row dsh-row--chart">
+                <RevenueChart monthlyData={monthly} />
+
+                <section className="dsh-card dsh-fleet" aria-labelledby="dsh-fleet-title">
+                    <div className="dsh-card__head">
+                        <h2 id="dsh-fleet-title" className="dsh-card__title">Flota ahora</h2>
+                        <Link href="/admin/campers" className="dsh-link">Gestionar</Link>
                     </div>
+                    <ul className="dsh-fleet__list">
+                        {fleetLive.map(c => (
+                            <li key={c.id}>
+                                <Link href="/admin/calendar" className="dsh-vehicle">
+                                    <span className="dsh-vehicle__img">
+                                        <Image
+                                            src={getCamperImage(c.slug || c.name)}
+                                            alt=""
+                                            width={88}
+                                            height={52}
+                                            className="dsh-vehicle__render"
+                                        />
+                                    </span>
+                                    <span className="dsh-vehicle__body">
+                                        <span className="dsh-vehicle__top">
+                                            <span className="dsh-vehicle__name">{c.name}</span>
+                                            <span className={`dsh-chip ${c.state === 'on_trip' ? 'dsh-chip--gold' : 'dsh-chip--sage'}`}>
+                                                {c.state === 'on_trip' ? 'En viaje' : 'Disponible'}
+                                            </span>
+                                        </span>
+                                        <span className="dsh-vehicle__meta">
+                                            {c.state === 'on_trip'
+                                                ? `${c.currentCustomer ? `${c.currentCustomer} · ` : ''}vuelve ${c.returnsOn ? formatDay(c.returnsOn) : '—'}`
+                                                : c.nextDepartureOn
+                                                    ? `Próxima salida ${formatDay(c.nextDepartureOn)}`
+                                                    : 'Sin salidas programadas'}
+                                        </span>
+                                        <span className="dsh-meter" aria-label={`Ocupación del mes ${c.occupancyPercent}%`}>
+                                            <span className="dsh-meter__track">
+                                                <span className="dsh-meter__fill" style={{ '--pct': `${c.occupancyPercent}%` } as CSSProperties} />
+                                            </span>
+                                            <span className="dsh-meter__value">{c.occupancyPercent}%</span>
+                                        </span>
+                                    </span>
+                                </Link>
+                            </li>
+                        ))}
+                        {fleetLive.length === 0 && <li className="dsh-empty">No hay campers dados de alta.</li>}
+                    </ul>
+                </section>
+            </div>
 
-                    <div className="table-responsive-wrapper">
-                        <table className="master-table">
+            {/* 5. Agenda + Reservas recientes */}
+            <div className="dsh-row dsh-row--bottom">
+                <section className="dsh-card dsh-agenda" aria-labelledby="dsh-agenda-title">
+                    <div className="dsh-card__head">
+                        <h2 id="dsh-agenda-title" className="dsh-card__title">Próximos 7 días</h2>
+                        <Link href="/admin/calendar" className="dsh-link">Calendario</Link>
+                    </div>
+                    {agenda.length > 0 ? (
+                        <ol className="dsh-agenda__list">
+                            {agenda.slice(0, 8).map(ev => (
+                                <li key={`${ev.id}-${ev.type}`} className="dsh-agenda__item">
+                                    <span className={`dsh-agenda__day ${ev.date === todayStr ? 'dsh-agenda__day--today' : ''}`}>
+                                        {dayLabel(ev.date)}
+                                    </span>
+                                    <span className={`dsh-agenda__icon dsh-agenda__icon--${ev.type}`}>
+                                        {ev.type === 'out' ? <Navigation size={13} aria-hidden="true" /> : <LogOut size={13} aria-hidden="true" />}
+                                    </span>
+                                    <span className="dsh-agenda__text">
+                                        <span className="dsh-agenda__what">{ev.type === 'out' ? 'Salida' : 'Devolución'} · {ev.camper}</span>
+                                        <span className="dsh-agenda__who">{ev.customer || 'Cliente'}</span>
+                                    </span>
+                                </li>
+                            ))}
+                        </ol>
+                    ) : (
+                        <p className="dsh-empty">Sin salidas ni devoluciones esta semana.</p>
+                    )}
+                </section>
+
+                <section className="dsh-card dsh-recent" aria-labelledby="dsh-recent-title">
+                    <div className="dsh-card__head">
+                        <h2 id="dsh-recent-title" className="dsh-card__title">Reservas recientes</h2>
+                        <Link href="/admin/bookings" className="dsh-link">Ver todas</Link>
+                    </div>
+                    <div className="dsh-table-wrap">
+                        <table className="dsh-table">
                             <thead>
                                 <tr>
-                                    <th className="th-id">Localizador</th>
-                                    <th className="th-traveler">Viajero / Cliente</th>
-                                    <th className="th-camper">Camper</th>
-                                    <th className="th-dates">Periodo de Viaje</th>
-                                    <th className="th-total">Total</th>
-                                    <th className="th-status">Estado Operativo</th>
-                                    <th className="th-action">Acción</th>
+                                    <th>Cliente</th>
+                                    <th>Camper</th>
+                                    <th>Fechas</th>
+                                    <th className="dsh-table__num">Total</th>
+                                    <th>Estado</th>
                                 </tr>
                             </thead>
                             <tbody>
                                 {recentBookings?.map((b: any) => {
-                                    const clientName = b.customer_name || b.users?.full_name || 'Viajero Utopia'
-                                    const clientEmail = b.customer_email || b.users?.email || '-'
-                                    const userVerificationStatus = b.users?.verification_status
-                                    const initials = getInitials(clientName)
-
-                                    // Cálculo de noches
-                                    const startT = new Date(b.start_date).getTime()
-                                    const endT = new Date(b.end_date).getTime()
-                                    const nights = !isNaN(startT) && !isNaN(endT)
-                                        ? Math.max(1, Math.round((endT - startT) / (1000 * 60 * 60 * 24)))
-                                        : 1
-
+                                    const clientName = b.customer_name || b.users?.full_name || 'Cliente'
+                                    const status = STATUS_LABELS[b.status] || { label: b.status, tone: 'neutral' }
+                                    const docPending = b.users?.verification_status === 'pending_validation'
+                                    const nights = nightsBetween(b.start_date, b.end_date)
                                     return (
-                                        <tr key={b.id} className="master-row">
-                                            {/* Localizador ID */}
-                                            <td className="cell-id">
-                                                <Link
-                                                    href={`/admin/bookings?search=${b.id}` as any}
-                                                    className="localizer-pill"
-                                                    title={`Ver detalles de la reserva #${b.id.split('-')[0]}`}
-                                                >
-                                                    <span className="localizer-hash">#</span>
-                                                    <span>{b.id.split('-')[0].toUpperCase()}</span>
+                                        <tr key={b.id}>
+                                            <td className="dsh-table__client">
+                                                <Link href={`/admin/bookings?search=${b.id}` as any} className="dsh-table__client-link">
+                                                    <span className="dsh-table__name">{clientName}</span>
+                                                    <span className="dsh-table__ref">#{b.id.split('-')[0].toUpperCase()}</span>
                                                 </Link>
                                             </td>
-
-                                            {/* Viajero con Avatar de Iniciales */}
-                                            <td className="cell-traveler">
-                                                <Link
-                                                    href={`/admin/users?search=${encodeURIComponent(clientEmail)}` as any}
-                                                    className="traveler-box"
-                                                    title={`Ver ficha del viajero ${clientName}`}
-                                                >
-                                                    <div className="traveler-avatar" aria-hidden="true">
-                                                        {initials}
-                                                    </div>
-                                                    <div className="traveler-info">
-                                                        <span className="traveler-name">{clientName}</span>
-                                                        <span className="traveler-email">{clientEmail}</span>
-                                                    </div>
-                                                </Link>
+                                            <td className="dsh-table__camper">{b.campers?.name || 'Camper'}</td>
+                                            <td className="dsh-table__dates">
+                                                {formatDay(b.start_date)} – {formatDay(b.end_date)}
+                                                <span className="dsh-table__nights">{nights} {nights === 1 ? 'noche' : 'noches'}</span>
                                             </td>
-
-                                            {/* Camper */}
-                                            <td className="cell-camper">
-                                                <Link
-                                                    href="/admin/campers"
-                                                    className="camper-pill"
-                                                    title="Ver disponibilidad del camper"
-                                                >
-                                                    <Truck size={13} className="camper-pill__icon" />
-                                                    <span className="camper-pill__name">{b.campers?.name || 'Camper'}</span>
-                                                </Link>
-                                            </td>
-
-                                            {/* Periodo de Viaje */}
-                                            <td className="cell-dates">
-                                                <div className="dates-block">
-                                                    <span className="dates-range-text">
-                                                        {new Date(b.start_date).toLocaleDateString('es-ES', { day: 'numeric', month: 'short' })}
-                                                        <span className="dates-separator">→</span>
-                                                        {new Date(b.end_date).toLocaleDateString('es-ES', { day: 'numeric', month: 'short' })}
-                                                    </span>
-                                                    <span className="nights-chip">
-                                                        {nights} {nights === 1 ? 'noche' : 'noches'}
-                                                    </span>
-                                                </div>
-                                            </td>
-
-                                            {/* Total */}
-                                            <td className="cell-total">
-                                                <span className="total-figure">{formatPrice(b.total_price)}</span>
-                                            </td>
-
-                                            {/* Estado / Acción Rápida */}
-                                            <td className="cell-status">
-                                                <BookingStatusAction
-                                                    bookingId={b.id}
-                                                    status={b.status}
-                                                    verificationStatus={userVerificationStatus}
-                                                    customerName={clientName}
-                                                />
-                                            </td>
-
-                                            {/* Detalle */}
-                                            <td className="cell-action">
-                                                <Link
-                                                    href={`/admin/bookings?search=${b.id}` as any}
-                                                    className="row-open-btn"
-                                                    title="Abrir reserva en panel completo"
-                                                >
-                                                    <span>Gestionar</span>
-                                                    <ArrowRight size={13} />
-                                                </Link>
+                                            <td className="dsh-table__num dsh-table__total">{formatPrice(Number(b.total_price) || 0)}</td>
+                                            <td className="dsh-table__status">
+                                                <span className={`dsh-chip dsh-chip--${status.tone}`}>{status.label}</span>
+                                                {docPending && (
+                                                    <Link href="/admin/verifications" className="dsh-doc-flag" title="Documentación pendiente de validar">
+                                                        <ShieldCheck size={12} aria-hidden="true" /> Doc.
+                                                    </Link>
+                                                )}
                                             </td>
                                         </tr>
                                     )
                                 })}
-
                                 {(!recentBookings || recentBookings.length === 0) && (
                                     <tr>
-                                        <td colSpan={7} className="master-table-empty">
-                                            No hay reservas registradas en el sistema.
-                                        </td>
+                                        <td colSpan={5} className="dsh-empty">Todavía no hay reservas.</td>
                                     </tr>
                                 )}
                             </tbody>
                         </table>
                     </div>
-                </div>
-            </section>
+                </section>
+            </div>
         </div>
     )
 }

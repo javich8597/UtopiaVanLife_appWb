@@ -44,18 +44,19 @@ const MONTH_NAMES_FULL = [
 ]
 
 /**
- * Calculates monthly revenue and booking counts for the last 6 months up to referenceDate.
+ * Calculates monthly revenue and booking counts for the last `months` months up to referenceDate.
  */
 export function calculateMonthlyRevenue(
   bookings: BookingItem[],
-  referenceDate: Date = new Date()
+  referenceDate: Date = new Date(),
+  months: number = 6
 ): MonthlyData[] {
   const result: MonthlyData[] = []
   const refYear = referenceDate.getFullYear()
   const refMonth = referenceDate.getMonth()
 
-  // Generate the 6 consecutive months leading up to and including the current month
-  for (let i = 5; i >= 0; i--) {
+  // Generate the consecutive months leading up to and including the current month
+  for (let i = months - 1; i >= 0; i--) {
     const d = new Date(refYear, refMonth - i, 1)
     const year = d.getFullYear()
     const monthIdx = d.getMonth()
@@ -176,3 +177,69 @@ export function calculateGlobalOccupancy(fleetOccupancy: CamperOccupancy[]): num
   return Math.round(total / fleetOccupancy.length)
 }
 
+
+/**
+ * Percentage change between two values, rounded. Returns null when there is no baseline.
+ */
+export function calculateDelta(current: number, previous: number): number | null {
+  if (!previous || isNaN(previous) || isNaN(current)) return null
+  return Math.round(((current - previous) / previous) * 100)
+}
+
+export type CamperLiveState = 'on_trip' | 'available'
+
+export interface CamperLiveStatus {
+  id: string
+  name: string
+  slug: string
+  state: CamperLiveState
+  /** Customer currently travelling, when on a trip */
+  currentCustomer: string | null
+  /** Return date of the current trip (YYYY-MM-DD) */
+  returnsOn: string | null
+  /** Start date of the next confirmed departure (YYYY-MM-DD) */
+  nextDepartureOn: string | null
+  occupancyPercent: number
+}
+
+export interface LiveBookingItem extends BookingItem {
+  customer_name?: string | null
+}
+
+const toDay = (value: string | Date) => {
+  const d = typeof value === 'string' ? new Date(value) : value
+  return new Date(d.getFullYear(), d.getMonth(), d.getDate()).getTime()
+}
+
+/**
+ * Real-time state of each camper: on a trip today or available, plus its next departure.
+ */
+export function calculateFleetLiveStatus(
+  campers: CamperItem[],
+  bookings: LiveBookingItem[],
+  occupancy: CamperOccupancy[],
+  referenceDate: Date = new Date()
+): CamperLiveStatus[] {
+  const today = toDay(referenceDate)
+  const live = bookings.filter(b => ['confirmed', 'active'].includes(b.status))
+
+  return campers.map(camper => {
+    const own = live
+      .filter(b => b.camper_id === camper.id && b.start_date && b.end_date)
+      .sort((a, b) => toDay(a.start_date) - toDay(b.start_date))
+
+    const current = own.find(b => toDay(b.start_date) <= today && toDay(b.end_date) >= today)
+    const next = own.find(b => toDay(b.start_date) > today)
+
+    return {
+      id: camper.id,
+      name: camper.name,
+      slug: camper.slug,
+      state: current ? 'on_trip' : 'available',
+      currentCustomer: current?.customer_name || null,
+      returnsOn: current?.end_date || null,
+      nextDepartureOn: next?.start_date || null,
+      occupancyPercent: occupancy.find(o => o.id === camper.id)?.occupancyPercent ?? 0,
+    }
+  })
+}

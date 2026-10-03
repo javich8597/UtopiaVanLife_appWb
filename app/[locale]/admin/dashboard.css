@@ -1,0 +1,655 @@
+/* ============================================================
+   ADMIN DASHBOARD — Claro cálido (marfil) con acentos dorados
+   Tokens --adm-* definidos en .admin-layout (globals.css)
+   ============================================================ */
+
+.dsh {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  width: 100%;
+  max-width: 1320px;
+  margin: 0 auto;
+  color: var(--adm-text);
+  font-family: var(--font-sans);
+}
+
+/* ---------- Cabecera ---------- */
+.dsh-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  gap: 16px;
+  padding: 4px 2px 6px;
+}
+.dsh-head__date {
+  margin: 0 0 4px;
+  font-size: 0.8rem;
+  color: var(--adm-text-2);
+}
+.dsh-head__date::first-letter {
+  text-transform: uppercase;
+}
+.dsh-head__title {
+  margin: 0;
+  font-family: var(--font-heading);
+  font-size: 1.75rem;
+  font-weight: 600;
+  letter-spacing: -0.025em;
+  color: var(--adm-text);
+}
+.dsh-head__actions {
+  display: flex;
+  gap: 8px;
+}
+
+.dsh-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  min-height: 38px;
+  padding: 8px 16px;
+  border-radius: 10px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  text-decoration: none;
+  transition: background-color 160ms var(--ease-out), border-color 160ms var(--ease-out), transform 120ms var(--ease-out);
+}
+.dsh-btn:active {
+  transform: scale(0.97);
+}
+.dsh-btn--primary {
+  background: var(--adm-ink);
+  color: #F6EBD3;
+  border: 1px solid var(--adm-ink);
+}
+.dsh-btn--primary:hover {
+  background: #2B2620;
+}
+.dsh-btn--ghost {
+  background: var(--adm-surface);
+  color: var(--adm-text);
+  border: 1px solid var(--adm-border);
+}
+.dsh-btn--ghost:hover {
+  border-color: var(--adm-border-strong);
+}
+
+/* ---------- Tarjeta base ---------- */
+.dsh-card {
+  background: var(--adm-surface);
+  border: 1px solid var(--adm-border);
+  border-radius: 16px;
+  padding: 20px 22px;
+  min-width: 0;
+}
+.dsh-card__head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 14px;
+}
+.dsh-card__title {
+  margin: 0;
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: var(--adm-text);
+}
+.dsh-link {
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--adm-gold-text);
+  text-decoration: none;
+  padding: 4px 2px;
+}
+.dsh-link:hover {
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+.dsh-empty {
+  margin: 0;
+  padding: 18px 0;
+  font-size: 0.85rem;
+  color: var(--adm-text-3);
+  text-align: center;
+}
+
+/* ---------- Chips de estado (tonos apagados) ---------- */
+.dsh-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 3px 9px;
+  border-radius: 999px;
+  font-size: 0.72rem;
+  font-weight: 600;
+  white-space: nowrap;
+  line-height: 1.4;
+}
+.dsh-chip--gold { background: var(--adm-gold-soft); color: var(--adm-gold-text); }
+.dsh-chip--sage { background: var(--adm-sage-soft); color: var(--adm-sage); }
+.dsh-chip--amber { background: var(--adm-amber-soft); color: var(--adm-amber); }
+.dsh-chip--rose { background: var(--adm-rose-soft); color: var(--adm-rose); }
+.dsh-chip--neutral { background: var(--adm-surface-2); color: var(--adm-text-2); }
+
+/* ---------- Requiere tu atención ---------- */
+.dsh-attention {
+  padding-bottom: 18px;
+}
+.dsh-attention__grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 10px;
+}
+.dsh-task {
+  position: relative;
+  display: grid;
+  grid-template-columns: auto 1fr;
+  grid-template-rows: auto auto;
+  column-gap: 12px;
+  align-items: center;
+  padding: 14px 16px;
+  border-radius: 12px;
+  background: var(--adm-surface-2);
+  border: 1px solid transparent;
+  text-decoration: none;
+  color: var(--adm-text);
+  transition: border-color 160ms var(--ease-out), background-color 160ms var(--ease-out);
+}
+.dsh-task:hover {
+  border-color: var(--adm-border-strong);
+  background: var(--adm-surface);
+}
+.dsh-task__icon {
+  grid-row: 1 / span 2;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 34px;
+  height: 34px;
+  border-radius: 10px;
+  background: var(--adm-surface);
+  color: var(--adm-text-2);
+  border: 1px solid var(--adm-border);
+}
+.dsh-task__value {
+  font-family: var(--font-heading);
+  font-size: 1.35rem;
+  font-weight: 600;
+  line-height: 1.1;
+  font-variant-numeric: tabular-nums;
+}
+.dsh-task__label {
+  font-size: 0.78rem;
+  color: var(--adm-text-2);
+  padding-right: 18px;
+}
+.dsh-task__arrow {
+  position: absolute;
+  right: 14px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--adm-text-3);
+  transition: transform 160ms var(--ease-out), color 160ms var(--ease-out);
+}
+.dsh-task:hover .dsh-task__arrow {
+  color: var(--adm-text);
+  transform: translate(2px, -50%);
+}
+.dsh-task--urgent {
+  background: var(--adm-gold-soft);
+}
+.dsh-task--urgent .dsh-task__icon {
+  color: var(--adm-gold-text);
+  border-color: var(--adm-gold-line);
+}
+.dsh-task--urgent .dsh-task__value {
+  color: var(--adm-gold-text);
+}
+.dsh-task--idle .dsh-task__value {
+  color: var(--adm-text-3);
+}
+
+/* ---------- KPIs ---------- */
+.dsh-kpis {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 14px;
+}
+.dsh-kpi {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  text-decoration: none;
+  color: var(--adm-text);
+  transition: border-color 160ms var(--ease-out), transform 160ms var(--ease-out);
+}
+.dsh-kpi:hover {
+  border-color: var(--adm-border-strong);
+}
+.dsh-kpi__label {
+  font-size: 0.78rem;
+  font-weight: 500;
+  color: var(--adm-text-2);
+}
+.dsh-kpi__value {
+  font-family: var(--font-heading);
+  font-size: 1.6rem;
+  font-weight: 600;
+  letter-spacing: -0.025em;
+  line-height: 1.15;
+  font-variant-numeric: tabular-nums;
+}
+.dsh-kpi__meta {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.76rem;
+  color: var(--adm-text-3);
+}
+.dsh-kpi--hero {
+  border-color: var(--adm-gold-line);
+  box-shadow: inset 0 3px 0 var(--adm-gold-fill);
+}
+.dsh-kpi--hero .dsh-kpi__value {
+  color: var(--adm-gold-text);
+}
+.dsh-delta {
+  display: inline-flex;
+  align-items: center;
+  gap: 1px;
+  font-weight: 600;
+  padding: 1px 6px 1px 4px;
+  border-radius: 6px;
+}
+.dsh-delta--up { color: var(--adm-sage); background: var(--adm-sage-soft); }
+.dsh-delta--down { color: var(--adm-rose); background: var(--adm-rose-soft); }
+
+/* ---------- Filas de 2 columnas ---------- */
+.dsh-row {
+  display: grid;
+  gap: 14px;
+}
+.dsh-row--chart {
+  grid-template-columns: minmax(0, 1.65fr) minmax(0, 1fr);
+}
+.dsh-row--bottom {
+  grid-template-columns: minmax(0, 1fr) minmax(0, 2fr);
+  align-items: start;
+}
+
+/* ---------- Flota ahora ---------- */
+.dsh-fleet__list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.dsh-vehicle {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 12px;
+  border-radius: 12px;
+  border: 1px solid var(--adm-border);
+  text-decoration: none;
+  color: var(--adm-text);
+  transition: border-color 160ms var(--ease-out), background-color 160ms var(--ease-out);
+}
+.dsh-vehicle:hover {
+  border-color: var(--adm-border-strong);
+  background: var(--adm-surface-2);
+}
+.dsh-vehicle__img {
+  flex-shrink: 0;
+  width: 88px;
+  height: 56px;
+  border-radius: 10px;
+  background: var(--adm-surface-2);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+}
+.dsh-vehicle__render {
+  width: auto;
+  height: 100%;
+  max-width: 100%;
+  object-fit: contain;
+}
+.dsh-vehicle__body {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.dsh-vehicle__top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+.dsh-vehicle__name {
+  font-family: var(--font-heading);
+  font-weight: 600;
+  font-size: 0.95rem;
+  letter-spacing: 0.02em;
+}
+.dsh-vehicle__meta {
+  font-size: 0.76rem;
+  color: var(--adm-text-2);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.dsh-meter {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 2px;
+}
+.dsh-meter__track {
+  flex: 1;
+  height: 5px;
+  border-radius: 99px;
+  background: var(--adm-surface-2);
+  overflow: hidden;
+}
+.dsh-meter__fill {
+  display: block;
+  height: 100%;
+  width: var(--pct, 0%);
+  border-radius: 99px;
+  background: var(--adm-gold-fill);
+}
+.dsh-meter__value {
+  font-size: 0.72rem;
+  font-weight: 600;
+  color: var(--adm-text-2);
+  font-variant-numeric: tabular-nums;
+  min-width: 32px;
+  text-align: right;
+}
+
+/* ---------- Agenda ---------- */
+.dsh-agenda__list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+.dsh-agenda__item {
+  display: grid;
+  grid-template-columns: 62px 26px 1fr;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 0;
+  border-top: 1px solid var(--adm-border);
+}
+.dsh-agenda__item:first-child {
+  border-top: 0;
+  padding-top: 2px;
+}
+.dsh-agenda__day {
+  font-size: 0.76rem;
+  font-weight: 600;
+  color: var(--adm-text-2);
+  text-transform: capitalize;
+}
+.dsh-agenda__day--today {
+  color: var(--adm-gold-text);
+}
+.dsh-agenda__icon {
+  width: 26px;
+  height: 26px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.dsh-agenda__icon--out { background: var(--adm-sage-soft); color: var(--adm-sage); }
+.dsh-agenda__icon--in { background: var(--adm-gold-soft); color: var(--adm-gold-text); }
+.dsh-agenda__text {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+.dsh-agenda__what {
+  font-size: 0.82rem;
+  font-weight: 600;
+}
+.dsh-agenda__who {
+  font-size: 0.76rem;
+  color: var(--adm-text-2);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* ---------- Tabla de reservas ---------- */
+.dsh-recent {
+  padding-bottom: 8px;
+}
+.dsh-table-wrap {
+  margin: 0 -22px;
+  overflow-x: auto;
+}
+.dsh-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.84rem;
+}
+.dsh-table th {
+  text-align: left;
+  font-size: 0.72rem;
+  font-weight: 600;
+  color: var(--adm-text-3);
+  padding: 8px 12px;
+  border-bottom: 1px solid var(--adm-border);
+  white-space: nowrap;
+}
+.dsh-table th:first-child,
+.dsh-table td:first-child {
+  padding-left: 22px;
+}
+.dsh-table th:last-child,
+.dsh-table td:last-child {
+  padding-right: 22px;
+}
+.dsh-table td {
+  padding: 12px;
+  border-bottom: 1px solid var(--adm-border);
+  vertical-align: middle;
+}
+.dsh-table tbody tr:last-child td {
+  border-bottom: 0;
+}
+.dsh-table tbody tr {
+  transition: background-color 120ms var(--ease-out);
+}
+.dsh-table tbody tr:hover {
+  background: var(--adm-surface-2);
+}
+.dsh-table__num {
+  text-align: right;
+}
+th.dsh-table__num {
+  text-align: right;
+}
+.dsh-table__client-link {
+  display: flex;
+  flex-direction: column;
+  text-decoration: none;
+  color: var(--adm-text);
+}
+.dsh-table__name {
+  font-weight: 600;
+}
+.dsh-table__client-link:hover .dsh-table__name {
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+.dsh-table__ref {
+  font-size: 0.72rem;
+  color: var(--adm-text-3);
+  font-variant-numeric: tabular-nums;
+}
+.dsh-table__camper {
+  font-weight: 500;
+  letter-spacing: 0.02em;
+}
+.dsh-table__dates {
+  white-space: nowrap;
+  color: var(--adm-text);
+}
+.dsh-table__nights {
+  display: block;
+  font-size: 0.72rem;
+  color: var(--adm-text-3);
+}
+.dsh-table__total {
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+.dsh-table__status {
+  white-space: nowrap;
+}
+.dsh-doc-flag {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  margin-left: 6px;
+  font-size: 0.7rem;
+  font-weight: 600;
+  color: var(--adm-amber);
+  text-decoration: none;
+}
+.dsh-doc-flag:hover {
+  text-decoration: underline;
+}
+
+/* ---------- Focus ---------- */
+.dsh a:focus-visible,
+.dsh button:focus-visible {
+  outline: 2px solid var(--adm-gold);
+  outline-offset: 2px;
+}
+
+/* ============================================================
+   RESPONSIVE
+   ============================================================ */
+@media (max-width: 1180px) {
+  .dsh-kpis,
+  .dsh-attention__grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .dsh-row--chart,
+  .dsh-row--bottom {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+@media (max-width: 860px) {
+  .dsh {
+    gap: 16px;
+  }
+  /* Tabla → tarjetas apiladas */
+  .dsh-table-wrap {
+    margin: 0;
+    overflow: visible;
+  }
+  .dsh-table thead {
+    display: none;
+  }
+  .dsh-table,
+  .dsh-table tbody {
+    display: block;
+  }
+  .dsh-table tbody tr {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    grid-template-areas:
+      'client total'
+      'trip status';
+    gap: 4px 12px;
+    padding: 12px 0;
+    border-bottom: 1px solid var(--adm-border);
+  }
+  .dsh-table tbody tr:last-child {
+    border-bottom: 0;
+  }
+  .dsh-table tbody tr:hover {
+    background: transparent;
+  }
+  .dsh-table td,
+  .dsh-table td:first-child,
+  .dsh-table td:last-child {
+    padding: 0;
+    border: 0;
+  }
+  .dsh-table__client { grid-area: client; }
+  .dsh-table__total { grid-area: total; }
+  .dsh-table__camper { display: none; }
+  .dsh-table__dates { grid-area: trip; font-size: 0.78rem; color: var(--adm-text-2); }
+  .dsh-table__nights { display: inline; margin-left: 6px; }
+  .dsh-table__status { grid-area: status; text-align: right; }
+}
+
+@media (max-width: 640px) {
+  .dsh-head {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  .dsh-head__title {
+    font-size: 1.45rem;
+  }
+  .dsh-head__actions {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+  }
+  .dsh-btn {
+    min-height: 44px;
+  }
+  .dsh-card {
+    padding: 16px;
+    border-radius: 14px;
+  }
+  .dsh-kpis {
+    gap: 10px;
+  }
+  .dsh-kpi__value {
+    font-size: 1.2rem;
+  }
+  .dsh-attention__grid {
+    gap: 8px;
+  }
+  .dsh-task {
+    padding: 12px;
+    column-gap: 10px;
+  }
+  .dsh-task__icon {
+    width: 30px;
+    height: 30px;
+  }
+  .dsh-task__arrow {
+    display: none;
+  }
+  .dsh-task__label {
+    padding-right: 0;
+  }
+  .dsh-vehicle__img {
+    width: 72px;
+    height: 48px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .dsh * {
+    transition: none !important;
+  }
+}

@@ -21,7 +21,7 @@ export default function AboutContent() {
       {/* ============================================================
           SECTION 1: QUIÉNES SOMOS
           ============================================================ */}
-      <section id="quienes-somos" className="section bg-white about-who-section">
+      <section id="quienes-somos" className="section about-who-section">
         <div className="container">
           <div className="about-grid">
             {/* Text Column */}
@@ -248,7 +248,7 @@ export default function AboutContent() {
       {/* ============================================================
           SECTION 3: NUESTRA FILOSOFÍA
           ============================================================ */}
-      <section className="section bg-white about-philosophy-section">
+      <section className="section about-philosophy-section">
         <div className="container">
           <div className="about-grid about-grid--reverse">
             {/* Visual Column */}
@@ -352,12 +352,18 @@ export default function AboutContent() {
       </section>
 
       <style jsx>{`
+        .about-content {
+          background: #0B0C0E;
+          color: #FFFFFF;
+        }
+
         /* ============================================================
            SHARED LAYOUT & GRID
            ============================================================ */
         .about-who-section,
         .about-philosophy-section {
-          padding: 5.5rem 0;
+          padding: 6rem 0;
+          background: #0B0C0E;
         }
 
         .about-grid {
@@ -377,14 +383,14 @@ export default function AboutContent() {
           align-items: center;
           gap: 0.45rem;
           padding: 0.35rem 0.95rem;
-          background: rgba(200, 168, 130, 0.12);
-          border: 1px solid rgba(200, 168, 130, 0.25);
+          background: rgba(204, 160, 83, 0.12);
+          border: 1px solid rgba(204, 160, 83, 0.35);
           border-radius: var(--radius-full);
-          font-size: 0.775rem;
-          font-weight: 600;
-          letter-spacing: 0.05em;
+          font-size: 0.72rem;
+          font-weight: 700;
+          letter-spacing: 0.18em;
           text-transform: uppercase;
-          color: var(--sand-dark);
+          color: #CCA053;
           margin-bottom: 1.25rem;
         }
 
@@ -394,41 +400,42 @@ export default function AboutContent() {
         }
 
         .about-pill-icon {
-          color: var(--sand-dark);
+          color: #CCA053;
         }
 
         .about-eyebrow {
           display: block;
-          font-size: 0.825rem;
-          font-weight: 600;
-          letter-spacing: 0.12em;
+          font-size: 0.75rem;
+          font-weight: 700;
+          letter-spacing: 0.22em;
           text-transform: uppercase;
-          color: var(--sand-dark);
+          color: #CCA053;
           margin-bottom: 0.5rem;
         }
 
         .about-section-title {
-          font-family: var(--font-display);
-          font-size: clamp(2.2rem, 3.8vw, 3.25rem);
-          font-weight: 400;
+          font-family: var(--font-display, sans-serif);
+          font-size: clamp(2.4rem, 4.5vw, 3.6rem);
+          font-weight: 800;
           letter-spacing: -0.02em;
-          line-height: 1.15;
-          color: var(--black-matte);
+          line-height: 1.1;
+          color: #FFFFFF;
           margin-bottom: 1.5rem;
+          text-transform: uppercase;
         }
 
         .about-lead-text {
           font-size: 1.15rem;
           line-height: 1.7;
-          font-weight: 500;
-          color: var(--black-matte);
+          font-weight: 400;
+          color: rgba(255, 255, 255, 0.9);
           margin-bottom: 1.75rem;
         }
 
         .about-body-text {
           font-size: 1rem;
           line-height: 1.75;
-          color: var(--gray-600);
+          color: rgba(255, 255, 255, 0.65);
         }
 
         /* Manifesto Staccato Box */
@@ -436,16 +443,17 @@ export default function AboutContent() {
           position: relative;
           display: flex;
           gap: 1.25rem;
-          padding: 1.25rem 1.5rem;
-          background: var(--cream);
-          border-radius: var(--radius-lg);
-          border: 1px solid rgba(0, 0, 0, 0.04);
+          padding: 1.5rem 1.75rem;
+          background: #131518;
+          border-radius: 18px;
+          border: 1px solid rgba(255, 255, 255, 0.08);
           margin-bottom: 1.75rem;
+          box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4);
         }
 
         .about-manifesto-accent {
           width: 3px;
-          background: var(--sand-dark);
+          background: #CCA053;
           border-radius: 999px;
           flex-shrink: 0;
         }
@@ -453,36 +461,34 @@ export default function AboutContent() {
         .about-manifesto-items {
           display: flex;
           flex-direction: column;
-          gap: 0.4rem;
+          gap: 0.85rem;
         }
 
         .about-manifesto-item {
           display: flex;
           align-items: center;
-          gap: 0.6rem;
-          font-size: 1.025rem;
-          font-weight: 600;
-          color: var(--forest-green);
-          letter-spacing: -0.01em;
+          gap: 0.75rem;
+          font-size: 0.95rem;
+          font-weight: 500;
+          color: rgba(255, 255, 255, 0.9);
         }
 
         .about-dot {
           width: 6px;
           height: 6px;
           border-radius: 50%;
-          background: var(--sand-dark);
+          background: #CCA053;
           flex-shrink: 0;
         }
 
-        /* Visual Card Frame */
+        /* Image Card */
         .about-image-card {
-          position: relative;
           border-radius: 20px;
           overflow: hidden;
-          background: #ffffff;
+          background: #131518;
           padding: 0.6rem;
-          box-shadow: 0 16px 40px -10px rgba(0, 0, 0, 0.08), 0 1px 3px rgba(0, 0, 0, 0.04);
-          border: 1px solid rgba(0, 0, 0, 0.05);
+          box-shadow: 0 20px 48px rgba(0, 0, 0, 0.5);
+          border: 1px solid rgba(255, 255, 255, 0.08);
         }
 
         .about-image-wrap {
@@ -511,8 +517,8 @@ export default function AboutContent() {
           align-items: center;
           gap: 0.45rem;
           padding: 0.45rem 1rem;
-          background: rgba(26, 26, 26, 0.65);
-          border: 1px solid rgba(255, 255, 255, 0.18);
+          background: rgba(14, 16, 15, 0.82);
+          border: 1px solid rgba(255, 255, 255, 0.16);
           backdrop-filter: blur(16px);
           -webkit-backdrop-filter: blur(16px);
           border-radius: var(--radius-full);
@@ -520,74 +526,76 @@ export default function AboutContent() {
           font-weight: 500;
           color: #ffffff;
           letter-spacing: 0.03em;
-          box-shadow: 0 4px 16px rgba(0, 0, 0, 0.25);
+          box-shadow: 0 4px 16px rgba(0, 0, 0, 0.4);
           z-index: 2;
         }
 
         .about-badge-pin {
-          color: var(--sand);
+          color: #CCA053;
         }
 
         .about-badge-heart {
-          color: #f28b82;
+          color: #CCA053;
         }
 
         /* ============================================================
            GALLERY TRIPTYCH STRIP
            ============================================================ */
         .about-gallery-strip {
-          background: var(--white-broken);
-          padding: 4.5rem 0 5rem;
-          border-top: 1px solid rgba(0, 0, 0, 0.04);
+          background: #0E1013;
+          padding: 5.5rem 0 6rem;
+          border-top: 1px solid rgba(255, 255, 255, 0.07);
+          border-bottom: 1px solid rgba(255, 255, 255, 0.07);
         }
 
         .about-gallery-header {
           text-align: center;
-          margin-bottom: 2.5rem;
+          margin-bottom: 3rem;
         }
 
         .about-gallery-tagline {
           display: inline-block;
           font-size: 0.72rem;
-          font-weight: 600;
-          letter-spacing: 0.1em;
-          color: var(--forest-green);
+          font-weight: 700;
+          letter-spacing: 0.22em;
+          color: #CCA053;
           text-transform: uppercase;
-          margin-bottom: 0.5rem;
+          margin-bottom: 0.6rem;
         }
 
         .about-gallery-title {
-          font-family: var(--font-serif, serif);
-          font-size: clamp(1.6rem, 2.8vw, 2.2rem);
-          font-weight: 400;
-          color: var(--black-matte);
+          font-family: var(--font-display, sans-serif);
+          font-size: clamp(1.8rem, 3.2vw, 2.5rem);
+          font-weight: 800;
+          color: #FFFFFF;
           letter-spacing: -0.02em;
+          text-transform: uppercase;
         }
 
         .about-gallery-grid {
           display: grid;
           grid-template-columns: repeat(3, 1fr);
-          gap: 1.5rem;
+          gap: 1.75rem;
         }
 
         .about-gallery-item {
-          border-radius: var(--radius-xl);
+          border-radius: 20px;
           overflow: hidden;
-          background: white;
-          border: 1px solid rgba(0, 0, 0, 0.06);
-          box-shadow: 0 4px 20px rgba(0, 0, 0, 0.03);
-          transition: transform 240ms cubic-bezier(0.23, 1, 0.32, 1), box-shadow 240ms ease;
+          background: #131518;
+          border: 1px solid rgba(255, 255, 255, 0.08);
+          box-shadow: 0 16px 40px rgba(0, 0, 0, 0.4);
+          transition: transform 240ms cubic-bezier(0.23, 1, 0.32, 1), border-color 240ms ease;
         }
 
         .about-gallery-item:hover {
           transform: translateY(-4px);
-          box-shadow: 0 12px 30px rgba(45, 58, 45, 0.1);
+          border-color: rgba(204, 160, 83, 0.4);
         }
 
         .about-gallery-img-wrap {
           position: relative;
           width: 100%;
-          height: 280px;
+          height: 300px;
           overflow: hidden;
         }
 
@@ -605,40 +613,42 @@ export default function AboutContent() {
           inset: 0;
           background: linear-gradient(
             to top,
-            rgba(15, 20, 16, 0.85) 0%,
-            rgba(15, 20, 16, 0.3) 40%,
-            transparent 70%
+            rgba(11, 12, 14, 0.92) 0%,
+            rgba(11, 12, 14, 0.4) 45%,
+            transparent 75%
           );
           z-index: 1;
         }
 
         .about-gallery-caption {
           position: absolute;
-          bottom: 1rem;
-          left: 1rem;
-          right: 1rem;
+          bottom: 1.25rem;
+          left: 1.25rem;
+          right: 1.25rem;
           z-index: 2;
           color: white;
         }
 
         .about-gallery-badge {
           display: inline-block;
-          font-size: 0.65rem;
+          font-size: 0.68rem;
           font-weight: 700;
-          letter-spacing: 0.08em;
+          letter-spacing: 0.1em;
           text-transform: uppercase;
-          background: rgba(255, 255, 255, 0.2);
+          background: rgba(204, 160, 83, 0.18);
+          border: 1px solid rgba(204, 160, 83, 0.4);
+          color: #CCA053;
           backdrop-filter: blur(8px);
           -webkit-backdrop-filter: blur(8px);
-          padding: 2px 8px;
-          border-radius: 4px;
-          margin-bottom: 0.35rem;
+          padding: 3px 9px;
+          border-radius: 6px;
+          margin-bottom: 0.4rem;
         }
 
         .about-gallery-caption p {
-          font-size: 0.82rem;
+          font-size: 0.88rem;
           font-weight: 500;
-          line-height: 1.35;
+          line-height: 1.4;
           margin: 0;
           color: rgba(255, 255, 255, 0.95);
         }
@@ -647,10 +657,8 @@ export default function AboutContent() {
            SECTION 2: METHOD & QUOTE
            ============================================================ */
         .about-method-section {
-          background: var(--cream);
+          background: #0B0C0E;
           padding: 6.5rem 0;
-          border-top: 1px solid rgba(0, 0, 0, 0.03);
-          border-bottom: 1px solid rgba(0, 0, 0, 0.03);
         }
 
         .about-method-container {
@@ -660,12 +668,13 @@ export default function AboutContent() {
         }
 
         .about-method-title {
-          font-family: var(--font-display);
-          font-size: clamp(2.1rem, 3.5vw, 3rem);
-          font-weight: 400;
+          font-family: var(--font-display, sans-serif);
+          font-size: clamp(2.2rem, 3.8vw, 3.2rem);
+          font-weight: 800;
           letter-spacing: -0.02em;
-          color: var(--black-matte);
+          color: #FFFFFF;
           margin-bottom: 1.75rem;
+          text-transform: uppercase;
         }
 
         .about-quote-box {
@@ -675,12 +684,12 @@ export default function AboutContent() {
         }
 
         .about-quote-text {
-          font-family: var(--font-display);
+          font-family: var(--font-display, sans-serif);
           font-size: clamp(1.6rem, 2.75vw, 2.35rem);
           line-height: 1.25;
           font-style: italic;
           font-weight: 400;
-          color: var(--forest-green);
+          color: #CCA053;
           max-width: 680px;
           margin: 0 auto;
         }
@@ -688,7 +697,7 @@ export default function AboutContent() {
         .about-method-body {
           font-size: 1.075rem;
           line-height: 1.8;
-          color: var(--gray-600);
+          color: rgba(255, 255, 255, 0.65);
           max-width: 720px;
           margin: 0 auto 3.5rem;
         }
@@ -696,49 +705,51 @@ export default function AboutContent() {
         .about-pillars-grid {
           display: grid;
           grid-template-columns: repeat(3, 1fr);
-          gap: 1.5rem;
+          gap: 1.75rem;
           text-align: left;
         }
 
         .about-pillar-card {
-          background: #ffffff;
-          border-radius: var(--radius-lg);
-          padding: 1.75rem 1.5rem;
-          border: 1px solid rgba(0, 0, 0, 0.05);
-          box-shadow: 0 4px 16px rgba(0, 0, 0, 0.03);
-          transition: transform 200ms cubic-bezier(0.23, 1, 0.32, 1), box-shadow 200ms cubic-bezier(0.23, 1, 0.32, 1);
+          background: #131518;
+          border-radius: 20px;
+          padding: 2rem 1.75rem;
+          border: 1px solid rgba(255, 255, 255, 0.08);
+          box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4);
+          transition: transform 200ms cubic-bezier(0.23, 1, 0.32, 1), border-color 200ms ease;
         }
 
         @media (hover: hover) and (pointer: fine) {
           .about-pillar-card:hover {
             transform: translateY(-3px);
-            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.06);
+            border-color: rgba(204, 160, 83, 0.35);
           }
         }
 
         .about-pillar-icon-wrap {
-          width: 38px;
-          height: 38px;
-          border-radius: 10px;
-          background: var(--cream);
-          color: var(--forest-green);
+          width: 44px;
+          height: 44px;
+          border-radius: 12px;
+          background: rgba(204, 160, 83, 0.12);
+          color: #CCA053;
           display: flex;
           align-items: center;
           justify-content: center;
-          margin-bottom: 1rem;
+          margin-bottom: 1.25rem;
         }
 
         .about-pillar-title {
-          font-size: 1.05rem;
-          font-weight: 600;
-          color: var(--black-matte);
-          margin-bottom: 0.4rem;
+          font-size: 1.1rem;
+          font-weight: 700;
+          color: #FFFFFF;
+          margin-bottom: 0.5rem;
+          letter-spacing: -0.01em;
         }
 
         .about-pillar-desc {
           font-size: 0.9rem;
           line-height: 1.6;
-          color: var(--gray-600);
+          color: rgba(255, 255, 255, 0.6);
+          margin: 0;
         }
 
         /* ============================================================
@@ -747,18 +758,18 @@ export default function AboutContent() {
         .about-steps-list {
           display: flex;
           flex-direction: column;
-          gap: 1rem;
-          margin-bottom: 1.75rem;
+          gap: 1.25rem;
+          margin-bottom: 2rem;
         }
 
         .about-step-item {
           display: flex;
           align-items: flex-start;
-          gap: 0.85rem;
+          gap: 1rem;
         }
 
         .about-step-marker {
-          color: var(--sand-dark);
+          color: #CCA053;
           margin-top: 0.2rem;
           flex-shrink: 0;
         }
@@ -766,76 +777,79 @@ export default function AboutContent() {
         .about-step-content p {
           font-size: 1.025rem;
           line-height: 1.65;
-          color: var(--gray-800);
+          color: rgba(255, 255, 255, 0.85);
+          margin: 0;
         }
 
         .about-philosophy-conclusion {
-          padding-top: 1.25rem;
-          border-top: 1px solid var(--gray-200);
+          padding-top: 1.5rem;
+          border-top: 1px solid rgba(255, 255, 255, 0.08);
         }
 
         .about-philosophy-conclusion p {
-          font-family: var(--font-display);
+          font-family: var(--font-display, sans-serif);
           font-size: 1.3rem;
           font-style: italic;
-          color: var(--forest-green);
+          color: #CCA053;
           font-weight: 500;
+          margin: 0;
         }
 
         /* ============================================================
            SECTION 4: CTA SECTION
            ============================================================ */
         .about-cta-section {
-          padding: 4.5rem 0 6rem;
-          background: var(--white-broken);
+          padding: 5rem 0 6.5rem;
+          background: #0B0C0E;
         }
 
         .about-cta-card {
           position: relative;
-          border-radius: 24px;
-          background: linear-gradient(135deg, #242f24 0%, #1c241c 100%);
-          padding: 4.5rem 2.5rem;
+          border-radius: 28px;
+          background: radial-gradient(ellipse 70% 60% at 50% 0%, rgba(204, 160, 83, 0.16), transparent 70%), #131518;
+          padding: 5rem 2.5rem;
           text-align: center;
           color: #ffffff;
           overflow: hidden;
-          box-shadow: 0 24px 48px -12px rgba(26, 36, 26, 0.25);
-          border: 1px solid rgba(255, 255, 255, 0.08);
+          box-shadow: 0 24px 60px rgba(0, 0, 0, 0.6);
+          border: 1px solid rgba(204, 160, 83, 0.25);
         }
 
         .about-cta-badge {
           display: inline-flex;
           align-items: center;
-          gap: 0.45rem;
-          padding: 0.4rem 1.05rem;
-          background: rgba(255, 255, 255, 0.1);
-          border: 1px solid rgba(255, 255, 255, 0.18);
+          gap: 0.5rem;
+          padding: 0.4rem 1.15rem;
+          background: rgba(204, 160, 83, 0.12);
+          border: 1px solid rgba(204, 160, 83, 0.35);
           backdrop-filter: blur(12px);
           border-radius: var(--radius-full);
-          font-size: 0.8rem;
-          font-weight: 500;
-          color: var(--sand);
-          letter-spacing: 0.05em;
+          font-size: 0.75rem;
+          font-weight: 700;
+          color: #CCA053;
+          letter-spacing: 0.18em;
           text-transform: uppercase;
-          margin-bottom: 1.25rem;
+          margin-bottom: 1.5rem;
         }
 
         .about-cta-badge-icon {
-          color: var(--sand);
+          color: #CCA053;
         }
 
         .about-cta-title {
-          font-family: var(--font-display);
-          font-size: clamp(2.2rem, 4vw, 3.25rem);
-          font-weight: 400;
+          font-family: var(--font-display, sans-serif);
+          font-size: clamp(2.4rem, 4.5vw, 3.6rem);
+          font-weight: 800;
           color: #ffffff;
           letter-spacing: -0.02em;
-          margin-bottom: 1rem;
+          margin-bottom: 1.25rem;
+          text-transform: uppercase;
         }
 
         .about-cta-subtitle {
           font-size: clamp(1rem, 1.8vw, 1.15rem);
           line-height: 1.6;
-          color: rgba(255, 255, 255, 0.8);
+          color: rgba(255, 255, 255, 0.7);
           max-width: 580px;
           margin: 0 auto 2.5rem;
         }
@@ -848,60 +862,64 @@ export default function AboutContent() {
           justify-content: center;
         }
 
-        .about-btn-primary {
+        :global(.about-btn-primary) {
           display: inline-flex;
           align-items: center;
           gap: 0.6rem;
-          padding: 0.95rem 2rem;
-          background: var(--sand);
-          color: var(--forest-green);
-          font-weight: 600;
-          font-size: 0.95rem;
+          padding: 0.95rem 2.2rem;
+          background: #CCA053;
+          color: #0B0C0E;
+          font-weight: 700;
+          font-size: 0.92rem;
+          letter-spacing: 0.02em;
           border-radius: var(--radius-full);
-          transition: transform 160ms cubic-bezier(0.23, 1, 0.32, 1), background-color 160ms ease;
-          box-shadow: 0 4px 14px rgba(0, 0, 0, 0.15);
+          text-decoration: none;
+          transition: transform 160ms cubic-bezier(0.23, 1, 0.32, 1), background-color 160ms ease, box-shadow 160ms ease;
+          box-shadow: 0 6px 20px rgba(204, 160, 83, 0.35);
         }
 
         @media (hover: hover) and (pointer: fine) {
-          .about-btn-primary:hover {
-            background: #eddcd0;
+          :global(.about-btn-primary:hover) {
+            background: #d8ad5e;
             transform: translateY(-2px);
+            box-shadow: 0 8px 26px rgba(204, 160, 83, 0.45);
           }
-          .about-btn-primary:hover .about-btn-arrow {
+          :global(.about-btn-primary:hover) :global(.about-btn-arrow) {
             transform: translateX(3px);
           }
         }
 
-        .about-btn-primary:active {
+        :global(.about-btn-primary:active) {
           transform: scale(0.97);
         }
 
-        .about-btn-arrow {
+        :global(.about-btn-arrow) {
           transition: transform 160ms cubic-bezier(0.23, 1, 0.32, 1);
         }
 
-        .about-btn-secondary {
+        :global(.about-btn-secondary) {
           display: inline-flex;
           align-items: center;
-          padding: 0.95rem 1.85rem;
-          background: transparent;
+          padding: 0.95rem 2rem;
+          background: rgba(255, 255, 255, 0.05);
           color: #ffffff;
-          font-weight: 500;
-          font-size: 0.95rem;
+          font-weight: 600;
+          font-size: 0.92rem;
           border-radius: var(--radius-full);
-          border: 1px solid rgba(255, 255, 255, 0.3);
+          border: 1px solid rgba(255, 255, 255, 0.2);
+          text-decoration: none;
           transition: transform 160ms cubic-bezier(0.23, 1, 0.32, 1), border-color 160ms ease, background-color 160ms ease;
         }
 
         @media (hover: hover) and (pointer: fine) {
-          .about-btn-secondary:hover {
-            border-color: rgba(255, 255, 255, 0.7);
-            background: rgba(255, 255, 255, 0.06);
+          :global(.about-btn-secondary:hover) {
+            border-color: rgba(204, 160, 83, 0.5);
+            background: rgba(255, 255, 255, 0.09);
             transform: translateY(-2px);
           }
         }
 
-        .about-btn-secondary:active {
+        :global(.about-btn-secondary:active) {
           transform: scale(0.97);
         }
 
@@ -922,7 +940,7 @@ export default function AboutContent() {
           }
           .about-pillars-grid {
             grid-template-columns: 1fr;
-            gap: 1rem;
+            gap: 1.25rem;
           }
           .about-gallery-grid {
             grid-template-columns: 1fr;
@@ -942,7 +960,7 @@ export default function AboutContent() {
             padding: 4.5rem 0;
           }
           .about-gallery-strip {
-            padding: 3rem 0;
+            padding: 3.5rem 0;
           }
           .about-cta-card {
             padding: 3rem 1.5rem;
@@ -954,8 +972,8 @@ export default function AboutContent() {
             flex-direction: column;
             width: 100%;
           }
-          .about-btn-primary,
-          .about-btn-secondary {
+          :global(.about-btn-primary),
+          :global(.about-btn-secondary) {
             width: 100%;
             justify-content: center;
           }

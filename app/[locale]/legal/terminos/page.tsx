@@ -1,50 +1,48 @@
 import Navbar from '@/components/layout/Navbar'
 import Footer from '@/components/layout/Footer'
+import LegalLayout from '@/components/legal/LegalLayout'
 import { FileCheck } from 'lucide-react'
 
+export async function generateMetadata() {
+  return {
+    title: 'Términos y Condiciones | Utopia Van Life',
+    description: 'Condiciones generales de contratación y alquiler de furgonetas camper en Mallorca con Utopia Van Life.',
+  }
+}
+
 export default function TermsPage() {
-    return (
-        <>
-            <Navbar />
-            <main style={{ paddingTop: 100, paddingBottom: 80, minHeight: '80vh', background: 'var(--white-broken)' }}>
-                <div className="container" style={{ maxWidth: 840 }}>
-                    <div style={{ background: 'white', borderRadius: 'var(--radius-xl)', padding: 'var(--space-10)', boxShadow: 'var(--shadow-sm)', border: '1px solid var(--gray-200)' }}>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-3)', marginBottom: 'var(--space-6)' }}>
-                            <div style={{ background: 'rgba(45,58,45,0.1)', color: 'var(--forest-green)', padding: 12, borderRadius: 12 }}>
-                                <FileCheck size={28} />
-                            </div>
-                            <div>
-                                <h1 className="text-h2">Términos y Condiciones</h1>
-                                <p className="text-small" style={{ color: 'var(--gray-500)' }}>Condiciones generales de contratación y alquiler</p>
-                            </div>
-                        </div>
+  return (
+    <>
+      <Navbar />
+      <main>
+        <LegalLayout
+          title="Términos y Condiciones"
+          subtitle="Condiciones generales de contratación y alquiler"
+          icon={<FileCheck size={28} />}
+        >
+          <section className="legal-section">
+            <h2 className="legal-heading">1. Requisitos del Conductor</h2>
+            <p className="legal-text">
+              El arrendatario y todos los conductores autorizados deben tener al menos 25 años de edad cumplidos y estar en posesión de un permiso de conducir de clase B en vigor con al menos 2 años de antigüedad acreditada.
+            </p>
+          </section>
 
-                        <div className="legal-content" style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-6)', lineHeight: 1.8, color: 'var(--gray-700)' }}>
-                            <section>
-                                <h2 className="text-h4" style={{ color: 'var(--black-matte)', marginBottom: 'var(--space-2)' }}>1. Requisitos del Conductor</h2>
-                                <p>
-                                    El arrendatario y los conductores autorizados deben tener al menos 25 años de edad y estar en posesión de un permiso de conducir de clase B en vigor con al menos 2 años de antigüedad.
-                                </p>
-                            </section>
+          <section className="legal-section">
+            <h2 className="legal-heading">2. Fianza y Cobertura de Seguro</h2>
+            <p className="legal-text">
+              Todas nuestras furgonetas camper disponen de seguro a todo riesgo. En el momento del check-in se retendrá una fianza reembolsable de 1.000€ mediante tarjeta bancaria para responder de posibles contingencias o desperfectos no cubiertos por la póliza. Dicha fianza será liberada íntegramente tras la inspección de devolución del vehículo en el mismo estado de conservación.
+            </p>
+          </section>
 
-                            <section>
-                                <h2 className="text-h4" style={{ color: 'var(--black-matte)', marginBottom: 'var(--space-2)' }}>2. Fianza y Seguro</h2>
-                                <p>
-                                    Todas nuestras campers cuentan con seguro a todo riesgo con una fianza reembolsable de 1.000€ en el momento de la entrega o check-in online para responder de posibles daños no cubiertos o desperfectos. La fianza será liberada tras la devolución del vehículo en las mismas condiciones de entrega.
-                                </p>
-                            </section>
-
-                            <section>
-                                <h2 className="text-h4" style={{ color: 'var(--black-matte)', marginBottom: 'var(--space-2)' }}>3. Recogida y Devolución</h2>
-                                <p>
-                                    Las campers se entregan y recogen en los puntos acordados en Mallorca con el depósito de combustible lleno y limpias, debiendo ser devueltas en idénticas condiciones.
-                                </p>
-                            </section>
-                        </div>
-                    </div>
-                </div>
-            </main>
-            <Footer />
-        </>
-    )
+          <section className="legal-section">
+            <h2 className="legal-heading">3. Entrega y Devolución en Mallorca</h2>
+            <p className="legal-text">
+              Los vehículos se entregan y recogen en los puntos convenidos en Mallorca con el depósito de combustible lleno y en óptimas condiciones de limpieza, debiendo ser reintegrados en el mismo estado pactado.
+            </p>
+          </section>
+        </LegalLayout>
+      </main>
+      <Footer />
+    </>
+  )
 }

@@ -113,7 +113,7 @@ export default function Navbar() {
           {/* Desktop links */}
           <ul className="navbar__links hide-mobile">
             <li><Link href="/campers" className="navbar__link">{t('campers')}</Link></li>
-            <li><Link href="/campers" className="navbar__link navbar__link--reservar">{t('bookNow')}</Link></li>
+            <li><Link href="/reservar" className="navbar__link navbar__link--reservar">{t('bookNow')}</Link></li>
             <li><Link href="/venta" className="navbar__link">{t('venta')}</Link></li>
             <li><Link href="/conocenos" className="navbar__link">{t('about')}</Link></li>
             <li><Link href="/#faqs" className="navbar__link">{t('faq')}</Link></li>
@@ -175,7 +175,7 @@ export default function Navbar() {
             </div>
             <ul className="mobile-menu__links">
               <li><Link href="/campers" onClick={() => setMenuOpen(false)}>{t('campers')}</Link></li>
-              <li><Link href="/campers" onClick={() => setMenuOpen(false)} className="mobile-menu__link--reservar">{t('bookNow')}</Link></li>
+              <li><Link href="/reservar" onClick={() => setMenuOpen(false)} className="mobile-menu__link--reservar">{t('bookNow')}</Link></li>
               <li><Link href="/venta" onClick={() => setMenuOpen(false)}>{t('venta')}</Link></li>
               <li><Link href="/conocenos" onClick={() => setMenuOpen(false)}>{t('about')}</Link></li>
               <li><Link href="/#faqs" onClick={() => setMenuOpen(false)}>{t('faq')}</Link></li>

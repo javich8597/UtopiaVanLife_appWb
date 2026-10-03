@@ -98,8 +98,8 @@ function SuccessContent() {
     }
 
     const res = validateDriverLicense(driverLicenseIssueDate, driverLicenseExpiryDate)
-    if (!res.isValid && res.isExpired) {
-      setErrorMessage(res.warningMessage || 'El carnet de conducir no puede estar caducado.')
+    if (!res.isValid) {
+      setErrorMessage(res.warningMessage || 'El carnet de conducir no cumple con los requisitos del seguro.')
       return
     }
 
@@ -109,11 +109,17 @@ function SuccessContent() {
 
   const handleSubmitAll = async (e: React.FormEvent) => {
     e.preventDefault()
+    if (!dniFront || !dniBack || !licenseFront || !licenseBack) {
+      setErrorMessage('Por favor sube las fotos de ambas caras del DNI y Carnet de Conducir.')
+      return
+    }
+
     setIsSubmitting(true)
     setErrorMessage(null)
 
     try {
       const formData = new FormData()
+      formData.append('orderId', orderId)
       formData.append('fullName', fullName)
       formData.append('dniNie', dniNie)
       formData.append('driverLicenseId', driverLicenseId)
@@ -122,10 +128,10 @@ function SuccessContent() {
       formData.append('address', address)
       formData.append('phone', phone)
 
-      if (dniFront) formData.append('dni_front', dniFront)
-      if (dniBack) formData.append('dni_back', dniBack)
-      if (licenseFront) formData.append('license_front', licenseFront)
-      if (licenseBack) formData.append('license_back', licenseBack)
+      formData.append('dniFront', dniFront)
+      formData.append('dniBack', dniBack)
+      formData.append('licenseFront', licenseFront)
+      formData.append('licenseBack', licenseBack)
 
       const response = await fetch('/api/upload-driver-docs', {
         method: 'POST',
@@ -150,88 +156,96 @@ function SuccessContent() {
 
   if (isFailed) {
     return (
-      <div style={{ textAlign: 'center', paddingBlock: 'var(--space-12)' }}>
-        <div style={{ width: 80, height: 80, borderRadius: '50%', background: '#fee2e2', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 20px' }}>
-          <XCircle size={48} style={{ color: 'var(--error)' }} />
+      <div className="success-failed-wrap">
+        <div className="success-failed-icon">
+          <XCircle size={48} className="text-error" />
         </div>
-        <h1 className="text-h2" style={{ marginBottom: 12 }}>Pago no completado</h1>
-        <p className="text-body" style={{ color: 'var(--gray-600)', maxWidth: 460, margin: '0 auto 28px' }}>
+        <h1 className="success-failed-title">Pago no completado</h1>
+        <p className="success-failed-desc">
           Hubo un problema procesando tu pago mediante CaixaBank / TPV. La reserva no se ha formalizado.
         </p>
-        <button className="btn btn-forest" onClick={() => router.push('/campers')}>
+        <button className="btn-gold" onClick={() => router.push('/campers')}>
           Volver a intentarlo
         </button>
+
+        <style jsx>{`
+          .success-failed-wrap {
+            text-align: center;
+            padding: 80px 20px;
+            max-width: 520px;
+            margin: 0 auto;
+          }
+          .success-failed-icon {
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            background: rgba(239, 68, 68, 0.12);
+            border: 1px solid rgba(239, 68, 68, 0.3);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 20px;
+            color: #EF4444;
+          }
+          .success-failed-title {
+            color: #FFFFFF;
+            font-size: 1.8rem;
+            font-weight: 800;
+            margin-bottom: 12px;
+          }
+          .success-failed-desc {
+            color: #94A3B8;
+            margin-bottom: 28px;
+            line-height: 1.6;
+          }
+          .btn-gold {
+            background: linear-gradient(135deg, #CCA053 0%, #B2883B 100%);
+            color: #0B0C0E;
+            border: none;
+            padding: 12px 28px;
+            border-radius: 999px;
+            font-weight: 700;
+            cursor: pointer;
+          }
+        `}</style>
       </div>
     )
   }
 
   return (
-    <div style={{ maxWidth: 760, margin: '0 auto' }}>
+    <div className="success-container">
       {/* Top Banner */}
-      <div style={{ textAlign: 'center', marginBottom: 36 }}>
-        <div style={{
-          width: 76,
-          height: 76,
-          borderRadius: '50%',
-          background: 'rgba(34, 197, 94, 0.12)',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          margin: '0 auto 16px'
-        }}>
-          <CheckCircle2 size={44} style={{ color: '#16a34a' }} strokeWidth={2} />
+      <div className="success-banner">
+        <div className="success-icon-wrap">
+          <CheckCircle2 size={40} className="success-check-icon" strokeWidth={2.2} />
         </div>
-        <h1 className="text-h2" style={{ marginBottom: 12, fontSize: 'clamp(1.7rem, 2.5vw, 2.2rem)' }}>
+        <h1 className="success-title">
           ¡Pago Recibido con Éxito!
         </h1>
 
         {/* Status Badge */}
-        <div style={{
-          display: 'inline-flex',
-          alignItems: 'center',
-          gap: 8,
-          padding: '8px 18px',
-          background: '#FEF3C7',
-          color: '#92400E',
-          borderRadius: 24,
-          fontSize: '0.9rem',
-          fontWeight: 600,
-          marginBottom: 14,
-          border: '1px solid #FCD34D'
-        }}>
+        <div className="success-badge">
           <Clock size={16} />
-          Estado: Pendiente de confirmación por Utopia Van Life
+          <span>Estado: Pendiente de confirmación por Utopia Van Life</span>
         </div>
 
         {orderId && (
-          <p style={{ fontSize: '0.85rem', color: 'var(--gray-500)', marginBottom: 8 }}>
+          <p className="success-ref">
             Referencia de Pago Redsys: <strong>#{orderId}</strong>
           </p>
         )}
 
-        <p className="text-body" style={{ color: 'var(--gray-600)', maxWidth: 580, margin: '0 auto 16px', fontSize: '0.98rem', lineHeight: 1.5 }}>
+        <p className="success-desc">
           Hemos recibido tu abono a través de la pasarela segura Redsys y tus fechas están <strong>bloqueadas en el calendario</strong>. El equipo de Utopia Van Life confirmará formalmente tu reserva en breve.
         </p>
 
         {/* WhatsApp direct contact */}
-        <div style={{ marginBottom: 28 }}>
+        <div className="success-whatsapp-wrap">
           <a
             href={whatsappUrl}
             target="_blank"
             rel="noopener noreferrer"
-            style={{
-              background: '#25D366',
-              color: 'white',
-              display: 'inline-flex',
-              alignItems: 'center',
-              gap: 8,
-              padding: '10px 20px',
-              borderRadius: 8,
-              fontWeight: 600,
-              fontSize: '0.9rem',
-              textDecoration: 'none',
-              boxShadow: '0 2px 6px rgba(37, 211, 102, 0.25)'
-            }}
+            className="success-whatsapp-btn"
           >
             <MessageCircle size={18} />
             <span>Consultar por WhatsApp</span>
@@ -240,231 +254,184 @@ function SuccessContent() {
       </div>
 
       {step === 3 ? (
-        <div style={{
-          background: '#F0FDF4',
-          border: '1px solid #BBF7D0',
-          borderRadius: 'var(--radius-lg)',
-          padding: '36px 28px',
-          textAlign: 'center'
-        }}>
-          <ShieldCheck size={52} style={{ color: '#16a34a', margin: '0 auto 14px' }} />
-          <h2 style={{ fontSize: '1.4rem', fontWeight: 700, color: '#14532D', marginBottom: 8 }}>
+        <div className="success-completed-card">
+          <ShieldCheck size={52} className="success-completed-icon" />
+          <h2 className="success-completed-title">
             ¡Documentación Guardada con Éxito!
           </h2>
-          <p style={{ color: '#166534', maxWidth: 480, margin: '0 auto 24px', fontSize: '0.95rem', lineHeight: 1.5 }}>
+          <p className="success-completed-desc">
             El administrador revisará tus datos para aprobar la reserva. En cuanto esté confirmada, tendrás acceso a tu contrato oficial auto-rellenado para firma y descarga.
           </p>
-          <div style={{ display: 'flex', gap: 14, justifyContent: 'center', flexWrap: 'wrap' }}>
-            <Link href="/dashboard/documentos" className="btn btn-forest">
+          <div className="success-completed-actions">
+            <Link href="/dashboard/documentos" className="btn-gold">
               <FileText size={18} /> Ir a Mis Documentos
             </Link>
-            <Link href="/dashboard" className="btn btn-outline">
+            <Link href="/dashboard" className="btn-dark-outline">
               <Ticket size={18} /> Ver Mi Aventura
             </Link>
           </div>
         </div>
       ) : (
-        <div style={{
-          background: 'white',
-          border: '1px solid var(--gray-200)',
-          borderRadius: 'var(--radius-xl)',
-          padding: 'clamp(20px, 4vw, 36px)',
-          boxShadow: 'var(--shadow-sm)'
-        }}>
+        <div className="success-card">
           {/* Step Progress Indicators */}
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 28 }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-              <div style={{
-                width: 32,
-                height: 32,
-                borderRadius: '50%',
-                background: step === 1 ? 'var(--forest-green)' : '#16a34a',
-                color: 'white',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                fontWeight: 700,
-                fontSize: '0.9rem'
-              }}>
+          <div className="step-indicators">
+            <div className="step-item">
+              <div className={`step-disc ${step === 1 ? 'step-disc--active' : 'step-disc--done'}`}>
                 {step === 1 ? '1' : '✓'}
               </div>
-              <span style={{ fontWeight: 600, color: step === 1 ? 'var(--forest-green)' : 'var(--gray-700)', fontSize: '0.92rem' }}>
+              <span className={`step-label ${step === 1 ? 'step-label--active' : ''}`}>
                 1. Datos del Conductor
               </span>
             </div>
-            <div style={{ height: 2, flex: 1, background: step === 2 ? 'var(--forest-green)' : 'var(--gray-200)', margin: '0 16px' }} />
-            <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-              <div style={{
-                width: 32,
-                height: 32,
-                borderRadius: '50%',
-                background: step === 2 ? 'var(--forest-green)' : 'var(--gray-200)',
-                color: step === 2 ? 'white' : 'var(--gray-500)',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                fontWeight: 700,
-                fontSize: '0.9rem'
-              }}>
+            <div className={`step-line ${step === 2 ? 'step-line--active' : ''}`} />
+            <div className="step-item">
+              <div className={`step-disc ${step === 2 ? 'step-disc--active' : ''}`}>
                 2
               </div>
-              <span style={{ fontWeight: 600, color: step === 2 ? 'var(--forest-green)' : 'var(--gray-400)', fontSize: '0.92rem' }}>
+              <span className={`step-label ${step === 2 ? 'step-label--active' : ''}`}>
                 2. Subir DNI y Carnet (4 caras)
               </span>
             </div>
           </div>
 
           {errorMessage && (
-            <div style={{ background: '#FEF2F2', border: '1px solid #FCA5A5', color: '#991B1B', padding: '12px 16px', borderRadius: 8, marginBottom: 20, display: 'flex', alignItems: 'center', gap: 10, fontSize: '0.9rem' }}>
+            <div className="alert-box alert-box--error">
               <AlertCircle size={18} />
               <span>{errorMessage}</span>
             </div>
           )}
 
           {warningMessage && (
-            <div style={{ background: '#FEFCE8', border: '1px solid #FDE047', color: '#854D0E', padding: '12px 16px', borderRadius: 8, marginBottom: 20, display: 'flex', alignItems: 'center', gap: 10, fontSize: '0.9rem' }}>
+            <div className="alert-box alert-box--warn">
               <AlertCircle size={18} />
               <span>{warningMessage}</span>
             </div>
           )}
 
           {step === 1 ? (
-            <form onSubmit={handleGoToStep2}>
-              <h3 style={{ fontSize: '1.2rem', fontWeight: 700, marginBottom: 18, color: 'var(--gray-900)' }}>
-                Información para el Contrato de Arrendamiento
+            <form onSubmit={handleGoToStep2} className="docs-form">
+              <h3 className="docs-form-heading">
+                Datos del Arrendatario Principal
               </h3>
+              <p className="docs-form-sub">
+                Requeridos por normativa de tráfico y el seguro a todo riesgo.
+              </p>
 
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))', gap: 16, marginBottom: 16 }}>
+              <div className="docs-form-grid">
                 <div>
-                  <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 600, color: 'var(--gray-700)', marginBottom: 6 }}>
-                    Nombre y Apellidos *
-                  </label>
+                  <label className="docs-label">Nombre y Apellidos Completos *</label>
                   <input
                     type="text"
                     required
                     placeholder="Ej. Juan Pérez García"
                     value={fullName}
                     onChange={e => setFullName(e.target.value)}
-                    style={{ width: '100%', padding: '10px 14px', borderRadius: 8, border: '1px solid var(--gray-300)', fontSize: '0.92rem' }}
+                    className="docs-input"
                   />
                 </div>
 
                 <div>
-                  <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 600, color: 'var(--gray-700)', marginBottom: 6 }}>
-                    DNI / Pasaporte / Doc. Europeo *
-                  </label>
+                  <label className="docs-label">DNI / Pasaporte / Doc. Europeo *</label>
                   <input
                     type="text"
                     required
                     placeholder="Ej. 12345678Z o Pasaporte"
                     value={dniNie}
                     onChange={e => setDniNie(e.target.value)}
-                    style={{ width: '100%', padding: '10px 14px', borderRadius: 8, border: '1px solid var(--gray-300)', fontSize: '0.92rem' }}
+                    className="docs-input"
                   />
                 </div>
 
                 <div>
-                  <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 600, color: 'var(--gray-700)', marginBottom: 6 }}>
-                    Número / ID Carnet de Conducir *
-                  </label>
+                  <label className="docs-label">Número / ID Carnet de Conducir *</label>
                   <input
                     type="text"
                     required
                     placeholder="Ej. B-12345678"
                     value={driverLicenseId}
                     onChange={e => setDriverLicenseId(e.target.value)}
-                    style={{ width: '100%', padding: '10px 14px', borderRadius: 8, border: '1px solid var(--gray-300)', fontSize: '0.92rem' }}
+                    className="docs-input"
                   />
                 </div>
 
                 <div>
-                  <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 600, color: 'var(--gray-700)', marginBottom: 6 }}>
-                    Teléfono de Contacto *
-                  </label>
+                  <label className="docs-label">Teléfono de Contacto *</label>
                   <input
                     type="tel"
                     required
                     placeholder="+34 600 000 000"
                     value={phone}
                     onChange={e => setPhone(e.target.value)}
-                    style={{ width: '100%', padding: '10px 14px', borderRadius: 8, border: '1px solid var(--gray-300)', fontSize: '0.92rem' }}
+                    className="docs-input"
                   />
                 </div>
               </div>
 
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))', gap: 16, marginBottom: 16 }}>
+              <div className="docs-form-grid">
                 <div>
-                  <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 600, color: 'var(--gray-700)', marginBottom: 6 }}>
-                    Fecha de Expedición del Carnet *
-                  </label>
+                  <label className="docs-label">Fecha de Expedición del Carnet *</label>
                   <input
                     type="date"
                     required
                     value={driverLicenseIssueDate}
                     onChange={e => setDriverLicenseIssueDate(e.target.value)}
-                    style={{ width: '100%', padding: '10px 14px', borderRadius: 8, border: '1px solid var(--gray-300)', fontSize: '0.92rem' }}
+                    className="docs-input"
                   />
                 </div>
 
                 <div>
-                  <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 600, color: 'var(--gray-700)', marginBottom: 6 }}>
-                    Fecha de Caducidad del Carnet *
-                  </label>
+                  <label className="docs-label">Fecha de Caducidad del Carnet *</label>
                   <input
                     type="date"
                     required
                     value={driverLicenseExpiryDate}
                     onChange={e => setDriverLicenseExpiryDate(e.target.value)}
-                    style={{ width: '100%', padding: '10px 14px', borderRadius: 8, border: '1px solid var(--gray-300)', fontSize: '0.92rem' }}
+                    className="docs-input"
                   />
                 </div>
               </div>
 
-              <div style={{ marginBottom: 28 }}>
-                <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 600, color: 'var(--gray-700)', marginBottom: 6 }}>
-                  Dirección Completa (Calle, Ciudad, Código Postal, País) *
-                </label>
+              <div className="docs-form-field">
+                <label className="docs-label">Dirección Completa (Calle, Ciudad, Código Postal, País) *</label>
                 <input
                   type="text"
                   required
                   placeholder="Ej. Calle Gran Vía 24, 3º B, 28013 Madrid, España"
                   value={address}
                   onChange={e => setAddress(e.target.value)}
-                  style={{ width: '100%', padding: '10px 14px', borderRadius: 8, border: '1px solid var(--gray-300)', fontSize: '0.92rem' }}
+                  className="docs-input"
                 />
               </div>
 
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 14 }}>
-                <Link href="/dashboard" style={{ color: 'var(--gray-500)', fontSize: '0.9rem', textDecoration: 'underline' }}>
+              <div className="docs-form-footer">
+                <Link href="/dashboard" className="docs-skip-link">
                   Completar más tarde (Ir a mi panel)
                 </Link>
 
-                <button type="submit" className="btn btn-forest" style={{ padding: '12px 28px' }}>
+                <button type="submit" className="btn-gold">
                   <span>Continuar al Paso 2</span>
                   <ArrowRight size={16} />
                 </button>
               </div>
             </form>
           ) : (
-            <form onSubmit={handleSubmitAll}>
-              <h3 style={{ fontSize: '1.2rem', fontWeight: 700, marginBottom: 8, color: 'var(--gray-900)' }}>
+            <form onSubmit={handleSubmitAll} className="docs-form">
+              <h3 className="docs-form-heading">
                 Subida de Documentos (Ambas Caras)
               </h3>
-              <p style={{ color: 'var(--gray-600)', fontSize: '0.88rem', marginBottom: 20 }}>
+              <p className="docs-form-sub">
                 Sube fotos claras o archivos en PDF/JPG de tu DNI/Pasaporte y Carnet de Conducir.
               </p>
 
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: 16, marginBottom: 28 }}>
+              <div className="upload-grid">
                 {/* DNI Front */}
-                <div style={{ border: '2px dashed var(--gray-300)', borderRadius: 10, padding: 14, textAlign: 'center', background: '#FAFAFA' }}>
-                  <span style={{ display: 'block', fontSize: '0.82rem', fontWeight: 700, color: 'var(--gray-800)', marginBottom: 8 }}>
-                    1. DNI / Pasaporte (Anverso)
-                  </span>
+                <div className="upload-box">
+                  <span className="upload-box__title">1. DNI / Pasaporte (Anverso)</span>
                   {dniFrontPreview ? (
                     // eslint-disable-next-line @next/next/no-img-element
-                    <img src={dniFrontPreview} alt="DNI Front" style={{ width: '100%', height: 110, objectFit: 'cover', borderRadius: 6, marginBottom: 8 }} />
+                    <img src={dniFrontPreview} alt="DNI Front" className="upload-box__preview" />
                   ) : (
-                    <div style={{ height: 110, display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--gray-400)' }}>
+                    <div className="upload-box__placeholder">
                       <Upload size={32} />
                     </div>
                   )}
@@ -472,20 +439,18 @@ function SuccessContent() {
                     type="file"
                     accept="image/*,.pdf"
                     onChange={e => handleFileChange(e, setDniFront, setDniFrontPreview)}
-                    style={{ fontSize: '0.78rem', width: '100%' }}
+                    className="upload-box__input"
                   />
                 </div>
 
                 {/* DNI Back */}
-                <div style={{ border: '2px dashed var(--gray-300)', borderRadius: 10, padding: 14, textAlign: 'center', background: '#FAFAFA' }}>
-                  <span style={{ display: 'block', fontSize: '0.82rem', fontWeight: 700, color: 'var(--gray-800)', marginBottom: 8 }}>
-                    2. DNI / Pasaporte (Reverso)
-                  </span>
+                <div className="upload-box">
+                  <span className="upload-box__title">2. DNI / Pasaporte (Reverso)</span>
                   {dniBackPreview ? (
                     // eslint-disable-next-line @next/next/no-img-element
-                    <img src={dniBackPreview} alt="DNI Back" style={{ width: '100%', height: 110, objectFit: 'cover', borderRadius: 6, marginBottom: 8 }} />
+                    <img src={dniBackPreview} alt="DNI Back" className="upload-box__preview" />
                   ) : (
-                    <div style={{ height: 110, display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--gray-400)' }}>
+                    <div className="upload-box__placeholder">
                       <Upload size={32} />
                     </div>
                   )}
@@ -493,20 +458,18 @@ function SuccessContent() {
                     type="file"
                     accept="image/*,.pdf"
                     onChange={e => handleFileChange(e, setDniBack, setDniBackPreview)}
-                    style={{ fontSize: '0.78rem', width: '100%' }}
+                    className="upload-box__input"
                   />
                 </div>
 
                 {/* License Front */}
-                <div style={{ border: '2px dashed var(--gray-300)', borderRadius: 10, padding: 14, textAlign: 'center', background: '#FAFAFA' }}>
-                  <span style={{ display: 'block', fontSize: '0.82rem', fontWeight: 700, color: 'var(--gray-800)', marginBottom: 8 }}>
-                    3. Carnet Conducir (Anverso)
-                  </span>
+                <div className="upload-box">
+                  <span className="upload-box__title">3. Carnet Conducir (Anverso)</span>
                   {licenseFrontPreview ? (
                     // eslint-disable-next-line @next/next/no-img-element
-                    <img src={licenseFrontPreview} alt="Carnet Front" style={{ width: '100%', height: 110, objectFit: 'cover', borderRadius: 6, marginBottom: 8 }} />
+                    <img src={licenseFrontPreview} alt="Carnet Front" className="upload-box__preview" />
                   ) : (
-                    <div style={{ height: 110, display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--gray-400)' }}>
+                    <div className="upload-box__placeholder">
                       <Upload size={32} />
                     </div>
                   )}
@@ -514,20 +477,18 @@ function SuccessContent() {
                     type="file"
                     accept="image/*,.pdf"
                     onChange={e => handleFileChange(e, setLicenseFront, setLicenseFrontPreview)}
-                    style={{ fontSize: '0.78rem', width: '100%' }}
+                    className="upload-box__input"
                   />
                 </div>
 
                 {/* License Back */}
-                <div style={{ border: '2px dashed var(--gray-300)', borderRadius: 10, padding: 14, textAlign: 'center', background: '#FAFAFA' }}>
-                  <span style={{ display: 'block', fontSize: '0.82rem', fontWeight: 700, color: 'var(--gray-800)', marginBottom: 8 }}>
-                    4. Carnet Conducir (Reverso)
-                  </span>
+                <div className="upload-box">
+                  <span className="upload-box__title">4. Carnet Conducir (Reverso)</span>
                   {licenseBackPreview ? (
                     // eslint-disable-next-line @next/next/no-img-element
-                    <img src={licenseBackPreview} alt="Carnet Back" style={{ width: '100%', height: 110, objectFit: 'cover', borderRadius: 6, marginBottom: 8 }} />
+                    <img src={licenseBackPreview} alt="Carnet Back" className="upload-box__preview" />
                   ) : (
-                    <div style={{ height: 110, display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--gray-400)' }}>
+                    <div className="upload-box__placeholder">
                       <Upload size={32} />
                     </div>
                   )}
@@ -535,31 +496,29 @@ function SuccessContent() {
                     type="file"
                     accept="image/*,.pdf"
                     onChange={e => handleFileChange(e, setLicenseBack, setLicenseBackPreview)}
-                    style={{ fontSize: '0.78rem', width: '100%' }}
+                    className="upload-box__input"
                   />
                 </div>
               </div>
 
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 14 }}>
+              <div className="docs-form-footer">
                 <button
                   type="button"
                   onClick={() => setStep(1)}
-                  className="btn btn-outline"
-                  style={{ fontSize: '0.9rem' }}
+                  className="btn-dark-outline"
                 >
                   ← Volver a Datos
                 </button>
 
-                <div style={{ display: 'flex', gap: 12, alignItems: 'center' }}>
-                  <Link href="/dashboard" style={{ color: 'var(--gray-500)', fontSize: '0.9rem', textDecoration: 'underline' }}>
+                <div className="docs-form-footer-right">
+                  <Link href="/dashboard" className="docs-skip-link">
                     Subir más tarde
                   </Link>
 
                   <button
                     type="submit"
                     disabled={isSubmitting}
-                    className="btn btn-forest"
-                    style={{ padding: '12px 28px', opacity: isSubmitting ? 0.7 : 1 }}
+                    className="btn-gold"
                   >
                     {isSubmitting ? 'Guardando...' : 'Guardar y Enviar'}
                   </button>
@@ -569,6 +528,432 @@ function SuccessContent() {
           )}
         </div>
       )}
+
+      <style jsx>{`
+        .success-container {
+          max-width: 780px;
+          margin: 0 auto;
+          color: #F8FAFC;
+        }
+
+        .success-banner {
+          text-align: center;
+          margin-bottom: 36px;
+        }
+
+        .success-icon-wrap {
+          width: 72px;
+          height: 72px;
+          border-radius: 50%;
+          background: rgba(34, 197, 94, 0.12);
+          border: 1px solid rgba(34, 197, 94, 0.35);
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          margin: 0 auto 16px;
+        }
+
+        :global(.success-check-icon) {
+          color: #22C55E;
+        }
+
+        .success-title {
+          font-size: clamp(1.8rem, 2.8vw, 2.4rem);
+          font-weight: 800;
+          color: #FFFFFF;
+          margin: 0 0 12px;
+          letter-spacing: -0.02em;
+        }
+
+        .success-badge {
+          display: inline-flex;
+          align-items: center;
+          gap: 8px;
+          padding: 7px 18px;
+          background: rgba(204, 160, 83, 0.12);
+          border: 1px solid rgba(204, 160, 83, 0.35);
+          color: #E8CA7C;
+          border-radius: 999px;
+          font-size: 0.86rem;
+          font-weight: 600;
+          margin-bottom: 14px;
+        }
+
+        .success-ref {
+          font-size: 0.88rem;
+          color: #94A3B8;
+          margin: 0 0 12px;
+        }
+
+        .success-ref strong {
+          color: #FFFFFF;
+        }
+
+        .success-desc {
+          color: #94A3B8;
+          max-width: 580px;
+          margin: 0 auto 20px;
+          font-size: 0.96rem;
+          line-height: 1.6;
+        }
+
+        .success-desc strong {
+          color: #FFFFFF;
+        }
+
+        .success-whatsapp-wrap {
+          margin-bottom: 28px;
+        }
+
+        .success-whatsapp-btn {
+          background: rgba(37, 211, 102, 0.15);
+          border: 1px solid rgba(37, 211, 102, 0.4);
+          color: #25D366;
+          display: inline-flex;
+          align-items: center;
+          gap: 8px;
+          padding: 10px 22px;
+          border-radius: 999px;
+          font-weight: 600;
+          font-size: 0.9rem;
+          text-decoration: none;
+          transition: all 0.2s ease;
+        }
+
+        .success-whatsapp-btn:hover {
+          background: rgba(37, 211, 102, 0.25);
+          transform: translateY(-2px);
+        }
+
+        .success-completed-card {
+          background: #131518;
+          border: 1px solid rgba(34, 197, 94, 0.3);
+          border-radius: 24px;
+          padding: 40px 32px;
+          text-align: center;
+          box-shadow: 0 20px 50px rgba(0, 0, 0, 0.5);
+        }
+
+        :global(.success-completed-icon) {
+          color: #22C55E;
+          margin: 0 auto 16px;
+        }
+
+        .success-completed-title {
+          font-size: 1.5rem;
+          font-weight: 800;
+          color: #FFFFFF;
+          margin: 0 0 10px;
+        }
+
+        .success-completed-desc {
+          color: #94A3B8;
+          max-width: 500px;
+          margin: 0 auto 28px;
+          font-size: 0.96rem;
+          line-height: 1.6;
+        }
+
+        .success-completed-actions {
+          display: flex;
+          gap: 14px;
+          justify-content: center;
+          flex-wrap: wrap;
+        }
+
+        .success-card {
+          background: #131518;
+          border: 1px solid rgba(255, 255, 255, 0.08);
+          border-radius: 24px;
+          padding: clamp(24px, 4vw, 40px);
+          box-shadow: 0 20px 50px rgba(0, 0, 0, 0.5);
+        }
+
+        .step-indicators {
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          margin-bottom: 32px;
+        }
+
+        .step-item {
+          display: flex;
+          align-items: center;
+          gap: 10px;
+        }
+
+        .step-disc {
+          width: 32px;
+          height: 32px;
+          border-radius: 50%;
+          background: rgba(255, 255, 255, 0.08);
+          color: #94A3B8;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          font-weight: 700;
+          font-size: 0.9rem;
+        }
+
+        .step-disc--active {
+          background: linear-gradient(135deg, #CCA053 0%, #B2883B 100%);
+          color: #0B0C0E;
+          box-shadow: 0 2px 8px rgba(204, 160, 83, 0.4);
+        }
+
+        .step-disc--done {
+          background: #22C55E;
+          color: #FFFFFF;
+        }
+
+        .step-label {
+          font-weight: 600;
+          color: #64748B;
+          font-size: 0.9rem;
+        }
+
+        .step-label--active {
+          color: #FFFFFF;
+        }
+
+        .step-line {
+          height: 2px;
+          flex: 1;
+          background: rgba(255, 255, 255, 0.08);
+          margin: 0 16px;
+        }
+
+        .step-line--active {
+          background: #CCA053;
+        }
+
+        .alert-box {
+          padding: 12px 16px;
+          border-radius: 12px;
+          margin-bottom: 20px;
+          display: flex;
+          align-items: center;
+          gap: 10px;
+          font-size: 0.9rem;
+        }
+
+        .alert-box--error {
+          background: rgba(239, 68, 68, 0.12);
+          border: 1px solid rgba(239, 68, 68, 0.3);
+          color: #FCA5A5;
+        }
+
+        .alert-box--warn {
+          background: rgba(245, 158, 11, 0.12);
+          border: 1px solid rgba(245, 158, 11, 0.3);
+          color: #FCD34D;
+        }
+
+        .docs-form {
+          display: flex;
+          flex-direction: column;
+        }
+
+        .docs-form-heading {
+          font-size: 1.25rem;
+          font-weight: 700;
+          margin: 0 0 6px;
+          color: #FFFFFF;
+        }
+
+        .docs-form-sub {
+          color: #94A3B8;
+          font-size: 0.88rem;
+          margin: 0 0 24px;
+        }
+
+        .docs-form-grid {
+          display: grid;
+          grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+          gap: 16px;
+          margin-bottom: 18px;
+        }
+
+        .docs-form-field {
+          margin-bottom: 24px;
+        }
+
+        .docs-label {
+          display: block;
+          font-size: 0.86rem;
+          font-weight: 600;
+          color: #E2E8F0;
+          margin-bottom: 6px;
+        }
+
+        .docs-input {
+          width: 100%;
+          padding: 12px 16px;
+          border-radius: 12px;
+          border: 1px solid rgba(255, 255, 255, 0.12);
+          background: #0B0C0E;
+          color: #FFFFFF;
+          font-size: 0.92rem;
+          outline: none;
+          transition: all 0.2s ease;
+        }
+
+        .docs-input:focus {
+          border-color: #CCA053;
+          box-shadow: 0 0 0 3px rgba(204, 160, 83, 0.18);
+        }
+
+        .docs-form-footer {
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+          flex-wrap: wrap;
+          gap: 16px;
+          border-top: 1px solid rgba(255, 255, 255, 0.08);
+          padding-top: 24px;
+          margin-top: 12px;
+        }
+
+        .docs-form-footer-right {
+          display: flex;
+          gap: 16px;
+          align-items: center;
+        }
+
+        .docs-skip-link {
+          color: #94A3B8;
+          font-size: 0.9rem;
+          text-decoration: underline;
+          transition: color 0.2s ease;
+        }
+
+        .docs-skip-link:hover {
+          color: #CCA053;
+        }
+
+        .btn-gold {
+          background: linear-gradient(135deg, #CCA053 0%, #B2883B 100%);
+          color: #0B0C0E;
+          border: none;
+          padding: 12px 28px;
+          border-radius: 999px;
+          font-weight: 700;
+          font-size: 0.95rem;
+          cursor: pointer;
+          display: inline-flex;
+          align-items: center;
+          gap: 8px;
+          text-decoration: none;
+          transition: all 0.2s ease;
+        }
+
+        .btn-gold:hover {
+          transform: translateY(-2px);
+          box-shadow: 0 6px 20px rgba(204, 160, 83, 0.35);
+        }
+
+        .btn-dark-outline {
+          background: rgba(255, 255, 255, 0.05);
+          color: #FFFFFF;
+          border: 1px solid rgba(255, 255, 255, 0.15);
+          padding: 12px 24px;
+          border-radius: 999px;
+          font-weight: 600;
+          font-size: 0.92rem;
+          cursor: pointer;
+          display: inline-flex;
+          align-items: center;
+          gap: 8px;
+          text-decoration: none;
+          transition: all 0.2s ease;
+        }
+
+        .btn-dark-outline:hover {
+          border-color: #CCA053;
+          color: #CCA053;
+        }
+
+        /* UPLOAD GRID */
+        .upload-grid {
+          display: grid;
+          grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+          gap: 16px;
+          margin-bottom: 28px;
+        }
+
+        .upload-box {
+          border: 2px dashed rgba(204, 160, 83, 0.3);
+          border-radius: 14px;
+          padding: 16px;
+          text-align: center;
+          background: #0B0C0E;
+          transition: border-color 0.2s ease;
+        }
+
+        .upload-box:hover {
+          border-color: #CCA053;
+        }
+
+        .upload-box__title {
+          display: block;
+          font-size: 0.84rem;
+          font-weight: 700;
+          color: #E2E8F0;
+          margin-bottom: 10px;
+        }
+
+        .upload-box__preview {
+          width: 100%;
+          height: 110px;
+          object-fit: cover;
+          border-radius: 8px;
+          margin-bottom: 10px;
+        }
+
+        .upload-box__placeholder {
+          height: 110px;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          color: #64748B;
+        }
+
+        .upload-box__input {
+          font-size: 0.78rem;
+          width: 100%;
+          color: #94A3B8;
+        }
+
+        @media (max-width: 640px) {
+          .success-card,
+          .success-completed-card {
+            padding: 24px 18px;
+            border-radius: 20px;
+          }
+
+          .step-indicators {
+            flex-direction: column;
+            gap: 12px;
+            align-items: flex-start;
+          }
+
+          .step-line {
+            display: none;
+          }
+
+          .docs-form-footer {
+            flex-direction: column;
+            align-items: stretch;
+            gap: 16px;
+          }
+
+          .btn-gold,
+          .btn-dark-outline {
+            width: 100%;
+            justify-content: center;
+          }
+        }
+      `}</style>
     </div>
   )
 }
@@ -577,9 +962,9 @@ export default function CheckoutSuccessPage() {
   return (
     <>
       <Navbar />
-      <main style={{ paddingTop: 100, paddingBottom: 80, minHeight: '80vh', background: 'var(--white-broken)' }}>
+      <main style={{ paddingTop: 110, paddingBottom: 80, minHeight: '85vh', background: '#0B0C0E' }}>
         <div className="container">
-          <Suspense fallback={<div className="skeleton" style={{ height: 400 }} />}>
+          <Suspense fallback={<div className="skeleton" style={{ height: 400, background: '#131518', borderRadius: 24 }} />}>
             <SuccessContent />
           </Suspense>
         </div>

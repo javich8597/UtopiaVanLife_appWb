@@ -97,7 +97,7 @@ export default function HeroSection() {
     if (startDate) params.set('from', startDate)
     if (endDate) params.set('to', endDate)
     params.set('pax', String(Math.min(3, Math.max(1, pax))))
-    router.push(`/campers?${params.toString()}`)
+    router.push(`/reservar?${params.toString()}`)
   }
 
   const handleDatesChange = (start: string, _startSlot: DaySlot, end: string, _endSlot: DaySlot) => {

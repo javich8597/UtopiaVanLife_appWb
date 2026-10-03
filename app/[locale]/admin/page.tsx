@@ -23,17 +23,19 @@ import {
     calculateFleetLiveStatus,
     calculateDelta
 } from '@/lib/admin/dashboardMetrics'
+import { ADMIN_STATUS_LABELS, getAdminBookingStatus } from '@/lib/admin/bookingStatus'
 import './dashboard.css'
 
 const TZ = 'Europe/Madrid'
 const DAY_MS = 24 * 60 * 60 * 1000
 
-const STATUS_LABELS: Record<string, { label: string; tone: string }> = {
-    pending: { label: 'Pendiente de pago', tone: 'amber' },
-    confirmed: { label: 'Confirmada', tone: 'sage' },
-    active: { label: 'En viaje', tone: 'gold' },
-    completed: { label: 'Completada', tone: 'neutral' },
-    cancelled: { label: 'Cancelada', tone: 'rose' },
+const STATUS_TONES: Record<string, string> = {
+    pending: 'amber',
+    expired: 'neutral',
+    confirmed: 'sage',
+    active: 'gold',
+    completed: 'neutral',
+    cancelled: 'rose',
 }
 
 // Las fechas de reserva llegan como 'YYYY-MM-DD' (medianoche UTC): se formatean en UTC para no desplazar el día
@@ -92,7 +94,8 @@ export default async function AdminDashboardPage() {
     // Finanzas
     const paidStatuses = ['confirmed', 'active', 'completed']
     const paidBookings = bookings.filter(b => paidStatuses.includes(b.status))
-    const pendingBookings = bookings.filter(b => b.status === 'pending')
+    // Las pendientes abandonadas en Redsys no son cobros pendientes reales
+    const pendingBookings = bookings.filter(b => getAdminBookingStatus(b, now) === 'pending')
     const pendingRevenue = pendingBookings.reduce((sum, b) => sum + (Number(b.total_price) || 0), 0)
     const paidRevenue = paidBookings.reduce((sum, b) => sum + (Number(b.total_price) || 0), 0)
     const averageTicket = paidBookings.length > 0 ? Math.round(paidRevenue / paidBookings.length) : 0
@@ -220,7 +223,7 @@ export default async function AdminDashboardPage() {
             {/* 3. KPIs */}
             <section className="dsh-kpis" aria-label="Indicadores principales">
                 <Link href="/admin/bookings?status=confirmed" className="dsh-card dsh-kpi dsh-kpi--hero">
-                    <span className="dsh-kpi__label">Ingresos de {currentMonth.fullMonth.toLowerCase()}</span>
+                    <span className="dsh-kpi__label" title="Ingresos de las reservas que salen este mes">Ingresos · salidas de {currentMonth.fullMonth.toLowerCase()}</span>
                     <span className="dsh-kpi__value">{formatPrice(currentMonth.revenue)}</span>
                     <span className="dsh-kpi__meta">
                         {revenueDelta !== null ? (
@@ -357,7 +360,8 @@ export default async function AdminDashboardPage() {
                             <tbody>
                                 {recentBookings?.map((b: any) => {
                                     const clientName = b.customer_name || b.users?.full_name || 'Cliente'
-                                    const status = STATUS_LABELS[b.status] || { label: b.status, tone: 'neutral' }
+                                    const adminStatus = getAdminBookingStatus(b)
+                                    const status = { label: ADMIN_STATUS_LABELS[adminStatus], tone: STATUS_TONES[adminStatus] }
                                     const docPending = b.users?.verification_status === 'pending_validation'
                                     const nights = nightsBetween(b.start_date, b.end_date)
                                     return (

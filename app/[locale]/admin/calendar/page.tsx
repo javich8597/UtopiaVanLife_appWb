@@ -1,6 +1,7 @@
 import { createClient } from '@/lib/supabase/server'
+import { getAdminBookingStatus } from '@/lib/admin/bookingStatus'
+import AdminPageHeader from '../AdminPageHeader'
 import CalendarClient from './CalendarClient'
-import { Calendar as CalendarIcon } from 'lucide-react'
 
 export default async function AdminCalendarPage() {
     const supabase = await createClient()
@@ -21,30 +22,30 @@ export default async function AdminCalendarPage() {
         .neq('status', 'cancelled')
         .order('start_date', { ascending: true })
 
+    // Las reservas abandonadas en Redsys no ocupan fechas: fuera del calendario
+    const now = new Date()
+    const visibleBookings = (bookings || []).filter(b => getAdminBookingStatus(b, now) !== 'expired')
+
     const { data: blockedDates } = await supabase
         .from('blocked_dates')
         .select('*')
         .order('start_date', { ascending: true })
 
-    return (
-        <div>
-            <div style={{ display: 'flex', alignItems: 'flex-end', gap: 'var(--space-3)', marginBottom: 'var(--space-6)' }}>
-                <div style={{ background: 'var(--forest-green)', color: 'white', padding: '12px', borderRadius: '12px' }}>
-                    <CalendarIcon size={24} />
-                </div>
-                <div>
-                    <h1 className="text-h2" style={{ marginBottom: 'var(--space-1)' }}>Calendario Maestro</h1>
-                    <p className="text-body" style={{ color: 'var(--gray-600)' }}>
-                        Vista estilo Google Calendar. Gestiona la disponibilidad de la flota en modo mes, semana o día.
-                    </p>
-                </div>
-            </div>
+    // Los bloqueos temporales de pago que ya caducaron no ocupan fechas
+    const activeBlocks = (blockedDates || []).filter(b => !b.expires_at || new Date(b.expires_at) > now)
 
-            <CalendarClient 
-                bookings={bookings || []} 
-                campers={campers || []} 
-                blockedDates={blockedDates || []}
-                blocked_dates={blockedDates || []}
+    return (
+        <div className="adm-page">
+            <AdminPageHeader
+                title="Calendario"
+                description="Ocupación de la flota. Selecciona días libres para bloquearlos por taller o uso propio."
+            />
+
+            <CalendarClient
+                bookings={visibleBookings}
+                campers={campers || []}
+                blockedDates={activeBlocks}
+                blocked_dates={activeBlocks}
             />
         </div>
     )

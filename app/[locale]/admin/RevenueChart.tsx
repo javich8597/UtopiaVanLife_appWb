@@ -30,7 +30,7 @@ export default function RevenueChart({ monthlyData }: Props) {
     <section className="rev" aria-labelledby="rev-title">
       <div className="rev__head">
         <div>
-          <h2 id="rev-title" className="rev__title">Ingresos confirmados</h2>
+          <h2 id="rev-title" className="rev__title">Ingresos por mes de salida</h2>
           <p className="rev__summary">
             <span className="rev__total">{formatPrice(total)}</span>
             <span>en {range} meses · {totalBookings} {totalBookings === 1 ? 'reserva' : 'reservas'}</span>

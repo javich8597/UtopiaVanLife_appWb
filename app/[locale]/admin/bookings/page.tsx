@@ -15,9 +15,8 @@ export default async function AdminBookingsPage() {
         .order('created_at', { ascending: false })
 
     return (
-        <Suspense fallback={<div style={{ padding: 'var(--space-8)', textAlign: 'center', color: 'var(--gray-500)' }}>Cargando reservas...</div>}>
+        <Suspense fallback={<div className="adm-empty">Cargando reservas…</div>}>
             <BookingsClient initialBookings={bookings || []} />
         </Suspense>
     )
 }
-

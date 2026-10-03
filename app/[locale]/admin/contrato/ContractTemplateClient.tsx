@@ -17,8 +17,10 @@ import {
   Loader2,
   Clock,
   ShieldAlert,
-  Search
+  Search,
+  MoreHorizontal
 } from 'lucide-react'
+import AdminPageHeader from '../AdminPageHeader'
 import { ContractTemplateData } from '@/lib/contracts/templateTypes'
 import './contractEditor.css'
 
@@ -33,6 +35,7 @@ export default function ContractTemplateClient({ initialTemplate }: Props) {
   const [articleSearch, setArticleSearch] = useState('')
 
   const [previewUrl, setPreviewUrl] = useState<string | null>(null)
+  const [isMoreOpen, setIsMoreOpen] = useState(false)
   const [isLoadingPreview, setIsLoadingPreview] = useState(false)
   const [isSaving, setIsSaving] = useState(false)
   const [saveSuccess, setSaveSuccess] = useState(false)
@@ -199,55 +202,60 @@ export default function ContractTemplateClient({ initialTemplate }: Props) {
 
   return (
     <div className="contract-editor-container">
-      {/* Header Principal */}
-      <div className="contract-editor-header">
-        <div className="contract-editor-title-box">
-          <div className="contract-editor-icon-badge">
-            <FileText size={28} />
-          </div>
-          <div>
-            <h1 style={{ fontSize: '1.4rem', fontWeight: 800, color: '#1A2B21', margin: 0 }}>
-              Plantilla del Contrato Oficial
-            </h1>
-            <p style={{ fontSize: '0.82rem', color: '#64748B', margin: '3px 0 0 0' }}>
-              Edita las cláusulas, tarifas y penalizaciones que rigen los contratos PDF generados para los usuarios.
-            </p>
-          </div>
-        </div>
-
-        <div className="contract-editor-actions">
-          <button
-            type="button"
-            className="btn-utopia-danger"
-            onClick={() => setIsResetConfirmOpen(true)}
-            disabled={isSaving}
-          >
-            <RotateCcw size={15} />
-            <span>Restablecer Fábrica</span>
-          </button>
-
-          <button
-            type="button"
-            className="btn-utopia-primary"
-            onClick={handleSave}
-            disabled={isSaving}
-          >
-            {isSaving ? <Loader2 size={16} className="animate-spin" /> : <Save size={16} />}
-            <span>{isSaving ? 'Guardando...' : 'Guardar Plantilla'}</span>
-          </button>
-        </div>
-      </div>
+      <AdminPageHeader
+        title="Contrato"
+        description="Tarifas, penalizaciones, datos del arrendador y cláusulas del contrato PDF."
+        actions={
+          <>
+            {/* Acción destructiva fuera del camino principal, en un menú secundario */}
+            <div className="contract-more">
+              <button
+                type="button"
+                className="adm-btn adm-btn--ghost"
+                aria-haspopup="menu"
+                aria-expanded={isMoreOpen}
+                aria-label="Más opciones"
+                onClick={() => setIsMoreOpen(o => !o)}
+              >
+                <MoreHorizontal size={18} />
+              </button>
+              {isMoreOpen && (
+                <div className="contract-more__menu" role="menu">
+                  <button
+                    type="button"
+                    role="menuitem"
+                    className="contract-more__item"
+                    onClick={() => { setIsMoreOpen(false); setIsResetConfirmOpen(true) }}
+                    disabled={isSaving}
+                  >
+                    <RotateCcw size={15} /> Restablecer valores de fábrica…
+                  </button>
+                </div>
+              )}
+            </div>
+            <button
+              type="button"
+              className="adm-btn adm-btn--primary"
+              onClick={handleSave}
+              disabled={isSaving}
+            >
+              {isSaving ? <Loader2 size={16} className="animate-spin" /> : <Save size={16} />}
+              <span>{isSaving ? 'Guardando…' : 'Guardar cambios'}</span>
+            </button>
+          </>
+        }
+      />
 
       {/* Alertas de Estado */}
       {saveSuccess && (
-        <div style={{ background: '#ECFDF5', border: '1px solid #A7F3D0', padding: '12px 18px', borderRadius: '12px', display: 'flex', alignItems: 'center', gap: '10px', color: '#065F46', fontSize: '0.85rem' }}>
+        <div style={{ background: 'var(--adm-sage-soft)', border: '1px solid var(--adm-sage-soft)', padding: '12px 18px', borderRadius: '12px', display: 'flex', alignItems: 'center', gap: '10px', color: 'var(--adm-sage)', fontSize: '0.85rem' }}>
           <CheckCircle2 size={18} />
           <span><strong>¡Plantilla guardada con éxito!</strong> Los nuevos contratos generados aplicarán estos cambios inmediatamente.</span>
         </div>
       )}
 
       {errorMessage && (
-        <div style={{ background: '#FEF2F2', border: '1px solid #FECACA', padding: '12px 18px', borderRadius: '12px', display: 'flex', alignItems: 'center', gap: '10px', color: '#991B1B', fontSize: '0.85rem' }}>
+        <div style={{ background: 'var(--adm-rose-soft)', border: '1px solid var(--adm-rose-soft)', padding: '12px 18px', borderRadius: '12px', display: 'flex', alignItems: 'center', gap: '10px', color: 'var(--adm-rose)', fontSize: '0.85rem' }}>
           <AlertTriangle size={18} />
           <span><strong>Error:</strong> {errorMessage}</span>
         </div>
@@ -255,10 +263,13 @@ export default function ContractTemplateClient({ initialTemplate }: Props) {
 
       {/* Confirmación de Reset */}
       {isResetConfirmOpen && (
-        <div style={{ background: '#FFFBEB', border: '1px solid #FDE68A', padding: '14px 20px', borderRadius: '12px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '12px' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '10px', color: '#92400E', fontSize: '0.85rem' }}>
+        <div style={{ background: 'var(--adm-amber-soft)', border: '1px solid var(--adm-amber-soft)', padding: '14px 20px', borderRadius: '12px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '12px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '10px', color: 'var(--adm-amber)', fontSize: '0.85rem' }}>
             <AlertTriangle size={20} />
-            <span>¿Confirmas restablecer la plantilla a los <strong>31 artículos y tarifas oficiales de fábrica</strong> de docs/Contract?</span>
+            <span>
+              Se perderán todos tus cambios en tarifas, penalizaciones, datos del arrendador y cláusulas, y volverán los
+              <strong> 31 artículos oficiales</strong>. Esta acción no se puede deshacer.
+            </span>
           </div>
           <div style={{ display: 'flex', gap: '8px' }}>
             <button
@@ -273,7 +284,7 @@ export default function ContractTemplateClient({ initialTemplate }: Props) {
               className="btn-utopia-danger"
               onClick={handleReset}
             >
-              Sí, Restablecer Fábrica
+              Restablecer y perder cambios
             </button>
           </div>
         </div>
@@ -284,7 +295,7 @@ export default function ContractTemplateClient({ initialTemplate }: Props) {
         {/* PANEL IZQUIERDO: Formulario de Edición */}
         <div className="contract-form-panel">
           {/* Navegación por pestañas del editor */}
-          <div style={{ display: 'flex', gap: '8px', background: '#F1F5F9', padding: '6px', borderRadius: '12px' }}>
+          <div style={{ display: 'flex', gap: '8px', background: 'var(--adm-surface-2)', padding: '6px', borderRadius: '12px' }}>
             <button
               type="button"
               onClick={() => setActiveSection('terms')}
@@ -300,8 +311,8 @@ export default function ContractTemplateClient({ initialTemplate }: Props) {
                 fontWeight: 600,
                 border: 'none',
                 cursor: 'pointer',
-                background: activeSection === 'terms' ? '#ffffff' : 'transparent',
-                color: activeSection === 'terms' ? '#1A2B21' : '#64748B',
+                background: activeSection === 'terms' ? 'var(--adm-surface)' : 'transparent',
+                color: activeSection === 'terms' ? 'var(--adm-text)' : 'var(--adm-text-2)',
                 boxShadow: activeSection === 'terms' ? '0 2px 4px rgba(0,0,0,0.05)' : 'none'
               }}
             >
@@ -324,8 +335,8 @@ export default function ContractTemplateClient({ initialTemplate }: Props) {
                 fontWeight: 600,
                 border: 'none',
                 cursor: 'pointer',
-                background: activeSection === 'lessor' ? '#ffffff' : 'transparent',
-                color: activeSection === 'lessor' ? '#1A2B21' : '#64748B',
+                background: activeSection === 'lessor' ? 'var(--adm-surface)' : 'transparent',
+                color: activeSection === 'lessor' ? 'var(--adm-text)' : 'var(--adm-text-2)',
                 boxShadow: activeSection === 'lessor' ? '0 2px 4px rgba(0,0,0,0.05)' : 'none'
               }}
             >
@@ -348,8 +359,8 @@ export default function ContractTemplateClient({ initialTemplate }: Props) {
                 fontWeight: 600,
                 border: 'none',
                 cursor: 'pointer',
-                background: activeSection === 'articles' ? '#ffffff' : 'transparent',
-                color: activeSection === 'articles' ? '#1A2B21' : '#64748B',
+                background: activeSection === 'articles' ? 'var(--adm-surface)' : 'transparent',
+                color: activeSection === 'articles' ? 'var(--adm-text)' : 'var(--adm-text-2)',
                 boxShadow: activeSection === 'articles' ? '0 2px 4px rgba(0,0,0,0.05)' : 'none'
               }}
             >
@@ -365,14 +376,14 @@ export default function ContractTemplateClient({ initialTemplate }: Props) {
               <div className="editor-card" style={{ width: '100%' }}>
                 <div className="editor-card-header">
                   <div className="editor-card-header-left">
-                    <DollarSign size={18} color="#1A2B21" />
-                    <strong style={{ fontSize: '0.9rem', color: '#1A2B21' }}>Conducción, Kilometraje y Fianza</strong>
+                    <DollarSign size={18} color="var(--adm-text)" />
+                    <strong style={{ fontSize: '0.9rem', color: 'var(--adm-text)' }}>Conducción, Kilometraje y Fianza</strong>
                   </div>
                 </div>
                 <div className="editor-card-body">
                   <div className="form-grid-3">
                     <div className="editor-field-group">
-                      <label className="editor-label" htmlFor="term-depositAmount">Fianza Obligatoria (€)</label>
+                      <label className="editor-label" htmlFor="term-depositAmount">Fianza por defecto (€)</label>
                       <input
                         id="term-depositAmount"
                         name="term_depositAmount"
@@ -380,7 +391,11 @@ export default function ContractTemplateClient({ initialTemplate }: Props) {
                         className="editor-input"
                         value={template.terms.depositAmount}
                         onChange={e => handleTermChange('depositAmount', Number(e.target.value))}
+                        aria-describedby="term-depositAmount-help"
                       />
+                      <span id="term-depositAmount-help" className="editor-help">
+                        El contrato usa la fianza de la ficha de cada camper (Flota). Esta cifra solo se aplica si un camper no tiene fianza.
+                      </span>
                     </div>
                     <div className="editor-field-group">
                       <label className="editor-label" htmlFor="term-includedKmPerDay">Km Incluidos / Día</label>
@@ -446,8 +461,8 @@ export default function ContractTemplateClient({ initialTemplate }: Props) {
               <div className="editor-card" style={{ width: '100%' }}>
                 <div className="editor-card-header">
                   <div className="editor-card-header-left">
-                    <ShieldAlert size={18} color="#DC2626" />
-                    <strong style={{ fontSize: '0.9rem', color: '#1A2B21' }}>Penalizaciones Operativas y Errores Graves</strong>
+                    <ShieldAlert size={18} color="var(--adm-rose)" />
+                    <strong style={{ fontSize: '0.9rem', color: 'var(--adm-text)' }}>Penalizaciones Operativas y Errores Graves</strong>
                   </div>
                 </div>
                 <div className="editor-card-body">
@@ -563,8 +578,8 @@ export default function ContractTemplateClient({ initialTemplate }: Props) {
             <div className="editor-card">
               <div className="editor-card-header">
                 <div className="editor-card-header-left">
-                  <Building size={18} color="#1A2B21" />
-                  <strong style={{ fontSize: '0.9rem', color: '#1A2B21' }}>Datos Sociales y Representación</strong>
+                  <Building size={18} color="var(--adm-text)" />
+                  <strong style={{ fontSize: '0.9rem', color: 'var(--adm-text)' }}>Datos Sociales y Representación</strong>
                 </div>
               </div>
               <div className="editor-card-body">
@@ -644,8 +659,8 @@ export default function ContractTemplateClient({ initialTemplate }: Props) {
           {activeSection === 'articles' && (
             <div>
               {/* Buscador de artículos */}
-              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '1rem', background: '#ffffff', border: '1px solid #CBD5E1', borderRadius: '10px', padding: '6px 12px' }}>
-                <Search size={16} color="#64748B" />
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '1rem', background: 'var(--adm-surface)', border: '1px solid var(--adm-border-strong)', borderRadius: '10px', padding: '6px 12px' }}>
+                <Search size={16} color="var(--adm-text-2)" />
                 <input
                   id="contract-article-search"
                   name="contract_article_search"
@@ -654,7 +669,7 @@ export default function ContractTemplateClient({ initialTemplate }: Props) {
                   placeholder="Buscar por artículo (ej: 4, seguro, fianza, combustible)..."
                   value={articleSearch}
                   onChange={e => setArticleSearch(e.target.value)}
-                  style={{ border: 'none', outline: 'none', width: '100%', fontSize: '0.82rem', color: '#1E293B' }}
+                  style={{ border: 'none', outline: 'none', width: '100%', fontSize: '0.82rem', color: 'var(--adm-text)' }}
                 />
               </div>
 
@@ -665,9 +680,9 @@ export default function ContractTemplateClient({ initialTemplate }: Props) {
                     <div className="article-header" onClick={() => toggleArticleExpand(art.number)}>
                       <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
                         <span className="article-badge">Art. {art.number}</span>
-                        <strong style={{ fontSize: '0.84rem', color: '#1E293B' }}>{art.title}</strong>
+                        <strong style={{ fontSize: '0.84rem', color: 'var(--adm-text)' }}>{art.title}</strong>
                       </div>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '6px', color: '#64748B' }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '6px', color: 'var(--adm-text-2)' }}>
                         <span style={{ fontSize: '0.72rem' }}>{art.chapter.split('–')[0].trim()}</span>
                         {isExpanded ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
                       </div>
@@ -746,7 +761,7 @@ export default function ContractTemplateClient({ initialTemplate }: Props) {
                 title="Vista previa del contrato PDF"
               />
             ) : (
-              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100%', color: '#94A3B8' }}>
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100%', color: 'var(--adm-text-3)' }}>
                 <Loader2 size={24} className="animate-spin" />
               </div>
             )}

@@ -624,7 +624,13 @@ export function generateContractData(
   }
 
   const tTerms = templateOverride?.terms || {}
-  const depositAmount = tTerms.depositAmount !== undefined ? Number(tTerms.depositAmount) : 1000
+  // Fianza: una sola fuente de verdad. Primero lo que se cobró en la reserva (copiado de la
+  // ficha del camper al reservar), después la ficha del camper; la plantilla solo es el respaldo.
+  const depositAmount =
+    Number(booking?.deposit_amount) ||
+    Number(camperData?.deposit_amount) ||
+    (tTerms.depositAmount !== undefined ? Number(tTerms.depositAmount) : 0) ||
+    1000
 
   const pricing = {
     totalPrice: Number(booking?.total_price || 0),
@@ -636,9 +642,21 @@ export function generateContractData(
         : (typeof booking?.extras === 'string' ? [booking.extras] : ['Seguro a todo riesgo', 'Menaje completo premium', 'Kit de cama y toallas', '2 Máscaras de snorkel']))
   }
 
-  const articles = Array.isArray(templateOverride?.articles) && templateOverride.articles.length > 0
+  const baseArticles = Array.isArray(templateOverride?.articles) && templateOverride.articles.length > 0
     ? templateOverride.articles
     : getOfficialContractArticles()
+
+  // El importe de la fianza escrito en las cláusulas sigue a la fianza real de este contrato
+  // useGrouping 'always': en es-ES los números de 4 cifras no llevan punto por defecto (1500 → 1.500)
+  const depositLabel = `${new Intl.NumberFormat('es-ES', { maximumFractionDigits: 2, useGrouping: 'always' as any }).format(depositAmount)} €`
+  const articles = baseArticles.map((a: any) => ({
+    ...a,
+    content: Array.isArray(a.content)
+      ? a.content.map((p: string) => typeof p === 'string'
+        ? p.replace(/(fianza[^.]*?importe de )[\d.,]+ ?€/i, `$1${depositLabel}`)
+        : p)
+      : a.content,
+  }))
 
   const rgpdText = {
     responsable: lessor.companyName,

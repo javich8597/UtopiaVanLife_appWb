@@ -105,7 +105,7 @@ export default function ValidationActionsClient({ userId, userName, onStatusUpda
           className="btn btn-outline"
           onClick={() => setIsRejectModalOpen(true)}
           disabled={isProcessing}
-          style={{ color: 'var(--error)', borderColor: '#fca5a5', display: 'flex', alignItems: 'center', gap: 'var(--space-2)' }}
+          style={{ color: 'var(--adm-rose)', borderColor: 'var(--adm-rose-soft)', display: 'flex', alignItems: 'center', gap: 'var(--space-2)' }}
         >
           <X size={16} />
           Rechazar
@@ -122,11 +122,11 @@ export default function ValidationActionsClient({ userId, userName, onStatusUpda
                   <AlertTriangle size={20} />
                 </div>
                 <div>
-                  <h4 style={{ margin: 0, color: '#991b1b', fontSize: '1.05rem', fontWeight: 700 }}>
+                  <h4 style={{ margin: 0, color: 'var(--adm-rose)', fontSize: '1.05rem', fontWeight: 700 }}>
                     Rechazar Documentación
                   </h4>
                   {userName && (
-                    <span style={{ fontSize: '0.78rem', color: '#6b7280' }}>Cliente: {userName}</span>
+                    <span style={{ fontSize: '0.78rem', color: 'var(--adm-text-2)' }}>Cliente: {userName}</span>
                   )}
                 </div>
               </div>
@@ -141,7 +141,7 @@ export default function ValidationActionsClient({ userId, userName, onStatusUpda
             </div>
 
             <form onSubmit={handleConfirmReject} className="modal-body">
-              <p style={{ fontSize: '0.85rem', color: '#374151', margin: 0 }}>
+              <p style={{ fontSize: '0.85rem', color: 'var(--adm-text)', margin: 0 }}>
                 Selecciona la causa del rechazo de los documentos:
               </p>
 
@@ -161,7 +161,7 @@ export default function ValidationActionsClient({ userId, userName, onStatusUpda
               </div>
 
               <div className="form-group">
-                <label style={{ fontSize: '0.8rem', fontWeight: 600, color: '#4b5563' }}>
+                <label style={{ fontSize: '0.8rem', fontWeight: 600, color: 'var(--adm-text-2)' }}>
                   {selectedReason === 'Otro' ? 'Motivo específico *' : 'Notas adicionales (opcional)'}
                 </label>
                 <textarea
@@ -177,7 +177,7 @@ export default function ValidationActionsClient({ userId, userName, onStatusUpda
                     width: '100%',
                     padding: '8px 12px',
                     borderRadius: '8px',
-                    border: '1px solid #d1d5db',
+                    border: '1px solid var(--adm-border-strong)',
                     fontSize: '0.85rem',
                   }}
                 />
@@ -196,7 +196,7 @@ export default function ValidationActionsClient({ userId, userName, onStatusUpda
                   type="submit"
                   disabled={isProcessing}
                   className="btn"
-                  style={{ background: '#dc2626', color: 'white', display: 'inline-flex', alignItems: 'center', gap: '6px' }}
+                  style={{ background: 'var(--adm-rose)', color: 'var(--adm-surface)', display: 'inline-flex', alignItems: 'center', gap: '6px' }}
                 >
                   {isProcessing ? <Loader2 size={16} className="animate-spin" /> : <XCircle size={16} />}
                   Confirmar Rechazo
@@ -209,7 +209,7 @@ export default function ValidationActionsClient({ userId, userName, onStatusUpda
 
       <style jsx>{`
         .actions-container { display: flex; flex-direction: column; gap: var(--space-3); }
-        .error-msg { color: var(--error); margin-bottom: var(--space-2); }
+        .error-msg { color: var(--adm-rose); margin-bottom: var(--space-2); }
         .animate-spin { animation: spin 1s linear infinite; }
         @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
 
@@ -226,7 +226,7 @@ export default function ValidationActionsClient({ userId, userName, onStatusUpda
         }
 
         .modal-card {
-          background: white;
+          background: var(--adm-surface);
           border-radius: 16px;
           width: 100%;
           max-width: 480px;
@@ -238,15 +238,15 @@ export default function ValidationActionsClient({ userId, userName, onStatusUpda
           align-items: center;
           justify-content: space-between;
           padding: 16px 20px;
-          border-bottom: 1px solid #e5e7eb;
+          border-bottom: 1px solid var(--adm-border);
         }
 
         .modal-header-icon {
           width: 34px;
           height: 34px;
           border-radius: 8px;
-          background: #fee2e2;
-          color: #dc2626;
+          background: var(--adm-rose-soft);
+          color: var(--adm-rose);
           display: flex;
           align-items: center;
           justify-content: center;
@@ -255,7 +255,7 @@ export default function ValidationActionsClient({ userId, userName, onStatusUpda
         .modal-close-btn {
           background: transparent;
           border: none;
-          color: #9ca3af;
+          color: var(--adm-text-3);
           cursor: pointer;
           padding: 4px;
         }
@@ -279,16 +279,16 @@ export default function ValidationActionsClient({ userId, userName, onStatusUpda
           gap: 8px;
           padding: 8px 12px;
           border-radius: 8px;
-          border: 1px solid #e5e7eb;
+          border: 1px solid var(--adm-border);
           font-size: 0.85rem;
           cursor: pointer;
           transition: all 0.15s;
         }
 
         .radio-label.selected {
-          border-color: #fca5a5;
-          background: #fef2f2;
-          color: #991b1b;
+          border-color: var(--adm-rose-soft);
+          background: var(--adm-rose-soft);
+          color: var(--adm-rose);
           font-weight: 600;
         }
 
@@ -297,7 +297,7 @@ export default function ValidationActionsClient({ userId, userName, onStatusUpda
           justify-content: flex-end;
           gap: 10px;
           padding-top: 12px;
-          border-top: 1px solid #e5e7eb;
+          border-top: 1px solid var(--adm-border);
         }
       `}</style>
     </div>

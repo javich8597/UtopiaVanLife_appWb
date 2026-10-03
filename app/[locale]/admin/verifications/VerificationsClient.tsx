@@ -30,6 +30,7 @@ export interface UserWithDocs {
   driver_license_expiry_date?: string
   verification_status: string
   rejection_reason?: string
+  nextDepartureOn?: string | null
   dniFrontUrl?: string | null
   dniBackUrl?: string | null
   licenseFrontUrl?: string | null
@@ -187,10 +188,15 @@ export default function VerificationsClient({ initialUsers }: Props) {
                     <h3 className="text-h4" style={{ marginBottom: 4 }}>
                       {user.full_name || 'Sin Nombre'}
                     </h3>
-                    <p className="text-sm" style={{ color: 'var(--gray-600)' }}>
+                    {user.nextDepartureOn && (
+                      <span className="adm-chip adm-chip--gold verif-departure">
+                        Sale el {new Date(user.nextDepartureOn).toLocaleDateString('es-ES', { weekday: 'short', day: 'numeric', month: 'short', timeZone: 'UTC' })}
+                      </span>
+                    )}
+                    <p className="text-sm" style={{ color: 'var(--adm-text-2)' }}>
                       DNI / Pasaporte: <strong>{user.dni_nie || 'No indicado'}</strong> · Email: <strong>{user.email}</strong>
                     </p>
-                    <p className="text-sm" style={{ color: 'var(--gray-600)' }}>
+                    <p className="text-sm" style={{ color: 'var(--adm-text-2)' }}>
                       Tel: <strong>{user.phone || user.phone_number || 'No especificado'}</strong> · Dirección: <strong>{user.address || 'No especificada'}</strong>
                     </p>
                   </div>
@@ -317,7 +323,7 @@ export default function VerificationsClient({ initialUsers }: Props) {
                     onClick={() => handleOpenReject(user)}
                     disabled={isApproving}
                     className="btn btn-outline"
-                    style={{ color: 'var(--error)', borderColor: '#fca5a5', display: 'inline-flex', alignItems: 'center', gap: '8px' }}
+                    style={{ color: 'var(--adm-rose)', borderColor: 'var(--adm-rose-soft)', display: 'inline-flex', alignItems: 'center', gap: '8px' }}
                   >
                     <X size={16} />
                     Rechazar
@@ -330,9 +336,9 @@ export default function VerificationsClient({ initialUsers }: Props) {
 
         {users.length === 0 && (
           <div className="empty-state card">
-            <CheckCircle2 size={48} style={{ color: 'var(--success)', margin: '0 auto 16px' }} />
+            <CheckCircle2 size={48} style={{ color: 'var(--adm-sage)', margin: '0 auto 16px' }} />
             <h3 className="text-h4" style={{ marginBottom: '8px' }}>Todo al día</h3>
-            <p className="text-body" style={{ color: 'var(--gray-600)' }}>
+            <p className="text-body" style={{ color: 'var(--adm-text-2)' }}>
               No hay carnets ni documentos pendientes de validación en este momento.
             </p>
           </div>
@@ -386,10 +392,10 @@ export default function VerificationsClient({ initialUsers }: Props) {
                   <AlertTriangle size={20} />
                 </div>
                 <div>
-                  <h3 className="text-h4" style={{ margin: 0, color: '#991b1b' }}>
+                  <h3 className="text-h4" style={{ margin: 0, color: 'var(--adm-rose)' }}>
                     Rechazar Documentación
                   </h3>
-                  <p className="text-xs" style={{ color: 'var(--gray-500)', margin: 0 }}>
+                  <p className="text-xs" style={{ color: 'var(--adm-text-2)', margin: 0 }}>
                     Cliente: <strong>{rejectingUser.full_name || rejectingUser.email}</strong>
                   </p>
                 </div>
@@ -412,7 +418,7 @@ export default function VerificationsClient({ initialUsers }: Props) {
                 </div>
               )}
 
-              <p style={{ fontSize: '0.88rem', color: 'var(--gray-700)', lineHeight: 1.5, margin: 0 }}>
+              <p style={{ fontSize: '0.88rem', color: 'var(--adm-text)', lineHeight: 1.5, margin: 0 }}>
                 Selecciona el motivo principal del rechazo. Este motivo quedará registrado en el expediente del cliente para que pueda subsanarlo:
               </p>
 
@@ -491,9 +497,9 @@ export default function VerificationsClient({ initialUsers }: Props) {
           align-items: center;
           gap: 10px;
           padding: 12px 18px;
-          background: #f0fdf4;
-          border: 1px solid #bbf7d0;
-          color: #166534;
+          background: var(--adm-sage-soft);
+          border: 1px solid var(--adm-sage-soft);
+          color: var(--adm-sage);
           border-radius: 10px;
           font-size: 0.9rem;
           font-weight: 500;
@@ -502,9 +508,9 @@ export default function VerificationsClient({ initialUsers }: Props) {
         .validation-card {
           margin-bottom: 24px;
           padding: 24px;
-          background: white;
+          background: var(--adm-surface);
           border-radius: 16px;
-          border: 1px solid var(--gray-200);
+          border: 1px solid var(--adm-border);
         }
 
         .user-info-section {
@@ -519,18 +525,18 @@ export default function VerificationsClient({ initialUsers }: Props) {
         }
 
         .badge-neutral {
-          background: var(--gray-100);
-          color: var(--gray-800);
+          background: var(--adm-surface-2);
+          color: var(--adm-text);
         }
 
         .badge-warning {
-          background: #fef08a;
-          color: #854d0e;
+          background: var(--adm-amber-soft);
+          color: var(--adm-amber);
         }
 
         .badge-danger {
-          background: #fee2e2;
-          color: #991b1b;
+          background: var(--adm-rose-soft);
+          color: var(--adm-rose);
         }
 
         .documents-grid {
@@ -542,8 +548,8 @@ export default function VerificationsClient({ initialUsers }: Props) {
 
         .doc-tile {
           text-align: center;
-          background: #fafafa;
-          border: 1px solid var(--gray-200);
+          background: var(--adm-surface-2);
+          border: 1px solid var(--adm-border);
           border-radius: 10px;
           padding: 10px;
         }
@@ -553,7 +559,7 @@ export default function VerificationsClient({ initialUsers }: Props) {
           font-weight: 700;
           display: block;
           margin-bottom: 8px;
-          color: var(--gray-700);
+          color: var(--adm-text);
         }
 
         .doc-img-wrap {
@@ -562,8 +568,8 @@ export default function VerificationsClient({ initialUsers }: Props) {
           overflow: hidden;
           cursor: pointer;
           height: 105px;
-          border: 1px solid var(--gray-300);
-          background: white;
+          border: 1px solid var(--adm-border-strong);
+          background: var(--adm-surface);
         }
 
         .doc-thumbnail-img {
@@ -582,7 +588,7 @@ export default function VerificationsClient({ initialUsers }: Props) {
           align-items: center;
           justify-content: center;
           gap: 4px;
-          color: white;
+          color: var(--adm-surface);
           font-size: 0.78rem;
           font-weight: 600;
           opacity: 0;
@@ -602,9 +608,9 @@ export default function VerificationsClient({ initialUsers }: Props) {
           display: flex;
           align-items: center;
           justify-content: center;
-          color: var(--gray-400);
+          color: var(--adm-text-3);
           font-size: 0.78rem;
-          background: #f3f4f6;
+          background: var(--adm-surface-2);
           border-radius: 6px;
         }
 
@@ -615,21 +621,21 @@ export default function VerificationsClient({ initialUsers }: Props) {
           flex-wrap: wrap;
           gap: 12px;
           padding-top: 16px;
-          border-top: 1px solid var(--gray-100);
+          border-top: 1px solid var(--adm-surface-2);
         }
 
         .actions-hint {
           font-size: 0.88rem;
-          color: var(--gray-600);
+          color: var(--adm-text-2);
           font-weight: 500;
         }
 
         .empty-state {
           text-align: center;
           padding: 48px;
-          border: 1px dashed var(--gray-300);
+          border: 1px dashed var(--adm-border-strong);
           border-radius: 16px;
-          background: white;
+          background: var(--adm-surface);
         }
 
         /* Lightbox Styles */
@@ -646,7 +652,7 @@ export default function VerificationsClient({ initialUsers }: Props) {
         }
 
         .lightbox-card {
-          background: #ffffff;
+          background: var(--adm-surface);
           border-radius: 16px;
           width: 100%;
           max-width: 900px;
@@ -662,25 +668,25 @@ export default function VerificationsClient({ initialUsers }: Props) {
           align-items: center;
           justify-content: space-between;
           padding: 16px 20px;
-          border-bottom: 1px solid var(--gray-200);
-          background: #fafafa;
+          border-bottom: 1px solid var(--adm-border);
+          background: var(--adm-surface-2);
         }
 
         .lightbox-title {
           font-weight: 700;
           font-size: 0.95rem;
-          color: var(--gray-900);
+          color: var(--adm-text);
         }
 
         .lightbox-subtitle {
           font-size: 0.85rem;
-          color: var(--gray-500);
+          color: var(--adm-text-2);
         }
 
         .lightbox-close-btn, .lightbox-ext-btn {
           background: transparent;
           border: none;
-          color: var(--gray-500);
+          color: var(--adm-text-2);
           cursor: pointer;
           border-radius: 6px;
           padding: 6px;
@@ -690,8 +696,8 @@ export default function VerificationsClient({ initialUsers }: Props) {
         }
 
         .lightbox-close-btn:hover, .lightbox-ext-btn:hover {
-          color: var(--gray-800);
-          background: var(--gray-200);
+          color: var(--adm-text);
+          background: var(--adm-border);
         }
 
         .lightbox-image-container {
@@ -726,7 +732,7 @@ export default function VerificationsClient({ initialUsers }: Props) {
         }
 
         .modal-card {
-          background: white;
+          background: var(--adm-surface);
           border-radius: 16px;
           width: 100%;
           max-width: 520px;
@@ -738,15 +744,15 @@ export default function VerificationsClient({ initialUsers }: Props) {
           align-items: center;
           justify-content: space-between;
           padding: 20px 24px;
-          border-bottom: 1px solid var(--gray-200);
+          border-bottom: 1px solid var(--adm-border);
         }
 
         .modal-header-icon {
           width: 36px;
           height: 36px;
           border-radius: 8px;
-          background: #fee2e2;
-          color: #dc2626;
+          background: var(--adm-rose-soft);
+          color: var(--adm-rose);
           display: flex;
           align-items: center;
           justify-content: center;
@@ -755,15 +761,15 @@ export default function VerificationsClient({ initialUsers }: Props) {
         .modal-close-btn {
           background: transparent;
           border: none;
-          color: var(--gray-400);
+          color: var(--adm-text-3);
           cursor: pointer;
           border-radius: 6px;
           padding: 4px;
         }
 
         .modal-close-btn:hover {
-          color: var(--gray-700);
-          background: var(--gray-100);
+          color: var(--adm-text);
+          background: var(--adm-surface-2);
         }
 
         .modal-body {
@@ -778,9 +784,9 @@ export default function VerificationsClient({ initialUsers }: Props) {
           align-items: center;
           gap: 8px;
           padding: 10px 14px;
-          background: #fef2f2;
-          border: 1px solid #fecaca;
-          color: #b91c1c;
+          background: var(--adm-rose-soft);
+          border: 1px solid var(--adm-rose-soft);
+          color: var(--adm-rose);
           border-radius: 8px;
           font-size: 0.85rem;
         }
@@ -796,23 +802,23 @@ export default function VerificationsClient({ initialUsers }: Props) {
           align-items: center;
           gap: 10px;
           padding: 10px 14px;
-          border: 1px solid var(--gray-200);
+          border: 1px solid var(--adm-border);
           border-radius: 8px;
-          background: #fafafa;
+          background: var(--adm-surface-2);
           cursor: pointer;
           font-size: 0.88rem;
           transition: all 0.15s ease;
         }
 
         .reason-radio-item:hover {
-          background: #f3f4f6;
-          border-color: var(--gray-300);
+          background: var(--adm-surface-2);
+          border-color: var(--adm-border-strong);
         }
 
         .reason-radio-item.selected {
-          border-color: #fca5a5;
-          background: #fff5f5;
-          color: #991b1b;
+          border-color: var(--adm-rose-soft);
+          background: var(--adm-rose-soft);
+          color: var(--adm-rose);
           font-weight: 600;
         }
 
@@ -825,19 +831,19 @@ export default function VerificationsClient({ initialUsers }: Props) {
         .form-label {
           font-size: 0.82rem;
           font-weight: 600;
-          color: var(--gray-700);
+          color: var(--adm-text);
         }
 
         .form-input {
           padding: 8px 12px;
-          border: 1px solid var(--gray-300);
+          border: 1px solid var(--adm-border-strong);
           border-radius: 8px;
           font-size: 0.9rem;
           outline: none;
         }
 
         .form-input:focus {
-          border-color: #dc2626;
+          border-color: var(--adm-rose);
           box-shadow: 0 0 0 2px rgba(220, 38, 38, 0.15);
         }
 
@@ -846,12 +852,12 @@ export default function VerificationsClient({ initialUsers }: Props) {
           justify-content: flex-end;
           gap: 12px;
           padding-top: 14px;
-          border-top: 1px solid var(--gray-200);
+          border-top: 1px solid var(--adm-border);
         }
 
         .btn-danger-action {
-          background: #dc2626;
-          color: white;
+          background: var(--adm-rose);
+          color: var(--adm-surface);
           border: none;
           display: inline-flex;
           align-items: center;
@@ -863,7 +869,7 @@ export default function VerificationsClient({ initialUsers }: Props) {
         }
 
         .btn-danger-action:hover {
-          background: #b91c1c;
+          background: var(--adm-rose);
         }
 
         .animate-spin {

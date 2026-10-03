@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { Check, Loader2, AlertCircle } from 'lucide-react'
+import { Check, Loader2 } from 'lucide-react'
 
 interface Props {
   bookingId: string
@@ -45,24 +45,10 @@ export default function ApproveActionClient({ bookingId, status }: Props) {
 
   return (
     <button
+      type="button"
       onClick={handleApprove}
       disabled={isLoading}
-      style={{
-        background: '#16a34a',
-        color: 'white',
-        border: 'none',
-        borderRadius: 6,
-        padding: '5px 10px',
-        fontSize: '0.78rem',
-        fontWeight: 600,
-        display: 'inline-flex',
-        alignItems: 'center',
-        gap: 4,
-        cursor: 'pointer',
-        boxShadow: '0 1px 3px rgba(22,163,74,0.3)',
-        transition: 'all 0.2s ease',
-        marginRight: 6
-      }}
+      className="adm-btn adm-btn--sm adm-btn--primary"
       title="Aceptar reserva y emitir contrato"
     >
       {isLoading ? <Loader2 size={13} className="animate-spin" /> : <Check size={13} />}

@@ -259,7 +259,7 @@ export default function BookingDetailModal({ booking, onClose }: Props) {
               <div className="bm-field-list">
                 <div className="bm-field">
                   <span className="bm-label">Duración del Viaje</span>
-                  <strong style={{ fontSize: '1.05rem', color: '#16a34a' }}>
+                  <strong style={{ fontSize: '1.05rem', color: 'var(--adm-sage)' }}>
                     {nights} {nights === 1 ? 'noche' : 'noches'}
                   </strong>
                 </div>
@@ -280,19 +280,19 @@ export default function BookingDetailModal({ booking, onClose }: Props) {
                 <div className="bm-field">
                   <span className="bm-label">Punto de Entrega / Recogida</span>
                   <div className="bm-val-sub flex-align">
-                    <MapPin size={13} style={{ color: '#6b7280', flexShrink: 0 }} /> {pickupLocation}
+                    <MapPin size={13} style={{ color: 'var(--adm-text-2)', flexShrink: 0 }} /> {pickupLocation}
                   </div>
                 </div>
 
                 {/* KM Package */}
-                <div className="bm-field" style={{ paddingTop: 8, borderTop: '1px dashed #E5E7EB' }}>
+                <div className="bm-field" style={{ paddingTop: 8, borderTop: '1px dashed var(--adm-border)' }}>
                   <span className="bm-label">Paquete de Kilometraje</span>
                   <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginTop: 2 }}>
                     <span className={`bm-opt-badge ${kmBadgeClass}`}>
                       <Gauge size={13} /> {kmLabel}
                     </span>
                   </div>
-                  <p style={{ fontSize: '0.78rem', color: '#6B7280', margin: '3px 0 0' }}>
+                  <p style={{ fontSize: '0.78rem', color: 'var(--adm-text-2)', margin: '3px 0 0' }}>
                     {isUnlimitedKm
                       ? `Kilometraje ilimitado sin recargos (+15 €/día × ${nights} días = +${formatPrice(kmSupplement)})`
                       : '150 km/día incluidos en tarifa de alquiler sin coste adicional.'}
@@ -300,14 +300,14 @@ export default function BookingDetailModal({ booking, onClose }: Props) {
                 </div>
 
                 {/* Cancellation Policy */}
-                <div className="bm-field" style={{ paddingTop: 8, borderTop: '1px dashed #E5E7EB' }}>
+                <div className="bm-field" style={{ paddingTop: 8, borderTop: '1px dashed var(--adm-border)' }}>
                   <span className="bm-label">Política de Cancelación</span>
                   <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginTop: 2 }}>
                     <span className={`bm-opt-badge ${cancellationBadgeClass}`}>
                       <Shield size={13} /> {cancellationLabel}
                     </span>
                   </div>
-                  <p style={{ fontSize: '0.78rem', color: '#6B7280', margin: '3px 0 0' }}>
+                  <p style={{ fontSize: '0.78rem', color: 'var(--adm-text-2)', margin: '3px 0 0' }}>
                     {isFlexibleCancel
                       ? `Reembolso 100% >30d, 50% 29-15d, 1 cambio gratis >15d (+8 €/día × ${nights} días = +${formatPrice(cancellationSupplement)})`
                       : 'Modificación de fechas gratuita hasta 60 días antes de la recogida.'}
@@ -335,8 +335,8 @@ export default function BookingDetailModal({ booking, onClose }: Props) {
                 <div className="bm-field">
                   <span className="bm-label">Email</span>
                   <div className="bm-val flex-align">
-                    <Mail size={13} style={{ color: '#6b7280' }} />
-                    <a href={`mailto:${clientEmail}`} style={{ color: '#166534', textDecoration: 'none' }}>
+                    <Mail size={13} style={{ color: 'var(--adm-text-2)' }} />
+                    <a href={`mailto:${clientEmail}`} style={{ color: 'var(--adm-sage)', textDecoration: 'none' }}>
                       {clientEmail}
                     </a>
                   </div>
@@ -345,7 +345,7 @@ export default function BookingDetailModal({ booking, onClose }: Props) {
                   <span className="bm-label">Teléfono de Contacto</span>
                   <div className="bm-val flex-align" style={{ flexWrap: 'wrap', gap: '8px' }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-                      <Phone size={13} style={{ color: '#6b7280' }} /> {clientPhone}
+                      <Phone size={13} style={{ color: 'var(--adm-text-2)' }} /> {clientPhone}
                     </div>
                     {telLink && (
                       <div style={{ display: 'inline-flex', gap: '6px' }}>
@@ -354,8 +354,8 @@ export default function BookingDetailModal({ booking, onClose }: Props) {
                           style={{
                             fontSize: '0.72rem',
                             fontWeight: 700,
-                            color: '#15803d',
-                            background: '#dcfce7',
+                            color: 'var(--adm-sage)',
+                            background: 'var(--adm-sage-soft)',
                             padding: '2px 8px',
                             borderRadius: '9999px',
                             textDecoration: 'none',
@@ -371,8 +371,8 @@ export default function BookingDetailModal({ booking, onClose }: Props) {
                             style={{
                               fontSize: '0.72rem',
                               fontWeight: 700,
-                              color: '#0369a1',
-                              background: '#e0f2fe',
+                              color: 'var(--adm-text-2)',
+                              background: 'var(--adm-surface-2)',
                               padding: '2px 8px',
                               borderRadius: '9999px',
                               textDecoration: 'none',
@@ -386,9 +386,9 @@ export default function BookingDetailModal({ booking, onClose }: Props) {
                   </div>
                 </div>
 
-                <div className="bm-field" style={{ paddingTop: 8, borderTop: '1px dashed #E5E7EB' }}>
+                <div className="bm-field" style={{ paddingTop: 8, borderTop: '1px dashed var(--adm-border)' }}>
                   <span className="bm-label">Dirección de Facturación</span>
-                  <div className="bm-val-sub" style={{ color: '#374151' }}>
+                  <div className="bm-val-sub" style={{ color: 'var(--adm-text)' }}>
                     {billingAddress}
                   </div>
                 </div>
@@ -402,7 +402,7 @@ export default function BookingDetailModal({ booking, onClose }: Props) {
 
                 <div className="bm-field">
                   <span className="bm-label">Peticiones o Notas Especiales</span>
-                  <div className="bm-val-sub" style={{ fontStyle: specialNotes !== 'Ninguna' ? 'normal' : 'italic', color: '#4B5563' }}>
+                  <div className="bm-val-sub" style={{ fontStyle: specialNotes !== 'Ninguna' ? 'normal' : 'italic', color: 'var(--adm-text-2)' }}>
                     {specialNotes}
                   </div>
                 </div>
@@ -412,12 +412,12 @@ export default function BookingDetailModal({ booking, onClose }: Props) {
 
           {/* Categorized Extras */}
           <div className="bm-card bm-card--extras">
-            <h4 className="bm-card-title" style={{ color: '#1E293B', marginBottom: 12 }}>
+            <h4 className="bm-card-title" style={{ color: 'var(--adm-text)', marginBottom: 12 }}>
               <Package size={16} className="bm-icon-green" /> Extras y Experiencias Contratadas
             </h4>
 
             {parsedExtrasList.length === 0 ? (
-              <div style={{ padding: '8px 12px', background: '#F8FAFC', borderRadius: 8, fontSize: '0.85rem', color: '#64748B' }}>
+              <div style={{ padding: '8px 12px', background: 'var(--adm-surface-2)', borderRadius: 8, fontSize: '0.85rem', color: 'var(--adm-text-2)' }}>
                 ✨ <strong>Equipamiento de Serie Utopia incluido:</strong> Vajilla y menaje completo, kit de limpieza eco, cable eléctrico 220V, manguera y cuñas de nivelación. Sin extras de pago adicionales.
               </div>
             ) : (
@@ -460,7 +460,7 @@ export default function BookingDetailModal({ booking, onClose }: Props) {
 
           {/* Pricing & Financial Breakdown */}
           <div className="bm-card bm-card--pricing">
-            <h4 className="bm-card-title" style={{ color: '#166534' }}>
+            <h4 className="bm-card-title" style={{ color: 'var(--adm-sage)' }}>
               <Euro size={16} /> Desglose Económico Pormenorizado
             </h4>
             <div className="bm-pricing-grid">
@@ -470,7 +470,7 @@ export default function BookingDetailModal({ booking, onClose }: Props) {
               </div>
 
               {discountAmount > 0 && (
-                <div className="bm-price-row" style={{ color: '#15803d' }}>
+                <div className="bm-price-row" style={{ color: 'var(--adm-sage)' }}>
                   <span>Descuento aplicado por estancia prolongada</span>
                   <strong>- {formatPrice(discountAmount)}</strong>
                 </div>
@@ -508,8 +508,8 @@ export default function BookingDetailModal({ booking, onClose }: Props) {
                     )}
                   </div>
                   {redsysOrderId && (
-                    <div style={{ fontSize: '0.75rem', fontWeight: 500, color: '#4B5563', marginTop: 2 }}>
-                      Ref. Transacción: <code style={{ color: '#166534' }}>{redsysOrderId}</code>
+                    <div style={{ fontSize: '0.75rem', fontWeight: 500, color: 'var(--adm-text-2)', marginTop: 2 }}>
+                      Ref. Transacción: <code style={{ color: 'var(--adm-sage)' }}>{redsysOrderId}</code>
                     </div>
                   )}
                 </div>
@@ -518,10 +518,10 @@ export default function BookingDetailModal({ booking, onClose }: Props) {
 
               <div className="bm-deposit-box">
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                  <span style={{ fontWeight: 600, color: '#374151' }}>Fianza Informativa Reembolsable (bloqueo)</span>
-                  <strong style={{ color: '#111827' }}>{formatPrice(depositAmount)}</strong>
+                  <span style={{ fontWeight: 600, color: 'var(--adm-text)' }}>Fianza Informativa Reembolsable (bloqueo)</span>
+                  <strong style={{ color: 'var(--adm-text)' }}>{formatPrice(depositAmount)}</strong>
                 </div>
-                <p style={{ fontSize: '0.78rem', color: '#6B7280', margin: '4px 0 0' }}>
+                <p style={{ fontSize: '0.78rem', color: 'var(--adm-text-2)', margin: '4px 0 0' }}>
                   Bloqueo preventivo en tarjeta de crédito al momento del check-in. No se cobra por adelantado y se libera íntegramente tras la devolución de la camper.
                 </p>
               </div>
@@ -535,7 +535,7 @@ export default function BookingDetailModal({ booking, onClose }: Props) {
                 <h4 className="bm-card-title" style={{ margin: 0, display: 'flex', alignItems: 'center', gap: 6 }}>
                   <FileText size={16} /> Contrato de Alquiler Oficial
                 </h4>
-                <p style={{ fontSize: '0.82rem', color: '#6b7280', margin: '4px 0 0' }}>
+                <p style={{ fontSize: '0.82rem', color: 'var(--adm-text-2)', margin: '4px 0 0' }}>
                   Contrato legal de 31 artículos generado automáticamente con cláusulas, datos de la camper y firmas.
                 </p>
               </div>
@@ -583,7 +583,7 @@ export default function BookingDetailModal({ booking, onClose }: Props) {
         }
 
         .bm-modal {
-          background: #ffffff;
+          background: var(--adm-surface);
           border-radius: 16px;
           width: 100%;
           max-width: 780px;
@@ -605,8 +605,8 @@ export default function BookingDetailModal({ booking, onClose }: Props) {
           align-items: center;
           justify-content: space-between;
           padding: 20px 24px;
-          border-bottom: 1px solid #E5E7EB;
-          background: #FAFAFA;
+          border-bottom: 1px solid var(--adm-border);
+          background: var(--adm-surface-2);
         }
 
         .bm-header-left {
@@ -619,8 +619,8 @@ export default function BookingDetailModal({ booking, onClose }: Props) {
           width: 44px;
           height: 44px;
           border-radius: 12px;
-          background: #DCFCE7;
-          color: #166534;
+          background: var(--adm-sage-soft);
+          color: var(--adm-sage);
           display: flex;
           align-items: center;
           justify-content: center;
@@ -630,28 +630,28 @@ export default function BookingDetailModal({ booking, onClose }: Props) {
         .bm-title {
           font-size: 1.25rem;
           font-weight: 700;
-          color: #111827;
+          color: var(--adm-text);
           margin: 0;
         }
 
         .bm-subtitle {
           font-size: 0.85rem;
-          color: #6B7280;
+          color: var(--adm-text-2);
           margin: 2px 0 0;
         }
 
         .bm-close-btn {
           background: transparent;
           border: none;
-          color: #9CA3AF;
+          color: var(--adm-text-3);
           cursor: pointer;
           padding: 6px;
           border-radius: 50%;
           transition: background 0.12s ease;
         }
         .bm-close-btn:hover {
-          background: #E5E7EB;
-          color: #111827;
+          background: var(--adm-border);
+          color: var(--adm-text);
         }
 
         .bm-body {
@@ -669,26 +669,26 @@ export default function BookingDetailModal({ booking, onClose }: Props) {
         }
 
         .bm-card {
-          background: #F9FAFB;
-          border: 1px solid #E5E7EB;
+          background: var(--adm-surface-2);
+          border: 1px solid var(--adm-border);
           border-radius: 12px;
           padding: 16px 18px;
         }
 
         .bm-card--pricing {
-          background: #F0FDF4;
-          border-color: #BBF7D0;
+          background: var(--adm-sage-soft);
+          border-color: var(--adm-sage-soft);
         }
 
         .bm-card--contract {
-          background: #F8FAFC;
-          border-color: #E2E8F0;
+          background: var(--adm-surface-2);
+          border-color: var(--adm-border);
         }
 
         .bm-card-title {
           font-size: 0.9rem;
           font-weight: 700;
-          color: #1F2937;
+          color: var(--adm-text);
           margin: 0 0 12px;
           display: flex;
           align-items: center;
@@ -696,7 +696,7 @@ export default function BookingDetailModal({ booking, onClose }: Props) {
         }
 
         .bm-icon-green {
-          color: #16A34A;
+          color: var(--adm-sage);
         }
 
         .bm-field-list {
@@ -715,24 +715,24 @@ export default function BookingDetailModal({ booking, onClose }: Props) {
           font-size: 0.72rem;
           text-transform: uppercase;
           font-weight: 700;
-          color: #6B7280;
+          color: var(--adm-text-2);
         }
 
         .bm-val {
           font-size: 0.92rem;
-          color: #111827;
+          color: var(--adm-text);
           font-weight: 600;
         }
 
         .bm-val-sub {
           font-size: 0.85rem;
-          color: #4B5563;
+          color: var(--adm-text-2);
         }
 
         .bm-time-tag {
           font-weight: 700;
-          color: #16A34A;
-          background: #DCFCE7;
+          color: var(--adm-sage);
+          background: var(--adm-sage-soft);
           padding: 2px 6px;
           border-radius: 4px;
           font-size: 0.8rem;
@@ -755,7 +755,7 @@ export default function BookingDetailModal({ booking, onClose }: Props) {
           display: flex;
           justify-content: space-between;
           font-size: 0.88rem;
-          color: #374151;
+          color: var(--adm-text);
         }
 
         .bm-opt-badge {
@@ -768,44 +768,44 @@ export default function BookingDetailModal({ booking, onClose }: Props) {
           border-radius: 9999px;
         }
         .badge-km--unlimited {
-          background: #EDE9FE;
-          color: #6D28D9;
+          background: var(--adm-gold-soft);
+          color: var(--adm-gold-text);
           border: 1px solid #C4B5FD;
         }
         .badge-km--included {
-          background: #DCFCE7;
-          color: #166534;
-          border: 1px solid #86EFAC;
+          background: var(--adm-sage-soft);
+          color: var(--adm-sage);
+          border: 1px solid var(--adm-sage-soft);
         }
         .badge-cancel--flexible {
-          background: #E0F2FE;
-          color: #0369A1;
+          background: var(--adm-surface-2);
+          color: var(--adm-text-2);
           border: 1px solid #7DD3FC;
         }
         .badge-cancel--standard {
-          background: #DCFCE7;
-          color: #166534;
-          border: 1px solid #86EFAC;
+          background: var(--adm-sage-soft);
+          color: var(--adm-sage);
+          border: 1px solid var(--adm-sage-soft);
         }
 
         .badge-paid {
           display: inline-flex;
           align-items: center;
           gap: 4px;
-          background: #DCFCE7;
-          color: #166534;
+          background: var(--adm-sage-soft);
+          color: var(--adm-sage);
           font-size: 0.72rem;
           font-weight: 700;
           padding: 2px 8px;
           border-radius: 9999px;
-          border: 1px solid #86EFAC;
+          border: 1px solid var(--adm-sage-soft);
         }
         .badge-paid-pill {
           display: inline-flex;
           align-items: center;
           gap: 4px;
-          background: #DCFCE7;
-          color: #166534;
+          background: var(--adm-sage-soft);
+          color: var(--adm-sage);
           font-size: 0.72rem;
           font-weight: 700;
           padding: 2px 8px;
@@ -815,8 +815,8 @@ export default function BookingDetailModal({ booking, onClose }: Props) {
           display: inline-flex;
           align-items: center;
           gap: 4px;
-          background: #FEF3C7;
-          color: #92400E;
+          background: var(--adm-amber-soft);
+          color: var(--adm-amber);
           font-size: 0.72rem;
           font-weight: 700;
           padding: 2px 8px;
@@ -824,8 +824,8 @@ export default function BookingDetailModal({ booking, onClose }: Props) {
         }
 
         .bm-card--extras {
-          background: #FFFFFF;
-          border: 1px solid #E2E8F0;
+          background: var(--adm-surface);
+          border: 1px solid var(--adm-border);
         }
         .bm-categories-grid {
           display: grid;
@@ -833,8 +833,8 @@ export default function BookingDetailModal({ booking, onClose }: Props) {
           gap: 12px;
         }
         .bm-category-group {
-          background: #F8FAFC;
-          border: 1px solid #E2E8F0;
+          background: var(--adm-surface-2);
+          border: 1px solid var(--adm-border);
           border-radius: 8px;
           padding: 10px 12px;
         }
@@ -844,14 +844,14 @@ export default function BookingDetailModal({ booking, onClose }: Props) {
           justify-content: space-between;
           font-size: 0.8rem;
           font-weight: 700;
-          color: #334155;
+          color: var(--adm-text);
           margin-bottom: 8px;
           padding-bottom: 6px;
-          border-bottom: 1px solid #E2E8F0;
+          border-bottom: 1px solid var(--adm-border);
         }
         .bm-category-count {
-          background: #E2E8F0;
-          color: #475569;
+          background: var(--adm-border);
+          color: var(--adm-text-2);
           font-size: 0.68rem;
           font-weight: 700;
           padding: 1px 6px;
@@ -867,7 +867,7 @@ export default function BookingDetailModal({ booking, onClose }: Props) {
           align-items: center;
           justify-content: space-between;
           font-size: 0.8rem;
-          color: #1E293B;
+          color: var(--adm-text);
         }
         .bm-extra-name {
           display: flex;
@@ -875,8 +875,8 @@ export default function BookingDetailModal({ booking, onClose }: Props) {
           gap: 6px;
         }
         .bm-extra-qty {
-          background: #E0F2FE;
-          color: #0369A1;
+          background: var(--adm-surface-2);
+          color: var(--adm-text-2);
           font-size: 0.68rem;
           font-weight: 700;
           padding: 1px 5px;
@@ -889,14 +889,14 @@ export default function BookingDetailModal({ booking, onClose }: Props) {
         }
         .bm-extra-unit {
           font-size: 0.72rem;
-          color: #64748B;
+          color: var(--adm-text-2);
         }
 
         .bm-deposit-box {
           margin-top: 10px;
           padding: 10px 12px;
-          background: #F8FAFC;
-          border: 1px solid #E2E8F0;
+          background: var(--adm-surface-2);
+          border: 1px solid var(--adm-border);
           border-radius: 8px;
         }
 
@@ -904,16 +904,16 @@ export default function BookingDetailModal({ booking, onClose }: Props) {
           display: flex;
           justify-content: space-between;
           align-items: center;
-          border-top: 1px dashed #86EFAC;
+          border-top: 1px dashed var(--adm-sage-soft);
           padding-top: 10px;
           margin-top: 4px;
           font-weight: 700;
-          color: #166534;
+          color: var(--adm-sage);
         }
 
         .bm-total-amount {
           font-size: 1.25rem;
-          color: #16A34A;
+          color: var(--adm-sage);
         }
 
         .bm-footer {
@@ -921,8 +921,8 @@ export default function BookingDetailModal({ booking, onClose }: Props) {
           align-items: center;
           justify-content: space-between;
           padding: 16px 24px;
-          border-top: 1px solid #E5E7EB;
-          background: #FAFAFA;
+          border-top: 1px solid var(--adm-border);
+          background: var(--adm-surface-2);
           flex-wrap: wrap;
           gap: 12px;
         }
@@ -947,20 +947,20 @@ export default function BookingDetailModal({ booking, onClose }: Props) {
         }
 
         .bm-btn--secondary {
-          background: #F3F4F6;
-          color: #374151;
-          border: 1px solid #D1D5DB;
+          background: var(--adm-surface-2);
+          color: var(--adm-text);
+          border: 1px solid var(--adm-border-strong);
         }
         .bm-btn--secondary:hover {
-          background: #E5E7EB;
+          background: var(--adm-border);
         }
 
         .bm-btn--primary {
-          background: #16A34A;
-          color: white;
+          background: var(--adm-sage);
+          color: var(--adm-surface);
         }
         .bm-btn--primary:hover {
-          background: #15803d;
+          background: var(--adm-sage);
         }
 
         @media (max-width: 640px) {

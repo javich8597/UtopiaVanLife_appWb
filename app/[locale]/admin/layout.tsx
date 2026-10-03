@@ -2,7 +2,9 @@ import { cookies } from 'next/headers'
 import { redirect } from '@/i18n/routing'
 import { createClient } from '@/lib/supabase/server'
 import AdminResponsiveShell from './AdminResponsiveShell'
+import './admin.css'
 import { isAdminUser } from '@/lib/admin/auth'
+import { livePendingSince } from '@/lib/admin/bookingStatus'
 import { ADMIN_THEME_COOKIE } from '@/lib/admin/theme'
 
 export default async function AdminLayout({
@@ -51,7 +53,8 @@ export default async function AdminLayout({
 
     // Contadores para los avisos de la navegación
     const [{ count: pendingBookings }, { count: pendingVerifications }] = await Promise.all([
-        supabase.from('bookings').select('*', { count: 'exact', head: true }).eq('status', 'pending'),
+        // Solo pendientes vivas: las abandonadas en Redsys se consideran caducadas
+        supabase.from('bookings').select('*', { count: 'exact', head: true }).eq('status', 'pending').gte('created_at', livePendingSince()),
         supabase.from('users').select('*', { count: 'exact', head: true }).eq('verification_status', 'pending_validation'),
     ])
 

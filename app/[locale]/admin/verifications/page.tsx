@@ -1,7 +1,8 @@
 import { createClient } from '@/lib/supabase/server'
 import { createClient as createAdminClient } from '@supabase/supabase-js'
-import { FileText } from 'lucide-react'
+import AdminPageHeader from '../AdminPageHeader'
 import VerificationsClient from './VerificationsClient'
+import VerificationHistory from './VerificationHistory'
 
 export default async function AdminVerificationsPage() {
     const supabase = await createClient()
@@ -17,6 +18,30 @@ export default async function AdminVerificationsPage() {
         .select('*')
         .in('verification_status', ['pending_validation', 'pending'])
         .order('created_at', { ascending: false })
+
+    // Historial: documentación ya revisada (validada o rechazada)
+    const { data: reviewedUsers } = await supabase
+        .from('users')
+        .select('*')
+        .in('verification_status', ['verified', 'approved', 'rejected'])
+        .order('created_at', { ascending: false })
+        .limit(100)
+
+    // Próxima salida de cada cliente pendiente, para validar primero a quien sale antes
+    const todayStr = new Date().toISOString().split('T')[0]
+    const pendingIds = (pendingUsers || []).map((u: any) => u.id)
+    const { data: upcoming } = pendingIds.length > 0
+        ? await supabase
+            .from('bookings')
+            .select('user_id, start_date, status')
+            .in('user_id', pendingIds)
+            .in('status', ['pending', 'confirmed', 'active'])
+            .gte('start_date', todayStr)
+            .order('start_date', { ascending: true })
+        : { data: [] as any[] }
+
+    const nextDepartureOf = (userId: string) =>
+        (upcoming || []).find((b: any) => b.user_id === userId)?.start_date || null
 
     // Resolve document URLs for each pending user
     const usersWithDocs = await Promise.all(
@@ -49,6 +74,7 @@ export default async function AdminVerificationsPage() {
 
             return {
                 ...user,
+                nextDepartureOn: nextDepartureOf(user.id),
                 dniFrontUrl,
                 dniBackUrl,
                 licenseFrontUrl,
@@ -57,21 +83,24 @@ export default async function AdminVerificationsPage() {
         })
     )
 
+    // Primero quien sale antes; sin salida prevista, al final
+    usersWithDocs.sort((a: any, b: any) => {
+        if (a.nextDepartureOn && b.nextDepartureOn) return a.nextDepartureOn.localeCompare(b.nextDepartureOn)
+        if (a.nextDepartureOn) return -1
+        if (b.nextDepartureOn) return 1
+        return 0
+    })
+
     return (
-        <div style={{ maxWidth: 1200, margin: '0 auto', width: '100%' }}>
-            <div style={{ display: 'flex', alignItems: 'flex-end', gap: 'var(--space-3)', marginBottom: 'var(--space-8)' }}>
-                <div style={{ background: '#fef08a', color: '#854d0e', padding: '12px', borderRadius: '12px' }}>
-                    <FileText size={24} />
-                </div>
-                <div>
-                    <h1 className="text-h2" style={{ marginBottom: 'var(--space-1)' }}>Validación de Documentación & Carnets</h1>
-                    <p className="text-body" style={{ color: 'var(--gray-600)' }}>
-                        Revisa y valida el DNI y carnet de conducir (anverso y reverso) con visor de ampliación y control de motivos de rechazo.
-                    </p>
-                </div>
-            </div>
+        <div className="adm-page">
+            <AdminPageHeader
+                title="Verificación de carnets"
+                description="Revisa el DNI y el carnet de cada cliente antes de su salida."
+            />
 
             <VerificationsClient initialUsers={usersWithDocs} />
+
+            <VerificationHistory users={reviewedUsers || []} />
         </div>
     )
 }

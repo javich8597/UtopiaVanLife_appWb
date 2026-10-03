@@ -832,10 +832,8 @@ h1, h2, h3, h4, h5, h6 {
       
 /* From app/admin/layout.tsx — Admin shell: claro cálido (marfil) con acentos dorados */
 
-        /* Tokens del backoffice (claro). En tema oscuro también se aplican a las secciones que
-           aún no usan tokens, para que sigan legibles dentro de un panel claro. */
-        .admin-layout,
-        .admin-layout[data-theme="dark"] .admin-main__inner > :not(.dsh) {
+        /* Tokens del backoffice (claro) */
+        .admin-layout {
           --adm-bg: #F6F2EB;
           --adm-surface: #FFFDF9;
           --adm-surface-2: #F4EFE7;
@@ -843,7 +841,7 @@ h1, h2, h3, h4, h5, h6 {
           --adm-border-strong: #D6CABA;
           --adm-text: #26221E;
           --adm-text-2: #6E655B;
-          --adm-text-3: #9C9286;
+          --adm-text-3: #857B6F;
           --adm-ink: #1A1714;
           --adm-primary-bg: #1A1714;
           --adm-primary-hover: #2B2620;
@@ -873,19 +871,6 @@ h1, h2, h3, h4, h5, h6 {
           background: var(--adm-bg);
           color: var(--adm-text);
           transition: background-color 240ms var(--ease-out), color 240ms var(--ease-out);
-        }
-        .admin-layout[data-theme="dark"] .admin-main__inner > :not(.dsh) {
-          background: var(--adm-bg);
-          color: var(--adm-text);
-          color-scheme: light;
-          border-radius: 20px;
-          padding: 24px;
-        }
-        @media (max-width: 640px) {
-          .admin-layout[data-theme="dark"] .admin-main__inner > :not(.dsh) {
-            padding: 16px 12px;
-            border-radius: 16px;
-          }
         }
         /* Tema oscuro: grafito y dorado */
         .admin-layout[data-theme="dark"] {

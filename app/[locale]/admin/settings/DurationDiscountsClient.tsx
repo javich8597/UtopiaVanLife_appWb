@@ -191,10 +191,10 @@ export default function DurationDiscountsClient({ initialDiscounts }: Props) {
       className="card"
       style={{
         padding: 'var(--space-6)',
-        background: 'white',
+        background: 'var(--adm-surface)',
         borderRadius: 'var(--radius-xl)',
         boxShadow: '0 4px 20px rgba(0,0,0,0.04)',
-        border: '1px solid var(--gray-200)',
+        border: '1px solid var(--adm-border)',
         display: 'flex',
         flexDirection: 'column',
         gap: 'var(--space-5)',
@@ -204,12 +204,12 @@ export default function DurationDiscountsClient({ initialDiscounts }: Props) {
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: 'var(--space-4)' }}>
         <div>
           <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-2)' }}>
-            <Percent size={22} style={{ color: 'var(--forest-green)' }} />
+            <Percent size={22} style={{ color: 'var(--adm-primary-bg)' }} />
             <h2 className="text-h3" style={{ margin: 0, fontWeight: 700, fontSize: '1.35rem' }}>
               Descuentos por Larga Estancia
             </h2>
           </div>
-          <p className="text-body text-small" style={{ color: 'var(--gray-600)', margin: '6px 0 0', maxWidth: 750 }}>
+          <p className="text-body text-small" style={{ color: 'var(--adm-text-2)', margin: '6px 0 0', maxWidth: 750 }}>
             Configura los tramos de descuento según los días de duración de la reserva. El motor aplicará de forma automática
             el tramo más beneficioso sobre la tarifa de alquiler del vehículo (excluyendo extras y fianza).
           </p>
@@ -222,15 +222,15 @@ export default function DurationDiscountsClient({ initialDiscounts }: Props) {
             display: 'inline-flex',
             alignItems: 'center',
             gap: '8px',
-            background: 'var(--forest-green)',
-            color: 'white',
+            background: 'var(--adm-primary-bg)',
+            color: 'var(--adm-surface)',
             border: 'none',
             borderRadius: 'var(--radius-md)',
             padding: '10px 18px',
             fontSize: '0.9rem',
             fontWeight: 700,
             cursor: 'pointer',
-            boxShadow: '0 3px 10px rgba(46,74,56,0.25)',
+            boxShadow: '0 3px 10px var(--adm-border-strong)',
             transition: 'all 0.15s ease',
           }}
           onMouseEnter={e => (e.currentTarget.style.filter = 'brightness(1.08)')}
@@ -247,16 +247,16 @@ export default function DurationDiscountsClient({ initialDiscounts }: Props) {
           style={{
             padding: 'var(--space-8)',
             textAlign: 'center',
-            background: 'var(--gray-50)',
+            background: 'var(--adm-surface-2)',
             borderRadius: 'var(--radius-lg)',
-            border: '1px dashed var(--gray-300)',
+            border: '1px dashed var(--adm-border-strong)',
           }}
         >
-          <Percent size={32} style={{ color: 'var(--gray-400)', margin: '0 auto 8px' }} />
-          <p style={{ fontWeight: 600, color: 'var(--gray-700)', margin: '0 0 4px' }}>
+          <Percent size={32} style={{ color: 'var(--adm-text-3)', margin: '0 auto 8px' }} />
+          <p style={{ fontWeight: 600, color: 'var(--adm-text)', margin: '0 0 4px' }}>
             No hay tramos de descuento por larga estancia configurados
           </p>
-          <p style={{ fontSize: '0.85rem', color: 'var(--gray-500)', margin: '0 0 16px' }}>
+          <p style={{ fontSize: '0.85rem', color: 'var(--adm-text-2)', margin: '0 0 16px' }}>
             Añade tramos como 7 días (10%), 14 días (15%) o 21 días (20%) para incentivar estancias prolongadas.
           </p>
           <button
@@ -267,8 +267,8 @@ export default function DurationDiscountsClient({ initialDiscounts }: Props) {
               alignItems: 'center',
               gap: '6px',
               padding: '6px 14px',
-              background: 'white',
-              border: '1px solid var(--gray-300)',
+              background: 'var(--adm-surface)',
+              border: '1px solid var(--adm-border-strong)',
               borderRadius: 'var(--radius-md)',
               fontSize: '0.85rem',
               fontWeight: 600,
@@ -292,8 +292,8 @@ export default function DurationDiscountsClient({ initialDiscounts }: Props) {
             <thead>
               <tr
                 style={{
-                  borderBottom: '2px solid var(--gray-200)',
-                  color: 'var(--gray-600)',
+                  borderBottom: '2px solid var(--adm-border)',
+                  color: 'var(--adm-text-2)',
                   fontSize: '0.8rem',
                   textTransform: 'uppercase',
                   letterSpacing: '0.05em',
@@ -314,25 +314,25 @@ export default function DurationDiscountsClient({ initialDiscounts }: Props) {
                   <tr
                     key={discount.id}
                     style={{
-                      borderBottom: '1px solid var(--gray-100)',
+                      borderBottom: '1px solid var(--adm-surface-2)',
                       transition: 'background 0.15s ease',
                       opacity: discount.is_active ? 1 : 0.6,
                     }}
-                    onMouseEnter={e => (e.currentTarget.style.background = 'var(--gray-50)')}
+                    onMouseEnter={e => (e.currentTarget.style.background = 'var(--adm-surface-2)')}
                     onMouseLeave={e => (e.currentTarget.style.background = 'transparent')}
                   >
                     {/* Duración Mínima */}
                     <td style={{ padding: '12px 14px' }}>
                       <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                        <Clock size={16} style={{ color: 'var(--forest-green)' }} />
-                        <span style={{ fontWeight: 600, color: 'var(--gray-900)' }}>
+                        <Clock size={16} style={{ color: 'var(--adm-primary-bg)' }} />
+                        <span style={{ fontWeight: 600, color: 'var(--adm-text)' }}>
                           A partir de {discount.min_days} días
                         </span>
                         <span
                           style={{
                             fontSize: '0.75rem',
-                            color: 'var(--gray-500)',
-                            background: 'var(--gray-100)',
+                            color: 'var(--adm-text-2)',
+                            background: 'var(--adm-surface-2)',
                             padding: '2px 8px',
                             borderRadius: '12px',
                           }}
@@ -351,8 +351,8 @@ export default function DurationDiscountsClient({ initialDiscounts }: Props) {
                           gap: '4px',
                           fontWeight: 700,
                           fontSize: '1rem',
-                          color: 'var(--forest-green)',
-                          background: 'rgba(46,74,56,0.08)',
+                          color: 'var(--adm-primary-bg)',
+                          background: 'var(--adm-surface-2)',
                           padding: '4px 10px',
                           borderRadius: 'var(--radius-md)',
                         }}
@@ -384,21 +384,21 @@ export default function DurationDiscountsClient({ initialDiscounts }: Props) {
                             gap: '6px',
                             padding: '6px 14px',
                             borderRadius: 'var(--radius-md)',
-                            border: '1.5px solid var(--forest-green)',
-                            background: 'rgba(46,74,56,0.06)',
-                            color: 'var(--forest-green)',
+                            border: '1.5px solid var(--adm-primary-bg)',
+                            background: 'var(--adm-surface-2)',
+                            color: 'var(--adm-primary-bg)',
                             cursor: 'pointer',
                             fontSize: '0.82rem',
                             fontWeight: 700,
                             transition: 'all 0.15s ease',
                           }}
                           onMouseEnter={e => {
-                            e.currentTarget.style.background = 'var(--forest-green)'
-                            e.currentTarget.style.color = '#FFFFFF'
+                            e.currentTarget.style.background = 'var(--adm-primary-bg)'
+                            e.currentTarget.style.color = 'var(--adm-surface)'
                           }}
                           onMouseLeave={e => {
-                            e.currentTarget.style.background = 'rgba(46,74,56,0.06)'
-                            e.currentTarget.style.color = 'var(--forest-green)'
+                            e.currentTarget.style.background = 'var(--adm-surface-2)'
+                            e.currentTarget.style.color = 'var(--adm-primary-bg)'
                           }}
                         >
                           <Edit3 size={13} strokeWidth={2.2} />
@@ -417,17 +417,17 @@ export default function DurationDiscountsClient({ initialDiscounts }: Props) {
                             width: '32px',
                             height: '32px',
                             borderRadius: '6px',
-                            border: '1px solid #fee2e2',
-                            background: '#fff5f5',
-                            color: '#dc2626',
+                            border: '1px solid var(--adm-rose-soft)',
+                            background: 'var(--adm-rose-soft)',
+                            color: 'var(--adm-rose)',
                             cursor: isDeleting ? 'not-allowed' : 'pointer',
                             transition: 'all 0.15s ease',
                           }}
                           onMouseEnter={e => {
-                            e.currentTarget.style.background = '#fecaca'
+                            e.currentTarget.style.background = 'var(--adm-rose-soft)'
                           }}
                           onMouseLeave={e => {
-                            e.currentTarget.style.background = '#fff5f5'
+                            e.currentTarget.style.background = 'var(--adm-rose-soft)'
                           }}
                         >
                           {isDeleting ? <Loader2 size={14} className="animate-spin" /> : <Trash2 size={14} />}
@@ -451,10 +451,10 @@ export default function DurationDiscountsClient({ initialDiscounts }: Props) {
               justifyContent: 'center',
               gap: '10px',
               padding: '14px 20px',
-              background: 'rgba(46,74,56,0.03)',
-              border: '2px dashed rgba(46,74,56,0.3)',
+              background: 'var(--adm-surface-2)',
+              border: '2px dashed var(--adm-border-strong)',
               borderRadius: 'var(--radius-lg)',
-              color: 'var(--forest-green)',
+              color: 'var(--adm-primary-bg)',
               fontSize: '0.92rem',
               fontWeight: 700,
               cursor: 'pointer',
@@ -462,13 +462,13 @@ export default function DurationDiscountsClient({ initialDiscounts }: Props) {
               transition: 'all 0.2s cubic-bezier(0.4, 0, 0.2, 1)',
             }}
             onMouseEnter={e => {
-              e.currentTarget.style.background = 'rgba(46,74,56,0.08)'
-              e.currentTarget.style.borderColor = 'var(--forest-green)'
+              e.currentTarget.style.background = 'var(--adm-surface-2)'
+              e.currentTarget.style.borderColor = 'var(--adm-primary-bg)'
               e.currentTarget.style.transform = 'translateY(-1px)'
             }}
             onMouseLeave={e => {
-              e.currentTarget.style.background = 'rgba(46,74,56,0.03)'
-              e.currentTarget.style.borderColor = 'rgba(46,74,56,0.3)'
+              e.currentTarget.style.background = 'var(--adm-surface-2)'
+              e.currentTarget.style.borderColor = 'var(--adm-border-strong)'
               e.currentTarget.style.transform = 'none'
             }}
           >
@@ -477,12 +477,12 @@ export default function DurationDiscountsClient({ initialDiscounts }: Props) {
                 width: 26,
                 height: 26,
                 borderRadius: '50%',
-                background: 'var(--forest-green)',
-                color: 'white',
+                background: 'var(--adm-primary-bg)',
+                color: 'var(--adm-surface)',
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
-                boxShadow: '0 2px 4px rgba(46,74,56,0.2)',
+                boxShadow: '0 2px 4px var(--adm-border-strong)',
               }}
             >
               <Plus size={15} strokeWidth={2.5} />
@@ -510,19 +510,19 @@ export default function DurationDiscountsClient({ initialDiscounts }: Props) {
         >
           <div
             style={{
-              background: 'white',
+              background: 'var(--adm-surface)',
               borderRadius: 'var(--radius-xl)',
               maxWidth: 440,
               width: '100%',
               padding: 'var(--space-6)',
               boxShadow: '0 20px 40px rgba(0,0,0,0.15)',
-              border: '1px solid var(--gray-200)',
+              border: '1px solid var(--adm-border)',
             }}
             onClick={e => e.stopPropagation()}
           >
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 'var(--space-4)' }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                <Percent size={20} style={{ color: 'var(--forest-green)' }} />
+                <Percent size={20} style={{ color: 'var(--adm-primary-bg)' }} />
                 <h3 style={{ margin: 0, fontSize: '1.2rem', fontWeight: 700 }}>
                   {editingDiscount ? 'Editar Tramo de Descuento' : 'Nuevo Tramo de Descuento'}
                 </h3>
@@ -530,7 +530,7 @@ export default function DurationDiscountsClient({ initialDiscounts }: Props) {
               <button
                 type="button"
                 onClick={() => setIsModalOpen(false)}
-                style={{ background: 'transparent', border: 'none', cursor: 'pointer', color: 'var(--gray-400)' }}
+                style={{ background: 'transparent', border: 'none', cursor: 'pointer', color: 'var(--adm-text-3)' }}
               >
                 <X size={20} />
               </button>
@@ -539,9 +539,9 @@ export default function DurationDiscountsClient({ initialDiscounts }: Props) {
             {formError && (
               <div
                 style={{
-                  background: '#fef2f2',
-                  border: '1px solid #fecaca',
-                  color: '#b91c1c',
+                  background: 'var(--adm-rose-soft)',
+                  border: '1px solid var(--adm-rose-soft)',
+                  color: 'var(--adm-rose)',
                   padding: '10px 12px',
                   borderRadius: 'var(--radius-md)',
                   fontSize: '0.85rem',
@@ -558,7 +558,7 @@ export default function DurationDiscountsClient({ initialDiscounts }: Props) {
 
             <form onSubmit={handleFormSubmit} style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-4)' }}>
               <div>
-                <label htmlFor="discount-form-min-days" style={{ display: 'block', fontSize: '0.85rem', fontWeight: 600, color: 'var(--gray-700)', marginBottom: '4px' }}>
+                <label htmlFor="discount-form-min-days" style={{ display: 'block', fontSize: '0.85rem', fontWeight: 600, color: 'var(--adm-text)', marginBottom: '4px' }}>
                   Días Mínimos de Alquiler
                 </label>
                 <div style={{ position: 'relative' }}>
@@ -577,18 +577,18 @@ export default function DurationDiscountsClient({ initialDiscounts }: Props) {
                       width: '100%',
                       padding: '8px 12px',
                       borderRadius: 'var(--radius-md)',
-                      border: '1px solid var(--gray-300)',
+                      border: '1px solid var(--adm-border-strong)',
                       fontSize: '0.9rem',
                     }}
                   />
                 </div>
-                <span style={{ fontSize: '0.75rem', color: 'var(--gray-500)', marginTop: '2px', display: 'block' }}>
+                <span style={{ fontSize: '0.75rem', color: 'var(--adm-text-2)', marginTop: '2px', display: 'block' }}>
                   Número mínimo de días que el cliente debe reservar para desbloquear este porcentaje.
                 </span>
               </div>
 
               <div>
-                <label htmlFor="discount-form-discount-pct" style={{ display: 'block', fontSize: '0.85rem', fontWeight: 600, color: 'var(--gray-700)', marginBottom: '4px' }}>
+                <label htmlFor="discount-form-discount-pct" style={{ display: 'block', fontSize: '0.85rem', fontWeight: 600, color: 'var(--adm-text)', marginBottom: '4px' }}>
                   Porcentaje de Descuento (%)
                 </label>
                 <div style={{ position: 'relative', display: 'flex', alignItems: 'center' }}>
@@ -607,16 +607,16 @@ export default function DurationDiscountsClient({ initialDiscounts }: Props) {
                       width: '100%',
                       padding: '8px 30px 8px 12px',
                       borderRadius: 'var(--radius-md)',
-                      border: '1px solid var(--gray-300)',
+                      border: '1px solid var(--adm-border-strong)',
                       fontSize: '0.9rem',
                       fontWeight: 600,
                     }}
                   />
-                  <span style={{ position: 'absolute', right: 10, fontSize: '0.9rem', color: 'var(--gray-500)', pointerEvents: 'none' }}>
+                  <span style={{ position: 'absolute', right: 10, fontSize: '0.9rem', color: 'var(--adm-text-2)', pointerEvents: 'none' }}>
                     %
                   </span>
                 </div>
-                <span style={{ fontSize: '0.75rem', color: 'var(--gray-500)', marginTop: '2px', display: 'block' }}>
+                <span style={{ fontSize: '0.75rem', color: 'var(--adm-text-2)', marginTop: '2px', display: 'block' }}>
                   Porcentaje aplicado al precio base del alquiler del vehículo.
                 </span>
               </div>
@@ -628,16 +628,16 @@ export default function DurationDiscountsClient({ initialDiscounts }: Props) {
                   alignItems: 'center',
                   justifyContent: 'space-between',
                   padding: '12px 16px',
-                  background: 'var(--gray-50)',
+                  background: 'var(--adm-surface-2)',
                   borderRadius: 'var(--radius-lg)',
-                  border: '1px solid var(--gray-200)',
+                  border: '1px solid var(--adm-border)',
                 }}
               >
                 <div>
-                  <div style={{ fontSize: '0.85rem', fontWeight: 600, color: 'var(--gray-800)' }}>
+                  <div style={{ fontSize: '0.85rem', fontWeight: 600, color: 'var(--adm-text)' }}>
                     Visibilidad del Descuento
                   </div>
-                  <div style={{ fontSize: '0.75rem', color: 'var(--gray-500)' }}>
+                  <div style={{ fontSize: '0.75rem', color: 'var(--adm-text-2)' }}>
                     Si está activo, se aplicará automáticamente en el presupuesto.
                   </div>
                 </div>
@@ -656,9 +656,9 @@ export default function DurationDiscountsClient({ initialDiscounts }: Props) {
                   style={{
                     padding: '8px 14px',
                     borderRadius: 'var(--radius-md)',
-                    border: '1px solid var(--gray-300)',
-                    background: 'white',
-                    color: 'var(--gray-700)',
+                    border: '1px solid var(--adm-border-strong)',
+                    background: 'var(--adm-surface)',
+                    color: 'var(--adm-text)',
                     fontSize: '0.85rem',
                     fontWeight: 600,
                     cursor: 'pointer',
@@ -673,8 +673,8 @@ export default function DurationDiscountsClient({ initialDiscounts }: Props) {
                     padding: '8px 18px',
                     borderRadius: 'var(--radius-md)',
                     border: 'none',
-                    background: 'var(--forest-green)',
-                    color: 'white',
+                    background: 'var(--adm-primary-bg)',
+                    color: 'var(--adm-surface)',
                     fontSize: '0.85rem',
                     fontWeight: 600,
                     cursor: isSubmitting ? 'not-allowed' : 'pointer',

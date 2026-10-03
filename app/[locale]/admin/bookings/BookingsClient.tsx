@@ -2,7 +2,8 @@
 
 import { useState, useMemo, useEffect } from 'react'
 import { useSearchParams, useRouter } from 'next/navigation'
-import { Search, Eye, Archive, Loader2, X } from 'lucide-react'
+import { Search, Eye, Archive, Loader2, X, BookOpen, CheckCircle2, Navigation, Clock, Calendar } from 'lucide-react'
+import { Link } from '@/i18n/routing'
 import { formatPrice } from '@/lib/pricing/engine'
 import { ADMIN_STATUS_LABELS, AdminBookingStatus, getAdminBookingStatus } from '@/lib/admin/bookingStatus'
 import AdminPageHeader from '../AdminPageHeader'
@@ -24,6 +25,13 @@ const TABS: { id: Filter; label: string }[] = [
   { id: 'expired', label: 'Caducadas' },
   { id: 'completed', label: 'Completadas' },
   { id: 'cancelled', label: 'Canceladas' },
+]
+
+const STAT_TILES: { id: AdminBookingStatus; label: string; tone: string; icon: React.ComponentType<{ size?: number }> }[] = [
+  { id: 'confirmed', label: 'Confirmadas', tone: 'sage', icon: CheckCircle2 },
+  { id: 'active', label: 'En viaje', tone: 'gold', icon: Navigation },
+  { id: 'pending', label: 'Pendientes de pago', tone: 'amber', icon: Clock },
+  { id: 'expired', label: 'Caducadas', tone: 'neutral', icon: Archive },
 ]
 
 const STATUS_TONE: Record<AdminBookingStatus, string> = {
@@ -141,9 +149,46 @@ export default function BookingsClient({ initialBookings }: Props) {
 
   return (
     <div className="adm-page">
-      <AdminPageHeader title="Reservas" description="Busca, filtra y gestiona cada reserva." />
+      <AdminPageHeader
+        title="Reservas"
+        description="Busca, filtra y gestiona cada reserva."
+        actions={
+          <Link href="/admin/calendar" className="adm-btn">
+            <Calendar size={16} /> Ver calendario
+          </Link>
+        }
+      />
 
-      <div className="adm-toolbar">
+      {/* Resumen por estado: cada tile filtra la lista */}
+      <section className="adm-stats" aria-label="Resumen de reservas">
+        {STAT_TILES.map(t => {
+          const Icon = t.icon
+          const list = bookings.filter(b => b.adminStatus === t.id)
+          const amount = list.reduce((s, b) => s + (Number(b.total_price) || 0), 0)
+          return (
+            <button
+              key={t.id}
+              type="button"
+              className={`adm-stat ${statusFilter === t.id ? 'adm-stat--on' : ''}`}
+              onClick={() => { setStatusFilter(statusFilter === t.id ? 'all' : t.id); setSelectedIds(new Set()) }}
+              aria-pressed={statusFilter === t.id}
+            >
+              <span className={`adm-icon-dot adm-icon-dot--${list.length ? t.tone : 'neutral'}`}><Icon size={19} /></span>
+              <span className="adm-stat__value">{list.length}</span>
+              <span className="adm-stat__label">{t.label}</span>
+              <span className="adm-stat__hint">{list.length ? formatPrice(amount) : 'Ninguna'}</span>
+            </button>
+          )
+        })}
+      </section>
+
+      <section className="adm-card bk-card" aria-labelledby="bk-list-title">
+        <div className="bk-card__head">
+          <h2 id="bk-list-title" className="adm-card-title">
+            <span className="adm-icon-square"><BookOpen size={22} /></span>
+            {TABS.find(t => t.id === statusFilter)?.label || 'Todas'}
+            <span className="bk-card__count">{filteredBookings.length}</span>
+          </h2>
         <div className="adm-search">
           <Search size={16} className="adm-search__icon" aria-hidden="true" />
           <input
@@ -162,8 +207,9 @@ export default function BookingsClient({ initialBookings }: Props) {
             </button>
           )}
         </div>
-      </div>
+        </div>
 
+      <div className="bk-card__tabs">
       <div className="adm-tabs" role="tablist" aria-label="Filtrar por estado">
         {TABS.map(tab => {
           const count = tab.id === 'all' ? bookings.length : bookings.filter(b => b.adminStatus === tab.id).length
@@ -183,15 +229,16 @@ export default function BookingsClient({ initialBookings }: Props) {
           )
         })}
       </div>
+      </div>
 
       {statusFilter === 'expired' && expiredVisible.length > 0 && (
-        <div className="adm-note">
+        <div className="adm-note bk-card__note">
           Son reservas que se quedaron a medio pagar en Redsys. No bloquean fechas ni cuentan como cobros pendientes. Puedes archivarlas para limpiar la lista.
         </div>
       )}
 
       {(selectedExpired.length > 0 || bulkMessage) && (
-        <div className="adm-bulkbar" role="status">
+        <div className="adm-bulkbar bk-card__note" role="status">
           <span>{selectedExpired.length > 0 ? `${selectedExpired.length} caducadas seleccionadas` : bulkMessage}</span>
           {selectedExpired.length > 0 && (
             <div className="adm-bulkbar__actions">
@@ -205,7 +252,6 @@ export default function BookingsClient({ initialBookings }: Props) {
         </div>
       )}
 
-      <div className="adm-card">
         <div className="adm-table-wrap">
           <table className="adm-table adm-table--cards">
             <thead>
@@ -254,10 +300,17 @@ export default function BookingsClient({ initialBookings }: Props) {
                       </td>
                     )}
                     <td data-label="Cliente">
-                      <span className="adm-table__strong">{clientName}</span>
-                      <span className="adm-table__muted">
-                        {clientEmail}
-                        {clientEmail && ' · '}#{b.id.split('-')[0].toUpperCase()}
+                      <span className="bk-client">
+                        <span className="bk-avatar" aria-hidden="true">
+                          {clientName.trim().split(/\s+/).slice(0, 2).map((p: string) => p[0]).join('').toUpperCase()}
+                        </span>
+                        <span className="bk-client__text">
+                          <span className="adm-table__strong">{clientName}</span>
+                          <span className="adm-table__muted">
+                            {clientEmail}
+                            {clientEmail && ' · '}#{b.id.split('-')[0].toUpperCase()}
+                          </span>
+                        </span>
                       </span>
                     </td>
                     <td data-label="Camper" className="adm-table__strong">{b.campers?.name || 'Camper'}</td>
@@ -307,15 +360,82 @@ export default function BookingsClient({ initialBookings }: Props) {
             </tbody>
           </table>
         </div>
-      </div>
+      </section>
 
       {selectedBooking && (
         <BookingDetailModal booking={selectedBooking} onClose={() => setSelectedBooking(null)} />
       )}
 
       <style jsx>{`
+        .bk-card {
+          overflow: hidden;
+        }
+        .bk-card__head {
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+          gap: 16px;
+          flex-wrap: wrap;
+          padding: 26px 30px 18px;
+        }
+        .bk-card__count {
+          min-width: 30px;
+          height: 26px;
+          padding: 0 9px;
+          border-radius: 8px;
+          display: inline-flex;
+          align-items: center;
+          justify-content: center;
+          background: var(--adm-surface-2);
+          color: var(--adm-text-2);
+          font-family: var(--font-sans);
+          font-size: 0.8rem;
+          font-weight: 700;
+          font-variant-numeric: tabular-nums;
+        }
+        .bk-card__tabs {
+          padding: 0 30px 18px;
+          border-bottom: 1px solid var(--adm-border);
+        }
+        .bk-card :global(.bk-card__note) {
+          margin: 16px 30px 0;
+        }
+        .bk-client {
+          display: flex;
+          align-items: center;
+          gap: 12px;
+        }
+        .bk-client__text {
+          display: flex;
+          flex-direction: column;
+          min-width: 0;
+        }
+        .bk-avatar {
+          width: 40px;
+          height: 40px;
+          border-radius: 50%;
+          flex-shrink: 0;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          background: var(--adm-gold-soft);
+          color: var(--adm-gold-text);
+          font-weight: 700;
+          font-size: 0.78rem;
+        }
         .bk-dates {
           white-space: nowrap;
+        }
+        @media (max-width: 640px) {
+          .bk-card__head {
+            padding: 20px 16px 14px;
+          }
+          .bk-card__tabs {
+            padding: 0 16px 14px;
+          }
+          .bk-card :global(.bk-card__note) {
+            margin: 12px 16px 0;
+          }
         }
         .bk-actions {
           display: inline-flex;

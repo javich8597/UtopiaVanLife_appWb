@@ -846,11 +846,12 @@ export default function CalendarClient({ bookings, campers, blockedDates, blocke
       <style jsx global>{`
         .gcal-container {
           background: var(--adm-surface);
-          border-radius: 16px;
-          box-shadow: 0 1px 3px rgba(0,0,0,0.08), 0 4px 12px rgba(0,0,0,0.03);
-          border: 1px solid var(--adm-border);
+          border-radius: 20px;
+          box-shadow: var(--adm-card-shadow);
+          border: 1px solid var(--adm-card-border);
           overflow: hidden;
-          font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+          font-family: var(--font-sans);
+          color: var(--adm-text);
         }
 
         /* Top Google Bar */
@@ -858,11 +859,10 @@ export default function CalendarClient({ bookings, campers, blockedDates, blocke
           display: flex;
           align-items: center;
           justify-content: space-between;
-          padding: 16px 24px;
-          border-bottom: 1px solid var(--adm-border);
+          padding: 24px 30px 20px;
           flex-wrap: wrap;
           gap: 16px;
-          background: var(--adm-surface-2);
+          background: var(--adm-surface);
         }
 
         .gcal-header__left {
@@ -879,23 +879,34 @@ export default function CalendarClient({ bookings, campers, blockedDates, blocke
         }
 
         .gcal-title {
-          font-size: 1.35rem;
-          font-weight: 600;
+          font-family: var(--font-heading);
+          font-size: 1.5rem;
+          font-weight: 700;
+          letter-spacing: -0.025em;
           color: var(--adm-text);
           margin: 0;
           min-width: 220px;
         }
+        .gcal-title::first-letter {
+          text-transform: uppercase;
+        }
 
         .gcal-btn {
-          border: 1px solid var(--adm-border-strong);
+          display: inline-flex;
+          align-items: center;
+          justify-content: center;
+          gap: 6px;
+          min-height: 40px;
+          border: 1px solid var(--adm-border);
           background: var(--adm-surface);
-          border-radius: 6px;
-          padding: 6px 16px;
-          font-size: 0.88rem;
-          font-weight: 500;
+          border-radius: 10px;
+          padding: 8px 16px;
+          font: inherit;
+          font-size: 0.86rem;
+          font-weight: 600;
           color: var(--adm-text);
           cursor: pointer;
-          transition: all 0.15s ease;
+          transition: background-color 0.15s ease, border-color 0.15s ease;
         }
         .gcal-btn:hover {
           background: var(--adm-surface-2);
@@ -903,18 +914,17 @@ export default function CalendarClient({ bookings, campers, blockedDates, blocke
         }
 
         .gcal-btn--today {
-          border-radius: 20px;
-          padding: 6px 18px;
-          font-weight: 600;
+          padding: 8px 18px;
         }
 
         .gcal-btn--primary {
-          background: var(--adm-sage);
-          color: var(--adm-surface);
-          border: none;
+          background: var(--adm-primary-bg);
+          color: var(--adm-primary-text);
+          border-color: var(--adm-primary-bg);
         }
         .gcal-btn--primary:hover {
-          background: var(--adm-sage);
+          background: var(--adm-primary-hover);
+          border-color: var(--adm-primary-hover);
         }
 
         .gcal-btn--secondary {
@@ -930,11 +940,11 @@ export default function CalendarClient({ bookings, campers, blockedDates, blocke
         }
 
         .gcal-icon-btn {
-          background: transparent;
-          border: none;
-          border-radius: 50%;
-          width: 36px;
-          height: 36px;
+          background: var(--adm-surface);
+          border: 1px solid var(--adm-border);
+          border-radius: 10px;
+          width: 40px;
+          height: 40px;
           display: flex;
           align-items: center;
           justify-content: center;
@@ -960,27 +970,29 @@ export default function CalendarClient({ bookings, campers, blockedDates, blocke
           gap: 6px;
           background: var(--adm-surface);
           border: 1px solid var(--adm-border);
-          border-radius: 20px;
-          padding: 5px 12px;
+          border-radius: 999px;
+          min-height: 36px;
+          padding: 6px 14px;
+          font: inherit;
           font-size: 0.82rem;
-          font-weight: 500;
+          font-weight: 600;
           color: var(--adm-text-2);
           cursor: pointer;
-          transition: all 0.15s ease;
+          transition: background-color 0.15s ease, border-color 0.15s ease, color 0.15s ease;
         }
         .gcal-pill:hover {
           background: var(--adm-surface-2);
           border-color: var(--adm-border-strong);
         }
         .gcal-pill--active {
-          background: var(--adm-text);
-          color: var(--adm-surface);
-          border-color: var(--adm-text);
+          background: var(--adm-gold-soft);
+          color: var(--adm-gold-text);
+          border-color: var(--adm-gold-line);
         }
 
         .gcal-dot {
-          width: 8px;
-          height: 8px;
+          width: 10px;
+          height: 10px;
           border-radius: 50%;
           display: inline-block;
         }
@@ -988,19 +1000,23 @@ export default function CalendarClient({ bookings, campers, blockedDates, blocke
         /* View Mode Switcher */
         .gcal-view-selector {
           display: flex;
-          background: var(--adm-border);
-          border-radius: 8px;
-          padding: 3px;
+          gap: 4px;
+          background: var(--adm-surface-2);
+          border: 1px solid var(--adm-border);
+          border-radius: 12px;
+          padding: 4px;
         }
 
         .gcal-view-btn {
           border: none;
           background: transparent;
+          min-height: 32px;
           padding: 5px 14px;
+          font: inherit;
           font-size: 0.82rem;
-          font-weight: 500;
+          font-weight: 600;
           color: var(--adm-text-2);
-          border-radius: 6px;
+          border-radius: 9px;
           cursor: pointer;
           transition: all 0.15s ease;
         }
@@ -1008,21 +1024,35 @@ export default function CalendarClient({ bookings, campers, blockedDates, blocke
           background: var(--adm-surface);
           color: var(--adm-text);
           font-weight: 600;
-          box-shadow: 0 1px 2px rgba(0,0,0,0.06);
+          box-shadow: 0 1px 2px var(--adm-shadow);
         }
 
         /* FullCalendar Customizations for Google Look */
         .gcal-body {
-          padding: 16px;
+          padding: 0 30px 30px;
         }
 
         .fc-theme-standard th {
-          border: 1px solid var(--adm-surface-2) !important;
-          padding: 10px 0 !important;
-          font-size: 0.78rem !important;
-          font-weight: 600 !important;
-          color: var(--adm-text-2) !important;
+          border: 0 !important;
+          border-bottom: 1px solid var(--adm-border) !important;
+          padding: 12px 0 !important;
+          font-size: 0.72rem !important;
+          font-weight: 700 !important;
+          letter-spacing: 0.1em;
+          color: var(--adm-text-3) !important;
           text-transform: uppercase !important;
+          background: transparent;
+        }
+        .fc-theme-standard .fc-scrollgrid {
+          border: 1px solid var(--adm-border) !important;
+          border-radius: 14px;
+          overflow: hidden;
+        }
+        .fc .fc-daygrid-day-frame {
+          min-height: 108px;
+        }
+        .fc .fc-day-sat,
+        .fc .fc-day-sun {
           background: var(--adm-surface-2);
         }
 
@@ -1458,7 +1488,13 @@ export default function CalendarClient({ bookings, campers, blockedDates, blocke
           }
 
           .gcal-body {
-            padding: 8px 4px;
+            padding: 0 10px 12px;
+          }
+          .fc .fc-daygrid-day-frame {
+            min-height: 72px;
+          }
+          .fc-theme-standard .fc-scrollgrid {
+            border-radius: 10px;
           }
 
           .gcal-modal-backdrop {

@@ -12,16 +12,14 @@ describe('Admin Area Stress Test — Authorization & Privileges Matrix', () => {
     assert.equal(isAdminUser({ id: 'u-1', role: 'admin' }), true)
   })
 
-  it('should authorize master admin email', () => {
-    assert.equal(isAdminUser({ id: 'u-2', email: 'javipn85@gmail.com' }), true)
+  it('should not authorize by email alone', () => {
+    assert.equal(isAdminUser({ id: 'u-2', email: 'javipn85@gmail.com' }), false)
+    assert.equal(isAdminUser({ id: 'u-2b', email: 'fakeuser@gmail.com' }), false)
   })
 
-  it('should authorize user with boolean is_admin in user_metadata', () => {
-    assert.equal(isAdminUser({ id: 'u-3', user_metadata: { is_admin: true } }), true)
-  })
-
-  it('should authorize user with string "true" is_admin in user_metadata', () => {
-    assert.equal(isAdminUser({ id: 'u-4', user_metadata: { is_admin: 'true' } }), true)
+  it('should not trust user-editable user_metadata.is_admin', () => {
+    assert.equal(isAdminUser({ id: 'u-3', user_metadata: { is_admin: true } }), false)
+    assert.equal(isAdminUser({ id: 'u-4', user_metadata: { is_admin: 'true' } }), false)
   })
 
   it('should reject non-admin roles (customer, guest, staff, driver)', () => {

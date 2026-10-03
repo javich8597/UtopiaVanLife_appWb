@@ -21,6 +21,7 @@ async function checkAdminAuth() {
     email: user.email,
     role: profile?.role,
     user_metadata: user.user_metadata,
+    app_metadata: user.app_metadata,
   })
 
   if (!isAuthorized) {

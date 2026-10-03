@@ -36,7 +36,7 @@ export async function createClient() {
                         id: 'usr-dev-javier',
                         email: 'javipn85@gmail.com',
                         user_metadata: { full_name: 'Javier' },
-                        app_metadata: {},
+                        app_metadata: { role: 'admin' },
                         aud: 'authenticated',
                         created_at: new Date().toISOString()
                     } as any

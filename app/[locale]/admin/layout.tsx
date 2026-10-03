@@ -40,7 +40,8 @@ export default async function AdminLayout({
         id: user.id,
         email: user.email,
         role: dbUser?.role,
-        user_metadata: user.user_metadata
+        user_metadata: user.user_metadata,
+        app_metadata: user.app_metadata,
     })
 
     if (!isAuthorized) {

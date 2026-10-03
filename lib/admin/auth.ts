@@ -5,18 +5,22 @@ export interface UserLike {
   email?: string
   role?: string
   user_metadata?: Record<string, any>
+  app_metadata?: Record<string, any>
   verification_status?: string
 }
 
 /**
  * Checks if a user has administrator access rights.
+ *
+ * Solo cuentan fuentes que el usuario no puede modificar: el rol de public.users
+ * o el app_metadata de Supabase Auth (escrito únicamente por el servidor).
+ * user_metadata NO es fiable: cualquier usuario puede editarlo con auth.updateUser().
  */
 export function isAdminUser(user: UserLike | null | undefined): boolean {
   if (!user) return false
 
   if (user.role === 'admin') return true
-  if (user.email === 'javipn85@gmail.com' || user.email === 'fakeuser@gmail.com' || user.email === 'alba_admin@gmail.com') return true
-  if (user.user_metadata?.is_admin === 'true' || user.user_metadata?.is_admin === true) return true
+  if (user.app_metadata?.role === 'admin') return true
 
   return false
 }

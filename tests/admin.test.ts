@@ -8,14 +8,18 @@ describe('Admin Panel Authorization & Security (TDD)', () => {
     assert.equal(isAdminUser(user), true)
   })
 
-  it('should authorize the master admin email (javipn85@gmail.com) regardless of role', () => {
+  it('should NOT authorize by email alone (no hardcoded admin emails)', () => {
     const user = { id: 'u2', email: 'javipn85@gmail.com', role: 'customer' }
-    assert.equal(isAdminUser(user), true)
+    assert.equal(isAdminUser(user), false)
   })
 
-  it('should authorize user with is_admin === "true" in user_metadata', () => {
+  it('should NOT trust user_metadata.is_admin (user-editable)', () => {
     const user = { id: 'u3', email: 'staff@utopia.com', user_metadata: { is_admin: 'true' } }
-    assert.equal(isAdminUser(user), true)
+    assert.equal(isAdminUser(user), false)
+  })
+
+  it('should authorize server-controlled app_metadata.role === "admin"', () => {
+    assert.equal(isAdminUser({ id: 'u3b', app_metadata: { role: 'admin' } }), true)
   })
 
   it('should reject non-admin customer users', () => {

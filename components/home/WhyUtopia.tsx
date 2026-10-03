@@ -22,7 +22,7 @@ export default function WhyUtopia() {
     {
       icon: Flame,
       title: 'Ducha Caliente & Cocina',
-      desc: 'Ducha interior de agua caliente a presión y cocina de diseño totalmente equipada con nevera de compresor y vajilla de cerámica.',
+      desc: 'Ducha interior de agua caliente a presión y cocina de diseño totalmente equipada con nevera de compresor y menaje completo.',
       tag: 'Equipamiento top',
     },
     {
@@ -73,67 +73,72 @@ export default function WhyUtopia() {
 
       <style jsx>{`
         .why {
-          background: #FAF8F5;
-          padding-block: var(--space-24);
+          background: #0E1013;
+          padding-block: 100px;
           position: relative;
+          border-bottom: 1px solid rgba(255, 255, 255, 0.06);
         }
 
         .why__header {
           display: flex;
           justify-content: space-between;
           align-items: flex-end;
-          gap: var(--space-8);
-          margin-bottom: var(--space-16);
+          gap: 32px;
+          margin-bottom: 56px;
           flex-wrap: wrap;
         }
 
         .why__header-left {
           display: flex;
           flex-direction: column;
-          gap: var(--space-3);
-          max-width: 620px;
+          gap: 12px;
+          max-width: 640px;
         }
 
         .why__eyebrow-badge {
           display: inline-flex;
           align-items: center;
           gap: 6px;
-          padding: 4px 12px;
-          border-radius: var(--radius-full);
-          background: rgba(200, 168, 130, 0.15);
-          border: 1px solid rgba(200, 168, 130, 0.35);
-          color: var(--gray-800);
-          font-size: 0.72rem;
-          font-weight: 600;
-          letter-spacing: 0.12em;
+          padding: 6px 16px;
+          border-radius: 999px;
+          background: rgba(204, 160, 83, 0.12);
+          border: 1px solid rgba(204, 160, 83, 0.35);
+          color: #E8CA7C;
+          font-size: 0.74rem;
+          font-weight: 700;
+          letter-spacing: 0.1em;
           text-transform: uppercase;
           width: fit-content;
         }
 
         .why__eyebrow-icon {
-          color: var(--sand-dark);
+          color: #CCA053;
         }
 
         .why__title {
           font-size: clamp(2rem, 3.8vw, 3rem);
-          font-weight: 600;
-          color: var(--black-matte);
+          font-weight: 800;
+          color: #FFFFFF;
           letter-spacing: -0.02em;
           line-height: 1.15;
+          margin: 0;
           text-wrap: balance;
         }
 
         .why__title em {
           font-style: italic;
-          color: var(--forest-green);
-          font-weight: 500;
+          background: linear-gradient(135deg, #FFFFFF 20%, #E8CA7C 60%, #CCA053 100%);
+          -webkit-background-clip: text;
+          -webkit-text-fill-color: transparent;
+          font-weight: 600;
         }
 
         .why__subtitle {
           max-width: 440px;
-          color: var(--gray-600);
+          color: #94A3B8;
           line-height: 1.7;
           font-size: 1rem;
+          margin: 0;
           text-wrap: balance;
         }
 
@@ -141,72 +146,75 @@ export default function WhyUtopia() {
         .why__grid {
           display: grid;
           grid-template-columns: repeat(4, 1fr);
-          gap: var(--space-6);
+          gap: 24px;
         }
 
         .why__card {
           display: flex;
           flex-direction: column;
-          gap: var(--space-3);
-          padding: var(--space-8);
-          background: white;
-          border-radius: var(--radius-xl);
-          border: 1px solid var(--gray-200);
-          box-shadow: 0 4px 16px rgba(26, 26, 26, 0.03);
+          gap: 12px;
+          padding: 32px 28px;
+          background: #131518;
+          border-radius: 20px;
+          border: 1px solid rgba(255, 255, 255, 0.08);
+          box-shadow: 0 16px 40px rgba(0, 0, 0, 0.4);
           transition: transform 220ms cubic-bezier(0.23, 1, 0.32, 1),
                       box-shadow 220ms cubic-bezier(0.23, 1, 0.32, 1),
                       border-color 220ms ease;
         }
 
         .why__card:hover {
-          box-shadow: 0 16px 36px rgba(45, 58, 45, 0.09);
+          box-shadow: 0 24px 50px rgba(0, 0, 0, 0.6);
           transform: translateY(-4px);
-          border-color: rgba(45, 58, 45, 0.25);
+          border-color: rgba(204, 160, 83, 0.4);
         }
 
         .why__card-top {
           display: flex;
           align-items: center;
           justify-content: space-between;
-          margin-bottom: var(--space-2);
+          margin-bottom: 8px;
         }
 
         .why__icon-wrap {
           width: 44px;
           height: 44px;
-          background: rgba(45, 58, 45, 0.06);
-          border-radius: var(--radius-lg);
+          background: rgba(204, 160, 83, 0.12);
+          border: 1px solid rgba(204, 160, 83, 0.25);
+          border-radius: 12px;
           display: flex;
           align-items: center;
           justify-content: center;
-          color: var(--forest-green);
-          transition: background-color 180ms ease, color 180ms ease;
+          color: #CCA053;
+          transition: background 180ms ease, color 180ms ease;
         }
 
         .why__card:hover .why__icon-wrap {
-          background: var(--forest-green);
-          color: #FAF8F5;
+          background: linear-gradient(135deg, #CCA053 0%, #B2883B 100%);
+          color: #0B0C0E;
         }
 
         .why__card-tag {
-          font-size: 0.68rem;
-          font-weight: 600;
-          color: var(--sand-dark);
+          font-size: 0.7rem;
+          font-weight: 700;
+          color: #E8CA7C;
           text-transform: uppercase;
           letter-spacing: 0.06em;
         }
 
         .why__card-title {
           font-size: 1.15rem;
-          font-weight: 600;
-          color: var(--black-matte);
+          font-weight: 700;
+          color: #FFFFFF;
           line-height: 1.3;
+          margin: 0;
         }
 
         .why__card-desc {
           font-size: 0.88rem;
-          color: var(--gray-600);
+          color: #94A3B8;
           line-height: 1.62;
+          margin: 0;
         }
 
         @media (max-width: 1024px) {
@@ -217,26 +225,26 @@ export default function WhyUtopia() {
 
         @media (max-width: 860px) {
           .why {
-            padding-block: var(--space-16);
+            padding-block: 64px;
           }
           .why__header {
             flex-direction: column;
             align-items: flex-start;
-            gap: var(--space-4);
-            margin-bottom: var(--space-10);
+            gap: 16px;
+            margin-bottom: 36px;
           }
         }
 
         @media (max-width: 640px) {
           .why__grid {
             grid-template-columns: 1fr;
-            gap: var(--space-4);
+            gap: 16px;
           }
           .why__title-break {
             display: none;
           }
           .why__card {
-            padding: var(--space-6);
+            padding: 24px;
           }
         }
       `}</style>

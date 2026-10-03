@@ -252,7 +252,7 @@ export default function Rotating3DShowcase() {
           position: relative;
           padding-top: var(--space-20);
           padding-bottom: var(--space-24);
-          background: linear-gradient(180deg, var(--white-broken) 0%, #0d120f 16%, #0d120f 84%, var(--white-broken) 100%);
+          background: linear-gradient(180deg, #0B0C0E 0%, #0d120f 16%, #0d120f 84%, #0E1013 100%);
           color: #ffffff;
           overflow: hidden;
         }

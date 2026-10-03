@@ -40,7 +40,6 @@ export default function FeaturedCampers() {
     const [campers, setCampers] = useState(demoCampers)
 
     useEffect(() => {
-        // Try to load from API — falls back to demo if fetch fails
         fetch('/api/availability')
             .then(r => r.json())
             .then(data => { if (data.campers?.length > 0) setCampers(data.campers) })
@@ -56,10 +55,10 @@ export default function FeaturedCampers() {
                         <Sparkles size={12} className="featured__eyebrow-icon" />
                         <span>{t('eyebrow')}</span>
                     </div>
-                    <h2 className="featured__title text-h2">
+                    <h2 className="featured__title">
                         {t('title')}
                     </h2>
-                    <p className="featured__subtitle text-body">
+                    <p className="featured__subtitle">
                         {t('subtitle')}
                     </p>
                 </div>
@@ -68,14 +67,14 @@ export default function FeaturedCampers() {
                 <div className="featured__grid-container">
                     <div className="featured__grid">
                         {campers.map(c => (
-                            <CamperCard key={c.id} {...c as any} />
+                            <CamperCard key={c.id} {...c as any} variant="dark" />
                         ))}
                     </div>
                 </div>
 
                 {/* Bottom Centered Link */}
                 <div className="featured__cta">
-                    <Link href="/campers" className="featured__view-all-btn btn btn-outline">
+                    <Link href="/campers" className="featured__view-all-btn">
                         <span>{t('viewAll')}</span>
                         <ArrowRight size={16} className="featured__btn-arrow" />
                     </Link>
@@ -84,8 +83,9 @@ export default function FeaturedCampers() {
 
             <style jsx>{`
         .featured {
-          background-color: var(--white-broken);
-          padding-block: var(--space-20);
+          background-color: #0B0C0E;
+          padding-block: 90px;
+          border-bottom: 1px solid rgba(255, 255, 255, 0.06);
         }
         .featured__header {
           display: flex;
@@ -94,38 +94,40 @@ export default function FeaturedCampers() {
           text-align: center;
           max-width: 680px;
           margin-inline: auto;
-          margin-bottom: var(--space-12);
-          gap: var(--space-3);
+          margin-bottom: 56px;
+          gap: 14px;
         }
         .featured__eyebrow-pill {
           display: inline-flex;
           align-items: center;
           gap: 6px;
-          padding: 4px 14px;
-          border-radius: var(--radius-full);
-          background: rgba(197, 168, 128, 0.14);
-          border: 1px solid rgba(197, 168, 128, 0.35);
-          font-size: 0.72rem;
-          font-weight: 600;
-          letter-spacing: 0.12em;
+          padding: 6px 16px;
+          border-radius: 999px;
+          background: rgba(204, 160, 83, 0.12);
+          border: 1px solid rgba(204, 160, 83, 0.35);
+          font-size: 0.76rem;
+          font-weight: 700;
+          letter-spacing: 0.1em;
           text-transform: uppercase;
-          color: var(--forest-green);
+          color: #E8CA7C;
         }
         .featured__eyebrow-icon {
-          color: var(--sand-dark);
+          color: #CCA053;
         }
         .featured__title {
-          font-family: var(--font-display);
+          font-family: var(--font-display, inherit);
           font-size: clamp(2.4rem, 4.5vw, 3.4rem);
-          font-weight: 500;
-          color: var(--black-matte);
-          letter-spacing: -0.02em;
-          line-height: 1.1;
+          font-weight: 800;
+          color: #FFFFFF;
+          letter-spacing: -0.025em;
+          line-height: 1.12;
+          margin: 0;
         }
         .featured__subtitle {
-          color: var(--gray-600);
+          color: #94A3B8;
           line-height: 1.68;
           font-size: 1.05rem;
+          margin: 0;
           text-wrap: balance;
         }
 
@@ -138,7 +140,7 @@ export default function FeaturedCampers() {
         .featured__grid {
           display: grid;
           grid-template-columns: repeat(2, minmax(0, 480px));
-          gap: var(--space-8);
+          gap: 32px;
           width: 100%;
           max-width: 1020px;
           justify-content: center;
@@ -146,24 +148,29 @@ export default function FeaturedCampers() {
 
         /* CTA */
         .featured__cta {
-          margin-top: var(--space-12);
+          margin-top: 56px;
           display: flex;
           justify-content: center;
         }
         .featured__view-all-btn {
-          border-radius: var(--radius-full);
-          padding: 12px 28px;
-          font-size: 0.92rem;
-          font-weight: 600;
-          border-color: var(--gray-400);
-          color: var(--black-matte);
-          background: transparent;
-          transition: transform 160ms cubic-bezier(0.23, 1, 0.32, 1), background-color 160ms ease, border-color 160ms ease, color 160ms ease;
+          display: inline-flex;
+          align-items: center;
+          gap: 8px;
+          border-radius: 999px;
+          padding: 13px 30px;
+          font-size: 0.94rem;
+          font-weight: 700;
+          border: 1px solid rgba(204, 160, 83, 0.4);
+          color: #E8CA7C;
+          background: rgba(204, 160, 83, 0.08);
+          text-decoration: none;
+          transition: all 0.2s ease;
         }
         .featured__view-all-btn:hover {
-          background: var(--forest-green);
-          border-color: var(--forest-green);
-          color: #FBF9F5;
+          background: rgba(204, 160, 83, 0.18);
+          border-color: #CCA053;
+          color: #FFFFFF;
+          transform: translateY(-2px);
         }
         .featured__view-all-btn:hover .featured__btn-arrow {
           transform: translateX(4px);
@@ -176,12 +183,15 @@ export default function FeaturedCampers() {
         }
 
         @media (max-width: 860px) {
+          .featured {
+            padding-block: 60px;
+          }
           .featured__grid {
             grid-template-columns: minmax(0, 500px);
-            gap: var(--space-6);
+            gap: 24px;
           }
           .featured__header {
-            margin-bottom: var(--space-8);
+            margin-bottom: 40px;
           }
         }
       `}</style>

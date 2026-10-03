@@ -1,7 +1,6 @@
 'use client'
 
-import { useRef, useEffect } from 'react'
-import { Coffee, Compass, Utensils, Moon, Sparkles, Play } from 'lucide-react'
+import { Coffee, Compass, Utensils, Moon, Sparkles } from 'lucide-react'
 import { useTranslations } from 'next-intl'
 
 export default function ExperiencesSection() {
@@ -101,7 +100,7 @@ export default function ExperiencesSection() {
                 <div className="exp-card__meta">
                   <span className="exp-card__tag">{exp.tag}</span>
                   <div className="exp-card__icon-badge">
-                    <exp.icon size={15} strokeWidth={2} />
+                    <exp.icon size={16} />
                   </div>
                 </div>
 
@@ -116,10 +115,11 @@ export default function ExperiencesSection() {
       <style jsx>{`
         .experiences {
           position: relative;
-          background-color: var(--forest-green);
-          padding-block: var(--space-24);
-          color: white;
+          background: #0B0C0E;
+          padding-block: 100px;
+          color: #FFFFFF;
           overflow: hidden;
+          border-bottom: 1px solid rgba(255, 255, 255, 0.06);
         }
 
         .experiences__ambient-bg {
@@ -127,9 +127,9 @@ export default function ExperiencesSection() {
           inset: 0;
           background: radial-gradient(
             circle at 80% 20%, 
-            rgba(61, 80, 64, 0.45) 0%, 
-            rgba(34, 46, 35, 0.8) 60%,
-            var(--forest-green) 100%
+            rgba(204, 160, 83, 0.12) 0%, 
+            rgba(19, 21, 24, 0.6) 60%,
+            #0B0C0E 100%
           );
           pointer-events: none;
         }
@@ -146,49 +146,53 @@ export default function ExperiencesSection() {
           text-align: center;
           max-width: 720px;
           margin-inline: auto;
-          margin-bottom: var(--space-16);
-          gap: var(--space-3);
+          margin-bottom: 56px;
+          gap: 14px;
         }
 
         .experiences__eyebrow-badge {
           display: inline-flex;
           align-items: center;
           gap: 8px;
-          padding: 6px 14px;
-          border-radius: var(--radius-full);
-          background: rgba(226, 209, 195, 0.12);
-          border: 1px solid rgba(226, 209, 195, 0.25);
-          color: var(--sand);
-          font-size: 0.76rem;
-          font-weight: 600;
+          padding: 6px 16px;
+          border-radius: 999px;
+          background: rgba(204, 160, 83, 0.12);
+          border: 1px solid rgba(204, 160, 83, 0.35);
+          color: #E8CA7C;
+          font-size: 0.74rem;
+          font-weight: 700;
           letter-spacing: 0.12em;
           text-transform: uppercase;
         }
 
         .experiences__eyebrow-icon {
-          color: var(--sand);
+          color: #CCA053;
         }
 
         .experiences__title {
           font-size: clamp(2rem, 4vw, 3.2rem);
-          font-weight: 700;
-          letter-spacing: -0.02em;
+          font-weight: 800;
+          letter-spacing: -0.025em;
           line-height: 1.15;
-          color: white;
+          color: #FFFFFF;
+          margin: 0;
           text-wrap: balance;
         }
 
         .experiences__title em {
           font-style: italic;
-          color: var(--sand);
+          background: linear-gradient(135deg, #FFFFFF 20%, #E8CA7C 60%, #CCA053 100%);
+          -webkit-background-clip: text;
+          -webkit-text-fill-color: transparent;
           font-weight: 600;
         }
 
         .experiences__subtitle {
           font-size: clamp(0.95rem, 1.5vw, 1.08rem);
-          color: rgba(255, 255, 255, 0.8);
+          color: #94A3B8;
           line-height: 1.65;
           max-width: 600px;
+          margin: 0;
           text-wrap: balance;
         }
 
@@ -196,20 +200,18 @@ export default function ExperiencesSection() {
         .experiences__grid {
           display: grid;
           grid-template-columns: repeat(2, 1fr);
-          gap: var(--space-8);
+          gap: 32px;
         }
 
         /* Card Container */
         .exp-card {
           display: flex;
           flex-direction: column;
-          background: rgba(255, 255, 255, 0.04);
-          border: 1px solid rgba(255, 255, 255, 0.1);
-          border-radius: var(--radius-xl);
+          background: #131518;
+          border: 1px solid rgba(255, 255, 255, 0.08);
+          border-radius: 20px;
           overflow: hidden;
-          box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
-          backdrop-filter: blur(12px);
-          -webkit-backdrop-filter: blur(12px);
+          box-shadow: 0 16px 40px rgba(0, 0, 0, 0.5);
           transition: transform 260ms cubic-bezier(0.23, 1, 0.32, 1),
                       border-color 260ms ease,
                       box-shadow 260ms ease;
@@ -217,8 +219,8 @@ export default function ExperiencesSection() {
 
         .exp-card:hover {
           transform: translateY(-4px);
-          border-color: rgba(226, 209, 195, 0.35);
-          box-shadow: 0 20px 40px rgba(0, 0, 0, 0.35);
+          border-color: rgba(204, 160, 83, 0.4);
+          box-shadow: 0 24px 50px rgba(0, 0, 0, 0.7);
         }
 
         .exp-card:active {
@@ -231,7 +233,7 @@ export default function ExperiencesSection() {
           width: 100%;
           aspect-ratio: 16/10;
           overflow: hidden;
-          background-color: rgba(0, 0, 0, 0.3);
+          background-color: #0B0C0E;
         }
 
         .exp-card__video {
@@ -250,9 +252,9 @@ export default function ExperiencesSection() {
           inset: 0;
           background: linear-gradient(
             to bottom,
-            rgba(0, 0, 0, 0.15) 0%,
+            rgba(0, 0, 0, 0.2) 0%,
             transparent 50%,
-            rgba(20, 26, 20, 0.6) 100%
+            rgba(11, 12, 14, 0.8) 100%
           );
           pointer-events: none;
         }
@@ -265,15 +267,15 @@ export default function ExperiencesSection() {
           display: inline-flex;
           align-items: center;
           gap: 6px;
-          padding: 4px 10px;
-          border-radius: var(--radius-full);
-          background: rgba(20, 26, 20, 0.75);
+          padding: 5px 12px;
+          border-radius: 999px;
+          background: rgba(11, 12, 14, 0.8);
           backdrop-filter: blur(8px);
           -webkit-backdrop-filter: blur(8px);
           border: 1px solid rgba(255, 255, 255, 0.15);
-          font-size: 0.72rem;
+          font-size: 0.74rem;
           font-weight: 600;
-          color: white;
+          color: #FFFFFF;
           letter-spacing: 0.02em;
         }
 
@@ -281,23 +283,23 @@ export default function ExperiencesSection() {
           width: 6px;
           height: 6px;
           border-radius: 50%;
-          background: #4ADE80;
-          box-shadow: 0 0 8px #4ADE80;
+          background: #CCA053;
+          box-shadow: 0 0 8px #CCA053;
         }
 
         /* Card Content */
         .exp-card__body {
           display: flex;
           flex-direction: column;
-          gap: var(--space-2);
-          padding: var(--space-6);
+          gap: 8px;
+          padding: 24px 28px;
         }
 
         .exp-card__meta {
           display: flex;
           align-items: center;
           justify-content: space-between;
-          margin-bottom: var(--space-1);
+          margin-bottom: 4px;
         }
 
         .exp-card__tag {
@@ -305,16 +307,16 @@ export default function ExperiencesSection() {
           font-weight: 700;
           letter-spacing: 0.08em;
           text-transform: uppercase;
-          color: var(--sand);
+          color: #E8CA7C;
         }
 
         .exp-card__icon-badge {
           width: 32px;
           height: 32px;
-          border-radius: var(--radius-full);
-          background: rgba(226, 209, 195, 0.15);
-          border: 1px solid rgba(226, 209, 195, 0.25);
-          color: var(--sand);
+          border-radius: 50%;
+          background: rgba(204, 160, 83, 0.12);
+          border: 1px solid rgba(204, 160, 83, 0.25);
+          color: #CCA053;
           display: flex;
           align-items: center;
           justify-content: center;
@@ -322,28 +324,30 @@ export default function ExperiencesSection() {
 
         .exp-card__title {
           font-size: 1.25rem;
-          font-weight: 600;
-          color: white;
+          font-weight: 700;
+          color: #FFFFFF;
           line-height: 1.3;
+          margin: 0;
         }
 
         .exp-card__desc {
-          font-size: 0.92rem;
-          color: rgba(255, 255, 255, 0.76);
+          font-size: 0.9rem;
+          color: #94A3B8;
           line-height: 1.6;
+          margin: 0;
         }
 
         /* Responsive Breakpoints */
         @media (max-width: 860px) {
           .experiences {
-            padding-block: var(--space-16);
+            padding-block: 64px;
           }
           .experiences__grid {
             grid-template-columns: 1fr;
-            gap: var(--space-6);
+            gap: 24px;
           }
           .experiences__header {
-            margin-bottom: var(--space-10);
+            margin-bottom: 36px;
           }
         }
 
@@ -352,7 +356,7 @@ export default function ExperiencesSection() {
             display: none;
           }
           .exp-card__body {
-            padding: var(--space-5);
+            padding: 20px;
           }
           .exp-card__title {
             font-size: 1.15rem;

@@ -74,7 +74,7 @@ export default function Navbar() {
           setIsAdmin(false)
           return
         }
-        if (u.email === 'javipn85@gmail.com' || u.user_metadata?.is_admin === 'true') {
+        if (u.email === 'javipn85@gmail.com' || u.email === 'alba_admin@gmail.com' || u.user_metadata?.is_admin === 'true' || u.user_metadata?.is_admin === true) {
           setIsAdmin(true)
           return
         }
@@ -113,6 +113,7 @@ export default function Navbar() {
           {/* Desktop links */}
           <ul className="navbar__links hide-mobile">
             <li><Link href="/campers" className="navbar__link">{t('campers')}</Link></li>
+            <li><Link href="/reservar" className="navbar__link navbar__link--reservar">{t('bookNow')}</Link></li>
             <li><Link href="/venta" className="navbar__link">{t('venta')}</Link></li>
             <li><Link href="/conocenos" className="navbar__link">{t('about')}</Link></li>
             <li><Link href="/#faqs" className="navbar__link">{t('faq')}</Link></li>
@@ -129,19 +130,12 @@ export default function Navbar() {
                 Panel Admin
               </Link>
             )}
-            {user ? (
-              <Link href="/dashboard" className="btn btn-ghost btn-sm hide-mobile navbar__user-btn">
-                Mi Aventura
-              </Link>
-            ) : (
-              <Link href="/auth/login" className="btn btn-ghost btn-sm hide-mobile navbar__login-btn">
-                {t('login')}
-              </Link>
-            )}
 
-            {/* Senior Button-in-Button CTA */}
-            <Link href="/campers" className="navbar__cta-btn">
-              <span>{t('bookNow')}</span>
+            <Link
+              href={user ? "/dashboard" : "/auth/login"}
+              className="navbar__cta-btn hide-mobile"
+            >
+              <span>Mi Aventura</span>
               <span className="navbar__cta-icon-circle">
                 <ArrowRight size={13} className="navbar__cta-arrow" />
               </span>
@@ -181,6 +175,7 @@ export default function Navbar() {
             </div>
             <ul className="mobile-menu__links">
               <li><Link href="/campers" onClick={() => setMenuOpen(false)}>{t('campers')}</Link></li>
+              <li><Link href="/reservar" onClick={() => setMenuOpen(false)} className="mobile-menu__link--reservar">{t('bookNow')}</Link></li>
               <li><Link href="/venta" onClick={() => setMenuOpen(false)}>{t('venta')}</Link></li>
               <li><Link href="/conocenos" onClick={() => setMenuOpen(false)}>{t('about')}</Link></li>
               <li><Link href="/#faqs" onClick={() => setMenuOpen(false)}>{t('faq')}</Link></li>
@@ -188,22 +183,17 @@ export default function Navbar() {
               {isAdmin && (
                 <li><Link href="/admin" onClick={() => setMenuOpen(false)} className="mobile-menu__link--admin">🛡️ Panel Admin</Link></li>
               )}
-              {user ? (
-                <li><Link href="/dashboard" onClick={() => setMenuOpen(false)} className="mobile-menu__link--user">Mi Aventura</Link></li>
-              ) : (
-                <li><Link href="/auth/login" onClick={() => setMenuOpen(false)} className="mobile-menu__link--login">{t('login')}</Link></li>
-              )}
             </ul>
 
             {/* Mobile language switcher */}
             <LanguageSwitcher isMobile />
 
             <Link
-              href="/campers"
-              className="navbar__cta-btn mobile-menu__book-btn"
+              href={user ? "/dashboard" : "/auth/login"}
+              className="navbar__cta-btn mobile-menu__adventure-btn"
               onClick={() => setMenuOpen(false)}
             >
-              <span>{t('bookNow')}</span>
+              <span>Mi Aventura</span>
               <span className="navbar__cta-icon-circle">
                 <ArrowRight size={14} className="navbar__cta-arrow" />
               </span>
@@ -278,7 +268,7 @@ export default function Navbar() {
           text-decoration: none;
         }
         .navbar :global(.navbar__link:hover) { 
-          color: #e6ca65;
+          color: #CCA053;
           opacity: 1; 
         }
         .navbar :global(.navbar__link)::after {
@@ -288,7 +278,7 @@ export default function Navbar() {
           left: 0;
           width: 100%;
           height: 1.5px;
-          background: #e6ca65;
+          background: #CCA053;
           transform: scaleX(0);
           transform-origin: right;
           transition: transform 200ms cubic-bezier(0.23, 1, 0.32, 1);
@@ -297,6 +287,17 @@ export default function Navbar() {
           transform: scaleX(1);
           transform-origin: left;
         }
+        .navbar :global(.navbar__link--reservar) {
+          color: #CCA053 !important;
+          font-weight: 800;
+        }
+        .navbar :global(.navbar__link--reservar:hover) {
+          color: #dfb466 !important;
+        }
+        .navbar :global(.navbar__link--reservar)::after {
+          background: #CCA053 !important;
+        }
+
 
         .navbar__actions {
           display: flex;
@@ -344,33 +345,38 @@ export default function Navbar() {
           color: #ffffff;
         }
 
-        /* Senior Button-in-Button CTA - Black & Gold */
+        /* Button-in-Button CTA - Acorde con la barra (Translucent Luxury Pill) */
         .navbar :global(.navbar__cta-btn) {
           display: inline-flex;
           align-items: center;
           gap: 9px;
-          padding: 7px 7px 7px 18px;
-          background: #e6ca65;
-          color: #0b0c0e !important;
+          padding: 6px 7px 6px 18px;
+          background: rgba(255, 255, 255, 0.08);
+          backdrop-filter: blur(14px);
+          -webkit-backdrop-filter: blur(14px);
+          border: 1px solid rgba(255, 255, 255, 0.16);
+          color: #ffffff !important;
           border-radius: var(--radius-full);
           font-size: 0.82rem;
-          font-weight: 800;
+          font-weight: 700;
           letter-spacing: 0.06em;
           text-transform: uppercase;
           white-space: nowrap;
           flex-shrink: 0;
-          box-shadow: 0 4px 16px rgba(230, 202, 101, 0.25);
+          box-shadow: 0 2px 10px rgba(0, 0, 0, 0.25);
           transition: transform 160ms cubic-bezier(0.23, 1, 0.32, 1),
                       background-color 160ms ease,
+                      border-color 160ms ease,
                       box-shadow 160ms ease;
           user-select: none;
           -webkit-user-select: none;
           text-decoration: none;
         }
         .navbar :global(.navbar__cta-btn:hover) {
-          background: #d8bc59;
+          background: rgba(255, 255, 255, 0.15);
+          border-color: rgba(255, 255, 255, 0.32);
           transform: translateY(-1px);
-          box-shadow: 0 6px 20px rgba(230, 202, 101, 0.4);
+          box-shadow: 0 4px 18px rgba(0, 0, 0, 0.45);
         }
         .navbar :global(.navbar__cta-btn:active) {
           transform: scale(0.97);
@@ -379,7 +385,8 @@ export default function Navbar() {
           width: 26px;
           height: 26px;
           border-radius: 50%;
-          background: #0b0c0e;
+          background: rgba(255, 255, 255, 0.12);
+          border: 1px solid rgba(255, 255, 255, 0.18);
           display: flex;
           align-items: center;
           justify-content: center;
@@ -388,9 +395,10 @@ export default function Navbar() {
         }
         .navbar :global(.navbar__cta-btn:hover) .navbar__cta-icon-circle {
           transform: scale(1.05);
+          background: rgba(255, 255, 255, 0.22);
         }
         :global(.navbar__cta-arrow) {
-          color: #e6ca65;
+          color: #ffffff;
           transition: transform 160ms cubic-bezier(0.23, 1, 0.32, 1);
         }
         .navbar :global(.navbar__cta-btn:hover) :global(.navbar__cta-arrow) {
@@ -489,6 +497,10 @@ export default function Navbar() {
           background: rgba(230, 202, 101, 0.1);
           color: #e6ca65;
         }
+        .mobile-menu :global(.mobile-menu__link--reservar) {
+          color: #CCA053 !important;
+          font-weight: 800;
+        }
         .mobile-menu :global(.mobile-menu__link--admin) {
           color: #e6ca65;
           font-weight: 700;
@@ -501,19 +513,24 @@ export default function Navbar() {
           color: rgba(255, 255, 255, 0.75);
           font-weight: 600;
         }
-        .mobile-menu :global(.mobile-menu__book-btn) {
+        .mobile-menu :global(.mobile-menu__adventure-btn) {
           width: 100%;
           justify-content: center;
           padding: 12px 20px;
           font-size: 0.88rem;
-          font-weight: 800;
-          letter-spacing: 0.06em;
+          font-weight: 700;
+          letter-spacing: 0.08em;
           text-transform: uppercase;
           margin-top: 8px;
-          background: #e6ca65;
-          color: #0b0c0e !important;
+          background: rgba(255, 255, 255, 0.09);
+          border: 1px solid rgba(255, 255, 255, 0.18);
+          color: #ffffff !important;
           border-radius: var(--radius-full);
-          box-shadow: 0 4px 16px rgba(230, 202, 101, 0.3);
+          box-shadow: 0 4px 16px rgba(0, 0, 0, 0.4);
+        }
+        .mobile-menu :global(.mobile-menu__adventure-btn:hover) {
+          background: rgba(255, 255, 255, 0.16);
+          border-color: rgba(255, 255, 255, 0.3);
         }
 
         /* Responsive Breakpoints */

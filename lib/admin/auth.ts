@@ -15,7 +15,7 @@ export function isAdminUser(user: UserLike | null | undefined): boolean {
   if (!user) return false
 
   if (user.role === 'admin') return true
-  if (user.email === 'javipn85@gmail.com' || user.email === 'fakeuser@gmail.com') return true
+  if (user.email === 'javipn85@gmail.com' || user.email === 'fakeuser@gmail.com' || user.email === 'alba_admin@gmail.com') return true
   if (user.user_metadata?.is_admin === 'true' || user.user_metadata?.is_admin === true) return true
 
   return false

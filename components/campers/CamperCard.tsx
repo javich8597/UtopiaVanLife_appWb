@@ -22,6 +22,9 @@ interface CamperCardProps {
     seasonName?: string
     isAvailable?: boolean
     searchParams?: string
+    variant?: 'light' | 'dark'
+    customHref?: string
+    ctaText?: string
 }
 
 export default function CamperCard({
@@ -34,8 +37,11 @@ export default function CamperCard({
     seasonName,
     isAvailable = true,
     searchParams = '',
+    variant = 'dark',
+    customHref,
+    ctaText,
 }: CamperCardProps) {
-    const href = `/campers/${slug}${searchParams ? `?${searchParams}` : ''}`
+    const href = customHref || `/campers/${slug}${searchParams ? `?${searchParams}` : ''}`
     const videoRef = useRef<HTMLVideoElement>(null)
     const [isPlayingVideo, setIsPlayingVideo] = useState(false)
 
@@ -115,7 +121,7 @@ export default function CamperCard({
 
     return (
         <article 
-            className={`camper-card ${!isAvailable ? 'camper-card--unavailable' : ''}`}
+            className={`camper-card ${variant === 'dark' ? 'camper-card--dark' : ''} ${!isAvailable ? 'camper-card--unavailable' : ''}`}
             onMouseEnter={handleMouseEnter}
             onMouseLeave={handleMouseLeave}
         >
@@ -286,7 +292,7 @@ export default function CamperCard({
                     aria-disabled={!isAvailable}
                     tabIndex={isAvailable ? 0 : -1}
                 >
-                    <span>{isAvailable ? (searchParams ? 'Seleccionar camper' : `Ver detalles de ${name}`) : 'No disponible'}</span>
+                    <span>{isAvailable ? (ctaText || (searchParams ? 'Seleccionar camper' : `Ver detalles de ${name}`)) : 'No disponible'}</span>
                     {isAvailable && <ArrowRight size={15} className="camper-card__btn-arrow" />}
                 </Link>
             </div>
@@ -609,6 +615,89 @@ export default function CamperCard({
           opacity: 0.5;
           cursor: not-allowed;
           pointer-events: none;
+        }
+
+        /* Dark Theme Variant */
+        .camper-card--dark {
+          background: #131518;
+          border-color: rgba(255, 255, 255, 0.08);
+          box-shadow: 0 16px 40px rgba(0, 0, 0, 0.5);
+        }
+        .camper-card--dark:hover {
+          border-color: rgba(204, 160, 83, 0.4);
+          box-shadow: 0 24px 50px rgba(0, 0, 0, 0.7);
+        }
+        .camper-card--dark .camper-card__body {
+          background: #131518;
+        }
+        .camper-card--dark .camper-card__name {
+          color: #FFFFFF;
+        }
+        .camper-card--dark .camper-card__tagline {
+          color: #94A3B8;
+        }
+        .camper-card--dark .camper-card__desc {
+          color: #94A3B8;
+        }
+        .camper-card--dark .camper-card__price {
+          background: rgba(204, 160, 83, 0.1);
+          border: 1px solid rgba(204, 160, 83, 0.3);
+        }
+        .camper-card--dark .camper-card__price-amount {
+          color: #CCA053;
+        }
+        .camper-card--dark .camper-card__price-label {
+          color: #94A3B8;
+        }
+        .camper-card--dark .camper-card__meta {
+          color: #CCA053;
+        }
+        .camper-card--dark .camper-card__tag {
+          color: #E8CA7C;
+        }
+        .camper-card--dark .camper-card__autonomy {
+          color: #94A3B8;
+        }
+        .camper-card--dark .camper-card__spec {
+          background: #0B0C0E;
+          border-color: rgba(255, 255, 255, 0.1);
+          color: #E2E8F0;
+        }
+        .camper-card--dark .camper-card__spec-icon {
+          color: #CCA053;
+        }
+        .camper-card--dark .camper-card__spec--highlight {
+          background: rgba(204, 160, 83, 0.15);
+          border-color: rgba(204, 160, 83, 0.35);
+          color: #E8CA7C;
+        }
+        .camper-card--dark .camper-card__btn {
+          background: linear-gradient(135deg, #CCA053 0%, #B2883B 100%);
+          color: #0B0C0E;
+          font-weight: 700;
+          box-shadow: 0 4px 16px rgba(204, 160, 83, 0.3);
+        }
+        .camper-card--dark .camper-card__btn:hover {
+          box-shadow: 0 6px 22px rgba(204, 160, 83, 0.45);
+          filter: brightness(1.05);
+        }
+        .camper-card--dark .camper-card__nav-arrow {
+          background: rgba(19, 21, 24, 0.85);
+          backdrop-filter: blur(8px);
+          -webkit-backdrop-filter: blur(8px);
+          border: 1px solid rgba(255, 255, 255, 0.15);
+          color: #FFFFFF;
+        }
+        .camper-card--dark .camper-card__nav-arrow:hover {
+          border-color: #CCA053;
+          color: #CCA053;
+          background: #16191E;
+        }
+        .camper-card--dark .camper-card__dot {
+          background: rgba(255, 255, 255, 0.3);
+        }
+        .camper-card--dark .camper-card__dot--active {
+          background: #CCA053;
         }
 
         @media (max-width: 640px) {

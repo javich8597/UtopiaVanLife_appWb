@@ -6,7 +6,7 @@ import { Link } from '@/i18n/routing'
 import Navbar from '@/components/layout/Navbar'
 import Footer from '@/components/layout/Footer'
 import CamperCard from '@/components/campers/CamperCard'
-import { Sparkles, Shield, BatteryCharging, Coffee, MapPin, Check } from 'lucide-react'
+import { Sparkles, Shield, BatteryCharging, Coffee, MapPin } from 'lucide-react'
 import { useTranslations } from 'next-intl'
 
 const SEASON_PRICES: Record<string, number> = {
@@ -93,13 +93,13 @@ function CatalogContent() {
                             ? tCatalog('showingAvailability', { from: formatDate(from), to: formatDate(to), pax })
                             : tCatalog('showingAvailabilitySingular', { from: formatDate(from), to: formatDate(to), pax })}
                     </span>
-                    <Link href="/campers" className="btn btn-ghost btn-sm">
+                    <Link href="/campers" className="catalog__search-reset">
                         {tCatalog('viewAll')}
                     </Link>
                 </div>
             )}
 
-            {/* Quick Fleet Model Filter Pills */}
+            {/* Quick Fleet Model Filter Pills Centered */}
             <div className="catalog__filters">
                 <button
                     type="button"
@@ -124,27 +124,31 @@ function CatalogContent() {
                 </button>
             </div>
 
-            {loading ? (
-                <div className="catalog__grid">
-                    {[1, 2].map(i => (
-                        <div key={i} className="skeleton catalog__skeleton-card" />
-                    ))}
-                </div>
-            ) : (
-                <div className="catalog__grid">
-                    {filteredCampers.map(c => (
-                        <CamperCard
-                            key={c.id}
-                            {...c}
-                            pricePerNight={c.pricePerNight ?? SEASON_PRICES['Temporada Media']}
-                            seasonName={c.seasonName ?? 'Temporada Media'}
-                            searchParams={from && to ? `from=${from}&to=${to}&pax=${pax}` : ''}
-                        />
-                    ))}
-                </div>
-            )}
+            {/* Centered Grid Container */}
+            <div className="catalog__grid-container">
+                {loading ? (
+                    <div className="catalog__grid">
+                        {[1, 2].map(i => (
+                            <div key={i} className="skeleton catalog__skeleton-card" />
+                        ))}
+                    </div>
+                ) : (
+                    <div className="catalog__grid">
+                        {filteredCampers.map(c => (
+                            <CamperCard
+                                key={c.id}
+                                {...c}
+                                pricePerNight={c.pricePerNight ?? SEASON_PRICES['Temporada Media']}
+                                seasonName={c.seasonName ?? 'Temporada Media'}
+                                searchParams={from && to ? `from=${from}&to=${to}&pax=${pax}` : ''}
+                                variant="dark"
+                            />
+                        ))}
+                    </div>
+                )}
+            </div>
 
-            {/* Signature Standard Micro-Pillars */}
+            {/* Signature Standard Micro-Pillars Centered */}
             <div className="catalog__pillars">
                 <div className="catalog__pillar-item">
                     <div className="catalog__pillar-icon">
@@ -191,83 +195,134 @@ function CatalogContent() {
                 .catalog__content {
                     display: flex;
                     flex-direction: column;
-                    gap: var(--space-8);
+                    align-items: center;
+                    width: 100%;
                 }
 
                 .catalog__search-info {
                     display: flex;
                     align-items: center;
                     justify-content: space-between;
-                    padding: var(--space-4) var(--space-6);
-                    background: white;
-                    border-radius: var(--radius-lg);
-                    border: 1px solid var(--gray-200);
+                    padding: 16px 24px;
+                    background: #131518;
+                    border-radius: 16px;
+                    border: 1px solid rgba(255, 255, 255, 0.08);
+                    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4);
+                    width: 100%;
+                    max-width: 1020px;
+                    margin-bottom: 32px;
                 }
 
                 .catalog__search-text {
                     font-weight: 500;
-                    color: var(--black-matte);
+                    color: #FFFFFF;
                     font-size: 0.95rem;
+                }
+
+                :global(.catalog__search-reset) {
+                    display: inline-flex;
+                    align-items: center;
+                    padding: 6px 16px;
+                    border-radius: var(--radius-full);
+                    background: rgba(255, 255, 255, 0.08);
+                    border: 1px solid rgba(255, 255, 255, 0.16);
+                    color: #FFFFFF;
+                    font-size: 0.8rem;
+                    font-weight: 600;
+                    text-decoration: none;
+                    transition: all var(--transition-fast);
+                }
+                :global(.catalog__search-reset:hover) {
+                    background: #CCA053;
+                    border-color: #CCA053;
+                    color: #0B0C0E;
                 }
 
                 .catalog__filters {
                     display: flex;
+                    justify-content: center;
+                    align-items: center;
                     flex-wrap: wrap;
                     gap: 10px;
+                    margin-bottom: 40px;
+                    width: 100%;
                 }
 
                 .catalog__filter-btn {
                     display: inline-flex;
                     align-items: center;
-                    background: white;
-                    border: 1px solid var(--gray-200);
-                    padding: 8px 16px;
-                    border-radius: 999px;
-                    font-size: 0.84rem;
-                    font-weight: 500;
-                    color: var(--gray-700);
+                    background: #131518;
+                    border: 1px solid rgba(255, 255, 255, 0.1);
+                    padding: 10px 20px;
+                    border-radius: var(--radius-full);
+                    font-size: 0.86rem;
+                    font-weight: 600;
+                    color: rgba(255, 255, 255, 0.7);
                     cursor: pointer;
                     transition: all 180ms ease;
                 }
 
                 .catalog__filter-btn:hover {
-                    border-color: var(--forest-green);
-                    color: var(--forest-green);
+                    border-color: rgba(204, 160, 83, 0.5);
+                    background: rgba(255, 255, 255, 0.06);
+                    color: #FFFFFF;
                 }
 
                 .catalog__filter-btn--active {
-                    background: var(--forest-green);
-                    border-color: var(--forest-green);
-                    color: white;
-                    font-weight: 600;
-                    box-shadow: 0 4px 12px rgba(45, 58, 45, 0.2);
+                    background: #CCA053;
+                    border-color: #CCA053;
+                    color: #0B0C0E;
+                    font-weight: 700;
+                    box-shadow: 0 4px 16px rgba(204, 160, 83, 0.3);
+                }
+
+                .catalog__grid-container {
+                    display: flex;
+                    justify-content: center;
+                    width: 100%;
                 }
 
                 .catalog__grid {
                     display: grid;
-                    grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
-                    gap: var(--space-8);
+                    grid-template-columns: repeat(2, minmax(0, 480px));
+                    gap: 32px;
+                    width: 100%;
+                    max-width: 1020px;
+                    justify-content: center;
                 }
 
                 .catalog__skeleton-card {
-                    height: 480px;
-                    border-radius: var(--radius-xl);
+                    height: 520px;
+                    border-radius: 20px;
+                    background: #131518;
+                    border: 1px solid rgba(255, 255, 255, 0.08);
                 }
 
                 /* Pillars */
                 .catalog__pillars {
                     display: grid;
                     grid-template-columns: repeat(4, 1fr);
-                    gap: var(--space-6);
-                    margin-top: var(--space-12);
-                    padding-top: var(--space-10);
-                    border-top: 1px solid var(--gray-200);
+                    gap: 20px;
+                    width: 100%;
+                    max-width: 1020px;
+                    margin-top: 56px;
+                    padding-top: 40px;
+                    border-top: 1px solid rgba(255, 255, 255, 0.08);
                 }
 
                 .catalog__pillar-item {
                     display: flex;
                     flex-direction: column;
-                    gap: var(--space-3);
+                    gap: 14px;
+                    background: #131518;
+                    border: 1px solid rgba(255, 255, 255, 0.08);
+                    border-radius: 20px;
+                    padding: 24px;
+                    transition: transform var(--transition-fast), border-color var(--transition-fast);
+                }
+                .catalog__pillar-item:hover {
+                    transform: translateY(-2px);
+                    border-color: rgba(204, 160, 83, 0.3);
                 }
 
                 .catalog__pillar-icon {
@@ -277,25 +332,29 @@ function CatalogContent() {
                     width: 44px;
                     height: 44px;
                     border-radius: 12px;
-                    background: rgba(45, 58, 45, 0.08);
-                    color: var(--forest-green);
+                    background: rgba(204, 160, 83, 0.12);
+                    color: #CCA053;
                 }
 
                 .catalog__pillar-text h4 {
-                    font-size: 0.95rem;
-                    font-weight: 600;
-                    color: var(--black-matte);
-                    margin-bottom: 4px;
+                    font-size: 0.96rem;
+                    font-weight: 700;
+                    color: #FFFFFF;
+                    margin: 0 0 6px 0;
+                    letter-spacing: -0.01em;
                 }
 
                 .catalog__pillar-text p {
-                    font-size: 0.82rem;
-                    color: var(--gray-600);
-                    line-height: 1.5;
+                    font-size: 0.83rem;
+                    color: rgba(255, 255, 255, 0.6);
+                    line-height: 1.55;
                     margin: 0;
                 }
 
-                @media (max-width: 860px) {
+                @media (max-width: 960px) {
+                    .catalog__grid {
+                        grid-template-columns: minmax(0, 500px);
+                    }
                     .catalog__pillars {
                         grid-template-columns: repeat(2, 1fr);
                     }
@@ -304,11 +363,18 @@ function CatalogContent() {
                 @media (max-width: 640px) {
                     .catalog__grid {
                         grid-template-columns: 1fr;
-                        gap: var(--space-6);
+                        gap: 24px;
+                    }
+                    .catalog__filters {
+                        flex-direction: column;
+                        align-items: stretch;
+                    }
+                    .catalog__filter-btn {
+                        justify-content: center;
                     }
                     .catalog__pillars {
                         grid-template-columns: 1fr;
-                        gap: var(--space-6);
+                        gap: 16px;
                     }
                     .catalog__search-info {
                         flex-direction: column;
@@ -328,11 +394,11 @@ export default function CampersPage() {
         <>
             <Navbar />
             <main className="catalog-page">
-                {/* Header */}
+                {/* Centered Header */}
                 <section className="catalog-hero">
-                    <div className="container">
+                    <div className="container catalog-hero__container">
                         <div className="catalog-hero__eyebrow">
-                            <Sparkles size={13} className="text-sand" />
+                            <Sparkles size={13} className="catalog-hero__sparkle" />
                             <span>{t('flota')} · BOUTIQUE CAMPERS MALLORCA</span>
                         </div>
                         <h1 className="catalog-hero__title">
@@ -359,61 +425,84 @@ export default function CampersPage() {
                 .catalog-page {
                     min-height: 100vh;
                     padding-top: 72px;
-                    background: var(--white-broken);
+                    background: #0B0C0E;
                 }
 
                 .catalog-hero {
-                    background: linear-gradient(135deg, #151d17 0%, #0d120f 100%);
-                    padding: var(--space-16) 0 var(--space-14);
+                    background: radial-gradient(ellipse 80% 60% at 50% -20%, rgba(204, 160, 83, 0.12), transparent 70%), #0B0C0E;
+                    padding: 5rem 0 3.5rem;
                     border-bottom: 1px solid rgba(255, 255, 255, 0.08);
                     color: white;
+                    text-align: center;
+                }
+
+                .catalog-hero__container {
+                    display: flex;
+                    flex-direction: column;
+                    align-items: center;
+                    text-align: center;
+                    max-width: 760px;
+                    margin: 0 auto;
                 }
 
                 .catalog-hero__eyebrow {
                     display: inline-flex;
                     align-items: center;
-                    gap: 6px;
-                    font-size: 0.75rem;
-                    font-weight: 600;
-                    letter-spacing: 0.08em;
-                    color: var(--sand);
+                    gap: 7px;
+                    font-size: 0.72rem;
+                    font-weight: 700;
+                    letter-spacing: 0.22em;
+                    color: #CCA053;
                     text-transform: uppercase;
-                    margin-bottom: var(--space-3);
+                    margin-bottom: 14px;
+                    background: rgba(204, 160, 83, 0.1);
+                    border: 1px solid rgba(204, 160, 83, 0.28);
+                    padding: 5px 16px;
+                    border-radius: 999px;
+                }
+                :global(.catalog-hero__sparkle) {
+                    color: #CCA053;
                 }
 
                 .catalog-hero__title {
-                    font-family: var(--font-serif, serif);
-                    font-size: clamp(2.2rem, 4vw, 3.25rem);
-                    font-weight: 400;
-                    color: white;
+                    font-family: var(--font-display, sans-serif);
+                    font-size: clamp(2.4rem, 5vw, 3.6rem);
+                    font-weight: 800;
+                    color: #FFFFFF;
                     letter-spacing: -0.02em;
-                    line-height: 1.15;
-                    margin-bottom: var(--space-3);
+                    line-height: 1.1;
+                    margin: 0 0 16px 0;
+                    text-transform: uppercase;
+                    text-align: center;
                 }
 
                 .catalog-hero__subtitle {
-                    color: rgba(255, 255, 255, 0.72);
+                    color: rgba(255, 255, 255, 0.7);
                     font-size: 1.05rem;
-                    line-height: 1.65;
-                    max-width: 580px;
-                    margin: 0;
+                    line-height: 1.6;
+                    max-width: 620px;
+                    margin: 0 auto;
+                    text-align: center;
                 }
 
                 .catalog-section {
-                    padding-block: var(--space-16);
+                    padding-block: 48px 80px;
                 }
 
                 .catalog__loading-skeleton {
                     height: 480px;
-                    border-radius: var(--radius-xl);
+                    border-radius: 20px;
+                    background: #131518;
+                    max-width: 1020px;
+                    margin: 0 auto;
                 }
 
                 @media (max-width: 640px) {
                     .catalog-hero {
-                        padding: var(--space-10) 0;
+                        padding: 3.5rem 0 2.5rem;
                     }
                     .catalog-section {
-                        padding-block: var(--space-8);
+                        padding-block: 32px 56px;
                     }
                 }
             `}</style>

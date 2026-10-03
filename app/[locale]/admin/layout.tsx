@@ -1,7 +1,9 @@
+import { cookies } from 'next/headers'
 import { redirect } from '@/i18n/routing'
 import { createClient } from '@/lib/supabase/server'
 import AdminResponsiveShell from './AdminResponsiveShell'
 import { isAdminUser } from '@/lib/admin/auth'
+import { ADMIN_THEME_COOKIE } from '@/lib/admin/theme'
 
 export default async function AdminLayout({
     children,
@@ -52,9 +54,12 @@ export default async function AdminLayout({
         supabase.from('users').select('*', { count: 'exact', head: true }).eq('verification_status', 'pending_validation'),
     ])
 
+    const initialTheme = (await cookies()).get(ADMIN_THEME_COOKIE)?.value === 'dark' ? 'dark' : 'light'
+
     return (
         <AdminResponsiveShell
             userEmail={user.email}
+            initialTheme={initialTheme}
             counts={{ pendingBookings: pendingBookings || 0, pendingVerifications: pendingVerifications || 0 }}
         >
             {children}

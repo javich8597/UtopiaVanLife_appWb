@@ -60,12 +60,13 @@
   transform: scale(0.97);
 }
 .dsh-btn--primary {
-  background: var(--adm-ink);
-  color: #F6EBD3;
-  border: 1px solid var(--adm-ink);
+  background: var(--adm-primary-bg);
+  color: var(--adm-primary-text);
+  border: 1px solid var(--adm-primary-bg);
 }
 .dsh-btn--primary:hover {
-  background: #2B2620;
+  background: var(--adm-primary-hover);
+  border-color: var(--adm-primary-hover);
 }
 .dsh-btn--ghost {
   background: var(--adm-surface);

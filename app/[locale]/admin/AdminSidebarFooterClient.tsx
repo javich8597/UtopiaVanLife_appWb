@@ -7,9 +7,11 @@ import { createClient } from '@/lib/supabase/client'
 
 interface Props {
   email?: string
+  /** Acciones extra (p. ej. el selector de tema) */
+  children?: React.ReactNode
 }
 
-export default function AdminSidebarFooterClient({ email }: Props) {
+export default function AdminSidebarFooterClient({ email, children }: Props) {
   const [loggingOut, setLoggingOut] = useState(false)
   const router = useRouter()
 
@@ -41,6 +43,7 @@ export default function AdminSidebarFooterClient({ email }: Props) {
       </div>
 
       <div className="admin-sidebar__footer-actions">
+        {children}
         <Link href="/" className="admin-footer-link">
           <Globe size={16} />
           <span>Ver la web</span>

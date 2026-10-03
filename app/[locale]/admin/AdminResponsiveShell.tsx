@@ -5,10 +5,13 @@ import { Link, usePathname } from '@/i18n/routing'
 import { Menu, X, Globe } from 'lucide-react'
 import AdminNavClient, { AdminNavCounts, isNavItemActive, navItems } from './AdminNavClient'
 import AdminSidebarFooterClient from './AdminSidebarFooterClient'
+import AdminThemeToggle from './AdminThemeToggle'
+import { ADMIN_THEME_COOKIE, type AdminTheme } from '@/lib/admin/theme'
 
 interface Props {
   userEmail?: string
   counts?: AdminNavCounts
+  initialTheme?: AdminTheme
   children: React.ReactNode
 }
 
@@ -24,8 +27,15 @@ function Brand({ onClick }: { onClick?: () => void }) {
   )
 }
 
-export default function AdminResponsiveShell({ userEmail, counts = {}, children }: Props) {
+export default function AdminResponsiveShell({ userEmail, counts = {}, initialTheme = 'light', children }: Props) {
   const [isDrawerOpen, setIsDrawerOpen] = useState(false)
+  const [theme, setTheme] = useState<AdminTheme>(initialTheme)
+
+  // El tema se guarda en cookie para que el servidor lo pinte sin parpadeo en la siguiente carga
+  const changeTheme = (next: AdminTheme) => {
+    setTheme(next)
+    document.cookie = `${ADMIN_THEME_COOKIE}=${next}; path=/; max-age=31536000; samesite=lax`
+  }
   const pathname = usePathname()
 
   // Cerrar drawer al cambiar de ruta
@@ -54,23 +64,28 @@ export default function AdminResponsiveShell({ userEmail, counts = {}, children 
   const moreIsActive = !tabs.some(item => isNavItemActive(pathname, item.href, item.exact))
 
   return (
-    <div className="admin-layout">
+    <div className="admin-layout" data-theme={theme}>
       {/* 1. Sidebar fijo de escritorio (>= 861px) */}
       <aside className="admin-sidebar admin-sidebar--desktop">
         <div className="admin-sidebar__header">
           <Brand />
         </div>
         <AdminNavClient counts={counts} />
-        <AdminSidebarFooterClient email={userEmail} />
+        <AdminSidebarFooterClient email={userEmail}>
+          <AdminThemeToggle theme={theme} onChange={changeTheme} />
+        </AdminSidebarFooterClient>
       </aside>
 
       {/* 2. Cabecera móvil (<= 860px) */}
       <header className="admin-mobile-header">
         <Brand />
-        <Link href="/" target="_blank" className="admin-mobile-header__link" title="Ver la web pública">
-          <Globe size={16} />
-          <span>Ver web</span>
-        </Link>
+        <div className="admin-mobile-header__actions">
+          <AdminThemeToggle theme={theme} onChange={changeTheme} variant="compact" />
+          <Link href="/" target="_blank" className="admin-mobile-header__link" title="Ver la web pública">
+            <Globe size={16} />
+            <span>Ver web</span>
+          </Link>
+        </div>
       </header>
 
       {/* 3. Drawer móvil con la navegación completa */}

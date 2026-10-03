@@ -832,8 +832,10 @@ h1, h2, h3, h4, h5, h6 {
       
 /* From app/admin/layout.tsx — Admin shell: claro cálido (marfil) con acentos dorados */
 
-        .admin-layout {
-          /* Tokens del backoffice */
+        /* Tokens del backoffice (claro). En tema oscuro también se aplican a las secciones que
+           aún no usan tokens, para que sigan legibles dentro de un panel claro. */
+        .admin-layout,
+        .admin-layout[data-theme="dark"] .admin-main__inner > :not(.dsh) {
           --adm-bg: #F6F2EB;
           --adm-surface: #FFFDF9;
           --adm-surface-2: #F4EFE7;
@@ -843,24 +845,79 @@ h1, h2, h3, h4, h5, h6 {
           --adm-text-2: #6E655B;
           --adm-text-3: #9C9286;
           --adm-ink: #1A1714;
+          --adm-primary-bg: #1A1714;
+          --adm-primary-hover: #2B2620;
+          --adm-primary-text: #F6EBD3;
+          --adm-on-gold: #FFFFFF;
+          --adm-glass: rgba(255, 253, 249, 0.92);
+          --adm-scrim: rgba(26, 23, 20, 0.35);
+          --adm-shadow: rgba(60, 45, 20, 0.08);
+          color-scheme: light;
           --adm-gold: #B8893A;
           --adm-gold-fill: #CCA053;
           --adm-gold-text: #8A6626;
           --adm-gold-soft: #F6ECD8;
           --adm-gold-line: #E6D3AE;
-          --adm-bar: #E6DDCF;
+          --adm-bar: #DDD1BE;
           --adm-sage: #4F6E55;
           --adm-sage-soft: #E8EFE6;
           --adm-amber: #9A5F22;
           --adm-amber-soft: #F7EAD9;
           --adm-rose: #9B4A42;
           --adm-rose-soft: #F6E4E0;
-
+        }
+        .admin-layout {
           display: flex;
           flex-direction: column;
           min-height: 100vh;
           background: var(--adm-bg);
           color: var(--adm-text);
+          transition: background-color 240ms var(--ease-out), color 240ms var(--ease-out);
+        }
+        .admin-layout[data-theme="dark"] .admin-main__inner > :not(.dsh) {
+          background: var(--adm-bg);
+          color: var(--adm-text);
+          color-scheme: light;
+          border-radius: 20px;
+          padding: 24px;
+        }
+        @media (max-width: 640px) {
+          .admin-layout[data-theme="dark"] .admin-main__inner > :not(.dsh) {
+            padding: 16px 12px;
+            border-radius: 16px;
+          }
+        }
+        /* Tema oscuro: grafito y dorado */
+        .admin-layout[data-theme="dark"] {
+          --adm-bg: #0E1013;
+          --adm-surface: #15171A;
+          --adm-surface-2: #1C1F23;
+          --adm-border: #262A2F;
+          --adm-border-strong: #363B42;
+          --adm-text: #ECE6DA;
+          --adm-text-2: #AFA79A;
+          --adm-text-3: #80796F;
+          --adm-ink: #ECE6DA;
+          --adm-primary-bg: #CCA053;
+          --adm-primary-hover: #D9B167;
+          --adm-primary-text: #17130C;
+          --adm-on-gold: #17130C;
+          --adm-gold: #CCA053;
+          --adm-gold-fill: #CCA053;
+          --adm-gold-text: #E2BF7C;
+          --adm-gold-soft: rgba(204, 160, 83, 0.13);
+          --adm-gold-line: rgba(204, 160, 83, 0.38);
+          --adm-bar: #3A3F46;
+          --adm-sage: #93BB9B;
+          --adm-sage-soft: rgba(147, 187, 155, 0.13);
+          --adm-amber: #E2AA6A;
+          --adm-amber-soft: rgba(226, 170, 106, 0.13);
+          --adm-rose: #E3958B;
+          --adm-rose-soft: rgba(227, 149, 139, 0.13);
+          --adm-glass: rgba(21, 23, 26, 0.9);
+          --adm-scrim: rgba(0, 0, 0, 0.55);
+          --adm-shadow: rgba(0, 0, 0, 0.35);
+          color-scheme: dark;
         }
         @media (min-width: 861px) {
           .admin-layout {
@@ -979,7 +1036,7 @@ h1, h2, h3, h4, h5, h6 {
           font-size: 0.7rem;
           font-weight: 700;
           background: var(--adm-gold-fill);
-          color: #FFFFFF;
+          color: var(--adm-on-gold);
           font-variant-numeric: tabular-nums;
         }
         .admin-nav a:focus-visible,
@@ -1011,8 +1068,8 @@ h1, h2, h3, h4, h5, h6 {
           justify-content: center;
           font-weight: 700;
           font-size: 0.8rem;
-          background: var(--adm-ink);
-          color: #F6EBD3;
+          background: var(--adm-primary-bg);
+          color: var(--adm-primary-text);
         }
         .admin-user__info {
           display: flex;
@@ -1071,7 +1128,7 @@ h1, h2, h3, h4, h5, h6 {
           justify-content: space-between;
           height: 56px;
           padding: 0 16px;
-          background: rgba(255, 253, 249, 0.92);
+          background: var(--adm-glass);
           backdrop-filter: saturate(1.4) blur(10px);
           -webkit-backdrop-filter: saturate(1.4) blur(10px);
           position: sticky;
@@ -1099,6 +1156,50 @@ h1, h2, h3, h4, h5, h6 {
           text-decoration: none;
         }
 
+        .admin-mobile-header__actions {
+          display: flex;
+          align-items: center;
+          gap: 8px;
+        }
+
+        /* Selector de tema claro / oscuro */
+        .admin-theme-toggle {
+          display: inline-flex;
+          align-items: center;
+          gap: 10px;
+          border: 0;
+          background: transparent;
+          font: inherit;
+          color: var(--adm-text-2);
+          cursor: pointer;
+          transition: background-color var(--transition-fast), color var(--transition-fast);
+        }
+        .admin-theme-toggle:hover {
+          background: var(--adm-surface-2);
+          color: var(--adm-text);
+        }
+        .admin-theme-toggle:focus-visible {
+          outline: 2px solid var(--adm-gold);
+          outline-offset: 2px;
+        }
+        .admin-theme-toggle--full {
+          width: 100%;
+          min-height: 36px;
+          padding: 7px 10px;
+          border-radius: 8px;
+          font-size: 0.82rem;
+          font-weight: 500;
+          text-align: left;
+        }
+        .admin-theme-toggle--compact {
+          justify-content: center;
+          width: 36px;
+          height: 36px;
+          border-radius: 8px;
+          border: 1px solid var(--adm-border);
+          background: var(--adm-surface);
+        }
+
         /* Barra inferior móvil (<= 860px) */
         .admin-tabbar {
           position: fixed;
@@ -1109,7 +1210,7 @@ h1, h2, h3, h4, h5, h6 {
           display: grid;
           grid-template-columns: repeat(5, 1fr);
           padding: 6px 6px env(safe-area-inset-bottom, 8px);
-          background: rgba(255, 253, 249, 0.96);
+          background: var(--adm-glass);
           backdrop-filter: saturate(1.4) blur(12px);
           -webkit-backdrop-filter: saturate(1.4) blur(12px);
           border-top: 1px solid var(--adm-border);
@@ -1158,7 +1259,7 @@ h1, h2, h3, h4, h5, h6 {
           border-radius: 999px;
           border: 2px solid var(--adm-surface);
           background: var(--adm-gold-fill);
-          color: #FFFFFF;
+          color: var(--adm-on-gold);
           font-size: 0.6rem;
           font-weight: 700;
           display: flex;
@@ -1179,7 +1280,7 @@ h1, h2, h3, h4, h5, h6 {
         .admin-drawer__backdrop {
           position: fixed;
           inset: 0;
-          background: rgba(26, 23, 20, 0.35);
+          background: var(--adm-scrim);
           backdrop-filter: blur(3px);
           animation: adminFadeIn 0.2s ease;
         }
@@ -1195,7 +1296,7 @@ h1, h2, h3, h4, h5, h6 {
           display: flex;
           flex-direction: column;
           z-index: 10000;
-          box-shadow: 8px 0 32px rgba(40, 30, 15, 0.12);
+          box-shadow: 8px 0 32px var(--adm-shadow);
           animation: adminSlideIn 0.26s var(--ease-drawer);
         }
         .admin-drawer__header {

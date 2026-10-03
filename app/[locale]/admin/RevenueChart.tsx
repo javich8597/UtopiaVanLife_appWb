@@ -158,7 +158,7 @@ export default function RevenueChart({ monthlyData }: Props) {
         .rev__toggle-btn--on {
           background: var(--adm-surface);
           color: var(--adm-text);
-          box-shadow: 0 1px 2px rgba(60, 45, 20, 0.08);
+          box-shadow: 0 1px 2px var(--adm-shadow);
         }
 
         .rev__plot {

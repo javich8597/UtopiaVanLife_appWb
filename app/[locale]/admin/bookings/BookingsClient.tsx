@@ -1,6 +1,7 @@
 'use client'
 
-import { useState, useMemo } from 'react'
+import { useState, useMemo, useEffect } from 'react'
+import { useSearchParams } from 'next/navigation'
 import { Search, Filter, Calendar, User, Phone, Mail, Truck, Euro, ShieldCheck, Eye, Moon } from 'lucide-react'
 import { formatPrice } from '@/lib/pricing/engine'
 import RefundActionClient from './RefundActionClient'
@@ -12,9 +13,31 @@ interface Props {
 }
 
 export default function BookingsClient({ initialBookings }: Props) {
+  const searchParams = useSearchParams()
   const [searchTerm, setSearchTerm] = useState('')
   const [statusFilter, setStatusFilter] = useState<'all' | 'confirmed' | 'active' | 'pending' | 'completed' | 'cancelled'>('all')
   const [selectedBooking, setSelectedBooking] = useState<any | null>(null)
+
+  // Sync with URL search parameters (e.g. from Dashboard click: ?search=...&status=...)
+  useEffect(() => {
+    const q = searchParams.get('search') || searchParams.get('id')
+    const s = searchParams.get('status')
+
+    if (q) {
+      setSearchTerm(q)
+      const found = initialBookings.find(b =>
+        b.id.toLowerCase() === q.toLowerCase() ||
+        b.id.toLowerCase().startsWith(q.toLowerCase())
+      )
+      if (found && (searchParams.get('open') === 'true' || searchParams.get('id'))) {
+        setSelectedBooking(found)
+      }
+    }
+
+    if (s && ['confirmed', 'active', 'pending', 'completed', 'cancelled'].includes(s)) {
+      setStatusFilter(s as any)
+    }
+  }, [searchParams, initialBookings])
 
   const filteredBookings = useMemo(() => {
     return initialBookings.filter(b => {

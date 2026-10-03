@@ -1043,6 +1043,23 @@ export default function CalendarClient({ bookings, campers, blockedDates, blocke
           text-transform: uppercase !important;
           background: transparent;
         }
+        /* Variables de FullCalendar ligadas al tema (por defecto pinta la cabecera en blanco) */
+        .fc {
+          --fc-page-bg-color: var(--adm-surface);
+          --fc-neutral-bg-color: var(--adm-surface-2);
+          --fc-border-color: var(--adm-border);
+          --fc-today-bg-color: var(--adm-gold-soft);
+        }
+        .fc .fc-scrollgrid-section > *,
+        .fc .fc-scrollgrid-section-sticky > *,
+        .fc .fc-col-header,
+        .fc .fc-col-header-cell {
+          background: var(--adm-surface) !important;
+        }
+        .fc .fc-col-header-cell.fc-day-sat,
+        .fc .fc-col-header-cell.fc-day-sun {
+          background: var(--adm-surface-2) !important;
+        }
         .fc-theme-standard .fc-scrollgrid {
           border: 1px solid var(--adm-border) !important;
           border-radius: 14px;

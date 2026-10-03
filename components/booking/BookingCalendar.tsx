@@ -42,6 +42,8 @@ interface BookingCalendarProps {
     onClose?: () => void
     showSlots?: boolean
     variant?: 'default' | 'hero'
+    monthsCount?: number
+    showDoneButton?: boolean
 }
 
 export default function BookingCalendar({
@@ -57,7 +59,10 @@ export default function BookingCalendar({
     onClose,
     showSlots = true,
     variant = 'default',
+    monthsCount,
+    showDoneButton,
 }: BookingCalendarProps) {
+    const activeMonthsCount = monthsCount ?? (variant === 'hero' ? 2 : 1)
     const initialMonth = startDate ? parseISO(startDate) : new Date()
     const [currentMonth, setCurrentMonth] = useState<Date>(initialMonth)
     const [hoverDate, setHoverDate] = useState<string | null>(null)
@@ -73,14 +78,21 @@ export default function BookingCalendar({
 
     const canGoPrev = !isBefore(endOfMonth(subMonths(currentMonth, 1)), minDate)
 
-    const days = useMemo(() => {
-        const monthStart = startOfMonth(currentMonth)
+    const getDaysForMonth = (targetMonth: Date) => {
+        const monthStart = startOfMonth(targetMonth)
         const monthEnd = endOfMonth(monthStart)
         const startDateGrid = startOfWeek(monthStart, { weekStartsOn: 1 })
         const endDateGrid = endOfWeek(monthEnd, { weekStartsOn: 1 })
 
         return eachDayOfInterval({ start: startDateGrid, end: endDateGrid })
-    }, [currentMonth])
+    }
+
+    const monthsToRender = useMemo(() => {
+        if (activeMonthsCount === 2) {
+            return [currentMonth, addMonths(currentMonth, 1)]
+        }
+        return [currentMonth]
+    }, [currentMonth, activeMonthsCount])
 
     // Convert legacy blockedRanges into slots if blockedSlots is empty
     const effectiveSlots: BlockedSlot[] = useMemo(() => {
@@ -172,42 +184,22 @@ export default function BookingCalendar({
     const isReturnAfternoonActive = endSlot === 'afternoon' && canReturnAfternoon
 
     const monthHasPartialBlocks = useMemo(() => {
-        return days.some(day => {
-            const dateStr = format(day, 'yyyy-MM-dd')
-            const status = getSlotAvailability(dateStr, effectiveSlots)
-            return status === 'morning_blocked' || status === 'afternoon_blocked'
+        return monthsToRender.some(m => {
+            const mDays = getDaysForMonth(m)
+            return mDays.some(day => {
+                const dateStr = format(day, 'yyyy-MM-dd')
+                const status = getSlotAvailability(dateStr, effectiveSlots)
+                return status === 'morning_blocked' || status === 'afternoon_blocked'
+            })
         })
-    }, [days, effectiveSlots])
+    }, [monthsToRender, effectiveSlots])
 
     const isHero = variant === 'hero' || !showSlots
+    const showDone = showDoneButton !== undefined ? showDoneButton : (!isHero && !!onClose)
 
     return (
-        <div className={`booking-cal ${isHero ? 'booking-cal--hero' : ''}`} role="dialog" aria-label="Selector de fechas de reserva">
-            {/* Header del mes */}
-            <div className="booking-cal__header">
-                <button
-                    type="button"
-                    className="booking-cal__nav-btn"
-                    onClick={prevMonth}
-                    disabled={!canGoPrev}
-                    aria-label="Mes anterior"
-                >
-                    <ChevronLeft size={18} />
-                </button>
-                <div className="booking-cal__month-title">
-                    {format(currentMonth, 'MMMM yyyy', { locale: es })}
-                </div>
-                <button
-                    type="button"
-                    className="booking-cal__nav-btn"
-                    onClick={nextMonth}
-                    aria-label="Mes siguiente"
-                >
-                    <ChevronRight size={18} />
-                </button>
-            </div>
-
-            {/* Indicador de paso / guía al viajero o alerta de error (ranura fija sin saltos de tamaño) */}
+        <div className={`booking-cal ${isHero ? 'booking-cal--hero' : ''} ${activeMonthsCount === 2 ? 'booking-cal--two-months' : ''}`} role="dialog" aria-label="Selector de fechas de reserva">
+            {/* Indicador de paso / guía al viajero o alerta de error */}
             {validationError ? (
                 <div className="booking-cal__alert" role="alert">
                     <Info size={14} style={{ flexShrink: 0 }} />
@@ -227,63 +219,118 @@ export default function BookingCalendar({
                 </div>
             )}
 
-            {/* Días de la semana */}
-            <div className="booking-cal__weekdays">
-                {weekHeaders.map((w, i) => (
-                    <span key={i} className="booking-cal__weekday">
-                        {w}
-                    </span>
-                ))}
-            </div>
-
-            {/* Grid de días */}
-            <div className="booking-cal__grid">
-                {days.map(day => {
-                    const dateStr = format(day, 'yyyy-MM-dd')
-                    const isCurrentMonth = isSameMonth(day, currentMonth)
-                    const isPast = isBefore(day, minDate)
-                    const slotStatus = getSlotAvailability(dateStr, effectiveSlots)
-                    const isFullBlocked = isPast || slotStatus === 'full_blocked'
-
-                    const isStart = startDate === dateStr
-                    const isEnd = endDate === dateStr
-
-                    let inRange = false
-                    if (startDate && endDate) {
-                        inRange = dateStr > startDate && dateStr < endDate
-                    } else if (startDate && hoverDate && !endDate) {
-                        inRange = dateStr > startDate && dateStr <= hoverDate
-                    }
-
-                    // Títulos accesibles según el estado de la celda
-                    let tooltip = ''
-                    if (slotStatus === 'morning_blocked') tooltip = 'Mañana ocupada — Recogida disponible a partir de las 15:00h'
-                    if (slotStatus === 'afternoon_blocked') tooltip = 'Tarde ocupada — Devolución disponible antes de las 12:00h'
-                    if (isFullBlocked) tooltip = 'Fecha no disponible'
+            {/* Contenedor de Meses */}
+            <div className="booking-cal__months-wrap">
+                {monthsToRender.map((targetMonth, monthIdx) => {
+                    const monthDays = getDaysForMonth(targetMonth)
+                    const isFirstMonth = monthIdx === 0
+                    const isLastMonth = monthIdx === monthsToRender.length - 1
 
                     return (
-                        <button
-                            key={dateStr}
-                            type="button"
-                            disabled={isFullBlocked}
-                            title={tooltip}
-                            onClick={() => handleDayClick(dateStr)}
-                            onMouseEnter={() => !endDate && startDate && setHoverDate(dateStr)}
-                            onMouseLeave={() => setHoverDate(null)}
-                            className={`booking-cal__day ${
-                                !isCurrentMonth ? 'booking-cal__day--outside' : ''
-                            } ${isFullBlocked ? 'booking-cal__day--disabled' : ''} ${
-                                slotStatus === 'morning_blocked' ? 'booking-cal__day--morning-blocked' : ''
-                            } ${
-                                slotStatus === 'afternoon_blocked' ? 'booking-cal__day--afternoon-blocked' : ''
-                            } ${
-                                isStart ? 'booking-cal__day--start' : ''
-                            } ${isEnd ? 'booking-cal__day--end' : ''} ${
-                                inRange ? 'booking-cal__day--in-range' : ''
-                            }`}
-                        >
-                            <span className="booking-cal__day-number">{format(day, 'd')}</span>
-                        </button>
+                        <React.Fragment key={monthIdx}>
+                            <div className="booking-cal__month-col">
+                                {/* Header del mes */}
+                                <div className="booking-cal__header">
+                                    <button
+                                        type="button"
+                                        className={`booking-cal__nav-btn ${!isFirstMonth ? 'hide-desktop' : ''}`}
+                                        onClick={prevMonth}
+                                        disabled={!canGoPrev}
+                                        aria-label="Mes anterior"
+                                    >
+                                        <ChevronLeft size={16} />
+                                    </button>
+
+                                    <div className="booking-cal__month-title">
+                                        {format(targetMonth, 'MMMM yyyy', { locale: es })}
+                                    </div>
+
+                                    <button
+                                        type="button"
+                                        className={`booking-cal__nav-btn ${!isLastMonth ? 'hide-desktop' : ''}`}
+                                        onClick={nextMonth}
+                                        aria-label="Mes siguiente"
+                                    >
+                                        <ChevronRight size={16} />
+                                    </button>
+                                </div>
+
+                                {/* Días de la semana */}
+                                <div className="booking-cal__weekdays">
+                                    {weekHeaders.map((w, i) => (
+                                        <span key={i} className="booking-cal__weekday">
+                                            {w}
+                                        </span>
+                                    ))}
+                                </div>
+
+                                {/* Grid de días */}
+                                <div className="booking-cal__grid">
+                                    {monthDays.map(day => {
+                                        const dateStr = format(day, 'yyyy-MM-dd')
+                                        const isCurrentMonth = isSameMonth(day, targetMonth)
+
+                                        if (!isCurrentMonth) {
+                                            return (
+                                                <div
+                                                    key={dateStr}
+                                                    className="booking-cal__day booking-cal__day--empty"
+                                                    aria-hidden="true"
+                                                />
+                                            )
+                                        }
+
+                                        const isPast = isBefore(day, minDate)
+                                        const slotStatus = getSlotAvailability(dateStr, effectiveSlots)
+                                        const isFullBlocked = isPast || slotStatus === 'full_blocked'
+
+                                        const isStart = startDate === dateStr
+                                        const isEnd = endDate === dateStr
+
+                                        let inRange = false
+                                        if (startDate && endDate) {
+                                            inRange = dateStr > startDate && dateStr < endDate
+                                        } else if (startDate && hoverDate && !endDate) {
+                                            inRange = dateStr > startDate && dateStr <= hoverDate
+                                        }
+
+                                        let tooltip = ''
+                                        if (slotStatus === 'morning_blocked') tooltip = 'Mañana ocupada — Recogida disponible a partir de las 15:00h'
+                                        if (slotStatus === 'afternoon_blocked') tooltip = 'Tarde ocupada — Devolución disponible antes de las 12:00h'
+                                        if (isFullBlocked) tooltip = 'Fecha no disponible'
+
+                                        return (
+                                            <button
+                                                key={dateStr}
+                                                type="button"
+                                                disabled={isFullBlocked}
+                                                title={tooltip}
+                                                onClick={() => handleDayClick(dateStr)}
+                                                onMouseEnter={() => !endDate && startDate && setHoverDate(dateStr)}
+                                                onMouseLeave={() => setHoverDate(null)}
+                                                className={`booking-cal__day ${
+                                                    isFullBlocked ? 'booking-cal__day--disabled' : ''
+                                                } ${
+                                                    slotStatus === 'morning_blocked' ? 'booking-cal__day--morning-blocked' : ''
+                                                } ${
+                                                    slotStatus === 'afternoon_blocked' ? 'booking-cal__day--afternoon-blocked' : ''
+                                                } ${
+                                                    isStart ? 'booking-cal__day--start' : ''
+                                                } ${isEnd ? 'booking-cal__day--end' : ''} ${
+                                                    inRange ? 'booking-cal__day--in-range' : ''
+                                                }`}
+                                            >
+                                                <span className="booking-cal__day-number">{format(day, 'd')}</span>
+                                            </button>
+                                        )
+                                    })}
+                                </div>
+                            </div>
+
+                            {monthIdx === 0 && monthsToRender.length > 1 && (
+                                <div className="booking-cal__months-divider" />
+                            )}
+                        </React.Fragment>
                     )
                 })}
             </div>
@@ -379,7 +426,7 @@ export default function BookingCalendar({
                 >
                     Borrar fechas
                 </button>
-                {onClose && (
+                {showDone && onClose && (
                     <button
                         type="button"
                         className="booking-cal__done-btn"
@@ -395,36 +442,65 @@ export default function BookingCalendar({
                     background: #FFFFFF;
                     border: 1px solid #E2DDD5;
                     border-radius: 16px;
-                    padding: 16px 18px 14px;
+                    padding: 13px 16px 12px;
                     user-select: none;
                     width: 100%;
-                    max-width: 350px;
+                    max-width: 320px;
                     margin: 0 auto;
                     box-shadow: 0 6px 24px rgba(0, 0, 0, 0.08);
                     box-sizing: border-box;
                 }
+                .booking-cal--two-months {
+                    max-width: 580px;
+                    width: 580px;
+                }
                 .booking-cal--hero {
-                    width: 350px;
-                    max-width: calc(100vw - 32px);
-                    padding: 16px 18px 14px;
-                    border-radius: 18px;
-                    box-shadow: 0 20px 48px rgba(0, 0, 0, 0.18);
+                    border-radius: 16px;
+                    box-shadow: 0 20px 48px rgba(0, 0, 0, 0.22);
                     box-sizing: border-box;
                 }
+                .booking-cal--hero:not(.booking-cal--two-months) {
+                    width: 320px;
+                    max-width: calc(100vw - 32px);
+                }
+                .booking-cal--hero.booking-cal--two-months {
+                    width: 580px;
+                    max-width: calc(100vw - 32px);
+                }
                 .booking-cal--hero .booking-cal__grid {
-                    gap: 3px 0;
+                    gap: 2px 0;
+                }
+                .booking-cal__months-wrap {
+                    display: flex;
+                    align-items: flex-start;
+                    gap: 16px;
+                }
+                .booking-cal__month-col {
+                    flex: 1;
+                    min-width: 0;
+                }
+                .booking-cal__months-divider {
+                    width: 1px;
+                    align-self: stretch;
+                    background: #EBE5DC;
+                    margin: 4px 0;
+                }
+                .booking-cal__day--empty {
+                    pointer-events: none;
+                    opacity: 0;
+                    background: transparent !important;
                 }
                 .booking-cal__header {
                     display: flex;
                     align-items: center;
                     justify-content: space-between;
-                    margin-bottom: 10px;
+                    margin-bottom: 8px;
                 }
                 .booking-cal__month-title {
                     font-family: var(--font-sans);
                     font-weight: 700;
                     text-transform: capitalize;
-                    font-size: 0.92rem;
+                    font-size: 0.85rem;
                     color: #1A1A1A;
                     letter-spacing: -0.01em;
                 }
@@ -432,8 +508,8 @@ export default function BookingCalendar({
                     background: #FAF8F5;
                     border: 1px solid #D5CFC6;
                     border-radius: var(--radius-full);
-                    width: 28px;
-                    height: 28px;
+                    width: 26px;
+                    height: 26px;
                     display: flex;
                     align-items: center;
                     justify-content: center;
@@ -455,10 +531,10 @@ export default function BookingCalendar({
                     display: grid;
                     grid-template-columns: repeat(7, 1fr);
                     text-align: center;
-                    margin-bottom: 6px;
+                    margin-bottom: 4px;
                 }
                 .booking-cal__weekday {
-                    font-size: 0.74rem;
+                    font-size: 0.68rem;
                     font-weight: 700;
                     color: #4A4540;
                     padding-bottom: 2px;
@@ -472,7 +548,7 @@ export default function BookingCalendar({
                     aspect-ratio: 1;
                     background: transparent;
                     border: none;
-                    font-size: 0.82rem;
+                    font-size: 0.76rem;
                     font-weight: 600;
                     color: #1A1A1A;
                     cursor: pointer;
@@ -485,18 +561,14 @@ export default function BookingCalendar({
                     border-radius: 6px;
                 }
                 .booking-cal__day-number {
-                    width: 34px;
-                    height: 34px;
+                    width: 29px;
+                    height: 29px;
                     display: flex;
                     align-items: center;
                     justify-content: center;
                     border-radius: var(--radius-full);
                     position: relative;
                     z-index: 2;
-                }
-                .booking-cal__day--outside {
-                    color: #D6D0C7;
-                    opacity: 0.45;
                 }
                 .booking-cal__day--disabled {
                     color: #C2BAB0;
@@ -671,15 +743,15 @@ export default function BookingCalendar({
                 }
 
                 .booking-cal__step-banner {
-                    min-height: 36px;
+                    min-height: 30px;
                     box-sizing: border-box;
                     display: flex;
                     align-items: center;
                     justify-content: center;
-                    margin-bottom: 10px;
-                    padding: 6px 12px;
+                    margin-bottom: 8px;
+                    padding: 5px 10px;
                     border-radius: 8px;
-                    font-size: 0.78rem;
+                    font-size: 0.74rem;
                     font-weight: 700;
                     background: #F5F1EB;
                     color: #2D3A2D;
@@ -708,19 +780,19 @@ export default function BookingCalendar({
                 }
 
                 .booking-cal__alert {
-                    min-height: 36px;
+                    min-height: 30px;
                     box-sizing: border-box;
                     display: flex;
                     align-items: center;
                     justify-content: center;
                     gap: 6px;
-                    margin-bottom: 10px;
-                    padding: 6px 12px;
+                    margin-bottom: 8px;
+                    padding: 5px 10px;
                     background: #FEF7EE;
                     border: 1px solid #E8C99B;
                     border-left: 3px solid #B46914;
                     border-radius: 8px;
-                    font-size: 0.74rem;
+                    font-size: 0.72rem;
                     font-weight: 600;
                     color: #78350F;
                     line-height: 1.35;
@@ -731,19 +803,19 @@ export default function BookingCalendar({
                     display: flex;
                     align-items: center;
                     justify-content: space-between;
-                    gap: 10px;
-                    margin-top: 12px;
-                    padding-top: 10px;
+                    gap: 8px;
+                    margin-top: 10px;
+                    padding-top: 8px;
                     border-top: 1px solid #EBE5DC;
                 }
                 .booking-cal__clear-btn {
-                    height: 38px;
-                    padding: 0 14px;
+                    height: 33px;
+                    padding: 0 12px;
                     border: 1px solid #DDD6CD;
                     border-radius: var(--radius-full);
                     background: #FAF8F5;
                     color: #5C554E;
-                    font-size: 0.76rem;
+                    font-size: 0.72rem;
                     font-weight: 600;
                     cursor: pointer;
                     transition: all var(--transition-fast);
@@ -764,14 +836,14 @@ export default function BookingCalendar({
                     border-color: transparent;
                 }
                 .booking-cal__done-btn {
-                    height: 38px;
+                    height: 33px;
                     flex: 1;
                     background: var(--forest-green);
                     color: #FFFFFF;
                     border: none;
                     border-radius: var(--radius-full);
-                    padding: 0 16px;
-                    font-size: 0.82rem;
+                    padding: 0 14px;
+                    font-size: 0.78rem;
                     font-weight: 700;
                     cursor: pointer;
                     display: flex;
@@ -784,6 +856,34 @@ export default function BookingCalendar({
                 .booking-cal__done-btn:hover {
                     background: var(--forest-green-light);
                     box-shadow: 0 4px 10px rgba(45, 58, 45, 0.35);
+                }
+
+                @media (min-width: 681px) {
+                    .hide-desktop {
+                        visibility: hidden;
+                        pointer-events: none;
+                    }
+                }
+                @media (max-width: 680px) {
+                    .booking-cal--two-months {
+                        width: 92vw !important;
+                        max-width: 320px !important;
+                        padding: 12px 12px 10px;
+                    }
+                    .booking-cal__months-wrap {
+                        flex-direction: column;
+                        gap: 14px;
+                        max-height: 56vh;
+                        overflow-y: auto;
+                        -webkit-overflow-scrolling: touch;
+                    }
+                    .booking-cal__months-divider {
+                        display: none;
+                    }
+                    .hide-desktop {
+                        visibility: visible;
+                        pointer-events: auto;
+                    }
                 }
             `}</style>
         </div>

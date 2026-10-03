@@ -286,8 +286,10 @@ export default function HeroSection() {
                   endDate={endDate}
                   showSlots={false}
                   variant="hero"
+                  monthsCount={2}
                   onChange={handleDatesChange}
                   onClose={() => setIsCalendarOpen(false)}
+                  showDoneButton={false}
                 />
               </motion.div>
             )}
@@ -661,7 +663,7 @@ export default function HeroSection() {
           left: 50%;
           translate: -50% 0;
           z-index: 100;
-          width: 350px;
+          width: auto;
           max-width: calc(100vw - 32px);
           box-shadow: 0 24px 48px -12px rgba(0, 0, 0, 0.5), 0 0 0 1px rgba(255, 255, 255, 0.15);
           border-radius: var(--radius-lg);
@@ -749,8 +751,10 @@ export default function HeroSection() {
             left: 50%;
             right: auto;
             transform: translate(-50%, -50%) !important;
-            max-width: 320px;
-            width: 90vw;
+            max-width: 360px;
+            width: 92vw;
+            max-height: 85vh;
+            overflow-y: auto;
             z-index: 1000;
           }
           .hero__guarantees {

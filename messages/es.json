@@ -65,13 +65,13 @@
   },
   "Navigation": {
     "home": "Inicio",
-    "campers": "Nuestras Campers",
-    "about": "Nosotros",
+    "campers": "Campers",
+    "about": "Conócenos",
     "venta": "Venta",
     "faq": "FAQ",
     "contact": "Contacto",
     "login": "Entrar",
-    "bookNow": "Reservar Ahora"
+    "bookNow": "Reservar"
   },
   "Campers": {
     "neo": {

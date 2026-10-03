@@ -112,12 +112,11 @@ export default function Navbar() {
 
           {/* Desktop links */}
           <ul className="navbar__links hide-mobile">
-            <li><Link href="/" className="navbar__link">{t('home')}</Link></li>
             <li><Link href="/campers" className="navbar__link">{t('campers')}</Link></li>
-            <li><Link href="/conocenos" className="navbar__link">{t('about')}</Link></li>
             <li><Link href="/venta" className="navbar__link">{t('venta')}</Link></li>
-            <li><Link href="/contacto" className="navbar__link">{t('contact')}</Link></li>
+            <li><Link href="/conocenos" className="navbar__link">{t('about')}</Link></li>
             <li><Link href="/#faqs" className="navbar__link">{t('faq')}</Link></li>
+            <li><Link href="/contacto" className="navbar__link">{t('contact')}</Link></li>
           </ul>
 
           {/* CTA + Menu */}
@@ -135,14 +134,14 @@ export default function Navbar() {
                 Mi Aventura
               </Link>
             ) : (
-              <Link href="/auth/login" className="btn btn-ghost btn-sm hide-mobile">
+              <Link href="/auth/login" className="btn btn-ghost btn-sm hide-mobile navbar__login-btn">
                 {t('login')}
               </Link>
             )}
 
             {/* Senior Button-in-Button CTA */}
             <Link href="/campers" className="navbar__cta-btn">
-              <span>Reservar</span>
+              <span>{t('bookNow')}</span>
               <span className="navbar__cta-icon-circle">
                 <ArrowRight size={13} className="navbar__cta-arrow" />
               </span>
@@ -181,19 +180,18 @@ export default function Navbar() {
               </button>
             </div>
             <ul className="mobile-menu__links">
-              <li><Link href="/" onClick={() => setMenuOpen(false)}>{t('home')}</Link></li>
               <li><Link href="/campers" onClick={() => setMenuOpen(false)}>{t('campers')}</Link></li>
-              <li><Link href="/conocenos" onClick={() => setMenuOpen(false)}>{t('about')}</Link></li>
               <li><Link href="/venta" onClick={() => setMenuOpen(false)}>{t('venta')}</Link></li>
-              <li><Link href="/contacto" onClick={() => setMenuOpen(false)}>{t('contact')}</Link></li>
+              <li><Link href="/conocenos" onClick={() => setMenuOpen(false)}>{t('about')}</Link></li>
               <li><Link href="/#faqs" onClick={() => setMenuOpen(false)}>{t('faq')}</Link></li>
+              <li><Link href="/contacto" onClick={() => setMenuOpen(false)}>{t('contact')}</Link></li>
               {isAdmin && (
                 <li><Link href="/admin" onClick={() => setMenuOpen(false)} className="mobile-menu__link--admin">🛡️ Panel Admin</Link></li>
               )}
               {user ? (
                 <li><Link href="/dashboard" onClick={() => setMenuOpen(false)} className="mobile-menu__link--user">Mi Aventura</Link></li>
               ) : (
-                <li><Link href="/auth/login" onClick={() => setMenuOpen(false)}>{t('login')}</Link></li>
+                <li><Link href="/auth/login" onClick={() => setMenuOpen(false)} className="mobile-menu__link--login">{t('login')}</Link></li>
               )}
             </ul>
 
@@ -219,10 +217,10 @@ export default function Navbar() {
           position: fixed;
           top: 0; left: 0; right: 0;
           z-index: var(--z-navbar);
-          background: rgba(251, 249, 245, 0.94);
+          background: rgba(11, 12, 14, 0.92);
           backdrop-filter: blur(20px);
           -webkit-backdrop-filter: blur(20px);
-          border-bottom: 1px solid rgba(212, 195, 179, 0.4);
+          border-bottom: 1px solid rgba(255, 255, 255, 0.08);
           transform: translateY(0);
           transition: transform 280ms cubic-bezier(0.23, 1, 0.32, 1),
                       background-color 220ms ease,
@@ -231,9 +229,9 @@ export default function Navbar() {
           will-change: transform;
         }
         .navbar--scrolled {
-          background: rgba(251, 249, 245, 0.98);
-          border-bottom: 1px solid rgba(212, 195, 179, 0.55);
-          box-shadow: 0 4px 20px -2px rgba(24, 36, 27, 0.07);
+          background: rgba(11, 12, 14, 0.98);
+          border-bottom: 1px solid rgba(230, 202, 101, 0.22);
+          box-shadow: 0 4px 25px rgba(0, 0, 0, 0.7);
         }
         .navbar--hidden {
           transform: translateY(-100%);
@@ -255,40 +253,42 @@ export default function Navbar() {
           transform: scale(0.97);
         }
         .navbar__logo-img {
-          height: 60px;
+          height: 48px;
           width: auto;
-          max-width: 200px;
+          max-width: 170px;
           object-fit: contain;
           display: block;
+          filter: brightness(0) invert(1);
         }
 
         .navbar__links {
           display: flex;
           align-items: center;
-          gap: var(--space-6);
+          gap: 28px;
         }
         .navbar :global(.navbar__link) {
-          font-size: 0.88rem;
-          font-weight: 500;
-          letter-spacing: 0.02em;
-          color: var(--black-matte);
+          font-size: 0.82rem;
+          font-weight: 700;
+          letter-spacing: 0.12em;
+          text-transform: uppercase;
+          color: rgba(255, 255, 255, 0.85);
           transition: color 160ms ease, opacity 160ms ease;
-          opacity: 0.85;
           position: relative;
           padding-bottom: 2px;
+          text-decoration: none;
         }
         .navbar :global(.navbar__link:hover) { 
+          color: #e6ca65;
           opacity: 1; 
-          color: var(--forest-green);
         }
         .navbar :global(.navbar__link)::after {
           content: '';
           position: absolute;
-          bottom: -2px;
+          bottom: -4px;
           left: 0;
           width: 100%;
           height: 1.5px;
-          background: var(--sand-dark);
+          background: #e6ca65;
           transform: scaleX(0);
           transform-origin: right;
           transition: transform 200ms cubic-bezier(0.23, 1, 0.32, 1);
@@ -311,14 +311,16 @@ export default function Navbar() {
           width: 42px; height: 42px;
           border-radius: var(--radius-md);
           transition: background var(--transition-fast), transform 160ms cubic-bezier(0.23, 1, 0.32, 1);
-          color: var(--black-matte);
+          color: #ffffff;
+          background: transparent;
+          border: none;
         }
-        .navbar__burger:hover { background: rgba(0, 0, 0, 0.05); }
+        .navbar__burger:hover { background: rgba(255, 255, 255, 0.08); }
         .navbar__burger:active { transform: scale(0.95); }
 
         .navbar :global(.navbar__admin-btn) {
-          border-color: var(--forest-green);
-          color: var(--forest-green);
+          border-color: rgba(230, 202, 101, 0.4);
+          color: #e6ca65;
           font-weight: 700;
           padding: 6px 14px;
         }
@@ -326,25 +328,38 @@ export default function Navbar() {
           display: flex;
           align-items: center;
           gap: 6px;
+          color: rgba(255, 255, 255, 0.85);
           font-weight: 600;
           padding: 6px 14px;
         }
+        .navbar :global(.navbar__login-btn) {
+          color: rgba(255, 255, 255, 0.75);
+          font-weight: 600;
+          font-size: 0.8rem;
+          padding: 6px 12px;
+          text-transform: uppercase;
+          letter-spacing: 0.05em;
+        }
+        .navbar :global(.navbar__login-btn:hover) {
+          color: #ffffff;
+        }
 
-        /* Senior Button-in-Button CTA */
+        /* Senior Button-in-Button CTA - Black & Gold */
         .navbar :global(.navbar__cta-btn) {
           display: inline-flex;
           align-items: center;
           gap: 9px;
           padding: 7px 7px 7px 18px;
-          background: var(--forest-green);
-          color: #FBF9F5 !important;
+          background: #e6ca65;
+          color: #0b0c0e !important;
           border-radius: var(--radius-full);
-          font-size: 0.85rem;
-          font-weight: 600;
-          letter-spacing: 0.02em;
+          font-size: 0.82rem;
+          font-weight: 800;
+          letter-spacing: 0.06em;
+          text-transform: uppercase;
           white-space: nowrap;
           flex-shrink: 0;
-          box-shadow: 0 2px 10px rgba(24, 36, 27, 0.2);
+          box-shadow: 0 4px 16px rgba(230, 202, 101, 0.25);
           transition: transform 160ms cubic-bezier(0.23, 1, 0.32, 1),
                       background-color 160ms ease,
                       box-shadow 160ms ease;
@@ -353,8 +368,9 @@ export default function Navbar() {
           text-decoration: none;
         }
         .navbar :global(.navbar__cta-btn:hover) {
-          background: var(--forest-green-light);
-          box-shadow: 0 4px 16px rgba(24, 36, 27, 0.28);
+          background: #d8bc59;
+          transform: translateY(-1px);
+          box-shadow: 0 6px 20px rgba(230, 202, 101, 0.4);
         }
         .navbar :global(.navbar__cta-btn:active) {
           transform: scale(0.97);
@@ -363,7 +379,7 @@ export default function Navbar() {
           width: 26px;
           height: 26px;
           border-radius: 50%;
-          background: rgba(255, 255, 255, 0.16);
+          background: #0b0c0e;
           display: flex;
           align-items: center;
           justify-content: center;
@@ -371,22 +387,21 @@ export default function Navbar() {
           flex-shrink: 0;
         }
         .navbar :global(.navbar__cta-btn:hover) .navbar__cta-icon-circle {
-          background: rgba(255, 255, 255, 0.26);
           transform: scale(1.05);
         }
         :global(.navbar__cta-arrow) {
-          color: #FBF9F5;
+          color: #e6ca65;
           transition: transform 160ms cubic-bezier(0.23, 1, 0.32, 1);
         }
         .navbar :global(.navbar__cta-btn:hover) :global(.navbar__cta-arrow) {
           transform: translateX(2px);
         }
 
-        /* Mobile menu modal */
+        /* Mobile menu modal - Black & Gold */
         .mobile-menu {
           position: fixed;
           inset: 0;
-          background: rgba(18, 24, 19, 0.58);
+          background: rgba(0, 0, 0, 0.72);
           backdrop-filter: blur(12px);
           -webkit-backdrop-filter: blur(12px);
           z-index: calc(var(--z-navbar) + 10);
@@ -401,12 +416,13 @@ export default function Navbar() {
         .mobile-menu__nav {
           width: min(340px, 90vw);
           height: 100%;
-          background: #FAF8F5;
+          background: #0b0c0e;
+          border-left: 1px solid rgba(255, 255, 255, 0.08);
           display: flex;
           flex-direction: column;
-          padding: 0.85rem 1.25rem 1.75rem 1.25rem;
+          padding: 1rem 1.25rem 2rem 1.25rem;
           gap: var(--space-4);
-          box-shadow: -10px 0 30px rgba(0, 0, 0, 0.15);
+          box-shadow: -10px 0 30px rgba(0, 0, 0, 0.7);
           animation: slideFromRight 260ms cubic-bezier(0.23, 1, 0.32, 1);
         }
         @keyframes slideFromRight {
@@ -417,9 +433,9 @@ export default function Navbar() {
           display: flex;
           justify-content: space-between;
           align-items: center;
-          padding: 0.5rem 0 0.65rem 0;
+          padding: 0.5rem 0 0.85rem 0;
           margin-bottom: 0.25rem;
-          border-bottom: 1px solid var(--gray-200);
+          border-bottom: 1px solid rgba(255, 255, 255, 0.08);
         }
         .mobile-menu :global(.mobile-menu__logo-link) {
           display: block;
@@ -429,24 +445,27 @@ export default function Navbar() {
         .mobile-menu__logo-img {
           height: auto;
           width: 100%;
-          max-height: 70px;
+          max-height: 48px;
           object-fit: contain;
           object-position: left center;
           display: block;
+          filter: brightness(0) invert(1);
         }
         .mobile-menu__close-btn {
           display: flex;
           align-items: center;
           justify-content: center;
-          padding: 8px;
+          width: 38px;
+          height: 38px;
           border-radius: 8px;
-          color: var(--black-matte);
-          background: rgba(0, 0, 0, 0.05);
+          color: #ffffff;
+          background: rgba(255, 255, 255, 0.06);
+          border: 1px solid rgba(255, 255, 255, 0.1);
           flex-shrink: 0;
           transition: background 150ms ease;
         }
         .mobile-menu__close-btn:hover {
-          background: rgba(0, 0, 0, 0.1);
+          background: rgba(255, 255, 255, 0.12);
         }
         .mobile-menu__links {
           display: flex;
@@ -458,40 +477,53 @@ export default function Navbar() {
         .mobile-menu :global(.mobile-menu__links li a) {
           display: block;
           padding: 12px 14px;
-          font-size: 1.05rem;
-          font-weight: 500;
-          color: var(--black-matte);
+          font-size: 0.92rem;
+          font-weight: 700;
+          letter-spacing: 0.1em;
+          text-transform: uppercase;
+          color: rgba(255, 255, 255, 0.85);
           border-radius: var(--radius-md);
           transition: background var(--transition-fast), color var(--transition-fast);
         }
         .mobile-menu :global(.mobile-menu__links li a:hover) { 
-          background: rgba(0, 0, 0, 0.04);
-          color: var(--forest-green);
+          background: rgba(230, 202, 101, 0.1);
+          color: #e6ca65;
         }
         .mobile-menu :global(.mobile-menu__link--admin) {
-          color: var(--forest-green);
+          color: #e6ca65;
           font-weight: 700;
         }
         .mobile-menu :global(.mobile-menu__link--user) {
-          color: var(--forest-green);
+          color: #e6ca65;
+          font-weight: 600;
+        }
+        .mobile-menu :global(.mobile-menu__link--login) {
+          color: rgba(255, 255, 255, 0.75);
           font-weight: 600;
         }
         .mobile-menu :global(.mobile-menu__book-btn) {
           width: 100%;
           justify-content: center;
           padding: 12px 20px;
-          font-size: 0.95rem;
+          font-size: 0.88rem;
+          font-weight: 800;
+          letter-spacing: 0.06em;
+          text-transform: uppercase;
           margin-top: 8px;
+          background: #e6ca65;
+          color: #0b0c0e !important;
+          border-radius: var(--radius-full);
+          box-shadow: 0 4px 16px rgba(230, 202, 101, 0.3);
         }
 
         /* Responsive Breakpoints */
         @media (max-width: 1100px) and (min-width: 861px) {
           .navbar__logo-img {
-            height: 38px;
-            max-width: 130px;
+            height: 40px;
+            max-width: 140px;
           }
           .navbar__links {
-            gap: var(--space-4);
+            gap: 16px;
           }
         }
 
@@ -500,8 +532,8 @@ export default function Navbar() {
             height: 68px;
           }
           .navbar__logo-img {
-            height: 36px;
-            max-width: 125px;
+            height: 38px;
+            max-width: 130px;
           }
         }
 

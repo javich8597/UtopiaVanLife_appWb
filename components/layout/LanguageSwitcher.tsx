@@ -142,12 +142,12 @@ export default function LanguageSwitcher({ isSolid = true, isMobile = false }: P
           .mobile-lang-switcher {
             margin-top: auto;
             padding-top: 16px;
-            border-top: 1px solid var(--gray-200);
+            border-top: 1px solid rgba(255, 255, 255, 0.08);
           }
           .mobile-lang-label {
             font-size: 0.72rem;
             font-weight: 600;
-            color: var(--gray-600);
+            color: rgba(255, 255, 255, 0.5);
             text-transform: uppercase;
             letter-spacing: 0.08em;
             display: block;
@@ -165,9 +165,9 @@ export default function LanguageSwitcher({ isSolid = true, isMobile = false }: P
             gap: 6px;
             padding: 8px 4px;
             border-radius: var(--radius-md);
-            border: 1px solid var(--gray-200);
-            background: #FFFFFF;
-            color: var(--gray-800);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            background: #131518;
+            color: rgba(255, 255, 255, 0.85);
             font-weight: 500;
             font-size: 0.82rem;
             cursor: pointer;
@@ -177,9 +177,9 @@ export default function LanguageSwitcher({ isSolid = true, isMobile = false }: P
             transform: scale(0.96);
           }
           .mobile-lang-btn--selected {
-            border: 1.5px solid var(--forest-green);
-            background: rgba(24, 36, 27, 0.06);
-            color: var(--forest-green);
+            border: 1.5px solid #e6ca65;
+            background: rgba(230, 202, 101, 0.12);
+            color: #e6ca65;
             font-weight: 700;
           }
         `}</style>
@@ -232,9 +232,9 @@ export default function LanguageSwitcher({ isSolid = true, isMobile = false }: P
           gap: 6px;
           padding: 5px 11px;
           border-radius: var(--radius-full);
-          background: rgba(24, 36, 27, 0.05);
-          color: var(--black-matte);
-          border: 1px solid rgba(212, 195, 179, 0.45);
+          background: rgba(255, 255, 255, 0.06);
+          color: rgba(255, 255, 255, 0.9);
+          border: 1px solid rgba(255, 255, 255, 0.12);
           backdrop-filter: blur(12px);
           -webkit-backdrop-filter: blur(12px);
           font-size: 0.78rem;
@@ -247,8 +247,8 @@ export default function LanguageSwitcher({ isSolid = true, isMobile = false }: P
         }
 
         .lang-trigger-btn:hover {
-          background: rgba(24, 36, 27, 0.09);
-          border-color: rgba(212, 195, 179, 0.7);
+          background: rgba(255, 255, 255, 0.12);
+          border-color: rgba(230, 202, 101, 0.4);
           transform: translateY(-1px);
         }
 
@@ -260,12 +260,12 @@ export default function LanguageSwitcher({ isSolid = true, isMobile = false }: P
           position: absolute;
           top: calc(100% + 6px);
           right: 0;
-          background: rgba(251, 249, 245, 0.96);
+          background: rgba(19, 21, 24, 0.98);
           backdrop-filter: blur(20px);
           -webkit-backdrop-filter: blur(20px);
-          border: 1px solid var(--gray-200);
+          border: 1px solid rgba(255, 255, 255, 0.1);
           border-radius: var(--radius-lg);
-          box-shadow: 0 10px 30px -4px rgba(24, 36, 27, 0.12), 0 2px 6px rgba(24, 36, 27, 0.04);
+          box-shadow: 0 10px 30px rgba(0, 0, 0, 0.6);
           padding: 5px;
           min-width: 145px;
           z-index: 100;
@@ -292,7 +292,7 @@ export default function LanguageSwitcher({ isSolid = true, isMobile = false }: P
           border: none;
           border-radius: var(--radius-md);
           background: transparent;
-          color: var(--black-matte);
+          color: rgba(255, 255, 255, 0.85);
           font-size: 0.82rem;
           font-weight: 500;
           cursor: pointer;
@@ -301,13 +301,13 @@ export default function LanguageSwitcher({ isSolid = true, isMobile = false }: P
         }
 
         .lang-dropdown-btn:hover {
-          background: rgba(24, 36, 27, 0.05);
-          color: var(--forest-green);
+          background: rgba(230, 202, 101, 0.1);
+          color: #e6ca65;
         }
 
         .lang-dropdown-btn--selected {
-          background: rgba(24, 36, 27, 0.07);
-          color: var(--forest-green);
+          background: rgba(230, 202, 101, 0.15);
+          color: #e6ca65;
           font-weight: 600;
         }
 
@@ -318,7 +318,7 @@ export default function LanguageSwitcher({ isSolid = true, isMobile = false }: P
         }
 
         :global(.lang-dropdown-check) {
-          color: var(--forest-green);
+          color: #e6ca65;
         }
       `}</style>
     </div>

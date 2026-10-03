@@ -1,7 +1,7 @@
 'use client'
 
 import { useMemo, useState } from 'react'
-import { Eye, Search, X } from 'lucide-react'
+import { Eye, Search, X, UserMinus } from 'lucide-react'
 import { normalizeVerificationStatus } from '@/lib/admin/auth'
 import { formatPrice } from '@/lib/pricing/engine'
 import CustomerDetailModal from './CustomerDetailModal'
@@ -37,6 +37,24 @@ export default function UsersTableClient({ initialUsers, stats = {} }: Props) {
   const [search, setSearch] = useState('')
   const [segment, setSegment] = useState<Segment>('customers')
   const [selectedUserId, setSelectedUserId] = useState<string | null>(null)
+  const [roleError, setRoleError] = useState<string | null>(null)
+
+  const removeAdmin = async (u: any) => {
+    if (!window.confirm(`¿Quitar el acceso de administrador a ${u.email}? Pasará a ser una cuenta de cliente.`)) return
+    setRoleError(null)
+    try {
+      const res = await fetch('/api/admin/users/role', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ userId: u.id, role: 'customer' }),
+      })
+      const data = await res.json()
+      if (!res.ok) throw new Error(data.error || 'No se pudo cambiar el rol')
+      setUsers(prev => prev.map(x => (x.id === u.id ? { ...x, role: 'customer' } : x)))
+    } catch (err: any) {
+      setRoleError(err.message)
+    }
+  }
 
   const handleStatusUpdated = (userId: string, newStatus: string) => {
     setUsers(prev => prev.map(u => (u.id === userId ? { ...u, verification_status: newStatus } : u)))
@@ -101,6 +119,8 @@ export default function UsersTableClient({ initialUsers, stats = {} }: Props) {
         </div>
       </div>
 
+      {roleError && <div className="adm-note" role="alert">{roleError}</div>}
+
       <div className="adm-card">
         <div className="adm-table-wrap">
           <table className="adm-table adm-table--cards">
@@ -146,6 +166,16 @@ export default function UsersTableClient({ initialUsers, stats = {} }: Props) {
                       <span className={`adm-chip adm-chip--${chip.tone}`}>{chip.label}</span>
                     </td>
                     <td className="adm-table__actions">
+                      {segment === 'team' && (
+                        <button
+                          type="button"
+                          onClick={() => removeAdmin(u)}
+                          className="adm-btn adm-btn--sm adm-btn--danger users-role-btn"
+                          title="Quitar el acceso de administrador"
+                        >
+                          <UserMinus size={14} /> Quitar admin
+                        </button>
+                      )}
                       <button
                         type="button"
                         onClick={() => setSelectedUserId(u.id)}

@@ -566,3 +566,8 @@
   color: var(--adm-text);
   border-color: var(--adm-border);
 }
+
+/* Acciones juntas en la última columna */
+.adm-table__actions .adm-btn + .adm-btn {
+  margin-left: 6px;
+}

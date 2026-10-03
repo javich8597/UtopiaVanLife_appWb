@@ -985,9 +985,9 @@ export default function CalendarClient({ bookings, campers, blockedDates, blocke
           border-color: var(--adm-border-strong);
         }
         .gcal-pill--active {
-          background: var(--adm-gold-soft);
-          color: var(--adm-gold-text);
-          border-color: var(--adm-gold-line);
+          background: var(--adm-surface-2);
+          color: var(--adm-text);
+          border-color: var(--adm-border-strong);
         }
 
         .gcal-dot {

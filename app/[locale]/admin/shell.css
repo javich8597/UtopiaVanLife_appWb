@@ -41,6 +41,10 @@
   --adm-sky-soft: #E4EDF3;
   /* Otros */
   --adm-glass: rgba(255, 255, 255, 0.9);
+  --adm-topbar: rgba(242, 240, 236, 0.97);
+  /* Tarjeta destacada (ingresos del mes) */
+  --adm-hero-bg: #1A1714;
+  --adm-hero-text: #F6EBD3;
   --adm-scrim: rgba(26, 23, 20, 0.35);
   --adm-shadow: rgba(60, 45, 20, 0.1);
   color-scheme: light;
@@ -65,9 +69,9 @@
   --adm-text-2: #B0A89B;
   --adm-text-3: #847D72;
   --adm-ink: #EEE8DC;
-  --adm-primary-bg: #CCA053;
-  --adm-primary-hover: #D9B167;
-  --adm-primary-text: #17130C;
+  --adm-primary-bg: #EEE8DC;
+  --adm-primary-hover: #FFFFFF;
+  --adm-primary-text: #16181C;
   --adm-on-gold: #17130C;
   --adm-gold: #CCA053;
   --adm-gold-fill: #CCA053;
@@ -83,7 +87,10 @@
   --adm-rose-soft: rgba(227, 149, 139, 0.13);
   --adm-sky: #93B6D0;
   --adm-sky-soft: rgba(147, 182, 208, 0.13);
-  --adm-glass: rgba(22, 24, 28, 0.9);
+  --adm-glass: rgba(22, 24, 28, 0.96);
+  --adm-topbar: rgba(14, 16, 19, 0.97);
+  --adm-hero-bg: #23262B;
+  --adm-hero-text: #EEE8DC;
   --adm-scrim: rgba(0, 0, 0, 0.55);
   --adm-shadow: rgba(0, 0, 0, 0.4);
   color-scheme: dark;
@@ -208,8 +215,8 @@
   flex-shrink: 0;
 }
 .admin-nav__link--active {
-  background: var(--adm-gold-soft);
-  color: var(--adm-gold-text);
+  background: var(--adm-surface-2);
+  color: var(--adm-text);
   font-weight: 600;
 }
 .admin-nav__link--active .admin-nav__icon {
@@ -228,8 +235,8 @@
   justify-content: center;
   font-size: 0.72rem;
   font-weight: 700;
-  background: var(--adm-gold-fill);
-  color: var(--adm-on-gold);
+  background: var(--adm-text);
+  color: var(--adm-surface);
   font-variant-numeric: tabular-nums;
 }
 .admin-nav a:focus-visible,
@@ -344,7 +351,7 @@
     gap: 16px;
     height: 76px;
     padding: 0 36px;
-    background: var(--adm-glass);
+    background: var(--adm-topbar);
     backdrop-filter: saturate(1.4) blur(12px);
     -webkit-backdrop-filter: saturate(1.4) blur(12px);
     border-bottom: 1px solid var(--adm-border);
@@ -619,6 +626,9 @@
   background: var(--adm-surface-2);
 }
 .admin-tabbar__item--active {
+  color: var(--adm-text);
+}
+.admin-tabbar__item--active .admin-tabbar__icon {
   color: var(--adm-gold-text);
 }
 .admin-tabbar__icon {
@@ -634,8 +644,8 @@
   padding: 0 4px;
   border-radius: 999px;
   border: 2px solid var(--adm-surface);
-  background: var(--adm-gold-fill);
-  color: var(--adm-on-gold);
+  background: var(--adm-text);
+  color: var(--adm-surface);
   font-size: 0.6rem;
   font-weight: 700;
   display: flex;

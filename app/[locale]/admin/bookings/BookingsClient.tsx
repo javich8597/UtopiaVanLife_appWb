@@ -418,8 +418,8 @@ export default function BookingsClient({ initialBookings }: Props) {
           display: flex;
           align-items: center;
           justify-content: center;
-          background: var(--adm-gold-soft);
-          color: var(--adm-gold-text);
+          background: var(--adm-surface-2);
+          color: var(--adm-text-2);
           font-weight: 700;
           font-size: 0.78rem;
         }

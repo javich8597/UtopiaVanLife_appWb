@@ -249,17 +249,17 @@
   color: var(--adm-text-3);
 }
 .dsh-kpi--hero {
-  background: var(--adm-primary-bg);
-  border-color: var(--adm-primary-bg);
-  color: var(--adm-primary-text);
+  background: var(--adm-hero-bg);
+  border-color: var(--adm-hero-bg);
+  color: var(--adm-hero-text);
 }
 .dsh-kpi--hero .dsh-kpi__label,
 .dsh-kpi--hero .dsh-kpi__meta {
-  color: var(--adm-primary-text);
+  color: var(--adm-hero-text);
   opacity: 0.78;
 }
 .dsh-kpi--hero .dsh-kpi__value {
-  color: var(--adm-primary-text);
+  color: var(--adm-hero-text);
 }
 .dsh-delta {
   display: inline-flex;
@@ -272,8 +272,8 @@
 .dsh-delta--up { color: var(--adm-sage); background: var(--adm-sage-soft); }
 .dsh-delta--down { color: var(--adm-rose); background: var(--adm-rose-soft); }
 .dsh-kpi--hero .dsh-delta {
-  background: var(--adm-gold-fill);
-  color: var(--adm-on-gold);
+  background: var(--adm-hero-text);
+  color: var(--adm-hero-bg);
   opacity: 1;
 }
 
@@ -305,8 +305,8 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  background: var(--adm-gold-soft);
-  color: var(--adm-gold-text);
+  background: var(--adm-surface-2);
+  color: var(--adm-text-2);
   font-weight: 700;
   font-size: 0.82rem;
 }
@@ -318,7 +318,7 @@
 .dsh-row__name {
   font-weight: 600;
   font-size: 0.98rem;
-  color: var(--adm-gold-text);
+  color: var(--adm-text);
   text-decoration: none;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -456,7 +456,7 @@
   height: 100%;
   width: var(--pct, 0%);
   border-radius: 99px;
-  background: var(--adm-gold-fill);
+  background: var(--adm-text-2);
 }
 .dsh-meter__value {
   font-size: 0.72rem;

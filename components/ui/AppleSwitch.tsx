@@ -49,7 +49,7 @@ export function AppleSwitch({
           width: `${width}px`,
           height: `${height}px`,
           borderRadius: '9999px',
-          background: checked ? 'var(--adm-gold-fill, #CCA053)' : 'var(--adm-border-strong, #E5E7EB)',
+          background: checked ? 'var(--adm-sage, #4F6E55)' : 'var(--adm-border-strong, #E5E7EB)',
           border: 'none',
           padding: '2px',
           cursor: disabled ? 'not-allowed' : 'pointer',
@@ -91,7 +91,7 @@ export function AppleSwitch({
             <Loader2
               size={isSm ? 10 : 12}
               className="animate-spin"
-              style={{ color: checked ? 'var(--adm-gold-fill, #CCA053)' : 'var(--adm-text-3, #9CA3AF)' }}
+              style={{ color: checked ? 'var(--adm-sage, #4F6E55)' : 'var(--adm-text-3, #9CA3AF)' }}
             />
           )}
         </div>
@@ -102,7 +102,7 @@ export function AppleSwitch({
           style={{
             fontSize: isSm ? '0.75rem' : '0.8rem',
             fontWeight: 700,
-            color: checked ? 'var(--adm-gold-text, #8A6626)' : 'var(--adm-text-3, #6B7280)',
+            color: checked ? 'var(--adm-text, #1F1B17)' : 'var(--adm-text-3, #6B7280)',
             userSelect: 'none',
             letterSpacing: '0.01em',
           }}

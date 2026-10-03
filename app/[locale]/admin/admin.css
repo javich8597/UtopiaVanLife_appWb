@@ -181,7 +181,7 @@
   transition: color 160ms var(--ease-out);
 }
 .adm-linklist__item:hover {
-  color: var(--adm-gold-text);
+  color: var(--adm-text);
 }
 .adm-linklist__icon {
   color: var(--adm-text-2);
@@ -198,8 +198,8 @@
   justify-content: center;
   font-size: 0.75rem;
   font-weight: 700;
-  background: var(--adm-gold-fill);
-  color: var(--adm-on-gold);
+  background: var(--adm-text);
+  color: var(--adm-surface);
 }
 .adm-linklist__chevron {
   color: var(--adm-text-3);
@@ -207,7 +207,7 @@
 }
 .adm-linklist__item:hover .adm-linklist__chevron {
   transform: translateX(3px);
-  color: var(--adm-gold-text);
+  color: var(--adm-text);
 }
 
 /* ---------- Barra de herramientas: búsqueda + filtros ---------- */
@@ -319,8 +319,8 @@
   font-variant-numeric: tabular-nums;
 }
 .adm-tab--on .adm-tab__count {
-  background: var(--adm-gold-soft);
-  color: var(--adm-gold-text);
+  background: var(--adm-surface-2);
+  color: var(--adm-text);
 }
 
 /* ---------- Chips de estado ---------- */
@@ -426,8 +426,8 @@
   flex-wrap: wrap;
   padding: 10px 14px;
   border-radius: 12px;
-  background: var(--adm-gold-soft);
-  border: 1px solid var(--adm-gold-line);
+  background: var(--adm-surface-2);
+  border: 1px solid var(--adm-border-strong);
   font-size: 0.85rem;
   color: var(--adm-text);
 }
@@ -475,7 +475,7 @@
   transition: transform 180ms var(--ease-out);
 }
 .adm-switch[aria-checked="true"] {
-  background: var(--adm-gold-fill);
+  background: var(--adm-sage);
 }
 .adm-switch[aria-checked="true"]::after {
   transform: translateX(18px);
@@ -701,8 +701,8 @@
   transform: translateY(-2px);
 }
 .adm-stat--on {
-  border-color: var(--adm-gold-fill);
-  box-shadow: 0 0 0 3px var(--adm-gold-soft), var(--adm-card-shadow);
+  border-color: var(--adm-text-3);
+  box-shadow: 0 0 0 3px var(--adm-surface-2), var(--adm-card-shadow);
 }
 .adm-stat .adm-icon-dot { grid-area: icon; width: 48px; height: 48px; }
 .adm-stat__value {

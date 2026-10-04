@@ -3,10 +3,14 @@
 import { useEffect, useMemo, useState } from 'react'
 import Image from 'next/image'
 import dynamic from 'next/dynamic'
-import { AlertTriangle, ChevronDown, Navigation, X, MapPin, Route, ShieldCheck, Waves, Mountain, Home, Moon } from 'lucide-react'
 import {
-  GUIDE_SPOTS, GUIDE_ROUTES, GUIDE_RULES, GUIDE_TIPS, CATEGORY_LABELS,
-  type GuideSpot, type SpotCategory,
+  AlertTriangle, ChevronDown, Navigation, X, MapPin, Route, ShieldCheck, Waves, Sunset, Mountain, Home, Moon,
+  CircleParking, Footprints, Ban, Store, Sunrise, TriangleAlert, Droplets, Recycle, Zap, Fish, Trees, Landmark,
+  Feather, UtensilsCrossed, Users, SquareParking, type LucideIcon,
+} from 'lucide-react'
+import {
+  GUIDE_SPOTS, GUIDE_ROUTES, GUIDE_RULES, GUIDE_TIPS, CATEGORY_LABELS, CATEGORY_COLORS, TAG_META,
+  type GuideSpot, type SpotCategory, type SpotTag, type TagKey,
 } from '@/lib/guide/mallorcaSpots'
 import { useUserTheme } from '@/lib/user/themeContext'
 
@@ -15,17 +19,66 @@ const GuideMap = dynamic(() => import('./GuideMap'), { ssr: false })
 type Tab = 'explorar' | 'rutas' | 'normas'
 type Filter = 'all' | SpotCategory
 
-const CATEGORY_ICONS: Record<SpotCategory, typeof Waves> = {
+const CATEGORY_ICONS: Record<SpotCategory, LucideIcon> = {
   calas: Waves,
-  miradores: Mountain,
+  miradores: Sunset,
+  naturaleza: Mountain,
   pueblos: Home,
   dormir: Moon,
 }
 
-const directionsUrl = (s: GuideSpot) => {
-  const to = s.parking || s
-  return `https://www.google.com/maps/dir/?api=1&destination=${to.lat},${to.lng}`
+const TAG_ICONS: Record<TagKey, LucideIcon> = {
+  'parking-free': CircleParking,
+  'parking-paid': SquareParking,
+  walk: Footprints,
+  'no-services': Ban,
+  services: Store,
+  sunset: Sunset,
+  sunrise: Sunrise,
+  restricted: TriangleAlert,
+  'mountain-road': Mountain,
+  narrow: TriangleAlert,
+  water: Droplets,
+  dump: Recycle,
+  power: Zap,
+  swim: Fish,
+  hike: Trees,
+  history: Landmark,
+  quiet: Feather,
+  food: UtensilsCrossed,
+  family: Users,
 }
+
+const CATEGORIES: SpotCategory[] = ['calas', 'miradores', 'naturaleza', 'pueblos', 'dormir']
+
+const directionsUrl = (to: { lat: number; lng: number }) =>
+  `https://www.google.com/maps/dir/?api=1&destination=${to.lat},${to.lng}`
+
+const pinStyle = (c: SpotCategory) => ({ '--pin': CATEGORY_COLORS[c] }) as React.CSSProperties
+
+function TagPill({ tag, compact = false }: { tag: SpotTag; compact?: boolean }) {
+  const key = typeof tag === 'string' ? tag : tag.key
+  const label = typeof tag === 'string' ? TAG_META[key].label : tag.label
+  const Icon = TAG_ICONS[key]
+  return (
+    <span className={`guide-tag guide-tag--${TAG_META[key].tone} ${compact ? 'guide-tag--compact' : ''}`}>
+      <Icon size={compact ? 12 : 14} aria-hidden="true" />
+      {label}
+    </span>
+  )
+}
+
+/** Portada de color con el icono de la categoría cuando aún no hay foto */
+function SpotCover({ spot, large = false }: { spot: GuideSpot; large?: boolean }) {
+  const Icon = CATEGORY_ICONS[spot.category]
+  return (
+    <span className="guide-cover" style={pinStyle(spot.category)}>
+      <Icon size={large ? 56 : 30} strokeWidth={1.6} aria-hidden="true" />
+    </span>
+  )
+}
+
+const tagKey = (t: SpotTag) => (typeof t === 'string' ? t : t.key)
 
 export default function MallorcaGuideClient() {
   const theme = useUserTheme()
@@ -99,7 +152,7 @@ export default function MallorcaGuideClient() {
       {tab === 'explorar' && (
         <>
           <div className="guide-filters" role="group" aria-label="Filtrar por tipo de lugar">
-            {(['all', 'calas', 'miradores', 'pueblos', 'dormir'] as Filter[]).map(c => (
+            {(['all', ...CATEGORIES] as Filter[]).map(c => (
               <button
                 key={c}
                 type="button"
@@ -107,7 +160,7 @@ export default function MallorcaGuideClient() {
                 aria-pressed={filter === c}
                 onClick={() => { setFilter(c); setSelectedId(null) }}
               >
-                {c !== 'all' && <span className={`guide-dot guide-dot--${c}`} aria-hidden="true" />}
+                {c !== 'all' && <CategoryDot category={c} />}
                 {c === 'all' ? 'Todo' : CATEGORY_LABELS[c]}
                 <span className="guide-filter__count">{countFor(c)}</span>
               </button>
@@ -218,22 +271,34 @@ export default function MallorcaGuideClient() {
   )
 }
 
+function CategoryDot({ category }: { category: SpotCategory }) {
+  const Icon = CATEGORY_ICONS[category]
+  return (
+    <span className="guide-dot" style={pinStyle(category)} aria-hidden="true">
+      <Icon size={12} strokeWidth={2.4} />
+    </span>
+  )
+}
+
 function SpotCard({ spot, active, onOpen, onHover }: { spot: GuideSpot; active: boolean; onOpen: () => void; onHover: () => void }) {
   const Icon = CATEGORY_ICONS[spot.category]
   return (
     <button type="button" className={`usr-card guide-card ${active ? 'is-active' : ''}`} onClick={onOpen} onMouseEnter={onHover} onFocus={onHover}>
       <span className="guide-card__media">
-        <Image src={spot.image} alt="" fill sizes="(max-width: 640px) 120px, 160px" className="guide-card__img" />
+        {spot.image
+          ? <Image src={spot.image} alt="" fill sizes="(max-width: 640px) 120px, 160px" className="guide-card__img" />
+          : <SpotCover spot={spot} />}
+        <span className="guide-card__badge" style={pinStyle(spot.category)}>
+          <Icon size={13} strokeWidth={2.4} aria-hidden="true" />
+        </span>
       </span>
       <span className="guide-card__body">
-        <span className="guide-card__cat">
-          <Icon size={13} aria-hidden="true" /> {CATEGORY_LABELS[spot.category]} · {spot.area}
-        </span>
+        <span className="guide-card__cat">{CATEGORY_LABELS[spot.category]} · {spot.area}</span>
         <strong className="guide-card__name">{spot.name}</strong>
         <span className="guide-card__summary">{spot.summary}</span>
-        {spot.warning && (
-          <span className="guide-card__warn"><AlertTriangle size={13} aria-hidden="true" /> Acceso con restricciones</span>
-        )}
+        <span className="guide-card__tags">
+          {spot.tags.slice(0, 3).map(t => <TagPill key={tagKey(t)} tag={t} compact />)}
+        </span>
       </span>
     </button>
   )
@@ -244,15 +309,31 @@ function SpotSheet({ spot, onClose }: { spot: GuideSpot; onClose: () => void }) 
     <div className="usr-sheet" onClick={onClose}>
       <div className="usr-sheet__panel guide-sheet" role="dialog" aria-modal="true" aria-labelledby="guide-sheet-title" onClick={e => e.stopPropagation()}>
         <div className="guide-sheet__media">
-          <Image src={spot.image} alt={spot.name} fill sizes="(max-width: 640px) 100vw, 520px" className="guide-card__img" />
+          {spot.image
+            ? <Image src={spot.image} alt={spot.name} fill sizes="(max-width: 640px) 100vw, 520px" className="guide-card__img" />
+            : <SpotCover spot={spot} large />}
           <button type="button" className="guide-sheet__close" onClick={onClose} aria-label="Cerrar">
             <X size={18} />
           </button>
         </div>
         <div className="guide-sheet__body">
-          <span className="guide-card__cat">{CATEGORY_LABELS[spot.category]} · {spot.area}</span>
+          <span className="guide-sheet__cat" style={pinStyle(spot.category)}>
+            <CategoryDot category={spot.category} />
+            {CATEGORY_LABELS[spot.category]} · {spot.area}
+          </span>
           <h2 id="guide-sheet-title" className="guide-sheet__title">{spot.name}</h2>
+          <div className="guide-sheet__tags">
+            {spot.tags.map(t => <TagPill key={tagKey(t)} tag={t} />)}
+          </div>
           <p className="guide-sheet__summary">{spot.summary}</p>
+
+          <div className="guide-utopia">
+            <span className="guide-utopia__mark" aria-hidden="true">U</span>
+            <div>
+              <span className="guide-utopia__label">Consejo Utopia</span>
+              <p>{spot.utopiaTip}</p>
+            </div>
+          </div>
 
           {spot.warning && (
             <p className="guide-sheet__warn"><AlertTriangle size={16} aria-hidden="true" /> {spot.warning}</p>
@@ -263,15 +344,16 @@ function SpotSheet({ spot, onClose }: { spot: GuideSpot; onClose: () => void }) 
             <p>{spot.camperTip}</p>
           </div>
 
-          {spot.tags && spot.tags.length > 0 && (
-            <div className="guide-sheet__tags">
-              {spot.tags.map(t => <span key={t} className="usr-chip">{t}</span>)}
-            </div>
-          )}
-
-          <a href={directionsUrl(spot)} target="_blank" rel="noopener noreferrer" className="usr-btn usr-btn--primary usr-btn--block">
-            <Navigation size={16} aria-hidden="true" /> {spot.parking ? 'Ir al aparcamiento' : 'Cómo llegar'}
-          </a>
+          <div className="guide-sheet__actions">
+            <a href={directionsUrl(spot.parking || spot)} target="_blank" rel="noopener noreferrer" className="usr-btn usr-btn--primary">
+              <Navigation size={16} aria-hidden="true" /> {spot.parking ? 'Ir al aparcamiento' : 'Cómo llegar'}
+            </a>
+            {spot.parking && (
+              <a href={directionsUrl(spot)} target="_blank" rel="noopener noreferrer" className="usr-btn">
+                <MapPin size={16} aria-hidden="true" /> Ver el lugar
+              </a>
+            )}
+          </div>
 
           {spot.credit && (
             <p className="guide-sheet__credit">
@@ -364,14 +446,60 @@ function GuideStyles() {
         font-variant-numeric: tabular-nums;
       }
       .guide-dot {
-        width: 9px;
-        height: 9px;
+        width: 22px;
+        height: 22px;
         border-radius: 50%;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        flex-shrink: 0;
+        background: var(--pin);
+        color: #FFFFFF;
       }
-      .guide-dot--calas { background: #3F6683; }
-      .guide-dot--miradores { background: #9A5F22; }
-      .guide-dot--pueblos { background: #4F6E55; }
-      .guide-dot--dormir { background: #8A8075; }
+      .guide-filter.is-active .guide-dot {
+        box-shadow: 0 0 0 2px var(--usr-primary-bg), 0 0 0 3.5px rgba(255, 255, 255, 0.6);
+      }
+
+      /* Etiquetas */
+      .guide-tag {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        min-height: 30px;
+        padding: 5px 11px;
+        border-radius: 999px;
+        font-size: 0.78rem;
+        font-weight: 600;
+        white-space: nowrap;
+        background: var(--usr-surface-2);
+        color: var(--usr-text-2);
+      }
+      .guide-tag--compact {
+        min-height: 24px;
+        padding: 3px 8px;
+        font-size: 0.7rem;
+        gap: 4px;
+      }
+      .guide-tag--sky { background: var(--usr-sky-soft); color: var(--usr-sky); }
+      .guide-tag--amber { background: var(--usr-amber-soft); color: var(--usr-amber); }
+      .guide-tag--sage { background: var(--usr-sage-soft); color: var(--usr-sage); }
+      .guide-tag--rose { background: var(--usr-rose-soft); color: var(--usr-rose); }
+      .guide-tag--gold { background: var(--usr-gold-soft); color: var(--usr-gold-text); }
+      .guide-tag--violet { background: rgba(115, 86, 214, 0.12); color: #6247C2; }
+      .user-layout[data-theme='dark'] .guide-tag--violet { color: #B3A2F2; }
+
+      /* Portada sin foto */
+      .guide-cover {
+        position: absolute;
+        inset: 0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: rgba(255, 255, 255, 0.92);
+        background:
+          radial-gradient(120% 90% at 20% 10%, rgba(255, 255, 255, 0.28) 0%, rgba(255, 255, 255, 0) 55%),
+          linear-gradient(140deg, var(--pin) 0%, color-mix(in srgb, var(--pin) 70%, #1A1714) 100%);
+      }
 
       /* Mapa + lista */
       .guide-layout {
@@ -455,14 +583,26 @@ function GuideStyles() {
         -webkit-box-orient: vertical;
         overflow: hidden;
       }
-      .guide-card__warn {
-        display: inline-flex;
-        align-items: center;
+      .guide-card__tags {
+        display: flex;
+        flex-wrap: wrap;
         gap: 5px;
-        margin-top: 2px;
-        font-size: 0.74rem;
-        font-weight: 600;
-        color: var(--usr-amber);
+        margin-top: 4px;
+      }
+      .guide-card__badge {
+        position: absolute;
+        top: 8px;
+        left: 8px;
+        width: 26px;
+        height: 26px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: var(--pin);
+        color: #FFFFFF;
+        border: 2px solid #FFFFFF;
+        box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
       }
 
       /* Rutas */
@@ -723,6 +863,57 @@ function GuideStyles() {
         display: flex;
         flex-wrap: wrap;
         gap: 6px;
+      }
+      .guide-sheet__cat {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        font-size: 0.78rem;
+        font-weight: 700;
+        color: var(--pin);
+      }
+      .guide-sheet__actions {
+        display: flex;
+        gap: 8px;
+      }
+      .guide-sheet__actions .usr-btn {
+        flex: 1;
+      }
+
+      /* Consejo Utopia */
+      .guide-utopia {
+        display: flex;
+        gap: 14px;
+        padding: 16px 18px;
+        border-radius: 16px;
+        background: linear-gradient(135deg, var(--usr-gold-soft) 0%, var(--usr-surface-2) 100%);
+        border: 1px solid var(--usr-gold-line);
+      }
+      .guide-utopia__mark {
+        width: 34px;
+        height: 34px;
+        border-radius: 10px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-shrink: 0;
+        background: var(--usr-primary-bg);
+        color: var(--usr-primary-text);
+        font-family: var(--font-heading);
+        font-weight: 700;
+      }
+      .guide-utopia__label {
+        font-size: 0.68rem;
+        font-weight: 700;
+        letter-spacing: 0.12em;
+        text-transform: uppercase;
+        color: var(--usr-gold-text);
+      }
+      .guide-utopia p {
+        margin: 3px 0 0;
+        font-size: 0.92rem;
+        line-height: 1.55;
+        color: var(--usr-text);
       }
       .guide-sheet__credit {
         margin: 0;

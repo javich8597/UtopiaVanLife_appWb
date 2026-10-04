@@ -3,6 +3,7 @@ import assert from 'node:assert/strict'
 import { validateDriverLicense } from '../lib/contracts/licenseValidator'
 import { validateContractRequirements, generateContractData } from '../lib/contracts/contractEngine'
 import { generateOfficialContractPdfBlob } from '../lib/contracts/pdfGenerator'
+import { existsSync } from 'node:fs'
 import { GUIDE_SPOTS, GUIDE_ROUTES } from '../lib/guide/mallorcaSpots'
 import { TROUBLESHOOTING_ITEMS } from '../app/[locale]/dashboard/manual/CamperManualClient'
 import { jsPDF } from 'jspdf'
@@ -288,15 +289,16 @@ describe('User Area (/dashboard) — Empirical Stress Testing', () => {
   })
 
   describe('Links, Anchor Tags & Coordinates: /dashboard/guia and /dashboard/manual', () => {
-    test('all guide spots have unique ids, text, a local photo and coordinates inside Mallorca', () => {
+    test('all guide spots have unique ids, text, Utopia tip, tags and coordinates inside Mallorca', () => {
       const ids = new Set<string>()
       for (const spot of GUIDE_SPOTS) {
         assert.ok(!ids.has(spot.id), `Duplicate spot ID found: ${spot.id}`)
         ids.add(spot.id)
-        assert.ok(spot.name.trim() && spot.summary.trim() && spot.camperTip.trim(), `Spot ${spot.id} must have name, summary and camper tip`)
+        assert.ok(spot.name.trim() && spot.summary.trim() && spot.camperTip.trim() && spot.utopiaTip.trim(), `Spot ${spot.id} must have name, summary, camper tip and Utopia tip`)
+        assert.ok(spot.tags.length > 0, `Spot ${spot.id} must have tags`)
         assert.ok(spot.lat >= 39.15 && spot.lat <= 40.05, `Spot ${spot.id} lat ${spot.lat} outside Mallorca`)
         assert.ok(spot.lng >= 2.3 && spot.lng <= 3.55, `Spot ${spot.id} lng ${spot.lng} outside Mallorca`)
-        assert.ok(spot.image.startsWith('/images/'), `Spot ${spot.id} must use a local image`)
+        if (spot.image) assert.ok(existsSync(`public${spot.image}`), `Spot ${spot.id} image not found: ${spot.image}`)
         if (spot.credit) assert.ok(spot.credit.source.startsWith('https://commons.wikimedia.org/wiki/File:'), `Spot ${spot.id} credit must link to Commons`)
       }
     })

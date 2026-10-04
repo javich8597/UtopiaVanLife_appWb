@@ -594,11 +594,8 @@ export default function DocumentsClient({ bookings, profile, user, contractTempl
       {/* ─── Minimalist Header ─── */}
       <div className="mini-docs-header">
         <div className="header-text-block">
-          <div className="header-kicker">
-            <ShieldCheck size={13} />
-            <span>Documentos Oficiales</span>
-          </div>
-          <h1 className="mini-docs-title">Documentación & Facturas</h1>
+          <span className="header-kicker">Documentos</span>
+          <h1 className="mini-docs-title">Contratos y facturas</h1>
           <p className="mini-docs-sub">
             Accede a tus contratos, comprobantes fiscales y pólizas de viaje con su fecha de emisión.
           </p>
@@ -617,7 +614,7 @@ export default function DocumentsClient({ bookings, profile, user, contractTempl
               onClick={() => setSelectedFilter('current')}
               className={`mini-filter-btn ${selectedFilter === 'current' ? 'mini-filter-btn--active' : ''}`}
             >
-              Reserva Actual <span className="pill-qty">{currentCount}</span>
+              Reserva actual <span className="pill-qty">{currentCount}</span>
             </button>
             <button
               onClick={() => setSelectedFilter('invoices')}
@@ -644,7 +641,7 @@ export default function DocumentsClient({ bookings, profile, user, contractTempl
             <span>Preparado para tu próxima aventura</span>
           </div>
           <div className="empty-docs-icon-wrap">
-            <FileText size={38} style={{ color: 'var(--forest-green)' }} />
+            <FileText size={38} style={{ color: 'var(--usr-text)' }} />
           </div>
           <h2 className="empty-docs-title">Aún no tienes documentación generada</h2>
           <p className="empty-docs-desc">
@@ -666,8 +663,8 @@ export default function DocumentsClient({ bookings, profile, user, contractTempl
         /* ─── Minimalist Stack (Unos encima de otros con desplegable) ─── */
         filteredDocuments.length === 0 ? (
           <div className="mini-empty-card">
-            <FileText size={36} style={{ color: '#94A3B8' }} />
-            <p style={{ margin: 0, fontWeight: 600, color: '#1A2B21' }}>No hay documentos en esta categoría</p>
+            <FileText size={36} style={{ color: 'var(--usr-text-3)' }} />
+            <p style={{ margin: 0, fontWeight: 600, color: 'var(--usr-text)' }}>No hay documentos en esta categoría</p>
             <button onClick={() => setSelectedFilter('all')} className="mini-link-btn">
               Mostrar todos los documentos
             </button>
@@ -752,9 +749,9 @@ export default function DocumentsClient({ bookings, profile, user, contractTempl
                             onClick={() => setSigningBooking(targetBooking)}
                             className="btn-action"
                             style={{
-                              background: '#1A2B21',
-                              color: '#ffffff',
-                              border: '1px solid #1A2B21',
+                              background: 'var(--usr-primary-bg)',
+                              color: 'var(--usr-primary-text)',
+                              border: '1px solid var(--usr-primary-bg)',
                               fontWeight: 600
                             }}
                             title="Firmar digitalmente este contrato oficial"
@@ -768,8 +765,8 @@ export default function DocumentsClient({ bookings, profile, user, contractTempl
                               display: 'inline-flex',
                               alignItems: 'center',
                               gap: '4px',
-                              background: '#DCFCE7',
-                              color: '#15803D',
+                              background: 'var(--usr-sage-soft)',
+                              color: 'var(--usr-sage)',
                               padding: '5px 10px',
                               borderRadius: '6px',
                               fontSize: '0.78rem',
@@ -893,7 +890,7 @@ export default function DocumentsClient({ bookings, profile, user, contractTempl
                           <ul className="coverage-box__list">
                             {doc.contentDetails.coverageDetails.map((cov, idx) => (
                               <li key={idx}>
-                                <CheckCircle2 size={13} style={{ color: '#059669', flexShrink: 0, marginTop: 2 }} />
+                                <CheckCircle2 size={13} style={{ color: 'var(--usr-sage)', flexShrink: 0, marginTop: 2 }} />
                                 <span>{cov}</span>
                               </li>
                             ))}
@@ -927,9 +924,9 @@ export default function DocumentsClient({ bookings, profile, user, contractTempl
                                   onClick={() => setSigningBooking(targetBooking)}
                                   className="btn-action"
                                   style={{
-                                    background: '#1A2B21',
-                                    color: '#ffffff',
-                                    border: '1px solid #1A2B21',
+                                    background: 'var(--usr-primary-bg)',
+                                    color: 'var(--usr-primary-text)',
+                                    border: '1px solid var(--usr-primary-bg)',
                                     fontWeight: 600
                                   }}
                                 >
@@ -971,7 +968,7 @@ export default function DocumentsClient({ bookings, profile, user, contractTempl
           <div className="modal-dialog" onClick={(e) => e.stopPropagation()}>
             <div className="modal-top-bar">
               <div className="modal-title-wrap">
-                <span className="font-mono text-xs" style={{ color: '#64748B' }}>{activePreviewDoc.refNumber}</span>
+                <span className="font-mono text-xs" style={{ color: 'var(--usr-text-2)' }}>{activePreviewDoc.refNumber}</span>
                 <h2 className="modal-heading">{activePreviewDoc.title}</h2>
               </div>
               <div className="modal-buttons">
@@ -988,7 +985,7 @@ export default function DocumentsClient({ bookings, profile, user, contractTempl
                           setSigningBooking(targetBooking)
                         }}
                         className="btn-action"
-                        style={{ background: '#1A2B21', color: '#ffffff', border: '1px solid #1A2B21', fontWeight: 600 }}
+                        style={{ background: 'var(--usr-primary-bg)', color: 'var(--usr-primary-text)', border: '1px solid var(--usr-primary-bg)', fontWeight: 600 }}
                       >
                         <PenTool size={14} />
                         <span>Firmar Ahora</span>
@@ -1072,7 +1069,7 @@ export default function DocumentsClient({ bookings, profile, user, contractTempl
               {activePreviewDoc.contentDetails.coverageDetails && (
                 <div className="sheet-coverage-block">
                   <span className="sheet-box-title">Coberturas Póliza Allianz</span>
-                  <ul style={{ margin: '8px 0 0', paddingLeft: 18, fontSize: '0.8rem', color: '#166534' }}>
+                  <ul style={{ margin: '8px 0 0', paddingLeft: 18, fontSize: '0.8rem', color: 'var(--usr-sage)' }}>
                     {activePreviewDoc.contentDetails.coverageDetails.map((c, i) => (
                       <li key={i} style={{ marginBottom: 4 }}>{c}</li>
                     ))}
@@ -1088,12 +1085,12 @@ export default function DocumentsClient({ bookings, profile, user, contractTempl
 
               <div className="sheet-footer-signatures">
                 <div>
-                  <div style={{ fontWeight: 700, fontSize: '0.82rem', color: '#1A2B21' }}>Utopia Van Life S.L.</div>
-                  <div style={{ fontSize: '0.72rem', color: '#64748B' }}>Firma digital autorizada</div>
+                  <div style={{ fontWeight: 700, fontSize: '0.82rem', color: 'var(--usr-text)' }}>Utopia Van Life S.L.</div>
+                  <div style={{ fontSize: '0.72rem', color: 'var(--usr-text-2)' }}>Firma digital autorizada</div>
                 </div>
                 <div className="sheet-valid-seal">
-                  <span style={{ fontWeight: 800, color: '#059669', fontSize: '0.75rem' }}>✓ DOCUMENTO OFICIAL VÁLIDO</span>
-                  <span style={{ fontSize: '0.68rem', color: '#64748B', display: 'block' }}>Código: {activePreviewDoc.refNumber}</span>
+                  <span style={{ fontWeight: 800, color: 'var(--usr-sage)', fontSize: '0.75rem' }}>✓ DOCUMENTO OFICIAL VÁLIDO</span>
+                  <span style={{ fontSize: '0.68rem', color: 'var(--usr-text-2)', display: 'block' }}>Código: {activePreviewDoc.refNumber}</span>
                 </div>
               </div>
             </div>
@@ -1132,31 +1129,28 @@ export default function DocumentsClient({ bookings, profile, user, contractTempl
           align-items: flex-end;
           gap: 16px;
           flex-wrap: wrap;
-          padding-bottom: 16px;
-          border-bottom: 1px solid #E2E8F0;
         }
         .header-kicker {
-          display: inline-flex;
-          align-items: center;
-          gap: 6px;
-          color: #4A5568;
+          display: block;
+          color: var(--usr-gold-text);
           font-size: 0.72rem;
           font-weight: 700;
           text-transform: uppercase;
-          letter-spacing: 0.05em;
-          margin-bottom: 4px;
+          letter-spacing: 0.14em;
+          margin-bottom: 6px;
         }
         .mini-docs-title {
-          font-size: 1.6rem;
-          font-weight: 800;
-          color: #1A2B21;
-          letter-spacing: -0.02em;
-          line-height: 1.2;
-          margin: 0 0 4px 0;
+          font-family: var(--font-heading);
+          font-size: clamp(1.7rem, 3vw, 2.25rem);
+          font-weight: 700;
+          color: var(--usr-text);
+          letter-spacing: -0.03em;
+          line-height: 1.1;
+          margin: 0 0 6px 0;
         }
         .mini-docs-sub {
-          font-size: 0.85rem;
-          color: #64748B;
+          font-size: 0.92rem;
+          color: var(--usr-text-2);
           margin: 0;
           max-width: 580px;
           line-height: 1.4;
@@ -1166,68 +1160,68 @@ export default function DocumentsClient({ bookings, profile, user, contractTempl
         .mini-filter-bar {
           display: flex;
           gap: 6px;
-          background: #F1F5F9;
-          padding: 3px;
-          border-radius: 10px;
+          background: var(--usr-surface-2);
+          padding: 4px;
+          border-radius: 12px;
           flex-wrap: wrap;
         }
         .mini-filter-btn {
           display: inline-flex;
           align-items: center;
           gap: 6px;
+          min-height: 36px;
           padding: 6px 12px;
-          border-radius: 8px;
+          border-radius: 9px;
           border: none;
           background: transparent;
-          color: #64748B;
+          color: var(--usr-text-2);
           font-size: 0.78rem;
           font-weight: 600;
           cursor: pointer;
           transition: all 0.15s ease;
         }
         .mini-filter-btn:hover {
-          color: #1A2B21;
+          color: var(--usr-text);
         }
         .mini-filter-btn--active {
-          background: #FFFFFF;
-          color: #1A2B21;
-          box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+          background: var(--usr-surface);
+          color: var(--usr-text);
+          box-shadow: var(--usr-card-shadow);
         }
         .pill-qty {
           font-size: 0.68rem;
           padding: 1px 5px;
           border-radius: 6px;
-          background: rgba(0, 0, 0, 0.05);
+          background: var(--usr-surface-3);
         }
         .mini-filter-btn--active .pill-qty {
-          background: #1A2B21;
-          color: #FFFFFF;
+          background: var(--usr-primary-bg);
+          color: var(--usr-primary-text);
         }
 
         /* ─── Accordion Stack (Unos encima de otros) ─── */
         .docs-accordion-stack {
           display: flex;
           flex-direction: column;
-          gap: 10px;
+          gap: 12px;
         }
 
         .accordion-item {
-          background: #FFFFFF;
-          border: 1px solid #E2E8F0;
-          border-radius: 14px;
+          background: var(--usr-surface);
+          border: 1px solid var(--usr-card-border);
+          border-radius: 18px;
           overflow: hidden;
+          box-shadow: var(--usr-card-shadow);
           transition: border-color 0.2s ease, box-shadow 0.2s ease;
         }
         .accordion-item:hover {
-          border-color: #CBD5E0;
-          box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+          border-color: var(--usr-border);
         }
         .accordion-item--expanded {
-          border-color: #94A3B8;
-          box-shadow: 0 4px 14px rgba(0, 0, 0, 0.05);
+          border-color: var(--usr-border-strong);
         }
         .accordion-item--past {
-          background: #FAFAFA;
+          background: var(--usr-surface-2);
         }
 
         /* ─── Accordion Header Row ─── */
@@ -1235,7 +1229,7 @@ export default function DocumentsClient({ bookings, profile, user, contractTempl
           display: flex;
           justify-content: space-between;
           align-items: center;
-          padding: 14px 18px;
+          padding: 16px 20px;
           cursor: pointer;
           user-select: none;
           gap: 16px;
@@ -1257,12 +1251,12 @@ export default function DocumentsClient({ bookings, profile, user, contractTempl
           justify-content: center;
           flex-shrink: 0;
         }
-        .mini-icon-box--contract { background: #E0F2FE; color: #0284C7; }
-        .mini-icon-box--invoice { background: #FEF3C7; color: #D97706; }
-        .mini-icon-box--insurance { background: #D1FAE5; color: #059669; }
-        .mini-icon-box--verification { background: #EDE9FE; color: #7C3AED; }
+        .mini-icon-box--contract { background: var(--usr-sky-soft); color: var(--usr-sky); }
+        .mini-icon-box--invoice { background: var(--usr-amber-soft); color: var(--usr-amber); }
+        .mini-icon-box--insurance { background: var(--usr-sage-soft); color: var(--usr-sage); }
+        .mini-icon-box--verification { background: var(--usr-sky-soft); color: var(--usr-sky); }
         .mini-icon-box--checkin { background: #FCE7F3; color: #DB2777; }
-        .mini-icon-box--past { background: #F1F5F9; color: #64748B; }
+        .mini-icon-box--past { background: var(--usr-surface-2); color: var(--usr-text-2); }
 
         .accordion-title-col {
           display: flex;
@@ -1279,7 +1273,7 @@ export default function DocumentsClient({ bookings, profile, user, contractTempl
         .doc-primary-title {
           font-size: 0.92rem;
           font-weight: 700;
-          color: #1A2B21;
+          color: var(--usr-text);
           white-space: nowrap;
           overflow: hidden;
           text-overflow: ellipsis;
@@ -1293,16 +1287,16 @@ export default function DocumentsClient({ bookings, profile, user, contractTempl
         .mini-status-badge--valid,
         .mini-status-badge--verified,
         .mini-status-badge--paid {
-          background: #D1FAE5;
-          color: #047857;
+          background: var(--usr-sage-soft);
+          color: var(--usr-sage);
         }
         .mini-status-badge--archived {
-          background: #F1F5F9;
-          color: #64748B;
+          background: var(--usr-surface-2);
+          color: var(--usr-text-2);
         }
         .mini-status-badge--pending {
-          background: #FEF3C7;
-          color: #B45309;
+          background: var(--usr-amber-soft);
+          color: var(--usr-amber);
         }
 
         .doc-meta-row {
@@ -1310,7 +1304,7 @@ export default function DocumentsClient({ bookings, profile, user, contractTempl
           align-items: center;
           gap: 8px;
           font-size: 0.75rem;
-          color: #64748B;
+          color: var(--usr-text-2);
           flex-wrap: wrap;
         }
         .meta-inline-item {
@@ -1322,10 +1316,10 @@ export default function DocumentsClient({ bookings, profile, user, contractTempl
           color: #CBD5E0;
         }
         .meta-trip {
-          color: #4A5568;
+          color: var(--usr-text-2);
         }
         .meta-price {
-          color: #059669;
+          color: var(--usr-sage);
           font-weight: 700;
         }
         .font-mono {
@@ -1352,28 +1346,28 @@ export default function DocumentsClient({ bookings, profile, user, contractTempl
           border: 1px solid transparent;
         }
         .btn-action--view {
-          background: #F1F5F9;
-          color: #1A2B21;
-          border-color: #E2E8F0;
+          background: var(--usr-surface-2);
+          color: var(--usr-text);
+          border-color: var(--usr-border);
         }
         .btn-action--view:hover {
-          background: #E2E8F0;
-          color: #000000;
+          background: var(--usr-border);
+          color: var(--usr-text);
         }
         .btn-action--download {
-          background: #1A2B21;
-          color: #FFFFFF;
+          background: var(--usr-primary-bg);
+          color: var(--usr-primary-text);
         }
         .btn-action--download:hover {
-          background: #2D4A39;
+          background: var(--usr-primary-bg);
         }
         .btn-chevron {
           width: 30px;
           height: 30px;
           border-radius: 8px;
-          border: 1px solid #E2E8F0;
+          border: 1px solid var(--usr-border);
           background: transparent;
-          color: #64748B;
+          color: var(--usr-text-2);
           display: flex;
           align-items: center;
           justify-content: center;
@@ -1381,14 +1375,14 @@ export default function DocumentsClient({ bookings, profile, user, contractTempl
           transition: all 0.15s ease;
         }
         .btn-chevron:hover {
-          background: #F8FAFC;
-          color: #1A2B21;
+          background: var(--usr-surface-2);
+          color: var(--usr-text);
         }
 
         /* ─── Expandable Body ─── */
         .accordion-body {
-          border-top: 1px solid #EDF2F7;
-          background: #FAFAFA;
+          border-top: 1px solid var(--usr-border);
+          background: var(--usr-surface-2);
           animation: slideDown 0.2s ease-out;
         }
         @keyframes slideDown {
@@ -1403,7 +1397,7 @@ export default function DocumentsClient({ bookings, profile, user, contractTempl
         }
         .body-summary-text {
           font-size: 0.82rem;
-          color: #4A5568;
+          color: var(--usr-text-2);
           margin: 0;
           line-height: 1.45;
         }
@@ -1418,13 +1412,13 @@ export default function DocumentsClient({ bookings, profile, user, contractTempl
           font-weight: 800;
           text-transform: uppercase;
           letter-spacing: 0.05em;
-          color: #718096;
+          color: var(--usr-text-2);
           display: block;
           margin-bottom: 4px;
         }
         .details-card-flat {
-          background: #FFFFFF;
-          border: 1px solid #E2E8F0;
+          background: var(--usr-surface);
+          border: 1px solid var(--usr-border);
           border-radius: 10px;
           padding: 10px 14px;
           display: flex;
@@ -1435,16 +1429,16 @@ export default function DocumentsClient({ bookings, profile, user, contractTempl
           display: flex;
           justify-content: space-between;
           font-size: 0.78rem;
-          color: #4A5568;
+          color: var(--usr-text-2);
         }
         .flat-row strong {
-          color: #1A2B21;
+          color: var(--usr-text);
           text-align: right;
         }
 
         .body-table-wrap {
-          background: #FFFFFF;
-          border: 1px solid #E2E8F0;
+          background: var(--usr-surface);
+          border: 1px solid var(--usr-border);
           border-radius: 10px;
           overflow: hidden;
         }
@@ -1454,8 +1448,8 @@ export default function DocumentsClient({ bookings, profile, user, contractTempl
           font-size: 0.78rem;
         }
         .mini-table th {
-          background: #F1F5F9;
-          color: #4A5568;
+          background: var(--usr-surface-2);
+          color: var(--usr-text-2);
           text-align: left;
           padding: 7px 12px;
           font-size: 0.7rem;
@@ -1463,13 +1457,13 @@ export default function DocumentsClient({ bookings, profile, user, contractTempl
         }
         .mini-table td {
           padding: 8px 12px;
-          border-bottom: 1px solid #EDF2F7;
-          color: #1A2B21;
+          border-bottom: 1px solid var(--usr-border);
+          color: var(--usr-text);
         }
 
         .body-coverage-box {
-          background: #F0FDF4;
-          border: 1px solid #BBF7D0;
+          background: var(--usr-sage-soft);
+          border: 1px solid var(--usr-sage-line);
           border-radius: 10px;
           padding: 12px 14px;
         }
@@ -1477,7 +1471,7 @@ export default function DocumentsClient({ bookings, profile, user, contractTempl
           font-size: 0.72rem;
           font-weight: 800;
           text-transform: uppercase;
-          color: #166534;
+          color: var(--usr-sage);
           display: block;
           margin-bottom: 6px;
         }
@@ -1494,16 +1488,16 @@ export default function DocumentsClient({ bookings, profile, user, contractTempl
           align-items: flex-start;
           gap: 6px;
           font-size: 0.78rem;
-          color: #15803D;
+          color: var(--usr-sage);
         }
 
         .body-legal-bar {
-          background: #FFFFFF;
-          border: 1px solid #E2E8F0;
+          background: var(--usr-surface);
+          border: 1px solid var(--usr-border);
           border-radius: 8px;
           padding: 10px 12px;
           font-size: 0.75rem;
-          color: #64748B;
+          color: var(--usr-text-2);
           line-height: 1.4;
           max-height: 160px;
           overflow-y: auto;
@@ -1515,7 +1509,7 @@ export default function DocumentsClient({ bookings, profile, user, contractTempl
           justify-content: space-between;
           align-items: center;
           padding-top: 10px;
-          border-top: 1px solid #E2E8F0;
+          border-top: 1px solid var(--usr-border);
           flex-wrap: wrap;
           gap: 10px;
         }
@@ -1524,7 +1518,7 @@ export default function DocumentsClient({ bookings, profile, user, contractTempl
           align-items: center;
           gap: 6px;
           font-size: 0.72rem;
-          color: #64748B;
+          color: var(--usr-text-2);
         }
         .sig-dot {
           width: 7px;
@@ -1539,8 +1533,8 @@ export default function DocumentsClient({ bookings, profile, user, contractTempl
 
         /* ─── Empty Card ─── */
         .mini-empty-card {
-          background: #FFFFFF;
-          border: 1px dashed #CBD5E0;
+          background: var(--usr-surface);
+          border: 1px dashed var(--usr-border-strong);
           border-radius: 14px;
           padding: 40px 20px;
           text-align: center;
@@ -1552,7 +1546,7 @@ export default function DocumentsClient({ bookings, profile, user, contractTempl
         .mini-link-btn {
           background: none;
           border: none;
-          color: #0284C7;
+          color: var(--usr-sky);
           font-size: 0.8rem;
           font-weight: 600;
           cursor: pointer;
@@ -1572,13 +1566,13 @@ export default function DocumentsClient({ bookings, profile, user, contractTempl
           padding: 20px;
         }
         .modal-dialog {
-          background: #FFFFFF;
+          background: var(--usr-surface);
           border-radius: 18px;
           width: 100%;
           max-width: 740px;
           max-height: 90vh;
           overflow-y: auto;
-          border: 1px solid #E2E8F0;
+          border: 1px solid var(--usr-border);
           box-shadow: 0 20px 50px rgba(0, 0, 0, 0.25);
         }
         .modal-top-bar {
@@ -1586,7 +1580,7 @@ export default function DocumentsClient({ bookings, profile, user, contractTempl
           top: 0;
           background: rgba(255, 255, 255, 0.95);
           backdrop-filter: blur(8px);
-          border-bottom: 1px solid #E2E8F0;
+          border-bottom: 1px solid var(--usr-border);
           padding: 14px 20px;
           display: flex;
           justify-content: space-between;
@@ -1596,7 +1590,7 @@ export default function DocumentsClient({ bookings, profile, user, contractTempl
         .modal-heading {
           font-size: 1rem;
           font-weight: 800;
-          color: #1A2B21;
+          color: var(--usr-text);
           margin: 0;
         }
         .modal-buttons {
@@ -1608,17 +1602,17 @@ export default function DocumentsClient({ bookings, profile, user, contractTempl
           width: 30px;
           height: 30px;
           border-radius: 50%;
-          background: #F1F5F9;
+          background: var(--usr-surface-2);
           border: none;
-          color: #64748B;
+          color: var(--usr-text-2);
           display: flex;
           align-items: center;
           justify-content: center;
           cursor: pointer;
         }
         .btn-close-modal:hover {
-          background: #E2E8F0;
-          color: #000;
+          background: var(--usr-border);
+          color: var(--usr-text);
         }
 
         .modal-sheet-content {
@@ -1636,26 +1630,26 @@ export default function DocumentsClient({ bookings, profile, user, contractTempl
           font-size: 1.3rem;
           font-weight: 900;
           letter-spacing: 0.05em;
-          color: #1A2B21;
+          color: var(--usr-text);
         }
         .sheet-logo-tagline {
           font-size: 0.72rem;
-          color: #64748B;
+          color: var(--usr-text-2);
           text-transform: uppercase;
         }
         .sheet-cif-text {
           font-size: 0.7rem;
-          color: #94A3B8;
+          color: var(--usr-text-3);
           margin-top: 3px;
         }
         .sheet-doc-ref {
           font-size: 0.95rem;
           font-weight: 800;
-          color: #1A2B21;
+          color: var(--usr-text);
         }
         .sheet-doc-date {
           font-size: 0.75rem;
-          color: #64748B;
+          color: var(--usr-text-2);
           margin-top: 2px;
         }
         .sheet-badge-green {
@@ -1663,14 +1657,14 @@ export default function DocumentsClient({ bookings, profile, user, contractTempl
           margin-top: 4px;
           padding: 2px 8px;
           border-radius: 9999px;
-          background: #D1FAE5;
-          color: #047857;
+          background: var(--usr-sage-soft);
+          color: var(--usr-sage);
           font-size: 0.68rem;
           font-weight: 700;
         }
         .sheet-line {
           height: 2px;
-          background: #1A2B21;
+          background: var(--usr-primary-bg);
         }
         .sheet-boxes-grid {
           display: grid;
@@ -1678,8 +1672,8 @@ export default function DocumentsClient({ bookings, profile, user, contractTempl
           gap: 16px;
         }
         .sheet-box {
-          background: #F8FAFC;
-          border: 1px solid #E2E8F0;
+          background: var(--usr-surface-2);
+          border: 1px solid var(--usr-border);
           border-radius: 10px;
           padding: 12px 14px;
           display: flex;
@@ -1690,7 +1684,7 @@ export default function DocumentsClient({ bookings, profile, user, contractTempl
           font-size: 0.68rem;
           font-weight: 800;
           text-transform: uppercase;
-          color: #64748B;
+          color: var(--usr-text-2);
           display: block;
           margin-bottom: 2px;
         }
@@ -1698,10 +1692,10 @@ export default function DocumentsClient({ bookings, profile, user, contractTempl
           display: flex;
           justify-content: space-between;
           font-size: 0.78rem;
-          color: #4A5568;
+          color: var(--usr-text-2);
         }
         .sheet-box-row strong {
-          color: #1A2B21;
+          color: var(--usr-text);
         }
         .sheet-full-table {
           width: 100%;
@@ -1709,8 +1703,8 @@ export default function DocumentsClient({ bookings, profile, user, contractTempl
           font-size: 0.8rem;
         }
         .sheet-full-table th {
-          background: #1A2B21;
-          color: #FFFFFF;
+          background: var(--usr-primary-bg);
+          color: var(--usr-primary-text);
           text-align: left;
           padding: 8px 12px;
           font-size: 0.72rem;
@@ -1718,32 +1712,32 @@ export default function DocumentsClient({ bookings, profile, user, contractTempl
         }
         .sheet-full-table td {
           padding: 9px 12px;
-          border-bottom: 1px solid #E2E8F0;
-          color: #1A2B21;
+          border-bottom: 1px solid var(--usr-border);
+          color: var(--usr-text);
         }
         .sheet-coverage-block {
-          background: #F0FDF4;
-          border: 1px solid #BBF7D0;
+          background: var(--usr-sage-soft);
+          border: 1px solid var(--usr-sage-line);
           border-radius: 10px;
           padding: 12px 14px;
         }
         .sheet-clause-box {
-          background: #F8FAFC;
-          border: 1px solid #E2E8F0;
+          background: var(--usr-surface-2);
+          border: 1px solid var(--usr-border);
           border-radius: 8px;
           padding: 10px;
           font-size: 0.75rem;
-          color: #64748B;
+          color: var(--usr-text-2);
         }
         .sheet-footer-signatures {
           display: flex;
           justify-content: space-between;
           align-items: flex-end;
           padding-top: 14px;
-          border-top: 1px solid #E2E8F0;
+          border-top: 1px solid var(--usr-border);
         }
         .sheet-valid-seal {
-          border: 1px dashed #CBD5E0;
+          border: 1px dashed var(--usr-border-strong);
           border-radius: 8px;
           padding: 8px 14px;
           text-align: center;
@@ -1861,8 +1855,8 @@ export default function DocumentsClient({ bookings, profile, user, contractTempl
 
           /* ─── Base Empty Docs Container ─── */
           .empty-docs-container {
-            background: #FFFFFF;
-            border: 1px solid #E5E7EB;
+            background: var(--usr-surface);
+            border: 1px solid var(--usr-border);
             border-radius: var(--radius-xl, 16px);
             padding: 56px 32px;
             text-align: center;
@@ -1880,7 +1874,7 @@ export default function DocumentsClient({ bookings, profile, user, contractTempl
             align-items: center;
             gap: 6px;
             background: #F4F1EA;
-            color: #1A2B21;
+            color: var(--usr-text);
             font-size: 0.75rem;
             font-weight: 700;
             text-transform: uppercase;
@@ -1893,7 +1887,7 @@ export default function DocumentsClient({ bookings, profile, user, contractTempl
             width: 76px;
             height: 76px;
             border-radius: 50%;
-            background: #E8F5E9;
+            background: var(--usr-sage-soft);
             display: flex;
             align-items: center;
             justify-content: center;
@@ -1902,13 +1896,13 @@ export default function DocumentsClient({ bookings, profile, user, contractTempl
           .empty-docs-title {
             font-size: 1.5rem;
             font-weight: 800;
-            color: #1A2B21;
+            color: var(--usr-text);
             margin: 0 0 10px 0;
             letter-spacing: -0.02em;
           }
           .empty-docs-desc {
             font-size: 0.95rem;
-            color: #4B5563;
+            color: var(--usr-text-2);
             max-width: 600px;
             line-height: 1.6;
             margin: 0 0 32px 0;
@@ -1927,8 +1921,8 @@ export default function DocumentsClient({ bookings, profile, user, contractTempl
             display: flex;
             align-items: flex-start;
             gap: 14px;
-            background: #FAF8F5;
-            border: 1px solid #EAE5DC;
+            background: var(--usr-surface-2);
+            border: 1px solid var(--usr-border);
             border-radius: var(--radius-lg, 12px);
             padding: 16px 18px;
             box-sizing: border-box;
@@ -1937,23 +1931,23 @@ export default function DocumentsClient({ bookings, profile, user, contractTempl
             width: 38px;
             height: 38px;
             border-radius: 10px;
-            background: #FFFFFF;
-            border: 1px solid #E2DDD5;
+            background: var(--usr-surface);
+            border: 1px solid var(--usr-border);
             display: flex;
             align-items: center;
             justify-content: center;
-            color: #1A2B21;
+            color: var(--usr-text);
             flex-shrink: 0;
           }
           .empty-feature-title {
             font-size: 0.88rem;
             font-weight: 700;
-            color: #1A2B21;
+            color: var(--usr-text);
             margin: 0 0 4px 0;
           }
           .empty-feature-text {
             font-size: 0.8rem;
-            color: #6B7280;
+            color: var(--usr-text-2);
             line-height: 1.4;
             margin: 0;
           }

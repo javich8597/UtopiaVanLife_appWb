@@ -111,50 +111,50 @@ const CATEGORIES: CategoryMeta[] = [
     id: 'all',
     label: 'Todos',
     icon: LayoutGrid,
-    color: '#1A2B21',
-    bg: '#F5F5F3',
-    border: '#E2E8F0',
-    text: '#1A2B21',
+    color: 'var(--usr-text)',
+    bg: 'var(--usr-surface-2)',
+    border: 'var(--usr-border)',
+    text: 'var(--usr-text)',
     pulse: 'rgba(26, 43, 33, 0.3)',
   },
   {
     id: 'calas',
     label: 'Calas',
     icon: Waves,
-    color: '#0284C7',
-    bg: '#E0F2FE',
-    border: '#BAE6FD',
-    text: '#0369A1',
+    color: 'var(--usr-sky)',
+    bg: 'var(--usr-sky-soft)',
+    border: 'var(--usr-sky-line)',
+    text: 'var(--usr-sky)',
     pulse: 'rgba(2, 132, 199, 0.35)',
   },
   {
     id: 'miradores',
     label: 'Miradores',
     icon: SunsetIcon,
-    color: '#D97706',
-    bg: '#FEF3C7',
-    border: '#FDE68A',
-    text: '#B45309',
+    color: 'var(--usr-amber)',
+    bg: 'var(--usr-amber-soft)',
+    border: 'var(--usr-amber-line)',
+    text: 'var(--usr-amber)',
     pulse: 'rgba(217, 119, 6, 0.35)',
   },
   {
     id: 'pernocta',
     label: 'Pernocta',
     icon: CrescentMoonIcon,
-    color: '#7C3AED',
-    bg: '#EDE9FE',
-    border: '#DDD6FE',
-    text: '#6D28D9',
+    color: 'var(--usr-gold-text)',
+    bg: 'var(--usr-gold-soft)',
+    border: 'var(--usr-gold-line)',
+    text: 'var(--usr-gold-text)',
     pulse: 'rgba(124, 58, 237, 0.35)',
   },
   {
     id: 'servicios',
     label: 'Servicios',
     icon: WrenchIcon,
-    color: '#059669',
-    bg: '#D1FAE5',
-    border: '#A7F3D0',
-    text: '#047857',
+    color: 'var(--usr-sage)',
+    bg: 'var(--usr-sage-soft)',
+    border: 'var(--usr-sage-line)',
+    text: 'var(--usr-sage)',
     pulse: 'rgba(5, 150, 105, 0.35)',
   },
 ]
@@ -172,7 +172,7 @@ const SUGGESTED_ROUTES: SuggestedRoute[] = [
     distance: '140 km',
     description: 'La ruta reina de Mallorca por la legendaria carretera Ma-10 (Patrimonio UNESCO). Acantilados sobrecogedores, pueblos de piedra y las puestas de sol más mágicas.',
     highlightSpotIds: ['sant-elm-dragonera', 'mirador-des-grau', 'mirador-ses-animes', 'port-valldemossa', 'mirador-sa-foradada', 'soller-santa-catalina', 'sa-calobra-torrent', 'nus-sa-corbata', 'santuari-lluc', 'mirador-colomer'],
-    color: '#0284C7'
+    color: 'var(--usr-sky)'
   },
   {
     id: 'calas-levante',
@@ -181,7 +181,7 @@ const SUGGESTED_ROUTES: SuggestedRoute[] = [
     distance: '95 km',
     description: 'Aguas cristalinas, piscinas naturales entre acantilados de roca blanca, cuevas marinas secretas y la tranquilidad virgen del Parque Natural de Llevant.',
     highlightSpotIds: ['cala-pi-torre', 'far-ses-salines', 'cala-llombards-almunia', 'cala-mondrago', 'cala-varques', 'torre-serral-falcons', 'cuevas-arta-canyamel', 'cala-lliteres-agulla', 'cala-mitjana-duaia', 'betlem-arta', 'son-serra-marina'],
-    color: '#10B981'
+    color: 'var(--usr-sage)'
   },
   {
     id: 'norte-faros',
@@ -190,7 +190,7 @@ const SUGGESTED_ROUTES: SuggestedRoute[] = [
     distance: '85 km',
     description: 'Desde la inmensa playa virgen de Son Serra hasta los acantilados infinitos de Formentor, recorriendo las bahías de Alcúdia y Pollença con atalayas defensivas.',
     highlightSpotIds: ['son-serra-marina', 'parking-la-victoria', 'cami-vell-victoria', 'sant-vicenc-pollença', 'playa-formentor', 'atalaya-albercutx', 'mirador-colomer'],
-    color: '#F59E0B'
+    color: 'var(--usr-amber)'
   }
 ]
 
@@ -1237,14 +1237,13 @@ export default function MallorcaGuideClient() {
       <header className="guia-header">
         <div className="guia-header__content">
           <div className="guia-header__badge">
-            <Compass size={14} className="text-[#B88746]" />
-            <span>Guía de Viaje · Mallorca Edition</span>
+            <span>Guía de Mallorca</span>
           </div>
           <h1 className="guia-header__title">
-            Mapa Interactivo & Guía Mallorca
+            Calas, miradores y dónde dormir
           </h1>
           <p className="guia-header__subtitle">
-            Descubre las mejores calas vírgenes, áreas de pernocta seleccionadas y puntos de servicio camper en la isla. Una selección cuidada para una experiencia nómada de lujo silencioso con cartografía y relieve real.
+            Nuestra selección de spots en la isla: calas tranquilas, pernoctas permitidas y puntos de servicio para tu camper.
           </p>
         </div>
 
@@ -1265,19 +1264,19 @@ export default function MallorcaGuideClient() {
         <nav className="guide-quick-nav">
           <a href="#mapa-spots" className="guide-nav-tab">
             <MapPin size={14} />
-            <span>Mapa & 35 Spots</span>
+            <span>Mapa de spots</span>
           </a>
           <a href="#normativa-pernocta" className="guide-nav-tab">
             <Scale size={14} />
-            <span>Normativa Legal DGT</span>
+            <span>Normativa de pernocta</span>
           </a>
           <a href="#puntos-agua" className="guide-nav-tab">
             <Droplets size={14} />
-            <span>Puntos de Agua & Vaciado</span>
+            <span>Agua y vaciado</span>
           </a>
           <a href="#consejos-nomadas" className="guide-nav-tab">
             <Sparkles size={14} />
-            <span>Consejos Nómadas</span>
+            <span>Consejos</span>
           </a>
         </nav>
       </header>
@@ -1295,9 +1294,9 @@ export default function MallorcaGuideClient() {
                 onClick={() => setSelectedCategory(cat.id)}
                 className={`stitch-category-pill ${isActive ? 'stitch-category-pill--active' : ''}`}
                 style={{
-                  backgroundColor: isActive ? cat.bg : '#FFFFFF',
-                  borderColor: isActive ? cat.border : '#E2E8F0',
-                  color: isActive ? cat.text : '#4A5568',
+                  backgroundColor: isActive ? cat.bg : 'var(--usr-surface)',
+                  borderColor: isActive ? cat.border : 'var(--usr-border)',
+                  color: isActive ? cat.text : 'var(--usr-text-2)',
                 }}
               >
                 <Icon size={15} style={{ color: cat.color }} />
@@ -1305,8 +1304,8 @@ export default function MallorcaGuideClient() {
                 <span
                   className="pill-count"
                   style={{
-                    backgroundColor: isActive ? 'rgba(0,0,0,0.06)' : '#F1F5F9',
-                    color: isActive ? cat.text : '#64748B',
+                    backgroundColor: isActive ? 'var(--usr-surface)' : 'var(--usr-surface-2)',
+                    color: isActive ? cat.text : 'var(--usr-text-3)',
                   }}
                 >
                   {count}
@@ -1426,7 +1425,7 @@ export default function MallorcaGuideClient() {
 
                   {activeSpot.sergioNote && (
                     <div className="stitch-popover__note">
-                      <span style={{ fontWeight: 700, color: '#1A2B21' }}>⭐ Consejo Utopia:</span> {activeSpot.sergioNote}
+                      <span style={{ fontWeight: 700, color: 'var(--usr-text)' }}>⭐ Consejo Utopia:</span> {activeSpot.sergioNote}
                     </div>
                   )}
 
@@ -1561,13 +1560,13 @@ export default function MallorcaGuideClient() {
                     {/* Sergio's authentic note */}
                     {spot.sergioNote && (
                       <div className="spot-card__sergio-box">
-                        <span style={{ fontWeight: 700, color: '#1A2B21' }}>⭐ Consejo Utopia:</span> {spot.sergioNote}
+                        <span style={{ fontWeight: 700, color: 'var(--usr-text)' }}>⭐ Consejo Utopia:</span> {spot.sergioNote}
                       </div>
                     )}
 
                     {/* Camper access tip */}
                     <div className="spot-card__tip">
-                      <span style={{ fontWeight: 600, color: 'var(--gray-800)' }}>🚐 Acceso camper:</span> {spot.accessTip}
+                      <span style={{ fontWeight: 600, color: 'var(--usr-text)' }}>🚐 Acceso camper:</span> {spot.accessTip}
                     </div>
 
                     {/* Metadata tags */}
@@ -1641,19 +1640,19 @@ export default function MallorcaGuideClient() {
               <span className="normativa-rules-title">Requisitos para considerarse estacionamiento:</span>
               <ul className="normativa-rules-list">
                 <li>
-                  <Check size={14} style={{ color: '#15803D', flexShrink: 0 }} />
+                  <Check size={14} style={{ color: 'var(--usr-sage)', flexShrink: 0 }} />
                   <span>El vehículo se apoya únicamente sobre sus 4 ruedas (sin patas estabilizadoras).</span>
                 </li>
                 <li>
-                  <Check size={14} style={{ color: '#15803D', flexShrink: 0 }} />
+                  <Check size={14} style={{ color: 'var(--usr-sage)', flexShrink: 0 }} />
                   <span>No sobresale ningún elemento del perímetro de la furgoneta (ventanas batientes cerradas o dentro de gálibo).</span>
                 </li>
                 <li>
-                  <Check size={14} style={{ color: '#15803D', flexShrink: 0 }} />
+                  <Check size={14} style={{ color: 'var(--usr-sage)', flexShrink: 0 }} />
                   <span>Se puede abrir la claraboya superior y elevar el techo elevable (modelo SPACE) ya que no supera el perímetro en planta.</span>
                 </li>
                 <li>
-                  <Check size={14} style={{ color: '#15803D', flexShrink: 0 }} />
+                  <Check size={14} style={{ color: 'var(--usr-sage)', flexShrink: 0 }} />
                   <span>Toda la actividad (cocinar, cenar, dormir) se desarrolla estrictamente en el habitáculo interior.</span>
                 </li>
               </ul>
@@ -1678,19 +1677,19 @@ export default function MallorcaGuideClient() {
               <span className="normativa-rules-title">Acciones que constituyen acampada ilegal:</span>
               <ul className="normativa-rules-list">
                 <li>
-                  <X size={14} style={{ color: '#B91C1C', flexShrink: 0 }} />
+                  <X size={14} style={{ color: 'var(--usr-rose)', flexShrink: 0 }} />
                   <span>Desplegar el toldo exterior fijado a la furgoneta.</span>
                 </li>
                 <li>
-                  <X size={14} style={{ color: '#B91C1C', flexShrink: 0 }} />
+                  <X size={14} style={{ color: 'var(--usr-rose)', flexShrink: 0 }} />
                   <span>Sacar sillas, mesas, hamacas o tendederos al asfalto o tierra.</span>
                 </li>
                 <li>
-                  <X size={14} style={{ color: '#B91C1C', flexShrink: 0 }} />
+                  <X size={14} style={{ color: 'var(--usr-rose)', flexShrink: 0 }} />
                   <span>Colocar calzos niveladores (salvo en fuerte pendiente por seguridad según Código de Circulación).</span>
                 </li>
                 <li>
-                  <X size={14} style={{ color: '#B91C1C', flexShrink: 0 }} />
+                  <X size={14} style={{ color: 'var(--usr-rose)', flexShrink: 0 }} />
                   <span>Verter cualquier tipo de residuo, detergente o agua residual en el terreno.</span>
                 </li>
               </ul>
@@ -1701,7 +1700,7 @@ export default function MallorcaGuideClient() {
         {/* Espacios Protegidos en Mallorca Box */}
         <div className="protected-spaces-box">
           <div className="protected-spaces-header">
-            <ShieldCheck size={18} style={{ color: '#B88746' }} />
+            <ShieldCheck size={18} style={{ color: 'var(--usr-gold-text)' }} />
             <h4 className="protected-spaces-title">Espacios Naturales Protegidos & Restricciones Insulares</h4>
           </div>
           <div className="protected-spaces-grid">
@@ -1747,14 +1746,14 @@ export default function MallorcaGuideClient() {
               </div>
               <h3 className="water-card__name">{wp.name}</h3>
               <p className="water-card__location">
-                <MapPin size={13} style={{ color: '#0284C7', flexShrink: 0 }} />
+                <MapPin size={13} style={{ color: 'var(--usr-sky)', flexShrink: 0 }} />
                 <span>{wp.location}</span>
               </p>
 
               <div className="water-card__services">
                 {wp.services.map((srv, idx) => (
                   <span key={idx} className="water-service-chip">
-                    <Check size={11} style={{ color: '#0284C7' }} />
+                    <Check size={11} style={{ color: 'var(--usr-sky)' }} />
                     <span>{srv}</span>
                   </span>
                 ))}
@@ -1878,9 +1877,9 @@ export default function MallorcaGuideClient() {
           width: 32px;
           height: 32px;
           border-radius: 50%;
-          background: #FFFFFF;
-          color: #1A2B21;
-          border: 2px solid #FFFFFF;
+          background: var(--usr-surface);
+          color: var(--usr-text);
+          border: 2px solid var(--usr-border);
           box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);
           display: flex;
           align-items: center;
@@ -1888,8 +1887,8 @@ export default function MallorcaGuideClient() {
           transition: all 0.2s ease;
         }
         .stitch-leaflet-circle--selected {
-          background: #1A2B21 !important;
-          color: #FFFFFF !important;
+          background: var(--usr-primary-bg) !important;
+          color: var(--usr-primary-text) !important;
           border-color: #F5E6D3 !important;
           box-shadow: 0 0 0 4px rgba(26, 43, 33, 0.4), 0 8px 20px rgba(0, 0, 0, 0.35);
         }
@@ -1939,7 +1938,7 @@ export default function MallorcaGuideClient() {
           display: flex;
           flex-direction: column;
           gap: 28px;
-          color: #2D3748;
+          color: var(--usr-text);
           max-width: 1240px;
           margin: 0 auto;
           padding-bottom: 60px;
@@ -1956,31 +1955,35 @@ export default function MallorcaGuideClient() {
         }
         @media (min-width: 1024px) {
           .guia-header {
-            flex-direction: row;
-            align-items: flex-start;
+            display: grid;
+            grid-template-columns: minmax(0, 1fr) auto;
+            align-items: end;
+            column-gap: 24px;
+          }
+          .guide-quick-nav {
+            grid-column: 1 / -1;
           }
         }
         .guia-header__badge {
-          display: inline-flex;
-          align-items: center;
-          gap: 6px;
-          font-size: 0.75rem;
+          display: block;
+          font-size: 0.72rem;
           font-weight: 700;
-          letter-spacing: 0.08em;
+          letter-spacing: 0.14em;
           text-transform: uppercase;
-          color: #718096;
-          margin-bottom: 8px;
+          color: var(--usr-gold-text);
+          margin-bottom: 6px;
         }
         .guia-header__title {
           font-family: var(--font-heading), sans-serif;
-          font-size: clamp(1.8rem, 3.5vw, 2.5rem);
+          font-size: clamp(1.7rem, 3vw, 2.25rem);
           font-weight: 700;
-          color: #1A2B21;
-          line-height: 1.18;
-          margin-bottom: 12px;
+          color: var(--usr-text);
+          line-height: 1.1;
+          letter-spacing: -0.03em;
+          margin: 0 0 8px;
         }
         .guia-header__subtitle {
-          color: #718096;
+          color: var(--usr-text-2);
           max-width: 720px;
           font-size: 0.95rem;
           line-height: 1.6;
@@ -1991,8 +1994,8 @@ export default function MallorcaGuideClient() {
           gap: 8px;
           padding: 12px 24px;
           border-radius: 10px;
-          background: #1A2B21;
-          color: #FFFFFF;
+          background: var(--usr-primary-bg);
+          color: var(--usr-primary-text);
           font-size: 0.88rem;
           font-weight: 600;
           text-decoration: none;
@@ -2024,9 +2027,9 @@ export default function MallorcaGuideClient() {
           gap: 6px;
           padding: 7px 14px;
           border-radius: 9999px;
-          border: 1px solid #E2E8F0;
-          background: #FFFFFF;
-          color: #4A5568;
+          border: 1px solid var(--usr-border);
+          background: var(--usr-surface);
+          color: var(--usr-text-2);
           font-size: 0.8rem;
           font-weight: 600;
           cursor: pointer;
@@ -2054,9 +2057,9 @@ export default function MallorcaGuideClient() {
           flex-wrap: wrap;
           align-items: center;
           padding: 4px 6px;
-          background: #F8FAFC;
+          background: var(--usr-surface-2);
           border-radius: 9999px;
-          border: 1px solid #E2E8F0;
+          border: 1px solid var(--usr-border);
           width: fit-content;
           max-width: 100%;
         }
@@ -2068,7 +2071,7 @@ export default function MallorcaGuideClient() {
           border-radius: 9999px;
           border: 1px solid transparent;
           background: transparent;
-          color: #64748B;
+          color: var(--usr-text-2);
           font-size: 0.75rem;
           font-weight: 600;
           cursor: pointer;
@@ -2076,15 +2079,15 @@ export default function MallorcaGuideClient() {
           transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
         }
         .zone-pill:hover {
-          background: #FFFFFF;
-          color: #1A2B21;
-          border-color: #E2E8F0;
+          background: var(--usr-surface);
+          color: var(--usr-text);
+          border-color: var(--usr-border);
           box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
         }
         .zone-pill--active {
-          background: #1A2B21 !important;
-          color: #FFFFFF !important;
-          border-color: #1A2B21 !important;
+          background: var(--usr-primary-bg) !important;
+          color: var(--usr-primary-text) !important;
+          border-color: var(--usr-primary-bg) !important;
           box-shadow: 0 2px 6px rgba(26, 43, 33, 0.2);
         }
         .zone-pill__count {
@@ -2101,8 +2104,8 @@ export default function MallorcaGuideClient() {
 
         /* ─── Suggested Routes Bar ─── */
         .routes-bar {
-          background: #FFFFFF;
-          border: 1px solid #E2E8F0;
+          background: var(--usr-surface);
+          border: 1px solid var(--usr-border);
           border-radius: 16px;
           padding: 14px 18px;
           display: flex;
@@ -2121,16 +2124,16 @@ export default function MallorcaGuideClient() {
           gap: 8px;
         }
         .routes-bar__icon {
-          color: #1A2B21;
+          color: var(--usr-text);
         }
         .routes-bar__text {
           font-weight: 700;
           font-size: 0.9rem;
-          color: #1A2B21;
+          color: var(--usr-text);
         }
         .routes-bar__clear {
           font-size: 0.75rem;
-          color: #E53E3E;
+          color: var(--usr-rose);
           background: none;
           border: none;
           font-weight: 600;
@@ -2149,18 +2152,18 @@ export default function MallorcaGuideClient() {
           align-items: center;
           gap: 12px;
           padding: 10px 14px;
-          background: #F7FAFC;
-          border: 1.5px solid #E2E8F0;
+          background: var(--usr-surface-2);
+          border: 1.5px solid var(--usr-border);
           border-radius: 12px;
           cursor: pointer;
           transition: all 0.2s ease;
         }
         .route-pill:hover {
-          border-color: #CBD5E0;
+          border-color: var(--usr-border-strong);
           transform: translateY(-1px);
         }
         .route-pill--active {
-          background: #F0FDF4;
+          background: var(--usr-sage-soft);
           box-shadow: 0 2px 10px rgba(26, 43, 33, 0.06);
         }
         .route-pill__indicator {
@@ -2172,12 +2175,12 @@ export default function MallorcaGuideClient() {
         .route-pill__title {
           font-size: 0.82rem;
           font-weight: 700;
-          color: #1A2B21;
+          color: var(--usr-text);
           line-height: 1.25;
         }
         .route-pill__meta {
           font-size: 0.72rem;
-          color: #718096;
+          color: var(--usr-text-2);
           margin-top: 2px;
         }
 
@@ -2187,9 +2190,9 @@ export default function MallorcaGuideClient() {
           width: 100%;
           border-radius: 20px;
           overflow: hidden;
-          background: #FFFFFF;
+          background: var(--usr-surface);
           box-shadow: 0 8px 30px rgba(0, 0, 0, 0.08);
-          border: 1px solid #E2E8F0;
+          border: 1px solid var(--usr-border);
         }
 
         .map-layer-bar {
@@ -2197,8 +2200,8 @@ export default function MallorcaGuideClient() {
           justify-content: space-between;
           align-items: center;
           padding: 10px 16px;
-          background: #F8FAFC;
-          border-bottom: 1px solid #E2E8F0;
+          background: var(--usr-surface-2);
+          border-bottom: 1px solid var(--usr-border);
           gap: 10px;
           flex-wrap: wrap;
         }
@@ -2215,26 +2218,26 @@ export default function MallorcaGuideClient() {
           border-radius: 8px;
           font-size: 0.76rem;
           font-weight: 600;
-          background: #FFFFFF;
-          border: 1px solid #E2E8F0;
-          color: #4A5568;
+          background: var(--usr-surface);
+          border: 1px solid var(--usr-border);
+          color: var(--usr-text-2);
           cursor: pointer;
           transition: all 0.2s ease;
         }
         .map-layer-btn:hover {
-          border-color: #CBD5E0;
-          color: #1A2B21;
+          border-color: var(--usr-border-strong);
+          color: var(--usr-text);
         }
         .map-layer-btn--active {
-          background: #1A2B21;
-          color: #FFFFFF;
-          border-color: #1A2B21;
+          background: var(--usr-primary-bg);
+          color: var(--usr-primary-text);
+          border-color: var(--usr-primary-bg);
         }
         .map-spots-counter {
           font-size: 0.76rem;
           font-weight: 600;
-          color: #718096;
-          background: #EDF2F7;
+          color: var(--usr-text-2);
+          background: var(--usr-surface-2);
           padding: 4px 10px;
           border-radius: 9999px;
         }
@@ -2249,7 +2252,7 @@ export default function MallorcaGuideClient() {
         .leaflet-map-canvas {
           width: 100%;
           height: 100%;
-          background: #E2E8F0;
+          background: var(--usr-border);
         }
 
         /* ─── Floating Popover Card on Map (Stitch Glassmorphism) ─── */
@@ -2329,12 +2332,12 @@ export default function MallorcaGuideClient() {
         .stitch-popover__title {
           font-size: 0.92rem;
           font-weight: 700;
-          color: #1A2B21;
+          color: var(--usr-text);
           line-height: 1.25;
         }
         .stitch-popover__zone {
           font-size: 0.7rem;
-          color: #718096;
+          color: var(--usr-text-2);
           font-weight: 600;
           text-transform: uppercase;
         }
@@ -2349,14 +2352,14 @@ export default function MallorcaGuideClient() {
           gap: 4px;
           padding: 2px 7px;
           border-radius: 6px;
-          background: #F1F5F9;
+          background: var(--usr-surface-2);
           font-size: 0.68rem;
           font-weight: 600;
-          color: #475569;
+          color: var(--usr-text-2);
         }
         .stitch-popover__desc {
           font-size: 0.75rem;
-          color: #64748B;
+          color: var(--usr-text-2);
           line-height: 1.4;
           display: -webkit-box;
           -webkit-line-clamp: 2;
@@ -2365,17 +2368,17 @@ export default function MallorcaGuideClient() {
         }
         .stitch-popover__note {
           font-size: 0.72rem;
-          color: #334155;
-          background: #FEF3C7;
-          border: 1px solid #FDE68A;
+          color: var(--usr-text);
+          background: var(--usr-amber-soft);
+          border: 1px solid var(--usr-amber-line);
           padding: 6px 8px;
           border-radius: 8px;
           line-height: 1.35;
         }
         .stitch-popover__btn {
           width: 100%;
-          background: #1A2B21;
-          color: #FFFFFF;
+          background: var(--usr-primary-bg);
+          color: var(--usr-primary-text);
           font-size: 0.78rem;
           font-weight: 600;
           padding: 8px;
@@ -2405,8 +2408,8 @@ export default function MallorcaGuideClient() {
           width: 38px;
           height: 38px;
           border-radius: 50%;
-          background: #FFFFFF;
-          color: #4A5568;
+          background: var(--usr-surface);
+          color: var(--usr-text-2);
           border: 1px solid rgba(0, 0, 0, 0.08);
           box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
           display: flex;
@@ -2416,8 +2419,8 @@ export default function MallorcaGuideClient() {
           transition: all 0.2s ease;
         }
         .stitch-ctrl-btn:hover {
-          background: #F7FAFC;
-          color: #1A2B21;
+          background: var(--usr-surface-2);
+          color: var(--usr-text);
           transform: scale(1.05);
         }
 
@@ -2432,18 +2435,18 @@ export default function MallorcaGuideClient() {
           display: flex;
           justify-content: space-between;
           align-items: flex-end;
-          border-bottom: 1px solid #E2E8F0;
+          border-bottom: 1px solid var(--usr-border);
           padding-bottom: 12px;
         }
         .highlights-title {
           font-family: var(--font-heading), sans-serif;
           font-size: 1.6rem;
           font-weight: 700;
-          color: #1A2B21;
+          color: var(--usr-text);
         }
         .highlights-count {
           font-size: 0.85rem;
-          color: #718096;
+          color: var(--usr-text-2);
           font-weight: 500;
         }
 
@@ -2453,10 +2456,10 @@ export default function MallorcaGuideClient() {
           gap: 24px;
         }
         .spot-card {
-          background: #FFFFFF;
+          background: var(--usr-surface);
           border-radius: 16px;
           overflow: hidden;
-          border: 1px solid #EDF2F7;
+          border: 1px solid var(--usr-border);
           box-shadow: 0 2px 10px rgba(0, 0, 0, 0.04);
           display: flex;
           flex-direction: column;
@@ -2466,10 +2469,10 @@ export default function MallorcaGuideClient() {
         .spot-card:hover {
           transform: translateY(-3px);
           box-shadow: 0 10px 24px rgba(0, 0, 0, 0.08);
-          border-color: #CBD5E0;
+          border-color: var(--usr-border-strong);
         }
         .spot-card--selected {
-          border-color: #1A2B21;
+          border-color: var(--usr-primary-bg);
           box-shadow: 0 0 0 2px #1A2B21, 0 12px 28px rgba(26, 43, 33, 0.12);
         }
         .spot-card__img-wrap {
@@ -2519,8 +2522,8 @@ export default function MallorcaGuideClient() {
           position: absolute;
           bottom: 10px;
           right: 10px;
-          background: #1A2B21;
-          color: white;
+          background: var(--usr-primary-bg);
+          color: var(--usr-primary-text);
           font-size: 0.7rem;
           font-weight: 600;
           padding: 3px 9px;
@@ -2540,7 +2543,7 @@ export default function MallorcaGuideClient() {
         .spot-card__area {
           font-size: 0.72rem;
           font-weight: 700;
-          color: #718096;
+          color: var(--usr-text-2);
           text-transform: uppercase;
           letter-spacing: 0.05em;
         }
@@ -2548,31 +2551,31 @@ export default function MallorcaGuideClient() {
           font-family: var(--font-heading), sans-serif;
           font-size: 1.15rem;
           font-weight: 700;
-          color: #1A2B21;
+          color: var(--usr-text);
           line-height: 1.3;
         }
         .spot-card__desc {
           font-size: 0.82rem;
-          color: #4A5568;
+          color: var(--usr-text-2);
           line-height: 1.5;
           flex: 1;
         }
         .spot-card__sergio-box {
-          background: #FEF3C7;
-          border: 1px solid #FDE68A;
+          background: var(--usr-amber-soft);
+          border: 1px solid var(--usr-amber-line);
           border-radius: 10px;
           padding: 8px 12px;
           font-size: 0.78rem;
-          color: #78350F;
+          color: var(--usr-amber);
           line-height: 1.4;
         }
         .spot-card__tip {
           font-size: 0.78rem;
-          color: #4A5568;
-          background: #F8FAFC;
+          color: var(--usr-text-2);
+          background: var(--usr-surface-2);
           padding: 8px 12px;
           border-radius: 10px;
-          border: 1px solid #E2E8F0;
+          border: 1px solid var(--usr-border);
         }
         .spot-card__pill-row {
           display: flex;
@@ -2588,17 +2591,17 @@ export default function MallorcaGuideClient() {
           font-size: 0.7rem;
           font-weight: 600;
         }
-        .pill--green { background: #ECFDF5; color: #065F46; border: 1px solid #A7F3D0; }
-        .pill--orange { background: #FFFBEB; color: #92400E; border: 1px solid #FDE68A; }
-        .pill--purple { background: #F5F3FF; color: #5B21B6; border: 1px solid #DDD6FE; }
-        .pill--blue { background: #EFF6FF; color: #1E40AF; border: 1px solid #BFDBFE; }
+        .pill--green { background: var(--usr-sage-soft); color: var(--usr-sage); border: 1px solid var(--usr-sage-line); }
+        .pill--orange { background: var(--usr-amber-soft); color: var(--usr-amber); border: 1px solid var(--usr-amber-line); }
+        .pill--purple { background: var(--usr-sky-soft); color: var(--usr-sky); border: 1px solid var(--usr-sky-line); }
+        .pill--blue { background: var(--usr-sky-soft); color: var(--usr-sky); border: 1px solid var(--usr-sky-line); }
 
         .spot-card__actions {
           display: flex;
           gap: 8px;
           margin-top: 4px;
           padding-top: 10px;
-          border-top: 1px solid #EDF2F7;
+          border-top: 1px solid var(--usr-border);
         }
         .spot-card__btn-view {
           flex: 1;
@@ -2608,8 +2611,8 @@ export default function MallorcaGuideClient() {
           gap: 6px;
           padding: 8px;
           border-radius: 8px;
-          background: #F1F5F9;
-          color: #1E293B;
+          background: var(--usr-surface-2);
+          color: var(--usr-text);
           font-size: 0.78rem;
           font-weight: 600;
           border: none;
@@ -2617,7 +2620,7 @@ export default function MallorcaGuideClient() {
           transition: background 0.2s;
         }
         .spot-card__btn-view:hover {
-          background: #E2E8F0;
+          background: var(--usr-border);
         }
         .spot-card__btn-gmaps {
           display: flex;
@@ -2626,8 +2629,8 @@ export default function MallorcaGuideClient() {
           gap: 6px;
           padding: 8px 14px;
           border-radius: 8px;
-          background: #1A2B21;
-          color: #FFFFFF;
+          background: var(--usr-primary-bg);
+          color: var(--usr-primary-text);
           font-size: 0.78rem;
           font-weight: 600;
           text-decoration: none;
@@ -2640,17 +2643,17 @@ export default function MallorcaGuideClient() {
         .empty-state {
           text-align: center;
           padding: 40px 20px;
-          background: #FFFFFF;
+          background: var(--usr-surface);
           border-radius: 16px;
-          border: 1px dashed #CBD5E0;
-          color: #718096;
+          border: 1px dashed var(--usr-border-strong);
+          color: var(--usr-text-2);
         }
         .empty-state__btn {
           margin-top: 12px;
           padding: 8px 18px;
           border-radius: 8px;
-          background: #1A2B21;
-          color: white;
+          background: var(--usr-primary-bg);
+          color: var(--usr-primary-text);
           font-size: 0.82rem;
           font-weight: 600;
           border: none;
@@ -2673,9 +2676,9 @@ export default function MallorcaGuideClient() {
         .guide-nav-tab {
           padding: 8px 16px;
           border-radius: 9999px;
-          background: #FFFFFF;
-          border: 1px solid #E2E8F0;
-          color: #4A5568;
+          background: var(--usr-surface);
+          border: 1px solid var(--usr-border);
+          color: var(--usr-text-2);
           font-size: 0.82rem;
           font-weight: 600;
           text-decoration: none;
@@ -2683,15 +2686,15 @@ export default function MallorcaGuideClient() {
           transition: all 0.2s ease;
         }
         .guide-nav-tab:hover {
-          background: #F1F5F9;
-          color: #1A2B21;
-          border-color: #CBD5E1;
+          background: var(--usr-surface-2);
+          color: var(--usr-text);
+          border-color: var(--usr-border-strong);
         }
 
         /* Guide Info Sections */
         .guide-info-block {
-          background: #FFFFFF;
-          border: 1px solid #E2E8F0;
+          background: var(--usr-surface);
+          border: 1px solid var(--usr-border);
           border-radius: 16px;
           padding: 28px;
           margin-top: 36px;
@@ -2710,12 +2713,12 @@ export default function MallorcaGuideClient() {
           font-family: var(--font-heading), sans-serif;
           font-size: 1.35rem;
           font-weight: 700;
-          color: #1A2B21;
+          color: var(--usr-text);
           margin: 0 0 6px 0;
         }
         .guide-info-header p {
           font-size: 0.88rem;
-          color: #64748B;
+          color: var(--usr-text-2);
           margin: 0;
           line-height: 1.5;
         }
@@ -2727,19 +2730,19 @@ export default function MallorcaGuideClient() {
           white-space: nowrap;
         }
         .guide-info-badge--amber {
-          background: #FEF3C7;
-          color: #92400E;
-          border: 1px solid #FDE68A;
+          background: var(--usr-amber-soft);
+          color: var(--usr-amber);
+          border: 1px solid var(--usr-amber-line);
         }
         .guide-info-badge--blue {
-          background: #EFF6FF;
-          color: #1E40AF;
-          border: 1px solid #BFDBFE;
+          background: var(--usr-sky-soft);
+          color: var(--usr-sky);
+          border: 1px solid var(--usr-sky-line);
         }
         .guide-info-badge--green {
-          background: #ECFDF5;
-          color: #065F46;
-          border: 1px solid #A7F3D0;
+          background: var(--usr-sage-soft);
+          color: var(--usr-sage);
+          border: 1px solid var(--usr-sage-line);
         }
 
         /* Normativa */
@@ -2755,12 +2758,12 @@ export default function MallorcaGuideClient() {
           border: 1px solid transparent;
         }
         .normativa-card--allowed {
-          background: #F0FDF4;
-          border-color: #BBF7D0;
+          background: var(--usr-sage-soft);
+          border-color: var(--usr-sage-line);
         }
         .normativa-card--prohibited {
-          background: #FEF2F2;
-          border-color: #FECACA;
+          background: var(--usr-rose-soft);
+          border-color: var(--usr-rose-line);
         }
         .normativa-card__header {
           display: flex;
@@ -2774,14 +2777,14 @@ export default function MallorcaGuideClient() {
           margin: 0;
         }
         .normativa-card--allowed .normativa-card__header h3 {
-          color: #166534;
+          color: var(--usr-sage);
         }
         .normativa-card--prohibited .normativa-card__header h3 {
-          color: #991B1B;
+          color: var(--usr-rose);
         }
         .normativa-card p {
           font-size: 0.82rem;
-          color: #475569;
+          color: var(--usr-text-2);
           line-height: 1.5;
           margin: 0 0 12px 0;
         }
@@ -2795,26 +2798,26 @@ export default function MallorcaGuideClient() {
         }
         .normativa-card li {
           font-size: 0.82rem;
-          color: #1E293B;
+          color: var(--usr-text);
           line-height: 1.4;
           display: flex;
           align-items: flex-start;
           gap: 8px;
         }
         .protected-spaces-box {
-          background: #FFFBEB;
-          border: 1px solid #FDE68A;
+          background: var(--usr-amber-soft);
+          border: 1px solid var(--usr-amber-line);
           border-radius: 12px;
           padding: 16px 20px;
           display: flex;
           gap: 14px;
           align-items: flex-start;
           font-size: 0.82rem;
-          color: #78350F;
+          color: var(--usr-amber);
           line-height: 1.5;
         }
         .protected-spaces-box strong {
-          color: #92400E;
+          color: var(--usr-amber);
           display: block;
           margin-bottom: 4px;
           font-size: 0.88rem;
@@ -2827,31 +2830,31 @@ export default function MallorcaGuideClient() {
           gap: 16px;
         }
         .water-card {
-          border: 1px solid #E2E8F0;
+          border: 1px solid var(--usr-border);
           border-radius: 12px;
           padding: 18px;
           display: flex;
           flex-direction: column;
           justify-content: space-between;
           gap: 12px;
-          background: #FAFAFA;
+          background: var(--usr-surface-2);
         }
         .water-card__zone {
           font-size: 0.72rem;
           font-weight: 700;
-          color: #2563EB;
+          color: var(--usr-sky);
           text-transform: uppercase;
           letter-spacing: 0.05em;
         }
         .water-card h3 {
           font-size: 1rem;
           font-weight: 700;
-          color: #1A2B21;
+          color: var(--usr-text);
           margin: 4px 0 6px 0;
         }
         .water-card__desc {
           font-size: 0.8rem;
-          color: #64748B;
+          color: var(--usr-text-2);
           margin: 0 0 10px 0;
           line-height: 1.4;
         }
@@ -2863,9 +2866,9 @@ export default function MallorcaGuideClient() {
         }
         .water-service-chip {
           font-size: 0.72rem;
-          background: #FFFFFF;
-          border: 1px solid #CBD5E1;
-          color: #334155;
+          background: var(--usr-surface);
+          border: 1px solid var(--usr-border-strong);
+          color: var(--usr-text);
           padding: 3px 8px;
           border-radius: 6px;
           font-weight: 500;
@@ -2875,17 +2878,17 @@ export default function MallorcaGuideClient() {
           justify-content: space-between;
           align-items: center;
           padding-top: 10px;
-          border-top: 1px solid #E2E8F0;
+          border-top: 1px solid var(--usr-border);
         }
         .water-card__price {
           font-size: 0.75rem;
           font-weight: 600;
-          color: #059669;
+          color: var(--usr-sage);
         }
         .water-card__btn {
           font-size: 0.75rem;
           font-weight: 600;
-          color: #2563EB;
+          color: var(--usr-sky);
           text-decoration: none;
           display: inline-flex;
           align-items: center;
@@ -2902,8 +2905,8 @@ export default function MallorcaGuideClient() {
           gap: 16px;
         }
         .nomad-tip-card {
-          background: #F8FAFC;
-          border: 1px solid #E2E8F0;
+          background: var(--usr-surface-2);
+          border: 1px solid var(--usr-border);
           border-radius: 12px;
           padding: 18px;
           display: flex;
@@ -2916,12 +2919,12 @@ export default function MallorcaGuideClient() {
         .nomad-tip-card h3 {
           font-size: 0.95rem;
           font-weight: 700;
-          color: #1A2B21;
+          color: var(--usr-text);
           margin: 0;
         }
         .nomad-tip-card p {
           font-size: 0.8rem;
-          color: #475569;
+          color: var(--usr-text-2);
           line-height: 1.5;
           margin: 0;
         }

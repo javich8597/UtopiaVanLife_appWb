@@ -4,6 +4,7 @@ import { NextIntlClientProvider } from 'next-intl';
 import { getMessages } from 'next-intl/server';
 import { notFound } from 'next/navigation';
 import NavigationLoader from '@/components/layout/NavigationLoader';
+import StyledJsxRegistry from '@/components/layout/StyledJsxRegistry';
 
 export const metadata: Metadata = {
   title: 'Utopia Van Life | Alquiler de Campers en Mallorca',
@@ -51,10 +52,12 @@ export default async function RootLayout({
         />
       </head>
       <body>
-        <NextIntlClientProvider messages={messages}>
-          <NavigationLoader />
-          {children}
-        </NextIntlClientProvider>
+        <StyledJsxRegistry>
+          <NextIntlClientProvider messages={messages}>
+            <NavigationLoader />
+            {children}
+          </NextIntlClientProvider>
+        </StyledJsxRegistry>
       </body>
     </html>
   )

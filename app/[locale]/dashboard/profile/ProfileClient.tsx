@@ -152,8 +152,8 @@ export default function ProfileClient({ user, profile }: Props) {
       {/* 1. Header & Status Banner */}
       <div className="profile-header">
         <div className="profile-header__text">
-          <span className="profile-kicker">UTOPIA VAN LIFE • GESTIÓN DE VIAJERO</span>
-          <h1 className="profile-title">Perfil & Documentación</h1>
+          <span className="profile-kicker">Mi perfil</span>
+          <h1 className="profile-title">Perfil y documentación</h1>
           <p className="profile-subtitle">
             Rellena los campos con tus datos y adjunta tu carnet para formalizar el contrato y activar el seguro.
           </p>
@@ -163,19 +163,19 @@ export default function ProfileClient({ user, profile }: Props) {
           {isVerified && (
             <div className="status-pill status-pill--verified">
               <ShieldCheck size={16} />
-              <span>Conducción Autorizada ✓</span>
+              <span>Conducción autorizada</span>
             </div>
           )}
           {isPending && (
             <div className="status-pill status-pill--pending">
               <Clock size={16} />
-              <span>En Revisión por el Equipo</span>
+              <span>En revisión</span>
             </div>
           )}
           {!isVerified && !isPending && (
             <div className="status-pill status-pill--unverified">
               <AlertTriangle size={16} />
-              <span>Documentación Pendiente</span>
+              <span>Documentación pendiente</span>
             </div>
           )}
         </div>
@@ -190,23 +190,23 @@ export default function ProfileClient({ user, profile }: Props) {
         <div className="driver-hero-info">
           <div className="driver-hero-name-row">
             <h2 className="driver-hero-name">{fullName || 'Viajero Utopia'}</h2>
-            <span className="driver-role-tag">Conductor Principal</span>
+            <span className="driver-role-tag">Conductor principal</span>
           </div>
 
           <div className="driver-hero-pills">
             <div className="hero-pill">
-              <Mail size={13} style={{ color: 'var(--sand-dark)' }} />
+              <Mail size={13} style={{ color: 'var(--usr-gold-text)' }} />
               <span>{user.email}</span>
             </div>
             {phone && (
               <div className="hero-pill">
-                <Phone size={13} style={{ color: 'var(--sand-dark)' }} />
+                <Phone size={13} style={{ color: 'var(--usr-gold-text)' }} />
                 <span>{phone}</span>
               </div>
             )}
             {dniNie && (
               <div className="hero-pill">
-                <CreditCard size={13} style={{ color: 'var(--sand-dark)' }} />
+                <CreditCard size={13} style={{ color: 'var(--usr-gold-text)' }} />
                 <span>DNI: {dniNie}</span>
               </div>
             )}
@@ -728,16 +728,14 @@ export default function ProfileClient({ user, profile }: Props) {
           align-items: flex-end;
           gap: var(--space-4);
           flex-wrap: wrap;
-          padding-bottom: var(--space-4);
-          border-bottom: 1px solid var(--gray-200);
         }
 
         .profile-kicker {
           display: block;
           font-size: 0.72rem;
           font-weight: 700;
-          letter-spacing: 0.1em;
-          color: var(--sand-dark);
+          letter-spacing: 0.14em;
+          color: var(--usr-gold-text);
           text-transform: uppercase;
           margin-bottom: 4px;
         }
@@ -746,13 +744,15 @@ export default function ProfileClient({ user, profile }: Props) {
           font-family: var(--font-heading);
           font-size: clamp(1.65rem, 4vw, 2.25rem);
           font-weight: 700;
-          color: var(--forest-green);
-          line-height: 1.15;
+          color: var(--usr-text);
+          line-height: 1.1;
+          letter-spacing: -0.03em;
+          margin: 0;
         }
 
         .profile-subtitle {
           font-size: 0.88rem;
-          color: var(--gray-600);
+          color: var(--usr-text-2);
           max-width: 600px;
           margin-top: 4px;
           line-height: 1.45;
@@ -769,31 +769,31 @@ export default function ProfileClient({ user, profile }: Props) {
           letter-spacing: 0.02em;
         }
         .status-pill--verified {
-          background: #DCFCE7;
-          color: #15803D;
-          border: 1px solid #BBF7D0;
+          background: var(--usr-sage-soft);
+          color: var(--usr-sage);
+          border: 1px solid var(--usr-sage-line);
         }
         .status-pill--pending {
-          background: #FEF3C7;
-          color: #B45309;
-          border: 1px solid #FDE68A;
+          background: var(--usr-sky-soft);
+          color: var(--usr-sky);
+          border: 1px solid var(--usr-sky-line);
         }
         .status-pill--unverified {
-          background: #FEE2E2;
-          color: #B91C1C;
-          border: 1px solid #FECACA;
+          background: var(--usr-rose-soft);
+          color: var(--usr-rose);
+          border: 1px solid var(--usr-rose-line);
         }
 
         /* Driver Hero Card */
         .driver-hero-card {
-          background: linear-gradient(135deg, #1A2B21 0%, #2D4A39 100%);
-          border-radius: var(--radius-lg);
-          padding: 20px 24px;
+          background: var(--usr-hero-bg);
+          border-radius: 20px;
+          padding: 22px 26px;
           color: white;
           display: flex;
           align-items: center;
           gap: 20px;
-          box-shadow: 0 4px 16px rgba(26, 43, 33, 0.12);
+          box-shadow: var(--usr-card-shadow);
         }
 
         @media (max-width: 640px) {
@@ -808,9 +808,9 @@ export default function ProfileClient({ user, profile }: Props) {
           width: 52px;
           height: 52px;
           border-radius: 50%;
-          background: #14231a;
-          border: 2px solid var(--sand-dark);
-          color: var(--sand-dark);
+          background: rgba(255, 255, 255, 0.08);
+          border: 2px solid var(--usr-gold-line);
+          color: #E2BF7C;
           font-family: var(--font-heading);
           font-size: 1.4rem;
           font-weight: 800;
@@ -845,11 +845,11 @@ export default function ProfileClient({ user, profile }: Props) {
           font-weight: 700;
           letter-spacing: 0.08em;
           text-transform: uppercase;
-          background: rgba(200, 168, 130, 0.25);
-          color: #F3E8DC;
+          background: rgba(204, 160, 83, 0.16);
+          color: #E2BF7C;
           padding: 2px 8px;
           border-radius: var(--radius-full);
-          border: 1px solid rgba(200, 168, 130, 0.4);
+          border: 1px solid rgba(204, 160, 83, 0.38);
         }
 
         .driver-hero-pills {
@@ -865,7 +865,7 @@ export default function ProfileClient({ user, profile }: Props) {
           align-items: center;
           gap: 5px;
           font-size: 0.78rem;
-          color: #E2E8F0;
+          color: rgba(246, 235, 211, 0.78);
         }
 
         /* Form Structure */
@@ -876,11 +876,11 @@ export default function ProfileClient({ user, profile }: Props) {
         }
 
         .form-card {
-          background: white;
-          border: 1px solid #E2E8F0;
-          border-radius: var(--radius-lg);
-          padding: clamp(20px, 3vw, 28px);
-          box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+          background: var(--usr-surface);
+          border: 1px solid var(--usr-card-border);
+          border-radius: 20px;
+          padding: clamp(20px, 3vw, 30px);
+          box-shadow: var(--usr-card-shadow);
         }
 
         .form-card__header {
@@ -889,21 +889,21 @@ export default function ProfileClient({ user, profile }: Props) {
           gap: 3px;
           margin-bottom: var(--space-5);
           padding-bottom: var(--space-3);
-          border-bottom: 1px solid #F1F5F9;
+          border-bottom: 1px solid var(--usr-border);
         }
 
         .form-card__title {
           font-family: var(--font-heading);
           font-size: 1.15rem;
           font-weight: 700;
-          color: var(--forest-green);
+          color: var(--usr-text);
           margin: 0;
           letter-spacing: -0.01em;
         }
 
         .form-card__subtitle {
           font-size: 0.82rem;
-          color: #64748B;
+          color: var(--usr-text-2);
           margin: 0;
           line-height: 1.4;
         }
@@ -939,7 +939,7 @@ export default function ProfileClient({ user, profile }: Props) {
         .field-label {
           font-size: 0.84rem;
           font-weight: 700;
-          color: #1E293B;
+          color: var(--usr-text);
           letter-spacing: 0.01em;
         }
 
@@ -949,10 +949,11 @@ export default function ProfileClient({ user, profile }: Props) {
           align-items: center;
         }
 
-        .field-input-icon {
+        .field-input-box :global(.field-input-icon) {
           position: absolute;
+          z-index: 1;
           left: 14px;
-          color: #64748B;
+          color: var(--usr-text-2);
           pointer-events: none;
         }
 
@@ -962,45 +963,44 @@ export default function ProfileClient({ user, profile }: Props) {
 
         .field-input {
           width: 100%;
-          padding: 12px 14px;
-          border: 1.5px solid #CBD5E1;
-          border-radius: 8px;
-          font-size: 0.9rem;
+          min-height: 46px;
+          padding: 11px 14px;
+          border: 1px solid var(--usr-border-strong);
+          border-radius: 12px;
+          font-size: 0.92rem;
           font-weight: 500;
-          color: #0F172A;
-          background: #F8FAFC;
-          box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.03);
+          color: var(--usr-text);
+          background: var(--usr-input-bg);
+          box-shadow: none;
           transition: all 0.2s ease;
         }
 
         .field-input:hover:not(:disabled) {
-          border-color: #94A3B8;
-          background: #F1F5F9;
+          border-color: var(--usr-text-3);
         }
 
         .field-input:focus {
           outline: none;
-          background: #FFFFFF;
-          border-color: var(--forest-green);
-          box-shadow: 0 0 0 4px rgba(26, 43, 33, 0.12), inset 0 1px 2px rgba(0, 0, 0, 0.02);
+          border-color: var(--usr-gold);
+          box-shadow: 0 0 0 4px var(--usr-gold-soft);
         }
 
         .field-input::placeholder {
-          color: #94A3B8;
+          color: var(--usr-text-3);
           font-weight: 400;
         }
 
         .field-input--disabled {
-          background: #E2E8F0;
-          color: #64748B;
-          border-color: #CBD5E1;
+          background: var(--usr-surface-2);
+          color: var(--usr-text-2);
+          border-color: var(--usr-border);
           cursor: not-allowed;
           box-shadow: none;
         }
 
         .field-input--error {
-          border-color: #EF4444 !important;
-          background: #FEF2F2 !important;
+          border-color: var(--usr-rose-line) !important;
+          background: var(--usr-rose-soft) !important;
           box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.15) !important;
         }
 
@@ -1016,7 +1016,7 @@ export default function ProfileClient({ user, profile }: Props) {
           font-size: 0.72rem;
           font-weight: 700;
           letter-spacing: 0.08em;
-          color: var(--sand-dark);
+          color: var(--usr-gold-text);
           text-transform: uppercase;
           margin-bottom: 10px;
         }
@@ -1048,24 +1048,24 @@ export default function ProfileClient({ user, profile }: Props) {
         .dropzone-card-label {
           font-size: 0.78rem;
           font-weight: 700;
-          color: #334155;
+          color: var(--usr-text);
         }
 
         .doc-ready-chip {
           font-size: 0.7rem;
           font-weight: 700;
-          color: #15803D;
-          background: #DCFCE7;
+          color: var(--usr-sage);
+          background: var(--usr-sage-soft);
           padding: 2px 8px;
           border-radius: var(--radius-full);
-          border: 1px solid #BBF7D0;
+          border: 1px solid var(--usr-sage-line);
         }
 
         .dropzone-empty {
           height: 125px;
-          border: 2px dashed #94A3B8;
+          border: 2px dashed var(--usr-border-strong);
           border-radius: 10px;
-          background: #F8FAF8;
+          background: var(--usr-surface-2);
           display: flex;
           flex-direction: column;
           align-items: center;
@@ -1078,14 +1078,14 @@ export default function ProfileClient({ user, profile }: Props) {
         }
 
         .dropzone-empty:hover {
-          border-color: var(--forest-green);
-          background: #ECFDF5;
+          border-color: var(--usr-primary-bg);
+          background: var(--usr-sage-soft);
           transform: translateY(-1px);
           box-shadow: 0 4px 12px rgba(26, 43, 33, 0.06);
         }
 
-        .dropzone-empty-icon {
-          color: var(--forest-green);
+        :global(.dropzone-empty-icon) {
+          color: var(--usr-text);
         }
 
         .dropzone-empty-cta {
@@ -1094,17 +1094,17 @@ export default function ProfileClient({ user, profile }: Props) {
           gap: 6px;
           font-size: 0.82rem;
           font-weight: 700;
-          color: var(--forest-green);
-          background: white;
+          color: var(--usr-text);
+          background: var(--usr-surface);
           padding: 5px 14px;
           border-radius: var(--radius-full);
-          border: 1px solid #CBD5E1;
+          border: 1px solid var(--usr-border-strong);
           box-shadow: 0 1px 3px rgba(0,0,0,0.06);
         }
 
         .dropzone-empty-hint {
           font-size: 0.7rem;
-          color: #64748B;
+          color: var(--usr-text-2);
         }
 
         .file-input-hidden {
@@ -1116,7 +1116,7 @@ export default function ProfileClient({ user, profile }: Props) {
           height: 125px;
           border-radius: 10px;
           overflow: hidden;
-          border: 1.5px solid #CBD5E1;
+          border: 1.5px solid var(--usr-border-strong);
           box-shadow: 0 2px 6px rgba(0,0,0,0.06);
         }
 
@@ -1174,7 +1174,7 @@ export default function ProfileClient({ user, profile }: Props) {
           position: absolute;
           cursor: pointer;
           inset: 0;
-          background-color: #CBD5E1;
+          background-color: var(--usr-border-strong);
           transition: 0.25s ease;
           border-radius: 26px;
         }
@@ -1186,14 +1186,14 @@ export default function ProfileClient({ user, profile }: Props) {
           width: 20px;
           left: 3px;
           bottom: 3px;
-          background-color: white;
+          background-color: var(--usr-surface);
           transition: 0.25s ease;
           border-radius: 50%;
           box-shadow: 0 1px 3px rgba(0,0,0,0.2);
         }
 
         input:checked + .custom-switch-slider {
-          background-color: var(--forest-green);
+          background-color: var(--usr-primary-bg);
         }
 
         input:checked + .custom-switch-slider:before {
@@ -1202,14 +1202,14 @@ export default function ProfileClient({ user, profile }: Props) {
 
         .second-driver-body {
           padding-top: var(--space-4);
-          border-top: 1px dashed #CBD5E1;
+          border-top: 1px dashed var(--usr-border-strong);
           margin-top: var(--space-4);
         }
 
         /* Security Bar */
         .security-bar {
-          background: #F8FAF8;
-          border: 1px solid rgba(45, 58, 45, 0.12);
+          background: var(--usr-surface-2);
+          border: 1px solid var(--usr-surface-2);
           border-radius: var(--radius-lg);
           padding: 16px 20px;
           display: flex;
@@ -1221,8 +1221,8 @@ export default function ProfileClient({ user, profile }: Props) {
           width: 32px;
           height: 32px;
           border-radius: 50%;
-          background: rgba(45, 58, 45, 0.08);
-          color: var(--forest-green);
+          background: var(--usr-surface-2);
+          color: var(--usr-text);
           display: flex;
           align-items: center;
           justify-content: center;
@@ -1232,7 +1232,7 @@ export default function ProfileClient({ user, profile }: Props) {
 
         .security-text {
           font-size: 0.8rem;
-          color: #475569;
+          color: var(--usr-text-2);
           line-height: 1.5;
           margin: 0;
         }
@@ -1252,8 +1252,8 @@ export default function ProfileClient({ user, profile }: Props) {
           justify-content: center;
           gap: 8px;
           padding: 14px 24px;
-          background: var(--forest-green);
-          color: white;
+          background: var(--usr-primary-bg);
+          color: var(--usr-primary-text);
           border: none;
           border-radius: var(--radius-md);
           font-size: 0.95rem;
@@ -1264,7 +1264,7 @@ export default function ProfileClient({ user, profile }: Props) {
         }
 
         .btn-save:hover:not(:disabled) {
-          background: #14231a;
+          background: var(--usr-primary-hover);
           transform: translateY(-1px);
           box-shadow: 0 6px 20px rgba(26, 43, 33, 0.25);
         }
@@ -1279,7 +1279,7 @@ export default function ProfileClient({ user, profile }: Props) {
           height: 16px;
           border: 2px solid rgba(255, 255, 255, 0.3);
           border-radius: 50%;
-          border-top-color: white;
+          border-top-color: var(--usr-border);
           animation: spin 0.7s linear infinite;
         }
 
@@ -1299,25 +1299,25 @@ export default function ProfileClient({ user, profile }: Props) {
         }
 
         .alert-box--success {
-          background: #F0FDF4;
-          color: #15803D;
-          border: 1px solid #BBF7D0;
+          background: var(--usr-sage-soft);
+          color: var(--usr-sage);
+          border: 1px solid var(--usr-sage-line);
         }
 
         .alert-box--error {
-          background: #FEF2F2;
-          color: #B91C1C;
-          border: 1px solid #FECACA;
+          background: var(--usr-rose-soft);
+          color: var(--usr-rose);
+          border: 1px solid var(--usr-rose-line);
         }
 
         .alert-box--warning {
           background: rgba(230, 126, 34, 0.12);
-          border: 1px solid var(--warning);
+          border: 1px solid var(--usr-amber-line);
           color: #9c5208;
         }
 
         .alert-box--warning .alert-icon {
-          color: var(--warning);
+          color: var(--usr-amber);
         }
 
         .alert-text {
@@ -1329,39 +1329,39 @@ export default function ProfileClient({ user, profile }: Props) {
           margin-top: var(--space-4);
         }
 
-        .alert-icon {
+        :global(.alert-icon) {
           flex-shrink: 0;
           margin-top: 2px;
         }
 
         /* Profile Alert Box */
         .profile-alert-box {
-          background: #FFFBEB;
-          border-color: #FDE68A;
-          color: #92400E;
+          background: var(--usr-amber-soft);
+          border-color: var(--usr-amber-line);
+          color: var(--usr-amber);
           padding: 16px 20px;
           border-radius: 12px;
           margin-bottom: 24px;
           display: flex;
           gap: 14px;
           align-items: flex-start;
-          border: 1px solid #FCD34D;
+          border: 1px solid var(--usr-amber-line);
         }
-        .profile-alert-icon {
-          color: #D97706;
+        :global(.profile-alert-icon) {
+          color: var(--usr-amber);
           flex-shrink: 0;
           margin-top: 2px;
         }
         .profile-alert-title {
           font-size: 1rem;
-          color: #78350F;
+          color: var(--usr-amber);
           display: block;
           margin-bottom: 4px;
         }
         .profile-alert-text {
           margin: 0;
           font-size: 0.88rem;
-          color: #92400E;
+          color: var(--usr-amber);
           line-height: 1.5;
         }
 

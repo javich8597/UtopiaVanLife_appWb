@@ -1,7 +1,7 @@
+import { cookies } from 'next/headers'
 import { redirect } from '@/i18n/routing'
 import { createClient } from '@/lib/supabase/server'
-import Navbar from '@/components/layout/Navbar'
-import Footer from '@/components/layout/Footer'
+import { USER_THEME_COOKIE } from '@/lib/user/theme'
 import DashboardNavClient from './DashboardNavClient'
 
 export default async function DashboardLayout({
@@ -27,24 +27,12 @@ export default async function DashboardLayout({
     .eq('id', user.id)
     .maybeSingle()
 
-  return (
-    <>
-      <Navbar />
-      <main className="dashboard-main">
-        <div className="container">
-          <div className="dashboard-grid">
-            <DashboardNavClient user={user} profile={profile} />
+  const cookieStore = await cookies()
+  const initialTheme = cookieStore.get(USER_THEME_COOKIE)?.value === 'dark' ? 'dark' : 'light'
 
-            {/* Main Content */}
-            <div className="dashboard-content">
-              {children}
-            </div>
-          </div>
-        </div>
-      </main>
-            <div className="dashboard-footer-wrap">
-              <Footer />
-            </div>
-    </>
+  return (
+    <DashboardNavClient user={user} profile={profile} initialTheme={initialTheme}>
+      {children}
+    </DashboardNavClient>
   )
 }

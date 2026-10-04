@@ -51,3 +51,19 @@ El hero y la home transmiten exactamente lo que buscáis: negro mate, dorado con
 ## Para que funcione la recuperación de contraseña
 
 En Supabase › Authentication › URL Configuration, añade a *Redirect URLs* `https://<tu-dominio>/auth/callback` (y `http://localhost:3000/auth/callback` para pruebas). Sin eso Supabase rechaza el enlace del email.
+
+## Segunda ronda (respuestas de Javier)
+
+Confirmado: SPACE 2 plazas, sin Starlink, sillas incluidas, snorkel y mesa no incluidos, material de sábanas desconocido.
+
+| Arreglo | Detalle |
+|---|---|
+| Logo de carga fijo al volver atrás | Reproducido en Chrome: tras pulsar atrás el cargador se quedaba encima de la página. El temporizador del cargador saltaba después de que Next ya hubiera pintado la página. Ahora comprueba si la URL ya está pintada, tiene tiempo de seguridad y se oculta al restaurar desde caché. Fondo del cargador en negro. |
+| Formularios falsos | Contacto, newsletter y catálogo de venta esperaban 1 s y decían "enviado" sin mandar nada. Contacto y catálogo abren WhatsApp con el mensaje redactado (alternativa por email); newsletter retirado. |
+| Asistente de reserva | Pasado a Black&Gold, y el calendario de fechas también (home, /reservar y asistente). |
+| Incluido | Sillas incluidas; snorkel, mesa, Starlink y material de sábanas eliminados de los textos. |
+| Títulos | Cada página con su título; login, registro y pago sin indexar; h1 en /faq. |
+| Seguridad | Validación del slug de camper en la API de reserva (se usaba dentro de un filtro de base de datos). |
+
+Pendiente en la base de datos (Admin): quitar o renombrar el extra de pago "Silla de Camping" (las sillas ya van incluidas) y corregir "No AAAAA" en la descripción de NEO.
+Pendiente de decidir: traducciones EN/DE/FR incompletas, reseñas de clientes, servicio de email para formularios y newsletter.

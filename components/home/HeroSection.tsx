@@ -41,7 +41,7 @@ const HERO_PHOTOS = [
   },
   {
     src: '/images/campers/space/interior/space-king-bed-prepared.webp',
-    alt: 'Cama suspendida king size con sábanas de lino',
+    alt: 'Cama suspendida king size',
   },
 ]
 

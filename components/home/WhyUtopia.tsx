@@ -16,7 +16,7 @@ export default function WhyUtopia() {
     {
       icon: Bed,
       title: 'Confort Suite Boutique',
-      desc: 'Colchones viscoelásticos de máxima densidad, sábanas de algodón percal, almohadas de pluma y oscurecedores térmicos para un descanso absoluto.',
+      desc: 'Colchones viscoelásticos de máxima densidad, ropa de cama completa, almohadas de pluma y oscurecedores térmicos para un descanso absoluto.',
       tag: 'Descanso real',
     },
     {

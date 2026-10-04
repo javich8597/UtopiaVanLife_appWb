@@ -37,7 +37,7 @@ const INCLUDED_SERVICES = [
     'Seguro a todo riesgo con asistencia en carretera 24/7',
     'Ropa de cama completa, sábanas, almohadas y toallas de baño',
     'Menaje de cocina completo, cafetera italiana y kit de limpieza',
-    '2 Sillas de camping para exterior y 2 máscaras de snorkel',
+    '2 sillas de camping para exterior',
 ]
 
 export default function StickyTripSummary({

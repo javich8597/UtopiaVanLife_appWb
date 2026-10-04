@@ -121,7 +121,7 @@ export default function Step4Extras({
             category: 'Confort',
             price: 20,
             price_type: 'per_rental',
-            description: 'Set completo de algodón 100% orgánico y toallas de baño para cambio a mitad de viaje.',
+            description: 'Set completo de ropa de cama y toallas de baño para cambio a mitad de viaje.',
         },
     ]
 

@@ -42,6 +42,7 @@ export default function WizardHeader({
                         href={`/${locale}/campers/${camper.slug}`}
                         className="wizard-header__back-btn"
                         title="Volver a la ficha de la camper"
+                        aria-label="Volver a la ficha de la camper"
                     >
                         <ArrowLeft size={16} />
                         <span className="wizard-header__back-text">Ficha de la camper</span>
@@ -138,13 +139,13 @@ export default function WizardHeader({
 
             <style jsx>{`
                 .wizard-header {
-                    background: #ffffff;
-                    border-bottom: 1px solid rgba(0, 0, 0, 0.07);
+                    background: var(--wz-surface);
+                    border-bottom: 1px solid rgba(255, 255, 255, 0.07);
                     position: sticky;
                     top: 0;
                     z-index: 40;
                     backdrop-filter: blur(16px);
-                    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.02);
+                    box-shadow: 0 4px 20px rgba(255, 255, 255, 0.02);
                 }
 
                 .wizard-header__container {
@@ -154,9 +155,9 @@ export default function WizardHeader({
                 }
 
                 .wizard-header__top {
-                    border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+                    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
                     padding: var(--space-2) 0;
-                    background: #faf8f5;
+                    background: var(--wz-bg);
                 }
 
                 .wizard-header__top .wizard-header__container {
@@ -175,13 +176,13 @@ export default function WizardHeader({
                     color: var(--gray-600);
                     padding: 6px 12px;
                     border-radius: var(--radius-full);
-                    background: rgba(0, 0, 0, 0.03);
+                    background: rgba(255, 255, 255, 0.03);
                     transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
                 }
 
                 .wizard-header__back-btn:hover {
                     color: var(--black-matte);
-                    background: rgba(0, 0, 0, 0.07);
+                    background: rgba(255, 255, 255, 0.07);
                     transform: translateX(-2px);
                 }
 
@@ -199,7 +200,7 @@ export default function WizardHeader({
                     overflow: hidden;
                     background: #202020;
                     flex-shrink: 0;
-                    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
+                    box-shadow: 0 2px 6px rgba(255, 255, 255, 0.08);
                 }
 
                 .wizard-header__camper-img {
@@ -252,7 +253,7 @@ export default function WizardHeader({
                     font-size: 11px;
                     color: var(--forest-green);
                     font-weight: 600;
-                    background: rgba(45, 58, 45, 0.06);
+                    background: rgba(204, 160, 83, 0.06);
                     padding: 4px 10px;
                     border-radius: var(--radius-full);
                 }
@@ -320,7 +321,7 @@ export default function WizardHeader({
                     width: 32px;
                     height: 32px;
                     border-radius: 50%;
-                    background: #ffffff;
+                    background: var(--wz-surface);
                     border: 2px solid var(--gray-200);
                     color: var(--gray-600);
                     display: flex;
@@ -330,20 +331,20 @@ export default function WizardHeader({
                     font-weight: 700;
                     margin-bottom: 6px;
                     transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
-                    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.04);
+                    box-shadow: 0 2px 4px rgba(255, 255, 255, 0.04);
                 }
 
                 .wizard-step-node--completed .wizard-step-node__circle {
                     background: var(--forest-green);
                     border-color: var(--forest-green);
-                    color: #ffffff;
+                    color: var(--wz-on-accent);
                 }
 
                 .wizard-step-node--current .wizard-step-node__circle {
-                    background: #ffffff;
+                    background: var(--wz-surface);
                     border-color: var(--forest-green);
                     color: var(--forest-green);
-                    box-shadow: 0 0 0 4px rgba(45, 58, 45, 0.15);
+                    box-shadow: 0 0 0 4px rgba(204, 160, 83, 0.15);
                     transform: scale(1.08);
                 }
 
@@ -390,19 +391,20 @@ export default function WizardHeader({
                     }
                 }
 
-                @media (max-width: 600px) {
+                @media (max-width: 640px) {
+                    /* El contenido ya muestra "PASO X DE 5" y su título: aquí solo los círculos */
                     .wizard-step-node__title {
                         display: none;
                     }
-                    .wizard-step-node--current .wizard-step-node__title {
-                        display: block;
-                        position: absolute;
-                        top: 40px;
-                        font-size: 11px;
-                        white-space: nowrap;
+                    .wizard-header__back-text,
+                    .wizard-header__camper-sub {
+                        display: none;
                     }
-                    .wizard-header__stepper-bar {
-                        padding-bottom: 24px;
+                    .wizard-header__back-btn {
+                        width: 40px;
+                        height: 40px;
+                        justify-content: center;
+                        padding: 0;
                     }
                 }
             `}</style>

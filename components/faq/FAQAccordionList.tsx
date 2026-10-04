@@ -54,6 +54,7 @@ export default function FAQAccordionList({
   title,
   subtitle,
   variant = 'light',
+  headingLevel = 'h2',
 }: {
   showSearch?: boolean
   showCategories?: boolean
@@ -61,7 +62,10 @@ export default function FAQAccordionList({
   title?: string
   subtitle?: string
   variant?: 'light' | 'dark'
+  /** En /faq es el título principal de la página (h1); en la home, una sección (h2) */
+  headingLevel?: 'h1' | 'h2'
 }) {
+  const Heading = headingLevel
   const locale = useLocale()
   const isEs = locale === 'es'
 
@@ -197,9 +201,9 @@ export default function FAQAccordionList({
           <Sparkles size={13} className="text-forest" />
           <span>{isEs ? 'PREGUNTAS FRECUENTES · TRANSPARENCIA' : 'FREQUENTLY ASKED QUESTIONS'}</span>
         </div>
-        <h2 className="faq-title text-display">
+        <Heading className="faq-title text-display">
           {title || (isEs ? 'Todo lo que necesitas saber' : 'Everything You Need to Know')}
-        </h2>
+        </Heading>
         <p className="faq-subtitle text-body-large">
           {subtitle || (isEs
             ? 'Busca cualquier duda sobre fianzas, seguro a todo riesgo, autonomía Victron o pernocta en Mallorca.'

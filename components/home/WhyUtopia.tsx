@@ -16,7 +16,7 @@ export default function WhyUtopia() {
     {
       icon: Bed,
       title: 'Confort Suite Boutique',
-      desc: 'Colchones viscoelásticos de máxima densidad, sábanas de algodón percal, almohadas de pluma y oscurecedores térmicos para un descanso absoluto.',
+      desc: 'Colchones viscoelásticos de máxima densidad, ropa de cama completa, almohadas de pluma y oscurecedores térmicos para un descanso absoluto.',
       tag: 'Descanso real',
     },
     {
@@ -27,8 +27,8 @@ export default function WhyUtopia() {
     },
     {
       icon: Compass,
-      title: 'Concierge Local 24/7',
-      desc: 'Entrega personalizada en Palma, atención continua por WhatsApp y guía exclusiva de calas secretas no masificadas.',
+      title: 'Concierge Local',
+      desc: 'Entrega personalizada en Palma, asistencia telefónica y por WhatsApp durante el viaje, y guía exclusiva de calas secretas no masificadas.',
       tag: 'Atención directa',
     },
   ]

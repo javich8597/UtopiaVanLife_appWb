@@ -28,7 +28,7 @@ const SHOWCASE_ITEMS: ShowcaseItem[] = [
   },
   {
     id: 'neo-lounge',
-    title: 'Salón de Roble Nórdico',
+    title: 'Salón con Madera Natural',
     subtitle: 'Luz natural, acabados cálidos y máxima calidez',
     camper: 'NEO',
     tag: 'Utopia Neo',
@@ -46,8 +46,8 @@ const SHOWCASE_ITEMS: ShowcaseItem[] = [
   },
   {
     id: 'neo-kitchen',
-    title: 'Cocina Gourmet & Vinoteca',
-    subtitle: 'Inducción rápida, menaje completo y bodega fresca',
+    title: 'Cocina Equipada',
+    subtitle: 'Dos fogones, nevera de 86 L y menaje completo premium',
     camper: 'NEO',
     tag: 'Gastronomía',
     image: '/images/campers/neo/interior/neo-kitchen-wine-cooler.webp',
@@ -56,7 +56,7 @@ const SHOWCASE_ITEMS: ShowcaseItem[] = [
   {
     id: 'space-cinema',
     title: 'Cine Suite Bajo las Estrellas',
-    subtitle: 'Proyector HD integrado con sonido envolvente',
+    subtitle: 'Proyector del Pack Cine para tus noches de película',
     camper: 'SPACE',
     tag: 'Pack Cinema',
     image: '/images/campers/space/interior/space-cinema-projector-lounge.webp',
@@ -74,7 +74,7 @@ const SHOWCASE_ITEMS: ShowcaseItem[] = [
   {
     id: 'space-drop-bed',
     title: 'Cama Elevable Eléctrica',
-    subtitle: 'Espacio diáfano de día, suite king de noche',
+    subtitle: 'Espacio diáfano de día, cama doble de noche',
     camper: 'SPACE',
     tag: 'Ingeniería',
     image: '/images/campers/space/interior/space-electric-drop-down-bed.webp',

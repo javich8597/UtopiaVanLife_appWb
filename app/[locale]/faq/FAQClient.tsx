@@ -6,7 +6,7 @@ export default function FAQClient() {
   return (
     <main className="faq-page-main">
       <div className="container faq-container">
-        <FAQAccordionList variant="dark" />
+        <FAQAccordionList variant="dark" headingLevel="h1" />
       </div>
 
       <style jsx>{`

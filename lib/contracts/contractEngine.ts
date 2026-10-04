@@ -639,7 +639,7 @@ export function generateContractData(
       ? booking.extras_selected.map((e: any) => `${e.name_es || e.name || 'Extra'}${e.quantity ? ` (x${e.quantity})` : ''}`)
       : (Array.isArray(booking?.extras)
         ? booking.extras
-        : (typeof booking?.extras === 'string' ? [booking.extras] : ['Seguro a todo riesgo', 'Menaje completo premium', 'Kit de cama y toallas', '2 Máscaras de snorkel']))
+        : (typeof booking?.extras === 'string' ? [booking.extras] : ['Seguro a todo riesgo', 'Menaje completo premium', 'Kit de cama y toallas', '2 sillas de camping']))
   }
 
   const baseArticles = Array.isArray(templateOverride?.articles) && templateOverride.articles.length > 0

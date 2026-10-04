@@ -4,12 +4,13 @@ import { useState, Suspense } from 'react'
 import { Link, useRouter } from '@/i18n/routing'
 import { useSearchParams } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
+import { safeRedirectPath } from '@/lib/auth/safeRedirect'
 import { UserPlus, Eye, EyeOff, ArrowLeft } from 'lucide-react'
 
 function RegisterForm() {
     const router = useRouter()
     const searchParams = useSearchParams()
-    const redirectUrl = searchParams.get('redirect') || '/dashboard?welcome=1'
+    const redirectUrl = safeRedirectPath(searchParams.get('redirect'), '/dashboard?welcome=1')
 
     const [form, setForm] = useState({ full_name: '', email: '', phone: '', password: '' })
     const [showPwd, setShowPwd] = useState(false)

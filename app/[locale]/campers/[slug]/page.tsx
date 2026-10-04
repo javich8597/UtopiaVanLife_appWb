@@ -1,4 +1,5 @@
 import { Suspense } from 'react'
+import type { Metadata } from 'next'
 import { notFound } from 'next/navigation'
 import Navbar from '@/components/layout/Navbar'
 import Footer from '@/components/layout/Footer'
@@ -7,6 +8,15 @@ import { createClient } from '@/lib/supabase/server'
 import { getTranslations } from 'next-intl/server'
 
 export const dynamicParams = true
+
+export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }): Promise<Metadata> {
+    const { slug } = await params
+    const name = slug.toUpperCase()
+    return {
+        title: `Camper ${name} | Utopia Van Life`,
+        description: `Fotos, equipamiento, plano y precios de la camper ${name} para recorrer Mallorca con autonomía total.`,
+    }
+}
 
 // Real Nomade Nation images (used with permission)
 const DEMO_CAMPERS: Record<string, any> = {

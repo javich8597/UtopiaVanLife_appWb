@@ -121,7 +121,7 @@ export default function Step4Extras({
             category: 'Confort',
             price: 20,
             price_type: 'per_rental',
-            description: 'Set completo de algodón 100% orgánico y toallas de baño para cambio a mitad de viaje.',
+            description: 'Set completo de ropa de cama y toallas de baño para cambio a mitad de viaje.',
         },
     ]
 
@@ -188,7 +188,7 @@ export default function Step4Extras({
                 <span className="step-header__tag">PASO 4 DE 5</span>
                 <h2 className="step-header__title">Personaliza tu aventura con experiencias y extras</h2>
                 <p className="step-header__desc">
-                    Añade equipamiento opcional para exprimir al máximo tus días en Mallorca: paddle surf, wifi ilimitado para teletrabajar, proyector de cine o menaje ampliado.
+                    Añade equipamiento opcional para exprimir al máximo tus días en Mallorca. Todo lo que eliges aquí se suma al total al momento.
                 </p>
             </div>
 
@@ -319,7 +319,7 @@ export default function Step4Extras({
                     font-weight: 700;
                     letter-spacing: 0.08em;
                     color: var(--forest-green);
-                    background: rgba(45, 58, 45, 0.08);
+                    background: rgba(204, 160, 83, 0.08);
                     padding: 3px 8px;
                     border-radius: var(--radius-sm);
                     margin-bottom: var(--space-2);
@@ -349,7 +349,7 @@ export default function Step4Extras({
 
                 .cat-pill {
                     border: 1px solid var(--gray-200);
-                    background: #ffffff;
+                    background: var(--wz-surface);
                     color: var(--gray-600);
                     font-size: 12px;
                     font-weight: 600;
@@ -368,7 +368,7 @@ export default function Step4Extras({
                 .cat-pill--active {
                     background: var(--forest-green);
                     border-color: var(--forest-green);
-                    color: #ffffff;
+                    color: var(--wz-on-accent);
                 }
 
                 .extras-grid {
@@ -378,7 +378,7 @@ export default function Step4Extras({
                 }
 
                 .extra-card {
-                    background: #ffffff;
+                    background: var(--wz-surface);
                     border: 1.5px solid var(--gray-200);
                     border-radius: var(--radius-xl);
                     padding: var(--space-4);
@@ -386,20 +386,20 @@ export default function Step4Extras({
                     flex-direction: column;
                     justify-content: space-between;
                     cursor: pointer;
-                    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.02);
+                    box-shadow: 0 2px 10px rgba(255, 255, 255, 0.02);
                     transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
                 }
 
                 .extra-card:hover {
                     border-color: var(--forest-green-light);
                     transform: translateY(-2px);
-                    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.05);
+                    box-shadow: 0 6px 20px rgba(255, 255, 255, 0.05);
                 }
 
                 .extra-card--selected {
                     border-color: var(--forest-green);
-                    background: #ffffff;
-                    box-shadow: 0 0 0 2px rgba(45, 58, 45, 0.15), 0 6px 20px rgba(45, 58, 45, 0.05);
+                    background: var(--wz-surface);
+                    box-shadow: 0 0 0 2px rgba(204, 160, 83, 0.15), 0 6px 20px rgba(204, 160, 83, 0.05);
                 }
 
                 .extra-card__top {
@@ -413,7 +413,7 @@ export default function Step4Extras({
                     width: 38px;
                     height: 38px;
                     border-radius: var(--radius-md);
-                    background: rgba(45, 58, 45, 0.06);
+                    background: rgba(204, 160, 83, 0.06);
                     color: var(--forest-green);
                     display: flex;
                     align-items: center;
@@ -422,7 +422,7 @@ export default function Step4Extras({
 
                 .extra-card--selected .extra-card__icon-box {
                     background: var(--forest-green);
-                    color: #ffffff;
+                    color: var(--wz-on-accent);
                 }
 
                 .extra-card__category-tag {
@@ -430,7 +430,7 @@ export default function Step4Extras({
                     font-weight: 700;
                     letter-spacing: 0.04em;
                     color: var(--gray-500);
-                    background: rgba(0, 0, 0, 0.04);
+                    background: rgba(255, 255, 255, 0.04);
                     padding: 2px 8px;
                     border-radius: var(--radius-full);
                 }
@@ -495,7 +495,7 @@ export default function Step4Extras({
                 .btn-add-extra {
                     width: 100%;
                     border: 1px solid var(--gray-300);
-                    background: #ffffff;
+                    background: var(--wz-surface);
                     color: var(--black-matte);
                     font-size: 12px;
                     font-weight: 600;
@@ -512,7 +512,7 @@ export default function Step4Extras({
                 .btn-add-extra:hover {
                     background: var(--forest-green);
                     border-color: var(--forest-green);
-                    color: #ffffff;
+                    color: var(--wz-on-accent);
                 }
 
                 .extra-selected-controls {
@@ -526,7 +526,7 @@ export default function Step4Extras({
                     display: flex;
                     align-items: center;
                     gap: 6px;
-                    background: #faf8f5;
+                    background: var(--wz-bg);
                     border: 1px solid var(--gray-200);
                     border-radius: var(--radius-full);
                     padding: 2px 6px;
@@ -537,13 +537,13 @@ export default function Step4Extras({
                     height: 22px;
                     border-radius: 50%;
                     border: none;
-                    background: #ffffff;
+                    background: var(--wz-surface);
                     color: var(--black-matte);
                     display: flex;
                     align-items: center;
                     justify-content: center;
                     cursor: pointer;
-                    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.08);
+                    box-shadow: 0 1px 2px rgba(255, 255, 255, 0.08);
                 }
 
                 .qty-val {

@@ -47,6 +47,7 @@ interface BookingWizardClientProps {
     initialPax?: number
     initialKmPackage?: 'included_150' | 'unlimited'
     initialCancellationPolicy?: 'standard' | 'flexible'
+    initialExtraIds?: string[]
     locale: string
 }
 
@@ -58,11 +59,12 @@ export default function BookingWizardClient({
     durationDiscounts = [],
     initialFrom = '',
     initialTo = '',
-    initialStartSlot = 'morning',
-    initialEndSlot = 'afternoon',
+    initialStartSlot = 'afternoon',
+    initialEndSlot = 'morning',
     initialPax = 2,
     initialKmPackage = 'included_150',
     initialCancellationPolicy = 'standard',
+    initialExtraIds = [],
     locale = 'es',
 }: BookingWizardClientProps) {
     const maxPax = camper.specs?.seats || (camper.slug === 'space' ? 2 : 3)
@@ -93,8 +95,18 @@ export default function BookingWizardClient({
     })
 
     // Step 4 State: Selected Extras
+    // Los extras elegidos en la ficha de la camper llegan preseleccionados
     const [step4, setStep4] = useState<Step4Data>({
-        selectedExtras: [],
+        selectedExtras: availableExtras
+            .filter((extra) => initialExtraIds.includes(extra.id))
+            .map((extra) => ({
+                id: extra.id,
+                name_es: extra.name_es || extra.name || 'Extra',
+                price: Number(extra.price) || 0,
+                price_type: extra.price_type === 'per_day' ? 'per_day' : 'per_rental',
+                quantity: 1,
+                category: extra.category || 'Equipamiento',
+            })),
     })
 
     // Step 5 State: Personal & Billing Customer Details
@@ -318,11 +330,30 @@ export default function BookingWizardClient({
             />
 
             <style jsx>{`
+                /* Black & Gold: el asistente reutiliza los tokens antiguos (forest-green,
+                   black-matte, gray-*) y aquí se remapean a la paleta oscura de la web. */
                 .booking-wizard-root {
+                    --wz-bg: #0B0C0E;
+                    --wz-surface: #131518;
+                    --wz-on-accent: #0B0C0E;
+                    --forest-green: #CCA053;
+                    --forest-green-light: #E8CA7C;
+                    --black-matte: #F8FAFC;
+                    --white-broken: #0B0C0E;
+                    --gray-100: #1A1D22;
+                    --gray-200: rgba(255, 255, 255, 0.1);
+                    --gray-300: rgba(255, 255, 255, 0.18);
+                    --gray-400: #7C8796;
+                    --gray-500: #94A3B8;
+                    --gray-600: #A8B3C4;
+                    --gray-700: #CBD5E1;
+                    --gray-800: #E2E8F0;
                     min-height: 100vh;
                     display: flex;
                     flex-direction: column;
-                    background: var(--white-broken);
+                    background: var(--wz-bg);
+                    color: var(--black-matte);
+                    color-scheme: dark;
                 }
 
                 .wizard-main-layout {

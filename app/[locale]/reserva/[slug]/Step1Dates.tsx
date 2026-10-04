@@ -306,7 +306,7 @@ export default function Step1Dates({
                     font-weight: 700;
                     letter-spacing: 0.08em;
                     color: var(--forest-green);
-                    background: rgba(45, 58, 45, 0.08);
+                    background: rgba(204, 160, 83, 0.08);
                     padding: 3px 8px;
                     border-radius: var(--radius-sm);
                     margin-bottom: var(--space-2);
@@ -332,11 +332,11 @@ export default function Step1Dates({
                     display: flex;
                     align-items: center;
                     justify-content: space-between;
-                    background: #ffffff;
+                    background: var(--wz-surface);
                     border: 1px solid var(--gray-200);
                     border-radius: var(--radius-lg);
                     padding: var(--space-4) var(--space-5);
-                    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.02);
+                    box-shadow: 0 2px 8px rgba(255, 255, 255, 0.02);
                 }
 
                 .pax-card__info {
@@ -349,7 +349,7 @@ export default function Step1Dates({
                     width: 38px;
                     height: 38px;
                     border-radius: var(--radius-md);
-                    background: rgba(45, 58, 45, 0.06);
+                    background: rgba(204, 160, 83, 0.06);
                     display: flex;
                     align-items: center;
                     justify-content: center;
@@ -372,7 +372,7 @@ export default function Step1Dates({
                     display: flex;
                     align-items: center;
                     gap: var(--space-3);
-                    background: #faf8f5;
+                    background: var(--wz-bg);
                     border: 1px solid var(--gray-200);
                     padding: 4px;
                     border-radius: var(--radius-full);
@@ -383,19 +383,19 @@ export default function Step1Dates({
                     height: 28px;
                     border-radius: 50%;
                     border: none;
-                    background: #ffffff;
+                    background: var(--wz-surface);
                     color: var(--black-matte);
                     display: flex;
                     align-items: center;
                     justify-content: center;
                     cursor: pointer;
-                    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+                    box-shadow: 0 1px 3px rgba(255, 255, 255, 0.08);
                     transition: all 0.2s ease;
                 }
 
                 .pax-btn:hover:not(:disabled) {
                     background: var(--forest-green);
-                    color: #ffffff;
+                    color: var(--wz-on-accent);
                 }
 
                 .pax-btn:disabled {
@@ -413,11 +413,11 @@ export default function Step1Dates({
 
                 /* Calendar section */
                 .calendar-section {
-                    background: #ffffff;
+                    background: var(--wz-surface);
                     border: 1px solid var(--gray-200);
                     border-radius: var(--radius-xl);
                     padding: var(--space-5);
-                    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.02);
+                    box-shadow: 0 4px 16px rgba(255, 255, 255, 0.02);
                 }
 
                 .calendar-section__header {
@@ -449,7 +449,7 @@ export default function Step1Dates({
                     font-size: 11px;
                     font-weight: 700;
                     background: var(--forest-green);
-                    color: #ffffff;
+                    color: var(--wz-on-accent);
                     padding: 2px 8px;
                     border-radius: var(--radius-full);
                 }
@@ -478,9 +478,9 @@ export default function Step1Dates({
                 }
 
                 .alert-box--warning {
-                    background: #fff8eb;
-                    border: 1px solid #fde0b2;
-                    color: #9a5b00;
+                    background: rgba(204, 160, 83, 0.08);
+                    border: 1px solid rgba(204, 160, 83, 0.3);
+                    color: #E8CA7C;
                 }
 
                 /* Slots Grid */
@@ -491,7 +491,7 @@ export default function Step1Dates({
                 }
 
                 .slot-box {
-                    background: #ffffff;
+                    background: var(--wz-surface);
                     border: 1px solid var(--gray-200);
                     border-radius: var(--radius-lg);
                     padding: var(--space-4);
@@ -525,7 +525,7 @@ export default function Step1Dates({
 
                 .slot-option-btn {
                     text-align: left;
-                    background: #faf8f5;
+                    background: var(--wz-bg);
                     border: 1.5px solid var(--gray-200);
                     border-radius: var(--radius-md);
                     padding: var(--space-3);
@@ -538,13 +538,13 @@ export default function Step1Dates({
 
                 .slot-option-btn:hover {
                     border-color: var(--forest-green-light);
-                    background: #ffffff;
+                    background: var(--wz-surface);
                 }
 
                 .slot-option-btn--active {
-                    background: #ffffff;
+                    background: var(--wz-surface);
                     border-color: var(--forest-green);
-                    box-shadow: 0 0 0 2px rgba(45, 58, 45, 0.12);
+                    box-shadow: 0 0 0 2px rgba(204, 160, 83, 0.12);
                 }
 
                 .slot-option-btn__top {
@@ -563,13 +563,13 @@ export default function Step1Dates({
                     font-size: 10px;
                     font-weight: 600;
                     color: var(--gray-600);
-                    background: rgba(0, 0, 0, 0.05);
+                    background: rgba(255, 255, 255, 0.05);
                     padding: 1px 6px;
                     border-radius: var(--radius-sm);
                 }
 
                 .slot-option-btn__tag--extra {
-                    background: rgba(45, 58, 45, 0.1);
+                    background: rgba(204, 160, 83, 0.1);
                     color: var(--forest-green);
                     font-weight: 700;
                 }

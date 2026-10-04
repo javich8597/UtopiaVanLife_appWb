@@ -45,7 +45,7 @@ export default function LoadingScreen({ fullScreen = true }: { fullScreen?: bool
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',
-        backgroundColor: 'rgba(250, 248, 245, 0.92)',
+        backgroundColor: 'rgba(11, 12, 14, 0.9)',
         backdropFilter: 'blur(12px)',
         WebkitBackdropFilter: 'blur(12px)',
       }}

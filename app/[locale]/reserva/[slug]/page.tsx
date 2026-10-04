@@ -87,6 +87,7 @@ interface PageProps {
         pax?: string
         km?: 'included_150' | 'unlimited'
         cancellation?: 'standard' | 'flexible'
+        extras?: string
     }>
 }
 
@@ -94,7 +95,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
     const { slug } = await params
     const camperName = slug.toUpperCase()
     return {
-        title: `Reserva ${camperName} · Wizard Multi-Paso | Utopia Van Life`,
+        title: `Reserva ${camperName} | Utopia Van Life`,
         description: `Configura tu reserva en 5 sencillos pasos para tu camper ${camperName} en Mallorca: fechas, kilometraje, políticas y extras.`,
     }
 }
@@ -172,19 +173,20 @@ export default async function ReservaWizardPage({ params, searchParams }: PagePr
         console.warn('Error fetching supplemental wizard data:', e)
     }
 
-    // Parse initial slots
-    let parsedStartSlot: 'morning' | 'afternoon' = 'morning'
-    if (search.startSlot === 'afternoon' || search.pickup_time === '15:00') {
-        parsedStartSlot = 'afternoon'
+    // Parse initial slots: por defecto las franjas estándar (sin suplemento).
+    // Las franjas con suplemento solo llegan preseleccionadas si el cliente ya las eligió.
+    let parsedStartSlot: 'morning' | 'afternoon' = 'afternoon'
+    if (search.startSlot === 'morning' || search.pickup_time === '09:00') {
+        parsedStartSlot = 'morning'
     }
 
-    let parsedEndSlot: 'morning' | 'afternoon' = 'afternoon'
-    if (search.endSlot === 'morning' || search.dropoff_time === '12:00' || search.dropoff_time === '09:00') {
-        parsedEndSlot = 'morning'
+    let parsedEndSlot: 'morning' | 'afternoon' = 'morning'
+    if (search.endSlot === 'afternoon' || search.dropoff_time === '19:00') {
+        parsedEndSlot = 'afternoon'
     }
 
     return (
-        <Suspense fallback={<div style={{ minHeight: '80vh', background: '#F5F5F3' }} />}>
+        <Suspense fallback={<div style={{ minHeight: '80vh', background: '#0B0C0E' }} />}>
             <BookingWizardClient
                 camper={effectiveCamper}
                 availableExtras={availableExtras}
@@ -198,6 +200,7 @@ export default async function ReservaWizardPage({ params, searchParams }: PagePr
                 initialPax={Number(search.pax) || 2}
                 initialKmPackage={search.km === 'unlimited' ? 'unlimited' : 'included_150'}
                 initialCancellationPolicy={search.cancellation === 'flexible' ? 'flexible' : 'standard'}
+                initialExtraIds={search.extras ? search.extras.split(',').filter(Boolean) : []}
                 locale={locale}
             />
         </Suspense>

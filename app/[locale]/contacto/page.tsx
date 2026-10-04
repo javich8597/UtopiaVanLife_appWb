@@ -2,6 +2,12 @@ import { getTranslations } from 'next-intl/server'
 import Navbar from '@/components/layout/Navbar'
 import Footer from '@/components/layout/Footer'
 import ContactClient from './ContactClient'
+import type { Metadata } from 'next'
+
+export const metadata: Metadata = {
+  title: 'Contacto | Utopia Van Life',
+  description: 'Habla con nosotros por WhatsApp, teléfono o email. Base en Son Oms, a 5 minutos del aeropuerto de Palma.',
+}
 
 export default async function ContactPage() {
   const translations = await getTranslations('ContactPage')

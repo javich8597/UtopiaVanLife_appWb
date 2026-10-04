@@ -176,7 +176,7 @@ export default function Step3Cancellation({
                     font-weight: 700;
                     letter-spacing: 0.08em;
                     color: var(--forest-green);
-                    background: rgba(45, 58, 45, 0.08);
+                    background: rgba(204, 160, 83, 0.08);
                     padding: 3px 8px;
                     border-radius: var(--radius-sm);
                     margin-bottom: var(--space-2);
@@ -204,7 +204,7 @@ export default function Step3Cancellation({
                 }
 
                 .policy-card {
-                    background: #ffffff;
+                    background: var(--wz-surface);
                     border: 2px solid var(--gray-200);
                     border-radius: var(--radius-xl);
                     padding: var(--space-5);
@@ -212,7 +212,7 @@ export default function Step3Cancellation({
                     display: flex;
                     flex-direction: column;
                     justify-content: space-between;
-                    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.02);
+                    box-shadow: 0 4px 16px rgba(255, 255, 255, 0.02);
                     transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
                     outline: none;
                 }
@@ -220,13 +220,13 @@ export default function Step3Cancellation({
                 .policy-card:hover {
                     border-color: var(--forest-green-light);
                     transform: translateY(-2px);
-                    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.05);
+                    box-shadow: 0 8px 24px rgba(255, 255, 255, 0.05);
                 }
 
                 .policy-card--active {
                     border-color: var(--forest-green);
-                    background: #ffffff;
-                    box-shadow: 0 0 0 2px rgba(45, 58, 45, 0.15), 0 8px 24px rgba(45, 58, 45, 0.06);
+                    background: var(--wz-surface);
+                    box-shadow: 0 0 0 2px rgba(204, 160, 83, 0.15), 0 8px 24px rgba(204, 160, 83, 0.06);
                 }
 
                 .policy-card__header {
@@ -267,12 +267,12 @@ export default function Step3Cancellation({
                 }
 
                 .policy-card__badge--standard {
-                    background: rgba(0, 0, 0, 0.05);
+                    background: rgba(255, 255, 255, 0.05);
                     color: var(--gray-800);
                 }
 
                 .policy-card__badge--highlight {
-                    background: rgba(45, 58, 45, 0.1);
+                    background: rgba(204, 160, 83, 0.1);
                     color: var(--forest-green);
                     display: inline-flex;
                     align-items: center;
@@ -354,17 +354,17 @@ export default function Step3Cancellation({
                 }
 
                 .timeline-item__badge--highlight {
-                    background: #e8f5e9;
-                    color: #1b5e20;
+                    background: rgba(204, 160, 83, 0.14);
+                    color: #E8CA7C;
                 }
 
                 .timeline-item__badge--green {
-                    background: rgba(45, 58, 45, 0.08);
+                    background: rgba(204, 160, 83, 0.08);
                     color: var(--forest-green);
                 }
 
                 .timeline-item__badge--gray {
-                    background: rgba(0, 0, 0, 0.05);
+                    background: rgba(255, 255, 255, 0.05);
                     color: var(--gray-600);
                 }
 

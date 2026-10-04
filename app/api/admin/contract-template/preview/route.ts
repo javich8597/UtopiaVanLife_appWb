@@ -79,7 +79,7 @@ export async function POST(request: Request) {
       slug: 'general',
       name: '[ Vehículo según reserva: Utopia Neo / Space ]',
       plate_number: BLANK_SHORT,
-      capacity: 'Hasta 4 Plazas viajar / 4 dormir'
+      capacity: 'SPACE: 2 plazas · NEO: hasta 3 plazas'
     }
 
     const contractData = generateContractData(mockBooking, mockProfile, mockCamper, templateOverride)

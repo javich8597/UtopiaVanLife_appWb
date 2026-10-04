@@ -475,7 +475,7 @@ function ReservarContent() {
                     </div>
                     <div className="reservar__pillar-text">
                         <h4>Pack Confort Completo</h4>
-                        <p>Sábanas de lino, toallas, menaje completo y mesa exterior de cortesía.</p>
+                        <p>Ropa de cama, toallas, menaje completo y 2 sillas de camping incluidas.</p>
                     </div>
                 </div>
 

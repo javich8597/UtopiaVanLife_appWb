@@ -27,8 +27,8 @@ export default function WhyUtopia() {
     },
     {
       icon: Compass,
-      title: 'Concierge Local 24/7',
-      desc: 'Entrega personalizada en Palma, atención continua por WhatsApp y guía exclusiva de calas secretas no masificadas.',
+      title: 'Concierge Local',
+      desc: 'Entrega personalizada en Palma, asistencia telefónica y por WhatsApp durante el viaje, y guía exclusiva de calas secretas no masificadas.',
       tag: 'Atención directa',
     },
   ]

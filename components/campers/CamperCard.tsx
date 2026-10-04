@@ -237,7 +237,7 @@ export default function CamperCard({
                             </div>
                             <div className="camper-card__spec">
                                 <Moon size={13} className="camper-card__spec-icon" />
-                                <span>Cama 135x190</span>
+                                <span>Cama 192×130</span>
                             </div>
                             <div className="camper-card__spec">
                                 <Sparkles size={13} className="camper-card__spec-icon" />
@@ -252,7 +252,7 @@ export default function CamperCard({
                             </div>
                             <div className="camper-card__spec">
                                 <Moon size={13} className="camper-card__spec-icon" />
-                                <span>Cama Eléctrica King</span>
+                                <span>Cama elevable eléctrica</span>
                             </div>
                             <div className="camper-card__spec">
                                 <Users size={13} className="camper-card__spec-icon" />

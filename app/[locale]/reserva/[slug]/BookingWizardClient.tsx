@@ -330,11 +330,30 @@ export default function BookingWizardClient({
             />
 
             <style jsx>{`
+                /* Black & Gold: el asistente reutiliza los tokens antiguos (forest-green,
+                   black-matte, gray-*) y aquí se remapean a la paleta oscura de la web. */
                 .booking-wizard-root {
+                    --wz-bg: #0B0C0E;
+                    --wz-surface: #131518;
+                    --wz-on-accent: #0B0C0E;
+                    --forest-green: #CCA053;
+                    --forest-green-light: #E8CA7C;
+                    --black-matte: #F8FAFC;
+                    --white-broken: #0B0C0E;
+                    --gray-100: #1A1D22;
+                    --gray-200: rgba(255, 255, 255, 0.1);
+                    --gray-300: rgba(255, 255, 255, 0.18);
+                    --gray-400: #7C8796;
+                    --gray-500: #94A3B8;
+                    --gray-600: #A8B3C4;
+                    --gray-700: #CBD5E1;
+                    --gray-800: #E2E8F0;
                     min-height: 100vh;
                     display: flex;
                     flex-direction: column;
-                    background: var(--white-broken);
+                    background: var(--wz-bg);
+                    color: var(--black-matte);
+                    color-scheme: dark;
                 }
 
                 .wizard-main-layout {

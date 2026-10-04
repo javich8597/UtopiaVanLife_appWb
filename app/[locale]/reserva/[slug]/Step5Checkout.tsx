@@ -521,7 +521,7 @@ export default function Step5Checkout({
                     font-weight: 700;
                     letter-spacing: 0.08em;
                     color: var(--forest-green);
-                    background: rgba(45, 58, 45, 0.08);
+                    background: rgba(204, 160, 83, 0.08);
                     padding: 3px 8px;
                     border-radius: var(--radius-sm);
                     margin-bottom: var(--space-2);
@@ -553,7 +553,7 @@ export default function Step5Checkout({
                 }
 
                 .alert-box--error {
-                    background: #fde8e8;
+                    background: rgba(239, 68, 68, 0.3);
                     border: 1px solid #f8b4b4;
                     color: var(--error);
                 }
@@ -565,11 +565,11 @@ export default function Step5Checkout({
                 }
 
                 .form-group-card {
-                    background: #ffffff;
+                    background: var(--wz-surface);
                     border: 1px solid var(--gray-200);
                     border-radius: var(--radius-xl);
                     padding: var(--space-5);
-                    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.02);
+                    box-shadow: 0 2px 10px rgba(255, 255, 255, 0.02);
                 }
 
                 .form-group-card__header {
@@ -617,20 +617,20 @@ export default function Step5Checkout({
                     border-radius: var(--radius-md);
                     font-size: var(--text-sm);
                     color: var(--black-matte);
-                    background: #faf8f5;
+                    background: var(--wz-bg);
                     transition: all 0.2s ease;
                     outline: none;
                 }
 
                 .field-input:focus {
                     border-color: var(--forest-green);
-                    background: #ffffff;
-                    box-shadow: 0 0 0 3px rgba(45, 58, 45, 0.12);
+                    background: var(--wz-surface);
+                    box-shadow: 0 0 0 3px rgba(204, 160, 83, 0.12);
                 }
 
                 .field-input--error {
                     border-color: var(--error);
-                    background: #fff8f8;
+                    background: rgba(239, 68, 68, 0.1);
                 }
 
                 .field-textarea {
@@ -639,7 +639,7 @@ export default function Step5Checkout({
                     border-radius: var(--radius-md);
                     font-size: var(--text-sm);
                     color: var(--black-matte);
-                    background: #faf8f5;
+                    background: var(--wz-bg);
                     font-family: inherit;
                     resize: vertical;
                     outline: none;
@@ -647,8 +647,8 @@ export default function Step5Checkout({
 
                 .field-textarea:focus {
                     border-color: var(--forest-green);
-                    background: #ffffff;
-                    box-shadow: 0 0 0 3px rgba(45, 58, 45, 0.12);
+                    background: var(--wz-surface);
+                    box-shadow: 0 0 0 3px rgba(204, 160, 83, 0.12);
                 }
 
                 .input-with-icon {
@@ -682,7 +682,7 @@ export default function Step5Checkout({
 
                 /* Legal Consent Card */
                 .legal-consent-card {
-                    background: #ffffff;
+                    background: var(--wz-surface);
                     border: 1px solid var(--gray-200);
                     border-radius: var(--radius-lg);
                     padding: var(--space-4) var(--space-5);
@@ -729,7 +729,7 @@ export default function Step5Checkout({
                     height: 54px;
                     border: none;
                     background: var(--forest-green);
-                    color: #ffffff;
+                    color: var(--wz-on-accent);
                     font-size: var(--text-base);
                     font-weight: 700;
                     border-radius: var(--radius-lg);
@@ -738,14 +738,14 @@ export default function Step5Checkout({
                     align-items: center;
                     justify-content: center;
                     gap: 10px;
-                    box-shadow: 0 4px 14px rgba(45, 58, 45, 0.25);
+                    box-shadow: 0 4px 14px rgba(204, 160, 83, 0.25);
                     transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
                 }
 
                 .btn-pay-redsys:hover:not(:disabled) {
                     background: var(--forest-green-light);
                     transform: translateY(-1px);
-                    box-shadow: 0 6px 20px rgba(45, 58, 45, 0.3);
+                    box-shadow: 0 6px 20px rgba(204, 160, 83, 0.3);
                 }
 
                 .btn-pay-redsys:disabled {

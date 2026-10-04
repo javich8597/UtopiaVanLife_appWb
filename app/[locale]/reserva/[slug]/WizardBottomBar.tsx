@@ -104,10 +104,10 @@ export default function WizardBottomBar({
                     bottom: 0;
                     left: 0;
                     right: 0;
-                    background: rgba(255, 255, 255, 0.94);
+                    background: rgba(19, 21, 24, 0.94);
                     backdrop-filter: blur(16px);
-                    border-top: 1px solid rgba(0, 0, 0, 0.08);
-                    box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.04);
+                    border-top: 1px solid rgba(255, 255, 255, 0.08);
+                    box-shadow: 0 -4px 20px rgba(255, 255, 255, 0.04);
                     z-index: 50;
                     padding: var(--space-3) 0;
                 }
@@ -138,7 +138,7 @@ export default function WizardBottomBar({
                 }
 
                 .wizard-bar-btn--back {
-                    background: #faf8f5;
+                    background: var(--wz-bg);
                     border: 1px solid var(--gray-300);
                     color: var(--black-matte);
                 }
@@ -155,15 +155,15 @@ export default function WizardBottomBar({
 
                 .wizard-bar-btn--next {
                     background: var(--forest-green);
-                    color: #ffffff;
+                    color: var(--wz-on-accent);
                     min-width: 150px;
-                    box-shadow: 0 4px 12px rgba(45, 58, 45, 0.2);
+                    box-shadow: 0 4px 12px rgba(204, 160, 83, 0.2);
                 }
 
                 .wizard-bar-btn--next:hover:not(:disabled) {
                     background: var(--forest-green-light);
                     transform: translateY(-1px);
-                    box-shadow: 0 6px 16px rgba(45, 58, 45, 0.25);
+                    box-shadow: 0 6px 16px rgba(204, 160, 83, 0.25);
                 }
 
                 .wizard-bar-btn--next:disabled {
@@ -175,7 +175,7 @@ export default function WizardBottomBar({
 
                 .wizard-bar-btn--pay {
                     background: var(--forest-green);
-                    color: #ffffff;
+                    color: var(--wz-on-accent);
                     padding: 0 var(--space-8);
                 }
 

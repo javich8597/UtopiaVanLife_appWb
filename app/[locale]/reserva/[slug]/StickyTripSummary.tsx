@@ -138,11 +138,11 @@ export default function StickyTripSummary({
                 }
 
                 .sticky-summary-card {
-                    background: #ffffff;
+                    background: var(--wz-surface);
                     border: 1px solid var(--gray-200);
                     border-radius: var(--radius-xl);
                     padding: var(--space-5);
-                    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.04);
+                    box-shadow: 0 4px 20px rgba(255, 255, 255, 0.04);
                     position: sticky;
                     top: 90px;
                 }
@@ -173,7 +173,7 @@ export default function StickyTripSummary({
                     text-transform: uppercase;
                     letter-spacing: 0.06em;
                     color: var(--forest-green);
-                    background: rgba(45, 58, 45, 0.08);
+                    background: rgba(204, 160, 83, 0.08);
                     padding: 2px 8px;
                     border-radius: var(--radius-full);
                 }
@@ -204,7 +204,7 @@ export default function StickyTripSummary({
                 }
 
                 .mobile-summary-sheet {
-                    background: #ffffff;
+                    background: var(--wz-surface);
                     border-radius: var(--radius-xl) var(--radius-xl) 0 0;
                     width: 100%;
                     max-height: 85vh;
@@ -509,7 +509,7 @@ function TripSummaryContent({
                     display: flex;
                     align-items: center;
                     gap: var(--space-3);
-                    background: #faf8f5;
+                    background: var(--wz-bg);
                     border: 1px solid var(--gray-200);
                     border-radius: var(--radius-lg);
                     padding: var(--space-3);
@@ -564,7 +564,7 @@ function TripSummaryContent({
                     display: flex;
                     flex-direction: column;
                     gap: 6px;
-                    background: #faf8f5;
+                    background: var(--wz-bg);
                     border: 1px solid var(--gray-200);
                     border-radius: var(--radius-md);
                     padding: var(--space-3);
@@ -599,14 +599,14 @@ function TripSummaryContent({
                     gap: 6px;
                     margin-top: 4px;
                     padding-top: 6px;
-                    border-top: 1px solid rgba(0, 0, 0, 0.05);
+                    border-top: 1px solid rgba(255, 255, 255, 0.05);
                 }
 
                 .stats-pill {
                     font-size: 11px;
                     font-weight: 600;
                     color: var(--gray-700);
-                    background: #ffffff;
+                    background: var(--wz-surface);
                     padding: 2px 8px;
                     border-radius: var(--radius-sm);
                     border: 1px solid var(--gray-200);
@@ -648,7 +648,7 @@ function TripSummaryContent({
                 }
 
                 .summary-breakdown-row--discount {
-                    color: #1b5e20;
+                    color: #E8CA7C;
                     font-weight: 600;
                 }
 
@@ -659,8 +659,8 @@ function TripSummaryContent({
                 }
 
                 .discount-tag {
-                    background: #e8f5e9;
-                    color: #1b5e20;
+                    background: rgba(204, 160, 83, 0.14);
+                    color: #E8CA7C;
                     font-size: 10px;
                     font-weight: 700;
                     padding: 1px 5px;
@@ -673,7 +673,7 @@ function TripSummaryContent({
                 }
 
                 .summary-discount-val {
-                    color: #1b5e20;
+                    color: #E8CA7C;
                     font-weight: 700;
                 }
 
@@ -742,15 +742,15 @@ function TripSummaryContent({
                     gap: 8px;
                     font-size: 11px;
                     color: var(--gray-600);
-                    background: #faf8f5;
+                    background: var(--wz-bg);
                     padding: var(--space-3);
                     border-radius: var(--radius-md);
                 }
 
                 /* Deposit Box */
                 .summary-deposit-box {
-                    background: rgba(45, 58, 45, 0.04);
-                    border: 1px solid rgba(45, 58, 45, 0.12);
+                    background: rgba(204, 160, 83, 0.04);
+                    border: 1px solid rgba(204, 160, 83, 0.12);
                     border-radius: var(--radius-md);
                     padding: var(--space-3);
                     display: flex;
@@ -791,7 +791,7 @@ function TripSummaryContent({
 
                 /* Included Box */
                 .summary-included-box {
-                    background: #ffffff;
+                    background: var(--wz-surface);
                     border: 1px solid var(--gray-200);
                     border-radius: var(--radius-md);
                     padding: var(--space-3);

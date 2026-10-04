@@ -408,7 +408,7 @@ export default function BookingCalendar({
 
                     {/* Explicación contextual de turnos */}
                     <div className="booking-cal__slots-info">
-                        <Info size={13} style={{ flexShrink: 0, marginTop: 2, color: 'var(--forest-green)' }} />
+                        <Info size={13} style={{ flexShrink: 0, marginTop: 2, color: '#CCA053' }} />
                         <span>
                             <strong>Horarios:</strong> Recogida mañana (09–12h) y entrega tarde (15–19h) para días completos. Recogida por la tarde o entrega por la mañana descuenta <strong>-0.5 día</strong>.
                         </span>
@@ -439,8 +439,8 @@ export default function BookingCalendar({
 
             <style jsx>{`
                 .booking-cal {
-                    background: #FFFFFF;
-                    border: 1px solid #E2DDD5;
+                    background: #131518;
+                    border: 1px solid rgba(255, 255, 255, 0.1);
                     border-radius: 16px;
                     padding: 13px 16px 12px;
                     user-select: none;
@@ -482,7 +482,7 @@ export default function BookingCalendar({
                 .booking-cal__months-divider {
                     width: 1px;
                     align-self: stretch;
-                    background: #EBE5DC;
+                    background: rgba(255, 255, 255, 0.06);
                     margin: 4px 0;
                 }
                 .booking-cal__day--empty {
@@ -501,12 +501,12 @@ export default function BookingCalendar({
                     font-weight: 700;
                     text-transform: capitalize;
                     font-size: 0.85rem;
-                    color: #1A1A1A;
+                    color: #F8FAFC;
                     letter-spacing: -0.01em;
                 }
                 .booking-cal__nav-btn {
-                    background: #FAF8F5;
-                    border: 1px solid #D5CFC6;
+                    background: #1A1D22;
+                    border: 1px solid rgba(255, 255, 255, 0.1);
                     border-radius: var(--radius-full);
                     width: 26px;
                     height: 26px;
@@ -514,14 +514,14 @@ export default function BookingCalendar({
                     align-items: center;
                     justify-content: center;
                     cursor: pointer;
-                    color: #1A1A1A;
+                    color: #F8FAFC;
                     transition: all var(--transition-fast);
                     padding: 0;
                 }
                 .booking-cal__nav-btn:hover:not(:disabled) {
-                    background: var(--forest-green);
-                    border-color: var(--forest-green);
-                    color: #FFFFFF;
+                    background: #CCA053;
+                    border-color: #CCA053;
+                    color: #0B0C0E;
                 }
                 .booking-cal__nav-btn:disabled {
                     opacity: 0.25;
@@ -536,7 +536,7 @@ export default function BookingCalendar({
                 .booking-cal__weekday {
                     font-size: 0.68rem;
                     font-weight: 700;
-                    color: #4A4540;
+                    color: #A8B3C4;
                     padding-bottom: 2px;
                 }
                 .booking-cal__grid {
@@ -550,7 +550,7 @@ export default function BookingCalendar({
                     border: none;
                     font-size: 0.76rem;
                     font-weight: 600;
-                    color: #1A1A1A;
+                    color: #F8FAFC;
                     cursor: pointer;
                     display: flex;
                     align-items: center;
@@ -571,12 +571,12 @@ export default function BookingCalendar({
                     z-index: 2;
                 }
                 .booking-cal__day--disabled {
-                    color: #C2BAB0;
+                    color: #64748B;
                     cursor: not-allowed;
                 }
                 .booking-cal__day--disabled .booking-cal__day-number {
                     text-decoration: line-through;
-                    text-decoration-color: #DDD6CD;
+                    text-decoration-color: rgba(255, 255, 255, 0.1);
                 }
                 /* Corte diagonal: Mañana ocupada (AM) */
                 .booking-cal__day--morning-blocked {
@@ -587,33 +587,33 @@ export default function BookingCalendar({
                     background: linear-gradient(135deg, transparent 50%, rgba(200, 160, 110, 0.45) 50%);
                 }
                 .booking-cal__day:hover:not(.booking-cal__day--disabled):not(.booking-cal__day--start):not(.booking-cal__day--end) .booking-cal__day-number {
-                    background: rgba(45, 58, 45, 0.12);
-                    color: var(--forest-green);
+                    background: rgba(204, 160, 83, 0.12);
+                    color: #CCA053;
                 }
                 .booking-cal__day--in-range {
-                    background: rgba(45, 58, 45, 0.10);
+                    background: rgba(204, 160, 83, 0.10);
                 }
                 .booking-cal__day--in-range .booking-cal__day-number {
-                    color: var(--forest-green);
+                    color: #CCA053;
                     font-weight: 700;
                 }
                 .booking-cal__day--start {
-                    background: linear-gradient(to right, transparent 50%, rgba(45, 58, 45, 0.10) 50%);
+                    background: linear-gradient(to right, transparent 50%, rgba(204, 160, 83, 0.10) 50%);
                 }
                 .booking-cal__day--start .booking-cal__day-number {
-                    background: var(--forest-green);
-                    color: #FFFFFF;
+                    background: #CCA053;
+                    color: #0B0C0E;
                     font-weight: 700;
-                    box-shadow: 0 2px 6px rgba(45, 58, 45, 0.3);
+                    box-shadow: 0 2px 6px rgba(204, 160, 83, 0.3);
                 }
                 .booking-cal__day--end {
-                    background: linear-gradient(to left, transparent 50%, rgba(45, 58, 45, 0.10) 50%);
+                    background: linear-gradient(to left, transparent 50%, rgba(204, 160, 83, 0.10) 50%);
                 }
                 .booking-cal__day--end .booking-cal__day-number {
-                    background: var(--forest-green);
-                    color: #FFFFFF;
+                    background: #CCA053;
+                    color: #0B0C0E;
                     font-weight: 700;
-                    box-shadow: 0 2px 6px rgba(45, 58, 45, 0.3);
+                    box-shadow: 0 2px 6px rgba(204, 160, 83, 0.3);
                 }
                 .booking-cal__day--start.booking-cal__day--end {
                     background: transparent;
@@ -627,9 +627,9 @@ export default function BookingCalendar({
                     gap: 6px;
                     margin-top: 10px;
                     padding-top: 8px;
-                    border-top: 1px solid #EBE5DC;
+                    border-top: 1px solid rgba(255, 255, 255, 0.1);
                     font-size: 0.72rem;
-                    color: #4A4540;
+                    color: #A8B3C4;
                     font-weight: 500;
                 }
                 .booking-cal__legend-item {
@@ -644,11 +644,11 @@ export default function BookingCalendar({
                     display: inline-block;
                 }
                 .booking-cal__legend-icon--am {
-                    background: linear-gradient(135deg, #C8A06E 50%, #FAF8F5 50%);
+                    background: linear-gradient(135deg, #C8A06E 50%, #1A1D22 50%);
                     border: 1px solid #B08B5B;
                 }
                 .booking-cal__legend-icon--pm {
-                    background: linear-gradient(135deg, #FAF8F5 50%, #C8A06E 50%);
+                    background: linear-gradient(135deg, #1A1D22 50%, #C8A06E 50%);
                     border: 1px solid #B08B5B;
                 }
 
@@ -658,10 +658,10 @@ export default function BookingCalendar({
                     display: flex;
                     flex-direction: column;
                     gap: 10px;
-                    background: #FAF8F5;
+                    background: #1A1D22;
                     padding: 10px 12px;
                     border-radius: 10px;
-                    border: 1px solid #E5DFD7;
+                    border: 1px solid rgba(255, 255, 255, 0.1);
                 }
                 .booking-cal__slot-group {
                     display: flex;
@@ -672,7 +672,7 @@ export default function BookingCalendar({
                     font-size: 0.68rem;
                     font-weight: 800;
                     letter-spacing: 0.05em;
-                    color: #2D3A2D;
+                    color: #E8CA7C;
                     text-transform: uppercase;
                 }
                 .booking-cal__slot-buttons {
@@ -688,9 +688,9 @@ export default function BookingCalendar({
                     gap: 3px;
                     padding: 6px 10px;
                     border-radius: 8px;
-                    border: 1px solid #D5CEC5;
-                    background: #FFFFFF;
-                    color: #1A1A1A;
+                    border: 1px solid rgba(255, 255, 255, 0.1);
+                    background: #131518;
+                    color: #F8FAFC;
                     cursor: pointer;
                     transition: all var(--transition-fast);
                     text-align: left;
@@ -707,39 +707,39 @@ export default function BookingCalendar({
                     font-weight: 600;
                     padding: 1px 5px;
                     border-radius: 4px;
-                    background: #ECE7E0;
-                    color: #5C554E;
+                    background: #1A1D22;
+                    color: #A8B3C4;
                     white-space: nowrap;
                 }
                 .booking-cal__slot-pill:hover:not(:disabled) {
-                    border-color: var(--forest-green);
-                    background: #F4F7F4;
-                    color: var(--forest-green);
+                    border-color: #CCA053;
+                    background: #1A1D22;
+                    color: #CCA053;
                 }
                 .booking-cal__slot-pill--active {
-                    background: var(--forest-green) !important;
-                    color: #FFFFFF !important;
-                    border-color: var(--forest-green) !important;
-                    box-shadow: 0 2px 6px rgba(45, 58, 45, 0.25);
+                    background: #CCA053 !important;
+                    color: #0B0C0E !important;
+                    border-color: #CCA053 !important;
+                    box-shadow: 0 2px 6px rgba(204, 160, 83, 0.25);
                 }
                 .booking-cal__slot-pill--active .booking-cal__slot-text {
-                    color: #FFFFFF !important;
+                    color: #0B0C0E !important;
                 }
                 .booking-cal__slot-pill--active .booking-cal__slot-badge {
                     background: rgba(255, 255, 255, 0.22) !important;
-                    color: #FFFFFF !important;
+                    color: #0B0C0E !important;
                 }
                 .booking-cal__slot-pill:disabled {
                     opacity: 0.5;
-                    background: #F3EFE9;
-                    border: 1px dashed #DDD6CD;
-                    color: #9E9690;
+                    background: #1A1D22;
+                    border: 1px dashed rgba(255, 255, 255, 0.1);
+                    color: #64748B;
                     cursor: not-allowed;
                 }
                 .booking-cal__slot-pill:disabled .booking-cal__slot-badge {
                     opacity: 0.6;
-                    background: #E5DFD7;
-                    color: #9E9690;
+                    background: rgba(255, 255, 255, 0.06);
+                    color: #64748B;
                 }
 
                 .booking-cal__step-banner {
@@ -753,16 +753,16 @@ export default function BookingCalendar({
                     border-radius: 8px;
                     font-size: 0.74rem;
                     font-weight: 700;
-                    background: #F5F1EB;
-                    color: #2D3A2D;
+                    background: #1A1D22;
+                    color: #E8CA7C;
                     text-align: center;
-                    border: 1px solid #E2DBD2;
+                    border: 1px solid rgba(255, 255, 255, 0.1);
                     letter-spacing: -0.01em;
                 }
                 .booking-cal__step-banner--done {
-                    background: #EAF2EB;
-                    color: #1E3324;
-                    border-color: #CFE2D2;
+                    background: rgba(204, 160, 83, 0.14);
+                    color: #E8CA7C;
+                    border-color: rgba(204, 160, 83, 0.35);
                 }
 
                 .booking-cal__slots-info {
@@ -770,12 +770,12 @@ export default function BookingCalendar({
                     align-items: flex-start;
                     gap: 6px;
                     font-size: 0.69rem;
-                    color: #5C554E;
+                    color: #A8B3C4;
                     line-height: 1.4;
-                    background: #FFFFFF;
+                    background: #131518;
                     padding: 8px 10px;
                     border-radius: 8px;
-                    border: 1px dashed #DDD6CD;
+                    border: 1px dashed rgba(255, 255, 255, 0.1);
                     margin-top: 4px;
                 }
 
@@ -788,13 +788,13 @@ export default function BookingCalendar({
                     gap: 6px;
                     margin-bottom: 8px;
                     padding: 5px 10px;
-                    background: #FEF7EE;
-                    border: 1px solid #E8C99B;
-                    border-left: 3px solid #B46914;
+                    background: rgba(204, 160, 83, 0.08);
+                    border: 1px solid rgba(204, 160, 83, 0.35);
+                    border-left: 3px solid #CCA053;
                     border-radius: 8px;
                     font-size: 0.72rem;
                     font-weight: 600;
-                    color: #78350F;
+                    color: #E8CA7C;
                     line-height: 1.35;
                     text-align: center;
                 }
@@ -806,15 +806,15 @@ export default function BookingCalendar({
                     gap: 8px;
                     margin-top: 10px;
                     padding-top: 8px;
-                    border-top: 1px solid #EBE5DC;
+                    border-top: 1px solid rgba(255, 255, 255, 0.1);
                 }
                 .booking-cal__clear-btn {
                     height: 33px;
                     padding: 0 12px;
-                    border: 1px solid #DDD6CD;
+                    border: 1px solid rgba(255, 255, 255, 0.1);
                     border-radius: var(--radius-full);
-                    background: #FAF8F5;
-                    color: #5C554E;
+                    background: #1A1D22;
+                    color: #A8B3C4;
                     font-size: 0.72rem;
                     font-weight: 600;
                     cursor: pointer;
@@ -825,9 +825,9 @@ export default function BookingCalendar({
                     white-space: nowrap;
                 }
                 .booking-cal__clear-btn:hover:not(:disabled) {
-                    background: #FFFFFF;
-                    border-color: #A39B92;
-                    color: #1A1A1A;
+                    background: #131518;
+                    border-color: rgba(255, 255, 255, 0.3);
+                    color: #F8FAFC;
                 }
                 .booking-cal__clear-btn:disabled {
                     opacity: 0.4;
@@ -838,8 +838,8 @@ export default function BookingCalendar({
                 .booking-cal__done-btn {
                     height: 33px;
                     flex: 1;
-                    background: var(--forest-green);
-                    color: #FFFFFF;
+                    background: #CCA053;
+                    color: #0B0C0E;
                     border: none;
                     border-radius: var(--radius-full);
                     padding: 0 14px;
@@ -850,12 +850,12 @@ export default function BookingCalendar({
                     align-items: center;
                     justify-content: center;
                     gap: 6px;
-                    box-shadow: 0 2px 6px rgba(45, 58, 45, 0.25);
+                    box-shadow: 0 2px 6px rgba(204, 160, 83, 0.25);
                     transition: all var(--transition-fast);
                 }
                 .booking-cal__done-btn:hover {
-                    background: var(--forest-green-light);
-                    box-shadow: 0 4px 10px rgba(45, 58, 45, 0.35);
+                    background: #E8CA7C;
+                    box-shadow: 0 4px 10px rgba(204, 160, 83, 0.35);
                 }
 
                 @media (min-width: 681px) {

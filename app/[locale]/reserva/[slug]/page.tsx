@@ -186,7 +186,7 @@ export default async function ReservaWizardPage({ params, searchParams }: PagePr
     }
 
     return (
-        <Suspense fallback={<div style={{ minHeight: '80vh', background: '#F5F5F3' }} />}>
+        <Suspense fallback={<div style={{ minHeight: '80vh', background: '#0B0C0E' }} />}>
             <BookingWizardClient
                 camper={effectiveCamper}
                 availableExtras={availableExtras}

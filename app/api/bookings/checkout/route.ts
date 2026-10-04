@@ -48,6 +48,11 @@ export async function POST(req: Request) {
             )
         }
 
+        // El slug/id se interpola en un filtro .or() de PostgREST: solo letras, números y guiones
+        if (!/^[a-z0-9-]+$/i.test(String(camperSlug))) {
+            return NextResponse.json({ error: 'Camper no válida' }, { status: 400 })
+        }
+
         if (!customerEmail) {
             return NextResponse.json(
                 { error: 'El correo electrónico del cliente es obligatorio' },

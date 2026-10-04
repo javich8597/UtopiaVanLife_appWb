@@ -11,8 +11,7 @@ import {
   MessageCircle, 
   Clock, 
   Send,
-  Sparkles,
-  ArrowRight
+  Sparkles
 } from 'lucide-react'
 
 interface ContactClientProps {
@@ -45,40 +44,25 @@ export default function ContactClient({ t }: ContactClientProps) {
   const [email, setEmail] = useState('')
   const [phone, setPhone] = useState('')
   const [message, setMessage] = useState('')
-  const [isSubmitting, setIsSubmitting] = useState(false)
   const [submitted, setSubmitted] = useState(false)
 
-  // Newsletter Form State
-  const [newsEmail, setNewsEmail] = useState('')
-  const [newsSubmitting, setNewsSubmitting] = useState(false)
-  const [newsSubmitted, setNewsSubmitted] = useState(false)
 
-  const handleContactSubmit = async (e: React.FormEvent) => {
+  // El formulario no tiene servidor de correo: se envía por WhatsApp (o email) con el
+  // mensaje ya redactado, en vez de simular un envío que nunca llegaba a nadie.
+  const composedMessage = () => [
+    `Hola Utopia Van Life, soy ${firstName} ${lastName}.`,
+    message,
+    `Email: ${email}`,
+    phone ? `Teléfono: ${phone}` : null,
+  ].filter((line): line is string => line !== null).join('\n\n')
+
+  const mailtoHref = () =>
+    `mailto:info@utopiavanlife.com?subject=${encodeURIComponent(`Consulta de ${firstName} ${lastName}`.trim())}&body=${encodeURIComponent(composedMessage())}`
+
+  const handleContactSubmit = (e: React.FormEvent) => {
     e.preventDefault()
-    setIsSubmitting(true)
-
-    // Simulate sending message
-    await new Promise(resolve => setTimeout(resolve, 1200))
-
-    setIsSubmitting(false)
+    window.open(`https://wa.me/34611560916?text=${encodeURIComponent(composedMessage())}`, '_blank', 'noopener,noreferrer')
     setSubmitted(true)
-    setFirstName('')
-    setLastName('')
-    setEmail('')
-    setPhone('')
-    setMessage('')
-  }
-
-  const handleNewsletterSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
-    if (!newsEmail) return
-    setNewsSubmitting(true)
-
-    await new Promise(resolve => setTimeout(resolve, 1000))
-
-    setNewsSubmitting(false)
-    setNewsSubmitted(true)
-    setNewsEmail('')
   }
 
   return (
@@ -198,9 +182,9 @@ export default function ContactClient({ t }: ContactClientProps) {
                     <div className="success-icon-circle">
                       <Check size={28} />
                     </div>
-                    <h3 className="success-title">¡Mensaje recibido!</h3>
-                    <p className="success-text">{t.successMsg}</p>
-                    <p className="success-subtext">Nos pondremos en contacto contigo en un plazo máximo de 24 horas laborables.</p>
+                    <h3 className="success-title">Tu mensaje está listo en WhatsApp</h3>
+                    <p className="success-text">Pulsa enviar en WhatsApp y te respondemos personalmente, normalmente en menos de 15 minutos.</p>
+                    <p className="success-subtext">¿Prefieres email? <a href={mailtoHref()} className="info-item-link">Envíalo a info@utopiavanlife.com</a></p>
                     <button onClick={() => setSubmitted(false)} className="btn-resend">
                       Enviar otro mensaje
                     </button>
@@ -287,22 +271,9 @@ export default function ContactClient({ t }: ContactClientProps) {
                     </div>
 
                     {/* Submit Button */}
-                    <button
-                      type="submit"
-                      disabled={isSubmitting}
-                      className="btn-submit"
-                    >
-                      {isSubmitting ? (
-                        <>
-                          <span className="spinner" />
-                          <span>{t.sending}</span>
-                        </>
-                      ) : (
-                        <>
-                          <span>{t.submit}</span>
-                          <Send size={15} />
-                        </>
-                      )}
+                    <button type="submit" className="btn-submit">
+                      <span>Enviar por WhatsApp</span>
+                      <Send size={15} />
                     </button>
                   </form>
                 )}
@@ -336,49 +307,6 @@ export default function ContactClient({ t }: ContactClientProps) {
         </div>
       </section>
 
-      {/* 4. Newsletter Section */}
-      <section className="newsletter-section">
-        <div className="container">
-          <div className="newsletter-card">
-            <div className="newsletter-text">
-              <h2 className="newsletter-title">{t.newsletterTitle}</h2>
-              <p className="newsletter-sub">{t.newsletterSubtitle}</p>
-            </div>
-
-            <div className="newsletter-action">
-              {newsSubmitted ? (
-                <div className="newsletter-success-badge">
-                  <Check size={18} />
-                  <span>¡Te has unido con éxito! Revisa tu buzón.</span>
-                </div>
-              ) : (
-                <form onSubmit={handleNewsletterSubmit} className="newsletter-form-inline">
-                  <input
-                    type="email"
-                    required
-                    value={newsEmail}
-                    onChange={e => setNewsEmail(e.target.value)}
-                    placeholder={t.newsletterPlaceholder}
-                    className="newsletter-field"
-                  />
-                  <button
-                    type="submit"
-                    disabled={newsSubmitting}
-                    className="newsletter-btn"
-                  >
-                    {newsSubmitting ? '...' : (
-                      <>
-                        <span>{t.newsletterSubmit}</span>
-                        <ArrowRight size={15} />
-                      </>
-                    )}
-                  </button>
-                </form>
-              )}
-            </div>
-          </div>
-        </div>
-      </section>
 
       <style jsx>{`
         .contact-page {

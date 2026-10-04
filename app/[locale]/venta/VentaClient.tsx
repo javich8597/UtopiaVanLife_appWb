@@ -226,7 +226,6 @@ function CustomDropdown({
 
 export default function VentaClient() {
   const [currentSlide, setCurrentSlide] = useState(0)
-  const [submitting, setSubmitting] = useState(false)
   const [submitted, setSubmitted] = useState(false)
 
   const formRef = useRef<HTMLDivElement>(null)
@@ -372,11 +371,19 @@ export default function VentaClient() {
     setCurrentSlide(prev => (prev === CAROUSEL_IMAGES.length - 1 ? 0 : prev + 1))
   }
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  // Sin servidor de correo: la solicitud sale por WhatsApp ya redactada (antes se
+  // simulaba el envío y el contacto se perdía).
+  const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
-    setSubmitting(true)
-    await new Promise(resolve => setTimeout(resolve, 1200))
-    setSubmitting(false)
+    const text = [
+      `Hola Utopia Van Life, soy ${formData.firstName} ${formData.lastName} y me interesa el catálogo de venta de campers.`,
+      formData.interest && `Interés: ${formData.interest}`,
+      formData.budget && `Presupuesto: ${formData.budget}`,
+      formData.timeframe && `Plazo: ${formData.timeframe}`,
+      `Email: ${formData.email}`,
+      formData.phone && `Teléfono: ${formData.phone}`,
+    ].filter(Boolean).join('\n')
+    window.open(`https://wa.me/34611560916?text=${encodeURIComponent(text)}`, '_blank', 'noopener,noreferrer')
     setSubmitted(true)
   }
 
@@ -689,7 +696,7 @@ export default function VentaClient() {
             <div className="venta-form-section__info">
               <div className="venta-tag">
                 <Download size={15} />
-                <span>Acceso Inmediato a PDF</span>
+                <span>Dossier técnico con precios</span>
               </div>
 
               <h2 className="venta-section-title">
@@ -697,7 +704,7 @@ export default function VentaClient() {
               </h2>
 
               <div className="venta-form-section__desc">
-                <p>Para acceder al dossier técnico y precios, rellena el formulario y te enviaremos el enlace oficial al instante.</p>
+                <p>Para recibir el dossier técnico con precios, rellena el formulario y te lo enviamos personalmente por WhatsApp.</p>
                 <p>Una vez descargues el catálogo, nuestro equipo de especialistas se pondrá en contacto contigo de forma personalizada para resolver todas tus dudas sobre configuraciones e importación.</p>
                 <p className="venta-gold-text">Sabemos lo trascendental que es dar este paso y queremos que tengas toda la claridad técnica antes de decidir.</p>
               </div>
@@ -769,9 +776,9 @@ export default function VentaClient() {
               {submitted ? (
                 <div className="venta-form-success">
                   <CheckCircle2 size={56} className="venta-form-success__icon" />
-                  <h3 className="venta-form-success__title">¡Solicitud recibida con éxito!</h3>
+                  <h3 className="venta-form-success__title">Tu solicitud está lista en WhatsApp</h3>
                   <p className="venta-form-success__desc">
-                    Hemos procesado tus datos. El dossier técnico PDF ha sido remitido a tu correo y un asesor de Utopia Van Life te contactará para orientarte de forma personalizada.
+                    Pulsa enviar en WhatsApp y un asesor de Utopia Van Life te mandará el dossier técnico con precios y te orientará personalmente.
                   </p>
                 </div>
               ) : (
@@ -867,11 +874,10 @@ export default function VentaClient() {
 
                   <button
                     type="submit"
-                    disabled={submitting}
                     className="venta-btn-gold venta-btn-gold--submit"
                   >
                     <Send size={18} />
-                    <span>{submitting ? 'Enviando solicitud...' : 'Solicitar Catálogo PDF'}</span>
+                    <span>Solicitar catálogo por WhatsApp</span>
                   </button>
                 </form>
               )}

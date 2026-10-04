@@ -6,7 +6,6 @@ import { useSearchParams } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import { safeRedirectPath } from '@/lib/auth/safeRedirect'
 import { Eye, EyeOff, LogIn, ArrowLeft } from 'lucide-react'
-import Image from 'next/image'
 
 function LoginForm() {
     const router = useRouter()
@@ -66,14 +65,11 @@ function LoginForm() {
                 </div>
 
                 <div className="auth-page__header">
-                    <Link href="/" className="auth-page__logo-link">
-                        <Image
+                    <Link href="/" className="auth-page__logo-link" aria-label="Utopia Van Life Inicio">
+                        <img
                             src="/images/logo-white.png"
                             alt="Utopia Van Life"
-                            width={160}
-                            height={42}
                             className="auth-page__logo-img"
-                            priority
                         />
                     </Link>
                     <h1 className="auth-page__title">Bienvenido de vuelta</h1>
@@ -230,14 +226,26 @@ function LoginForm() {
                 }
 
                 .auth-page__logo-link {
-                    display: inline-block;
-                    margin-bottom: 8px;
+                    display: inline-flex;
+                    align-items: center;
+                    justify-content: center;
+                    margin-bottom: 12px;
+                    transition: transform 0.2s ease, opacity 0.2s ease;
                 }
 
+                .auth-page__logo-link:hover {
+                    opacity: 0.9;
+                    transform: scale(1.02);
+                }
+
+                .auth-page__logo-img,
                 :global(.auth-page__logo-img) {
                     object-fit: contain;
-                    height: 38px;
+                    height: 48px;
                     width: auto;
+                    max-width: 185px;
+                    display: block;
+                    filter: brightness(0) invert(1);
                 }
 
                 .auth-page__title {
@@ -419,6 +427,12 @@ function LoginForm() {
                     .auth-page__card {
                         padding: 28px 20px;
                         border-radius: 20px;
+                    }
+
+                    .auth-page__logo-img,
+                    :global(.auth-page__logo-img) {
+                        height: 40px;
+                        max-width: 155px;
                     }
                 }
             `}</style>

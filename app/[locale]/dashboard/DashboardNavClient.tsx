@@ -129,7 +129,7 @@ export default function DashboardNavClient({ user, profile, initialTheme = 'ligh
   }
 
   const isVerified = profile?.verification_status === 'verified'
-  const isPending = profile?.verification_status === 'pending'
+  const isPending = profile?.verification_status === 'pending' || profile?.verification_status === 'pending_validation'
   const isAdmin = profile?.role === 'admin' || user?.app_metadata?.role === 'admin'
   const displayName = profile?.full_name || 'Viajero Utopia'
   const initial = (profile?.full_name || user?.email || 'U').trim().charAt(0)

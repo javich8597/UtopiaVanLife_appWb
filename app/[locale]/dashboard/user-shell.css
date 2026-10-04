@@ -970,3 +970,11 @@
     min-height: 44px;
   }
 }
+
+/* El fondo del documento acompaña al tema (rebote del scroll y zonas fuera del layout) */
+body:has(.user-layout) {
+  background: #F2F0EC;
+}
+body:has(.user-layout[data-theme="dark"]) {
+  background: #0E1013;
+}

@@ -41,9 +41,9 @@ export default function PriceCalculator({
     const router = useRouter()
     const maxPax = maxGuests || (camperSlug === 'space' ? 2 : 3)
     const [startDate, setStartDate] = useState(initialFrom || '')
-    const [startSlot, setStartSlot] = useState<DaySlot>('morning')
+    const [startSlot, setStartSlot] = useState<DaySlot>('afternoon')
     const [endDate, setEndDate] = useState(initialTo || '')
-    const [endSlot, setEndSlot] = useState<DaySlot>('afternoon')
+    const [endSlot, setEndSlot] = useState<DaySlot>('morning')
     const [pax, setPax] = useState(Math.min(2, maxPax))
     const [isCalendarOpen, setIsCalendarOpen] = useState(false)
     const [isExtrasOpen, setIsExtrasOpen] = useState(false)
@@ -135,7 +135,6 @@ export default function PriceCalculator({
         const dropoffTime = endSlot === 'morning' ? '12:00' : '19:00'
 
         const params = new URLSearchParams({
-            camper: camperSlug,
             from: startDate,
             pickup_time: pickupTime,
             to: endDate,
@@ -143,7 +142,7 @@ export default function PriceCalculator({
             pax: String(Math.min(3, Math.max(1, pax))),
             extras: selectedExtras.map(e => e.id).join(','),
         })
-        router.push(`/checkout?${params.toString()}`)
+        router.push(`/reserva/${camperSlug}?${params.toString()}`)
     }
 
     const formatDisplayDate = (dateStr: string, slot?: DaySlot, isEnd?: boolean) => {

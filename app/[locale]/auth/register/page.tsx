@@ -4,13 +4,14 @@ import { useState, Suspense } from 'react'
 import { Link, useRouter } from '@/i18n/routing'
 import { useSearchParams } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
+import { safeRedirectPath } from '@/lib/auth/safeRedirect'
 import { UserPlus, Eye, EyeOff, ArrowLeft } from 'lucide-react'
 import Image from 'next/image'
 
 function RegisterForm() {
     const router = useRouter()
     const searchParams = useSearchParams()
-    const redirectUrl = searchParams.get('redirect') || '/dashboard?welcome=1'
+    const redirectUrl = safeRedirectPath(searchParams.get('redirect'), '/dashboard?welcome=1')
 
     const [form, setForm] = useState({ full_name: '', email: '', phone: '', password: '' })
     const [showPwd, setShowPwd] = useState(false)
@@ -83,7 +84,7 @@ function RegisterForm() {
                 <div className="auth-page__header">
                     <Link href="/" className="auth-page__logo-link">
                         <Image
-                            src="/images/logo.png"
+                            src="/images/logo-white.png"
                             alt="Utopia Van Life"
                             width={160}
                             height={42}

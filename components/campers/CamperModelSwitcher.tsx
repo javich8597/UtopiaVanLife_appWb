@@ -31,7 +31,7 @@ export default function CamperModelSwitcher({ currentSlug }: Props) {
         className={`model-pill ${isSpace ? 'model-pill--active' : ''}`}
         aria-label="Ver Camper SPACE"
       >
-        <span>SPACE · 4 Plazas</span>
+        <span>SPACE · 2 Plazas</span>
       </Link>
 
       <style jsx>{`

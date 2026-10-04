@@ -52,7 +52,7 @@ const CAMPER_CONTENT: Record<string, CamperContent> = {
   space: {
     tagline: 'Salón panorámico de 7m², cama elevable motorizada y distribución open concept.',
     pills: [
-      { icon: 'users', label: '4 Viaje / 4 Descanso' },
+      { icon: 'users', label: '2 Viaje / 2 Descanso' },
       { icon: 'bed', label: 'Cama Eléctrica King Size' },
       { icon: 'droplets', label: 'Ducha Interior + WC' },
       { icon: 'zap', label: '540Ah Litio + 400W Solar' },
@@ -99,7 +99,7 @@ const CAMPER_CONTENT: Record<string, CamperContent> = {
     ],
     included: [
       'Seguro a todo riesgo con asistencia 24h',
-      'Kilometraje ilimitado por toda Mallorca',
+      '150 km/día incluidos · ilimitado opcional',
       'Ropa de cama 100% algodón y toallas',
       'Menaje nómada gourmet completo',
       'Mesa de camping + sillas ergonómicas',
@@ -158,7 +158,7 @@ const CAMPER_CONTENT: Record<string, CamperContent> = {
     ],
     included: [
       'Seguro a todo riesgo con asistencia 24h',
-      'Kilometraje ilimitado por toda Mallorca',
+      '150 km/día incluidos · ilimitado opcional',
       'Ropa de cama 100% algodón y toallas',
       'Menaje nómada gourmet completo',
       'Mesa de camping + sillas ergonómicas',
@@ -277,7 +277,7 @@ export default function CamperDetailClient({
                 availableExtras={effectiveExtras}
                 initialFrom={initialFrom}
                 initialTo={initialTo}
-                maxGuests={camper.specs?.seats || (slug === 'space' ? 4 : 3)}
+                maxGuests={camper.specs?.seats || (slug === 'space' ? 2 : 3)}
                 seasonsV2={seasonsV2}
                 seasonPeriods={seasonPeriods}
                 durationDiscounts={durationDiscounts}
@@ -339,7 +339,7 @@ export default function CamperDetailClient({
                 availableExtras={effectiveExtras}
                 initialFrom={initialFrom}
                 initialTo={initialTo}
-                maxGuests={camper.specs?.seats || (slug === 'space' ? 4 : 3)}
+                maxGuests={camper.specs?.seats || (slug === 'space' ? 2 : 3)}
                 seasonsV2={seasonsV2}
                 seasonPeriods={seasonPeriods}
                 durationDiscounts={durationDiscounts}

@@ -42,6 +42,7 @@ export default function WizardHeader({
                         href={`/${locale}/campers/${camper.slug}`}
                         className="wizard-header__back-btn"
                         title="Volver a la ficha de la camper"
+                        aria-label="Volver a la ficha de la camper"
                     >
                         <ArrowLeft size={16} />
                         <span className="wizard-header__back-text">Ficha de la camper</span>
@@ -390,19 +391,20 @@ export default function WizardHeader({
                     }
                 }
 
-                @media (max-width: 600px) {
+                @media (max-width: 640px) {
+                    /* El contenido ya muestra "PASO X DE 5" y su título: aquí solo los círculos */
                     .wizard-step-node__title {
                         display: none;
                     }
-                    .wizard-step-node--current .wizard-step-node__title {
-                        display: block;
-                        position: absolute;
-                        top: 40px;
-                        font-size: 11px;
-                        white-space: nowrap;
+                    .wizard-header__back-text,
+                    .wizard-header__camper-sub {
+                        display: none;
                     }
-                    .wizard-header__stepper-bar {
-                        padding-bottom: 24px;
+                    .wizard-header__back-btn {
+                        width: 40px;
+                        height: 40px;
+                        justify-content: center;
+                        padding: 0;
                     }
                 }
             `}</style>

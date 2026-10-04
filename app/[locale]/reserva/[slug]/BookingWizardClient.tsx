@@ -47,6 +47,7 @@ interface BookingWizardClientProps {
     initialPax?: number
     initialKmPackage?: 'included_150' | 'unlimited'
     initialCancellationPolicy?: 'standard' | 'flexible'
+    initialExtraIds?: string[]
     locale: string
 }
 
@@ -58,11 +59,12 @@ export default function BookingWizardClient({
     durationDiscounts = [],
     initialFrom = '',
     initialTo = '',
-    initialStartSlot = 'morning',
-    initialEndSlot = 'afternoon',
+    initialStartSlot = 'afternoon',
+    initialEndSlot = 'morning',
     initialPax = 2,
     initialKmPackage = 'included_150',
     initialCancellationPolicy = 'standard',
+    initialExtraIds = [],
     locale = 'es',
 }: BookingWizardClientProps) {
     const maxPax = camper.specs?.seats || (camper.slug === 'space' ? 2 : 3)
@@ -93,8 +95,18 @@ export default function BookingWizardClient({
     })
 
     // Step 4 State: Selected Extras
+    // Los extras elegidos en la ficha de la camper llegan preseleccionados
     const [step4, setStep4] = useState<Step4Data>({
-        selectedExtras: [],
+        selectedExtras: availableExtras
+            .filter((extra) => initialExtraIds.includes(extra.id))
+            .map((extra) => ({
+                id: extra.id,
+                name_es: extra.name_es || extra.name || 'Extra',
+                price: Number(extra.price) || 0,
+                price_type: extra.price_type === 'per_day' ? 'per_day' : 'per_rental',
+                quantity: 1,
+                category: extra.category || 'Equipamiento',
+            })),
     })
 
     // Step 5 State: Personal & Billing Customer Details

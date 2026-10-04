@@ -59,7 +59,7 @@ export function mapDashboardBookingBadge(booking: {
     }
 }
 
-export function formatBookingSlotTime(time?: string, fallback: string = '14:00 - 18:00') {
+export function formatBookingSlotTime(time?: string, fallback: string = '15:00 - 19:00') {
     if (!time || !time.trim()) return fallback
     const t = time.trim()
     if (t.toLowerCase() === 'morning' || t.toLowerCase().includes('mañana')) return '09:00 - 12:00 (Mañana)'
@@ -131,8 +131,8 @@ function downloadIcs(booking: any, camperName: string) {
         'BEGIN:VCALENDAR',
         'VERSION:2.0',
         'PRODID:-//Utopia Van Life//Mi reserva//ES',
-        event(`pick-${booking.id}`, booking.start_date, `Recogida camper ${camperName}`, `Franja: ${formatBookingSlotTime(booking.pickup_time, '14:00 - 18:00')}`),
-        event(`drop-${booking.id}`, booking.end_date, `Devolución camper ${camperName}`, `Franja: ${formatBookingSlotTime(booking.dropoff_time, '10:00 - 12:00')}`),
+        event(`pick-${booking.id}`, booking.start_date, `Recogida camper ${camperName}`, `Franja: ${formatBookingSlotTime(booking.pickup_time, '15:00 - 19:00')}`),
+        event(`drop-${booking.id}`, booking.end_date, `Devolución camper ${camperName}`, `Franja: ${formatBookingSlotTime(booking.dropoff_time, '09:00 - 12:00')}`),
         'END:VCALENDAR',
     ].join('\r\n')
     const url = URL.createObjectURL(new Blob([ics], { type: 'text/calendar;charset=utf-8' }))
@@ -260,10 +260,10 @@ export default function DashboardClient({ bookings, profile, user }: Props) {
     const camperSlug = booking.camper?.slug || 'neo'
     const camperName = booking.camper?.name || (camperSlug === 'space' ? 'SPACE' : 'NEO')
     const camperImg = booking.camper?.thumbnail_url || FALLBACK_IMAGES[camperSlug] || FALLBACK_IMAGES['neo']
-    const travelers = booking.guests_count || booking.travelers_count
+    const travelers = booking.num_pax || booking.guests_count || booking.travelers_count
     const badge = mapDashboardBookingBadge(booking)
-    const pickupSlot = formatBookingSlotTime(booking.pickup_time, '14:00 - 18:00')
-    const dropoffSlot = formatBookingSlotTime(booking.dropoff_time, '10:00 - 12:00')
+    const pickupSlot = formatBookingSlotTime(booking.pickup_time, '15:00 - 19:00')
+    const dropoffSlot = formatBookingSlotTime(booking.dropoff_time, '09:00 - 12:00')
     const showCountdown = trip.daysToStart > 0 && trip.isPaid
 
     return (
@@ -352,7 +352,7 @@ export default function DashboardClient({ bookings, profile, user }: Props) {
                     <div className="dash-next__actions">
                         {trip.step === 'pay' && (
                             <Link
-                                href={`/checkout?camper=${camperSlug}&from=${booking.start_date.slice(0, 10)}&to=${booking.end_date.slice(0, 10)}&pax=${travelers || 2}`}
+                                href={`/reserva/${camperSlug}?from=${booking.start_date.slice(0, 10)}&to=${booking.end_date.slice(0, 10)}&pax=${travelers || 2}${booking.pickup_time ? `&pickup_time=${booking.pickup_time.slice(0, 5)}` : ''}${booking.dropoff_time ? `&dropoff_time=${booking.dropoff_time.slice(0, 5)}` : ''}`}
                                 className="usr-btn usr-btn--primary"
                             >
                                 <CreditCard size={16} aria-hidden="true" /> Volver al pago

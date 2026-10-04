@@ -4,13 +4,14 @@ import { useState, Suspense } from 'react'
 import { Link, useRouter } from '@/i18n/routing'
 import { useSearchParams } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
+import { safeRedirectPath } from '@/lib/auth/safeRedirect'
 import { Eye, EyeOff, LogIn, ArrowLeft } from 'lucide-react'
 import Image from 'next/image'
 
 function LoginForm() {
     const router = useRouter()
     const searchParams = useSearchParams()
-    const redirectUrl = searchParams.get('redirect') || '/dashboard'
+    const redirectUrl = safeRedirectPath(searchParams.get('redirect'), '/dashboard')
 
     const [email, setEmail] = useState('')
     const [password, setPassword] = useState('')
@@ -23,7 +24,7 @@ function LoginForm() {
             return 'Email o contraseña incorrectos. Por favor, verifica tus datos.'
         }
         if (msg.includes('Email not confirmed')) {
-            return 'Tu email aún no ha sido confirmado. Hemos activado la confirmación directa para nuevos accesos.'
+            return 'Tu email aún no está confirmado. Revisa tu bandeja de entrada (y spam) y pulsa el enlace que te enviamos.'
         }
         if (msg.includes('User not found')) {
             return 'No existe ninguna cuenta registrada con este email.'
@@ -67,7 +68,7 @@ function LoginForm() {
                 <div className="auth-page__header">
                     <Link href="/" className="auth-page__logo-link">
                         <Image
-                            src="/images/logo.png"
+                            src="/images/logo-white.png"
                             alt="Utopia Van Life"
                             width={160}
                             height={42}
@@ -114,6 +115,7 @@ function LoginForm() {
                                 {showPwd ? <EyeOff size={16} /> : <Eye size={16} />}
                             </button>
                         </div>
+                        <Link href="/auth/recuperar" className="auth-forgot-link">¿Olvidaste tu contraseña?</Link>
                     </div>
 
                     {error && (
@@ -319,6 +321,20 @@ function LoginForm() {
 
                 .auth-pwd-toggle:hover {
                     color: #CCA053;
+                }
+
+                .auth-form-group :global(.auth-forgot-link) {
+                    align-self: flex-end;
+                    font-size: 0.82rem;
+                    font-weight: 600;
+                    color: #CCA053;
+                    text-decoration: none;
+                    padding: 4px 0;
+                }
+
+                .auth-form-group :global(.auth-forgot-link:hover) {
+                    color: #E8CA7C;
+                    text-decoration: underline;
                 }
 
                 .auth-error-box {

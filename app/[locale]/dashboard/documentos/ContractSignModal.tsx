@@ -437,7 +437,7 @@ export default function ContractSignModal({ booking, profile, onClose, onSigned,
         }
 
         .csm-modal {
-          background: #ffffff;
+          background: var(--usr-surface);
           border-radius: 16px;
           width: 100%;
           max-width: 820px;
@@ -459,8 +459,8 @@ export default function ContractSignModal({ booking, profile, onClose, onSigned,
           align-items: center;
           justify-content: space-between;
           padding: 18px 24px;
-          border-bottom: 1px solid #E2E8F0;
-          background: #F8FAFC;
+          border-bottom: 1px solid var(--usr-border);
+          background: var(--usr-surface-2);
         }
 
         .csm-header-info {
@@ -473,11 +473,11 @@ export default function ContractSignModal({ booking, profile, onClose, onSigned,
           width: 44px;
           height: 44px;
           border-radius: 10px;
-          background: #1A2B21;
+          background: var(--usr-primary-bg);
           display: flex;
           align-items: center;
           justify-content: center;
-          color: #ffffff;
+          color: var(--usr-primary-text);
         }
 
         .csm-badge-row {
@@ -489,7 +489,7 @@ export default function ContractSignModal({ booking, profile, onClose, onSigned,
         .csm-title {
           font-size: 1.15rem;
           font-weight: 700;
-          color: #1A2B21;
+          color: var(--usr-text);
           margin: 0;
         }
 
@@ -498,14 +498,14 @@ export default function ContractSignModal({ booking, profile, onClose, onSigned,
           font-size: 0.75rem;
           font-weight: 600;
           padding: 2px 8px;
-          background: #E2E8F0;
-          color: #475569;
+          background: var(--usr-border);
+          color: var(--usr-text-2);
           border-radius: 4px;
         }
 
         .csm-sub {
           font-size: 0.82rem;
-          color: #64748B;
+          color: var(--usr-text-2);
           margin: 2px 0 0 0;
         }
 
@@ -513,9 +513,9 @@ export default function ContractSignModal({ booking, profile, onClose, onSigned,
           width: 36px;
           height: 36px;
           border-radius: 8px;
-          border: 1px solid #CBD5E1;
+          border: 1px solid var(--usr-border-strong);
           background: transparent;
-          color: #64748B;
+          color: var(--usr-text-2);
           display: flex;
           align-items: center;
           justify-content: center;
@@ -523,15 +523,15 @@ export default function ContractSignModal({ booking, profile, onClose, onSigned,
           transition: all 0.15s ease;
         }
         .csm-close-btn:hover {
-          background: #E2E8F0;
-          color: #0F172A;
+          background: var(--usr-border);
+          color: var(--usr-text);
         }
 
         .csm-tabs {
           display: flex;
-          background: #F1F5F9;
+          background: var(--usr-surface-2);
           padding: 6px 12px 0;
-          border-bottom: 1px solid #E2E8F0;
+          border-bottom: 1px solid var(--usr-border);
           gap: 8px;
         }
 
@@ -544,7 +544,7 @@ export default function ContractSignModal({ booking, profile, onClose, onSigned,
           background: transparent;
           font-size: 0.88rem;
           font-weight: 600;
-          color: #64748B;
+          color: var(--usr-text-2);
           cursor: pointer;
           border-top-left-radius: 8px;
           border-top-right-radius: 8px;
@@ -553,8 +553,8 @@ export default function ContractSignModal({ booking, profile, onClose, onSigned,
         }
 
         .csm-tab-btn--active {
-          background: #ffffff;
-          color: #1A2B21;
+          background: var(--usr-surface);
+          color: var(--usr-text);
           box-shadow: 0 -2px 6px rgba(0, 0, 0, 0.04);
         }
 
@@ -575,9 +575,9 @@ export default function ContractSignModal({ booking, profile, onClose, onSigned,
           display: flex;
           align-items: center;
           gap: 10px;
-          background: #FEF2F2;
-          border: 1px solid #FECACA;
-          color: #B91C1C;
+          background: var(--usr-rose-soft);
+          border: 1px solid var(--usr-rose-line);
+          color: var(--usr-rose);
           padding: 12px 16px;
           border-radius: 8px;
           font-size: 0.85rem;
@@ -586,8 +586,8 @@ export default function ContractSignModal({ booking, profile, onClose, onSigned,
 
         /* Contract Viewer Styles */
         .csm-summary-card {
-          background: #F8FAFC;
-          border: 1px solid #E2E8F0;
+          background: var(--usr-surface-2);
+          border: 1px solid var(--usr-border);
           border-radius: 12px;
           padding: 18px;
           margin-bottom: 24px;
@@ -596,14 +596,14 @@ export default function ContractSignModal({ booking, profile, onClose, onSigned,
         .csm-card-kicker {
           font-size: 0.72rem;
           font-weight: 700;
-          color: #64748B;
+          color: var(--usr-text-2);
           letter-spacing: 0.5px;
         }
 
         .csm-card-title {
           font-size: 1rem;
           font-weight: 700;
-          color: #1A2B21;
+          color: var(--usr-text);
           margin: 4px 0 14px 0;
         }
 
@@ -615,8 +615,8 @@ export default function ContractSignModal({ booking, profile, onClose, onSigned,
         }
 
         .csm-party-box {
-          background: #ffffff;
-          border: 1px solid #E2E8F0;
+          background: var(--usr-surface);
+          border: 1px solid var(--usr-border);
           border-radius: 8px;
           padding: 12px;
         }
@@ -624,21 +624,21 @@ export default function ContractSignModal({ booking, profile, onClose, onSigned,
         .csm-party-label {
           font-size: 0.7rem;
           font-weight: 700;
-          color: #94A3B8;
+          color: var(--usr-text-3);
           text-transform: uppercase;
           display: block;
         }
 
         .csm-party-name {
           font-size: 0.92rem;
-          color: #1A2B21;
+          color: var(--usr-text);
           display: block;
           margin-bottom: 4px;
         }
 
         .csm-party-detail {
           font-size: 0.78rem;
-          color: #475569;
+          color: var(--usr-text-2);
           line-height: 1.4;
         }
 
@@ -646,12 +646,12 @@ export default function ContractSignModal({ booking, profile, onClose, onSigned,
           display: flex;
           flex-wrap: wrap;
           gap: 14px;
-          background: #ffffff;
-          border: 1px solid #E2E8F0;
+          background: var(--usr-surface);
+          border: 1px solid var(--usr-border);
           border-radius: 8px;
           padding: 10px 14px;
           font-size: 0.82rem;
-          color: #334155;
+          color: var(--usr-text);
         }
 
         .csm-v-item {
@@ -667,13 +667,13 @@ export default function ContractSignModal({ booking, profile, onClose, onSigned,
         .csm-articles-heading {
           font-size: 0.95rem;
           font-weight: 700;
-          color: #1A2B21;
+          color: var(--usr-text);
           margin-bottom: 12px;
         }
 
         .csm-article-item {
           padding: 12px 14px;
-          border-bottom: 1px solid #F1F5F9;
+          border-bottom: 1px solid var(--usr-border);
         }
 
         .csm-art-title {
@@ -681,13 +681,13 @@ export default function ContractSignModal({ booking, profile, onClose, onSigned,
           align-items: center;
           gap: 8px;
           font-size: 0.88rem;
-          color: #1A2B21;
+          color: var(--usr-text);
           margin-bottom: 4px;
         }
 
         .csm-art-num {
-          background: #E2E8F0;
-          color: #475569;
+          background: var(--usr-border);
+          color: var(--usr-text-2);
           font-size: 0.72rem;
           font-weight: 700;
           padding: 1px 6px;
@@ -696,7 +696,7 @@ export default function ContractSignModal({ booking, profile, onClose, onSigned,
 
         .csm-art-body p {
           font-size: 0.82rem;
-          color: #475569;
+          color: var(--usr-text-2);
           line-height: 1.5;
           margin: 3px 0;
         }
@@ -706,10 +706,10 @@ export default function ContractSignModal({ booking, profile, onClose, onSigned,
         }
 
         .csm-rgpd-item {
-          background: #F8FAFC;
+          background: var(--usr-surface-2);
           border-radius: 8px;
           margin-top: 14px;
-          border: 1px solid #E2E8F0;
+          border: 1px solid var(--usr-border);
         }
 
         .csm-read-footer {
@@ -729,27 +729,27 @@ export default function ContractSignModal({ booking, profile, onClose, onSigned,
           display: flex;
           align-items: flex-start;
           gap: 12px;
-          background: #F8FAFC;
-          border: 1px solid #E2E8F0;
+          background: var(--usr-surface-2);
+          border: 1px solid var(--usr-border);
           border-radius: 10px;
           padding: 14px 16px;
         }
 
-        .csm-pen-icon {
-          color: #1A2B21;
+        :global(.csm-pen-icon) {
+          color: var(--usr-text);
           margin-top: 2px;
         }
 
         .csm-sign-title {
           font-size: 0.95rem;
           font-weight: 700;
-          color: #1A2B21;
+          color: var(--usr-text);
           margin: 0 0 2px 0;
         }
 
         .csm-sign-desc {
           font-size: 0.82rem;
-          color: #64748B;
+          color: var(--usr-text-2);
           margin: 0;
         }
 
@@ -757,8 +757,8 @@ export default function ContractSignModal({ booking, profile, onClose, onSigned,
           position: relative;
           width: 100%;
           height: 180px;
-          background: #ffffff;
-          border: 2px dashed #94A3B8;
+          background: var(--usr-surface);
+          border: 2px dashed var(--usr-border-strong);
           border-radius: 12px;
           overflow: hidden;
           cursor: crosshair;
@@ -781,7 +781,7 @@ export default function ContractSignModal({ booking, profile, onClose, onSigned,
           align-items: center;
           justify-content: center;
           pointer-events: none;
-          color: #94A3B8;
+          color: var(--usr-text-3);
           font-size: 0.95rem;
           font-style: italic;
         }
@@ -797,18 +797,18 @@ export default function ContractSignModal({ booking, profile, onClose, onSigned,
           align-items: center;
           gap: 6px;
           padding: 6px 12px;
-          border: 1px solid #CBD5E1;
+          border: 1px solid var(--usr-border-strong);
           border-radius: 6px;
-          background: #ffffff;
-          color: #475569;
+          background: var(--usr-surface);
+          color: var(--usr-text-2);
           font-size: 0.8rem;
           font-weight: 500;
           cursor: pointer;
           transition: all 0.15s ease;
         }
         .csm-clear-btn:hover {
-          background: #F1F5F9;
-          color: #0F172A;
+          background: var(--usr-surface-2);
+          color: var(--usr-text);
         }
 
         .csm-secure-notice {
@@ -816,7 +816,7 @@ export default function ContractSignModal({ booking, profile, onClose, onSigned,
           align-items: center;
           gap: 5px;
           font-size: 0.75rem;
-          color: #64748B;
+          color: var(--usr-text-2);
         }
 
         .csm-legal-check {
@@ -824,12 +824,12 @@ export default function ContractSignModal({ booking, profile, onClose, onSigned,
           align-items: flex-start;
           gap: 10px;
           font-size: 0.84rem;
-          color: #334155;
+          color: var(--usr-text);
           line-height: 1.4;
           cursor: pointer;
           padding: 10px 14px;
-          background: #F8FAFC;
-          border: 1px solid #E2E8F0;
+          background: var(--usr-surface-2);
+          border: 1px solid var(--usr-border);
           border-radius: 8px;
         }
 
@@ -850,16 +850,16 @@ export default function ContractSignModal({ booking, profile, onClose, onSigned,
 
         .csm-btn-secondary {
           padding: 10px 18px;
-          border: 1px solid #CBD5E1;
+          border: 1px solid var(--usr-border-strong);
           border-radius: 8px;
-          background: #ffffff;
-          color: #334155;
+          background: var(--usr-surface);
+          color: var(--usr-text);
           font-size: 0.88rem;
           font-weight: 600;
           cursor: pointer;
         }
         .csm-btn-secondary:hover {
-          background: #F1F5F9;
+          background: var(--usr-surface-2);
         }
 
         .csm-btn-primary {
@@ -869,8 +869,8 @@ export default function ContractSignModal({ booking, profile, onClose, onSigned,
           padding: 10px 22px;
           border: none;
           border-radius: 8px;
-          background: #1A2B21;
-          color: #ffffff;
+          background: var(--usr-primary-bg);
+          color: var(--usr-primary-text);
           font-size: 0.9rem;
           font-weight: 600;
           cursor: pointer;
@@ -887,23 +887,23 @@ export default function ContractSignModal({ booking, profile, onClose, onSigned,
           padding: 12px 24px;
           border: none;
           border-radius: 8px;
-          background: #1A2B21;
-          color: #ffffff;
+          background: var(--usr-primary-bg);
+          color: var(--usr-primary-text);
           font-size: 0.92rem;
           font-weight: 600;
           cursor: pointer;
           transition: all 0.15s ease;
         }
         .csm-btn-submit:disabled {
-          background: #CBD5E1;
+          background: var(--usr-border-strong);
           cursor: not-allowed;
         }
         .csm-btn-submit:not(:disabled):hover {
-          background: #14221a;
+          background: var(--usr-primary-hover);
           box-shadow: 0 4px 12px rgba(26, 43, 33, 0.2);
         }
 
-        .csm-spin {
+        :global(.csm-spin) {
           animation: spin 1s linear infinite;
         }
 

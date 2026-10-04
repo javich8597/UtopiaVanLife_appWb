@@ -140,21 +140,21 @@ export default function AboutHero() {
           align-items: center;
           gap: 0.5rem;
           padding: 0.45rem 1.15rem;
-          background: rgba(255, 255, 255, 0.12);
-          border: 1px solid rgba(255, 255, 255, 0.22);
+          background: rgba(204, 160, 83, 0.12);
+          border: 1px solid rgba(204, 160, 83, 0.35);
           backdrop-filter: blur(16px);
           -webkit-backdrop-filter: blur(16px);
           border-radius: var(--radius-full);
-          font-size: 0.825rem;
-          font-weight: 500;
-          letter-spacing: 0.04em;
+          font-size: 0.75rem;
+          font-weight: 700;
+          letter-spacing: 0.18em;
           text-transform: uppercase;
-          color: rgba(255, 255, 255, 0.95);
+          color: #CCA053;
           box-shadow: 0 4px 20px rgba(0, 0, 0, 0.25);
         }
 
         .about-hero__badge-icon {
-          color: var(--sand);
+          color: #CCA053;
         }
 
         .about-hero__title {

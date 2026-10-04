@@ -13,10 +13,10 @@
   align-items: center;
   flex-wrap: wrap;
   gap: 1rem;
-  background: #ffffff;
+  background: var(--adm-surface);
   padding: 1.25rem 1.75rem;
   border-radius: 16px;
-  border: 1px solid #E2E8F0;
+  border: 1px solid var(--adm-border);
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.03);
 }
 
@@ -27,8 +27,8 @@
 }
 
 .contract-editor-icon-badge {
-  background: #1A2B21;
-  color: #FFFFFF;
+  background: var(--adm-text);
+  color: var(--adm-surface);
   padding: 12px;
   border-radius: 14px;
   display: flex;
@@ -45,15 +45,65 @@
 /* Split-screen layout */
 .contract-split-grid {
   display: grid;
-  grid-template-columns: 1fr 1fr;
+  /* minmax(0, …): evita que el formulario aplaste la vista previa */
+  grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr);
   gap: 1.5rem;
   align-items: start;
 }
 
-@media (max-width: 1024px) {
+/* Sin anchura suficiente para dos columnas legibles: la vista previa pasa debajo */
+@media (max-width: 1400px) {
   .contract-split-grid {
-    grid-template-columns: 1fr;
+    grid-template-columns: minmax(0, 1fr);
   }
+  .contract-preview-panel {
+    position: static !important;
+    height: 75vh !important;
+    min-height: 520px !important;
+  }
+}
+
+/* Menú secundario de la cabecera */
+.contract-more {
+  position: relative;
+}
+.contract-more__menu {
+  position: absolute;
+  right: 0;
+  top: calc(100% + 6px);
+  z-index: 20;
+  min-width: 260px;
+  padding: 6px;
+  border-radius: 12px;
+  background: var(--adm-surface);
+  border: 1px solid var(--adm-border);
+  box-shadow: 0 12px 32px var(--adm-shadow);
+}
+.contract-more__item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  padding: 10px 12px;
+  border: 0;
+  border-radius: 8px;
+  background: transparent;
+  color: var(--adm-rose);
+  font: inherit;
+  font-size: 0.85rem;
+  font-weight: 600;
+  text-align: left;
+  cursor: pointer;
+}
+.contract-more__item:hover {
+  background: var(--adm-rose-soft);
+}
+.editor-help {
+  display: block;
+  margin-top: 4px;
+  font-size: 0.72rem;
+  line-height: 1.4;
+  color: var(--adm-text-3);
 }
 
 /* Left panel: Form editor */
@@ -64,10 +114,10 @@
 }
 
 .editor-card {
-  background: #ffffff;
-  border-radius: 16px;
-  border: 1px solid #E2E8F0;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.02);
+  background: var(--adm-surface);
+  border-radius: 20px;
+  border: 1px solid var(--adm-card-border);
+  box-shadow: var(--adm-card-shadow);
   overflow: hidden;
 }
 
@@ -75,25 +125,51 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 1rem 1.25rem;
-  background: #F8FAFC;
-  border-bottom: 1px solid #E2E8F0;
+  padding: 22px 26px;
+  background: var(--adm-surface);
+  border-bottom: 1px solid var(--adm-border);
   cursor: pointer;
   user-select: none;
 }
 
+/* Icono del título como cuadrado (estilo panel) */
+.editor-card-header-left > svg:first-child {
+  width: 42px;
+  height: 42px;
+  padding: 11px;
+  border-radius: 12px;
+  background: var(--adm-primary-bg);
+  color: var(--adm-primary-text) !important;
+  stroke: var(--adm-primary-text);
+  flex-shrink: 0;
+}
+.editor-card-header-left strong {
+  font-family: var(--font-heading);
+  font-size: 1.08rem !important;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  color: var(--adm-text) !important;
+}
+.contract-tabs {
+  margin-bottom: 4px;
+}
+.contract-tab {
+  flex: 1;
+  justify-content: center;
+}
+
 .editor-card-header:hover {
-  background: #F1F5F9;
+  background: var(--adm-surface-2);
 }
 
 .editor-card-header-left {
   display: flex;
   align-items: center;
-  gap: 0.75rem;
+  gap: 14px;
 }
 
 .editor-card-body {
-  padding: 1.25rem;
+  padding: 24px 26px;
 }
 
 .form-grid-2 {
@@ -124,24 +200,24 @@
 .editor-label {
   font-size: 0.78rem;
   font-weight: 600;
-  color: #475569;
+  color: var(--adm-text-2);
 }
 
 .editor-input,
 .editor-textarea {
   padding: 0.55rem 0.75rem;
   font-size: 0.82rem;
-  border: 1px solid #CBD5E1;
+  border: 1px solid var(--adm-border-strong);
   border-radius: 8px;
-  background: #ffffff;
-  color: #1E293B;
+  background: var(--adm-surface);
+  color: var(--adm-text);
   outline: none;
   transition: border-color 0.15s ease, box-shadow 0.15s ease;
 }
 
 .editor-input:focus,
 .editor-textarea:focus {
-  border-color: #1A2B21;
+  border-color: var(--adm-text);
   box-shadow: 0 0 0 2px rgba(26, 43, 33, 0.12);
 }
 
@@ -153,7 +229,7 @@
 
 /* Articles Section */
 .article-item {
-  border: 1px solid #E2E8F0;
+  border: 1px solid var(--adm-border);
   border-radius: 10px;
   margin-bottom: 0.75rem;
   overflow: hidden;
@@ -164,17 +240,17 @@
   justify-content: space-between;
   align-items: center;
   padding: 0.75rem 1rem;
-  background: #FAFAFA;
+  background: var(--adm-surface-2);
   cursor: pointer;
 }
 
 .article-header:hover {
-  background: #F1F5F9;
+  background: var(--adm-surface-2);
 }
 
 .article-badge {
-  background: #1A2B21;
-  color: #ffffff;
+  background: var(--adm-text);
+  color: var(--adm-surface);
   font-size: 0.7rem;
   font-weight: 700;
   padding: 2px 8px;
@@ -183,8 +259,8 @@
 
 .article-body {
   padding: 1rem;
-  background: #ffffff;
-  border-top: 1px solid #E2E8F0;
+  background: var(--adm-surface);
+  border-top: 1px solid var(--adm-border);
   display: flex;
   flex-direction: column;
   gap: 0.75rem;
@@ -194,10 +270,10 @@
 .contract-preview-panel {
   position: sticky;
   top: 1.5rem;
-  background: #ffffff;
-  border-radius: 16px;
-  border: 1px solid #E2E8F0;
-  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.04);
+  background: var(--adm-surface);
+  border-radius: 20px;
+  border: 1px solid var(--adm-card-border);
+  box-shadow: var(--adm-card-shadow);
   overflow: hidden;
   display: flex;
   flex-direction: column;
@@ -209,17 +285,34 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 0.85rem 1.25rem;
-  background: #1A2B21;
-  color: #FFFFFF;
+  padding: 16px 22px;
+  background: var(--adm-primary-bg);
+  color: var(--adm-primary-text);
 }
 
 .preview-status-indicator {
   display: flex;
   align-items: center;
   gap: 0.5rem;
-  font-size: 0.75rem;
-  color: #86EFAC;
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--adm-primary-text);
+}
+.preview-download {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 32px;
+  padding: 4px 12px;
+  border-radius: 8px;
+  background: var(--adm-surface);
+  color: var(--adm-text);
+  font-size: 0.78rem;
+  font-weight: 600;
+  text-decoration: none;
+}
+.preview-download:hover {
+  background: var(--adm-surface-2);
 }
 
 .preview-actions-bar {
@@ -231,7 +324,7 @@
   flex: 1;
   width: 100%;
   height: 100%;
-  background: #475569;
+  background: var(--adm-text-2);
   position: relative;
 }
 
@@ -250,7 +343,7 @@
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  color: #ffffff;
+  color: var(--adm-surface);
   gap: 0.75rem;
   font-size: 0.85rem;
   font-weight: 500;
@@ -262,8 +355,8 @@
   display: inline-flex;
   align-items: center;
   gap: 0.5rem;
-  background: #1A2B21;
-  color: #ffffff;
+  background: var(--adm-text);
+  color: var(--adm-surface);
   padding: 0.55rem 1.15rem;
   border-radius: 10px;
   font-size: 0.82rem;
@@ -282,37 +375,37 @@
   display: inline-flex;
   align-items: center;
   gap: 0.5rem;
-  background: #ffffff;
-  color: #1E293B;
+  background: var(--adm-surface);
+  color: var(--adm-text);
   padding: 0.55rem 1rem;
   border-radius: 10px;
   font-size: 0.82rem;
   font-weight: 600;
-  border: 1px solid #CBD5E1;
+  border: 1px solid var(--adm-border-strong);
   cursor: pointer;
   transition: all 0.15s ease;
 }
 
 .btn-utopia-outline:hover {
-  background: #F8FAFC;
-  border-color: #94A3B8;
+  background: var(--adm-surface-2);
+  border-color: var(--adm-text-3);
 }
 
 .btn-utopia-danger {
   display: inline-flex;
   align-items: center;
   gap: 0.5rem;
-  background: #FEF2F2;
-  color: #DC2626;
+  background: var(--adm-rose-soft);
+  color: var(--adm-rose);
   padding: 0.55rem 1rem;
   border-radius: 10px;
   font-size: 0.82rem;
   font-weight: 600;
-  border: 1px solid #FECACA;
+  border: 1px solid var(--adm-rose-soft);
   cursor: pointer;
   transition: all 0.15s ease;
 }
 
 .btn-utopia-danger:hover {
-  background: #FEE2E2;
+  background: var(--adm-rose-soft);
 }

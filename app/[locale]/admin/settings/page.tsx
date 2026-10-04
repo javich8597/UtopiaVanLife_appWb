@@ -1,12 +1,13 @@
 import { createClient } from '@/lib/supabase/server'
-import { Settings as SettingsIcon } from 'lucide-react'
+import AdminPageHeader from '../AdminPageHeader'
+import SettingsTabs from './SettingsTabs'
 import ExtrasTableClient from './ExtrasTableClient'
 import SeasonsSupplementClient from './SeasonsSupplementClient'
 import DurationDiscountsClient from './DurationDiscountsClient'
 import { SeasonV2, SeasonPeriod, DurationDiscount } from '@/lib/pricing/engine'
 
 export const metadata = {
-  title: 'Ajustes, Tarifas & Extras | Admin Utopia Van Life',
+  title: 'Ajustes | Admin Utopia Van Life',
   description: 'Gestión de temporadas, suplementos, descuentos por estancia y catálogo de extras de alquiler.',
 }
 
@@ -76,55 +77,23 @@ export default async function AdminSettingsPage() {
   }))
 
   return (
-    <div style={{ maxWidth: 1200, margin: '0 auto', width: '100%', display: 'flex', flexDirection: 'column', gap: 'var(--space-8)' }}>
-      {/* Header */}
-      <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-3)' }}>
-        <div
-          style={{
-            background: 'var(--forest-green)',
-            color: 'white',
-            width: 44,
-            height: 44,
-            borderRadius: '12px',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            flexShrink: 0,
-          }}
-        >
-          <SettingsIcon size={22} />
-        </div>
-        <div>
-          <h1 className="text-h2" style={{ margin: 0, fontSize: '1.75rem', fontWeight: 700 }}>
-            Ajustes, Tarifas & Extras
-          </h1>
-          <p className="text-body text-small" style={{ color: 'var(--gray-600)', margin: '4px 0 0' }}>
-            Gestiona los suplementos de temporada por fechas discontinuas, descuentos por duración y el equipamiento extra sincronizado en tiempo real.
-          </p>
-        </div>
-      </div>
+    <div className="adm-page">
+      <AdminPageHeader
+        title="Ajustes"
+        description="Extras del checkout, temporadas y descuentos por duración."
+      />
 
-      {/* Secciones Apiladas a Ancho Completo */}
-      <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-8)' }}>
-        {/* 1. Catálogo de Extras */}
-        <section aria-label="Catálogo de Extras">
-          <ExtrasTableClient initialExtras={rawExtras || []} />
-        </section>
-
-        {/* 2. Temporadas & Suplementos por Noche */}
-        <section aria-label="Temporadas y Suplementos">
-          <SeasonsSupplementClient
-            initialSeasons={seasons}
-            initialPeriods={periods}
-            campers={campers}
-          />
-        </section>
-
-        {/* 3. Descuentos por Larga Estancia */}
-        <section aria-label="Descuentos por Larga Estancia">
-          <DurationDiscountsClient initialDiscounts={discounts} />
-        </section>
-      </div>
+      <SettingsTabs
+        tabs={[
+          { id: 'extras', label: 'Extras', content: <ExtrasTableClient initialExtras={rawExtras || []} /> },
+          {
+            id: 'temporadas',
+            label: 'Temporadas',
+            content: <SeasonsSupplementClient initialSeasons={seasons} initialPeriods={periods} campers={campers} />,
+          },
+          { id: 'descuentos', label: 'Descuentos por duración', content: <DurationDiscountsClient initialDiscounts={discounts} /> },
+        ]}
+      />
     </div>
   )
 }

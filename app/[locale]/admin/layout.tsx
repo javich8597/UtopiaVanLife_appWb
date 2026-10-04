@@ -1,9 +1,11 @@
-import { redirect, Link } from '@/i18n/routing'
+import { cookies } from 'next/headers'
+import { redirect } from '@/i18n/routing'
 import { createClient } from '@/lib/supabase/server'
-import AdminNavClient from './AdminNavClient'
-import AdminSidebarFooterClient from './AdminSidebarFooterClient'
 import AdminResponsiveShell from './AdminResponsiveShell'
+import './admin.css'
 import { isAdminUser } from '@/lib/admin/auth'
+import { livePendingSince } from '@/lib/admin/bookingStatus'
+import { ADMIN_THEME_COOKIE } from '@/lib/admin/theme'
 
 export default async function AdminLayout({
     children,
@@ -40,7 +42,8 @@ export default async function AdminLayout({
         id: user.id,
         email: user.email,
         role: dbUser?.role,
-        user_metadata: user.user_metadata
+        user_metadata: user.user_metadata,
+        app_metadata: user.app_metadata,
     })
 
     if (!isAuthorized) {
@@ -48,8 +51,21 @@ export default async function AdminLayout({
         return null
     }
 
+    // Contadores para los avisos de la navegación
+    const [{ count: pendingBookings }, { count: pendingVerifications }] = await Promise.all([
+        // Solo pendientes vivas: las abandonadas en Redsys se consideran caducadas
+        supabase.from('bookings').select('*', { count: 'exact', head: true }).eq('status', 'pending').gte('created_at', livePendingSince()),
+        supabase.from('users').select('*', { count: 'exact', head: true }).eq('verification_status', 'pending_validation'),
+    ])
+
+    const initialTheme = (await cookies()).get(ADMIN_THEME_COOKIE)?.value === 'dark' ? 'dark' : 'light'
+
     return (
-        <AdminResponsiveShell userEmail={user.email}>
+        <AdminResponsiveShell
+            userEmail={user.email}
+            initialTheme={initialTheme}
+            counts={{ pendingBookings: pendingBookings || 0, pendingVerifications: pendingVerifications || 0 }}
+        >
             {children}
         </AdminResponsiveShell>
     )

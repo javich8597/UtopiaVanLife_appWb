@@ -49,7 +49,7 @@ export function AppleSwitch({
           width: `${width}px`,
           height: `${height}px`,
           borderRadius: '9999px',
-          background: checked ? '#34C759' : '#E5E7EB',
+          background: checked ? 'var(--adm-sage, #4F6E55)' : 'var(--adm-border-strong, #E5E7EB)',
           border: 'none',
           padding: '2px',
           cursor: disabled ? 'not-allowed' : 'pointer',
@@ -58,7 +58,7 @@ export function AppleSwitch({
           display: 'inline-flex',
           alignItems: 'center',
           boxShadow: checked
-            ? '0 2px 5px rgba(52, 199, 89, 0.35)'
+            ? '0 2px 5px var(--adm-shadow, rgba(0, 0, 0, 0.15))'
             : 'inset 0 1px 2px rgba(0, 0, 0, 0.08)',
           opacity: disabled ? 0.65 : 1,
           flexShrink: 0,
@@ -78,7 +78,7 @@ export function AppleSwitch({
             width: `${knobSize}px`,
             height: `${knobSize}px`,
             borderRadius: '50%',
-            background: '#FFFFFF',
+            background: 'var(--adm-surface, #FFFFFF)',
             boxShadow: '0 2px 5px rgba(0, 0, 0, 0.22), 0 0 1px rgba(0, 0, 0, 0.15)',
             transform: checked ? `translateX(${translate}px)` : 'translateX(0px)',
             transition: 'transform 0.22s cubic-bezier(0.4, 0, 0.2, 1)',
@@ -91,7 +91,7 @@ export function AppleSwitch({
             <Loader2
               size={isSm ? 10 : 12}
               className="animate-spin"
-              style={{ color: checked ? '#34C759' : '#9CA3AF' }}
+              style={{ color: checked ? 'var(--adm-sage, #4F6E55)' : 'var(--adm-text-3, #9CA3AF)' }}
             />
           )}
         </div>
@@ -102,7 +102,7 @@ export function AppleSwitch({
           style={{
             fontSize: isSm ? '0.75rem' : '0.8rem',
             fontWeight: 700,
-            color: checked ? '#15803d' : '#6B7280',
+            color: checked ? 'var(--adm-text, #1F1B17)' : 'var(--adm-text-3, #6B7280)',
             userSelect: 'none',
             letterSpacing: '0.01em',
           }}
@@ -118,8 +118,8 @@ export function AppleSwitch({
             fontWeight: 700,
             padding: '2px 8px',
             borderRadius: '9999px',
-            background: checked ? 'rgba(52, 199, 89, 0.12)' : 'rgba(156, 163, 175, 0.15)',
-            color: checked ? '#15803d' : '#4B5563',
+            background: checked ? 'var(--adm-gold-soft, #F6ECD8)' : 'var(--adm-surface-2, #F3F4F6)',
+            color: checked ? 'var(--adm-gold-text, #8A6626)' : 'var(--adm-text-2, #4B5563)',
             userSelect: 'none',
           }}
         >

@@ -22,6 +22,9 @@ interface CamperCardProps {
     seasonName?: string
     isAvailable?: boolean
     searchParams?: string
+    variant?: 'light' | 'dark'
+    customHref?: string
+    ctaText?: string
 }
 
 export default function CamperCard({
@@ -34,8 +37,11 @@ export default function CamperCard({
     seasonName,
     isAvailable = true,
     searchParams = '',
+    variant = 'dark',
+    customHref,
+    ctaText,
 }: CamperCardProps) {
-    const href = `/campers/${slug}${searchParams ? `?${searchParams}` : ''}`
+    const href = customHref || `/campers/${slug}${searchParams ? `?${searchParams}` : ''}`
     const videoRef = useRef<HTMLVideoElement>(null)
     const [isPlayingVideo, setIsPlayingVideo] = useState(false)
 
@@ -115,7 +121,7 @@ export default function CamperCard({
 
     return (
         <article 
-            className={`camper-card ${!isAvailable ? 'camper-card--unavailable' : ''}`}
+            className={`camper-card ${variant === 'dark' ? 'camper-card--dark' : ''} ${!isAvailable ? 'camper-card--unavailable' : ''}`}
             onMouseEnter={handleMouseEnter}
             onMouseLeave={handleMouseLeave}
         >
@@ -286,7 +292,7 @@ export default function CamperCard({
                     aria-disabled={!isAvailable}
                     tabIndex={isAvailable ? 0 : -1}
                 >
-                    <span>{isAvailable ? (searchParams ? 'Seleccionar camper' : `Ver detalles de ${name}`) : 'No disponible'}</span>
+                    <span>{isAvailable ? (ctaText || (searchParams ? 'Seleccionar camper' : `Ver detalles de ${name}`)) : 'No disponible'}</span>
                     {isAvailable && <ArrowRight size={15} className="camper-card__btn-arrow" />}
                 </Link>
             </div>
@@ -295,23 +301,23 @@ export default function CamperCard({
         .camper-card {
           display: flex;
           flex-direction: column;
-          background: white;
-          border-radius: var(--radius-xl);
+          background: #FFFFFF;
+          border-radius: 20px;
           border: 1px solid var(--gray-200);
           overflow: hidden;
-          box-shadow: 0 4px 16px rgba(26, 26, 26, 0.04);
-          transition: transform 220ms cubic-bezier(0.23, 1, 0.32, 1), 
-                      box-shadow 220ms cubic-bezier(0.23, 1, 0.32, 1), 
-                      border-color 220ms ease;
+          box-shadow: var(--shadow-card);
+          transition: transform 240ms cubic-bezier(0.23, 1, 0.32, 1), 
+                      box-shadow 240ms cubic-bezier(0.23, 1, 0.32, 1), 
+                      border-color 240ms ease;
           position: relative;
         }
         .camper-card:hover { 
           transform: translateY(-4px);
-          box-shadow: 0 16px 36px rgba(45, 58, 45, 0.12);
-          border-color: rgba(45, 58, 45, 0.28);
+          box-shadow: 0 16px 36px -4px rgba(24, 36, 27, 0.12);
+          border-color: rgba(197, 168, 128, 0.45);
         }
         .camper-card:active {
-          transform: translateY(-1px) scale(0.98);
+          transform: translateY(-1px) scale(0.985);
           transition-duration: 100ms;
         }
         .camper-card--unavailable {
@@ -320,7 +326,7 @@ export default function CamperCard({
         }
         .camper-card--unavailable:hover { 
           transform: none; 
-          box-shadow: 0 4px 16px rgba(26, 26, 26, 0.04);
+          box-shadow: var(--shadow-card);
         }
 
         /* Image & Video Wrap */
@@ -516,8 +522,8 @@ export default function CamperCard({
           flex-direction: column;
           align-items: flex-end;
           flex-shrink: 0;
-          padding: 6px 12px;
-          background: #FAF8F5;
+          padding: 6px 14px;
+          background: #FDFBF8;
           border-radius: var(--radius-md);
           border: 1px solid var(--gray-200);
         }
@@ -560,14 +566,14 @@ export default function CamperCard({
           font-size: 0.76rem;
           font-weight: 500;
           color: var(--gray-800);
-          background: #FAF8F5;
+          background: #FDFBF8;
           border: 1px solid var(--gray-200);
-          padding: 5px 10px;
+          padding: 5px 11px;
           border-radius: var(--radius-full);
         }
         .camper-card__spec--highlight {
-          background: rgba(45, 58, 45, 0.06);
-          border-color: rgba(45, 58, 45, 0.2);
+          background: rgba(24, 36, 27, 0.06);
+          border-color: rgba(24, 36, 27, 0.2);
           color: var(--forest-green);
           font-weight: 600;
         }
@@ -587,7 +593,14 @@ export default function CamperCard({
           border-radius: var(--radius-full);
           font-weight: 600;
           font-size: 0.9rem;
+          background: var(--forest-green);
+          color: #FBF9F5;
+          box-shadow: 0 2px 8px rgba(24, 36, 27, 0.12);
           transition: transform 160ms cubic-bezier(0.23, 1, 0.32, 1), background-color 160ms ease, box-shadow 160ms ease;
+        }
+        .camper-card__btn:hover {
+          background: var(--forest-green-light);
+          box-shadow: 0 4px 16px rgba(24, 36, 27, 0.2);
         }
         .camper-card__btn:hover .camper-card__btn-arrow {
           transform: translateX(3px);
@@ -602,6 +615,89 @@ export default function CamperCard({
           opacity: 0.5;
           cursor: not-allowed;
           pointer-events: none;
+        }
+
+        /* Dark Theme Variant */
+        .camper-card--dark {
+          background: #131518;
+          border-color: rgba(255, 255, 255, 0.08);
+          box-shadow: 0 16px 40px rgba(0, 0, 0, 0.5);
+        }
+        .camper-card--dark:hover {
+          border-color: rgba(204, 160, 83, 0.4);
+          box-shadow: 0 24px 50px rgba(0, 0, 0, 0.7);
+        }
+        .camper-card--dark .camper-card__body {
+          background: #131518;
+        }
+        .camper-card--dark .camper-card__name {
+          color: #FFFFFF;
+        }
+        .camper-card--dark .camper-card__tagline {
+          color: #94A3B8;
+        }
+        .camper-card--dark .camper-card__desc {
+          color: #94A3B8;
+        }
+        .camper-card--dark .camper-card__price {
+          background: rgba(204, 160, 83, 0.1);
+          border: 1px solid rgba(204, 160, 83, 0.3);
+        }
+        .camper-card--dark .camper-card__price-amount {
+          color: #CCA053;
+        }
+        .camper-card--dark .camper-card__price-label {
+          color: #94A3B8;
+        }
+        .camper-card--dark .camper-card__meta {
+          color: #CCA053;
+        }
+        .camper-card--dark .camper-card__tag {
+          color: #E8CA7C;
+        }
+        .camper-card--dark .camper-card__autonomy {
+          color: #94A3B8;
+        }
+        .camper-card--dark .camper-card__spec {
+          background: #0B0C0E;
+          border-color: rgba(255, 255, 255, 0.1);
+          color: #E2E8F0;
+        }
+        .camper-card--dark .camper-card__spec-icon {
+          color: #CCA053;
+        }
+        .camper-card--dark .camper-card__spec--highlight {
+          background: rgba(204, 160, 83, 0.15);
+          border-color: rgba(204, 160, 83, 0.35);
+          color: #E8CA7C;
+        }
+        .camper-card--dark .camper-card__btn {
+          background: linear-gradient(135deg, #CCA053 0%, #B2883B 100%);
+          color: #0B0C0E;
+          font-weight: 700;
+          box-shadow: 0 4px 16px rgba(204, 160, 83, 0.3);
+        }
+        .camper-card--dark .camper-card__btn:hover {
+          box-shadow: 0 6px 22px rgba(204, 160, 83, 0.45);
+          filter: brightness(1.05);
+        }
+        .camper-card--dark .camper-card__nav-arrow {
+          background: rgba(19, 21, 24, 0.85);
+          backdrop-filter: blur(8px);
+          -webkit-backdrop-filter: blur(8px);
+          border: 1px solid rgba(255, 255, 255, 0.15);
+          color: #FFFFFF;
+        }
+        .camper-card--dark .camper-card__nav-arrow:hover {
+          border-color: #CCA053;
+          color: #CCA053;
+          background: #16191E;
+        }
+        .camper-card--dark .camper-card__dot {
+          background: rgba(255, 255, 255, 0.3);
+        }
+        .camper-card--dark .camper-card__dot--active {
+          background: #CCA053;
         }
 
         @media (max-width: 640px) {

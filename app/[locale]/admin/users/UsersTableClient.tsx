@@ -1,166 +1,224 @@
 'use client'
 
-import { useState } from 'react'
-import {
-  ShieldCheck,
-  Clock,
-  AlertCircle,
-  XCircle,
-  Eye,
-  Search,
-  UserCheck
-} from 'lucide-react'
+import { useEffect, useMemo, useState } from 'react'
+import { useSearchParams } from 'next/navigation'
+import { Eye, Search, X, UserMinus, Contact } from 'lucide-react'
 import { normalizeVerificationStatus } from '@/lib/admin/auth'
+import { formatPrice } from '@/lib/pricing/engine'
 import CustomerDetailModal from './CustomerDetailModal'
+
+export interface CustomerStats {
+  trips: number
+  spent: number
+  lastTrip: string | null
+}
 
 interface Props {
   initialUsers: any[]
+  stats?: Record<string, CustomerStats>
 }
 
-export default function UsersTableClient({ initialUsers }: Props) {
+type Segment = 'customers' | 'team' | 'internal'
+
+// Cuentas técnicas creadas por scripts o comprobaciones, no son clientes reales
+const isInternalAccount = (u: any) => /\.internal$/i.test(u.email || '')
+
+const segmentOf = (u: any): Segment =>
+  isInternalAccount(u) ? 'internal' : u.role === 'admin' ? 'team' : 'customers'
+
+const VERIFICATION_CHIP: Record<string, { label: string; tone: string }> = {
+  verified: { label: 'Validado', tone: 'sage' },
+  pending: { label: 'Por revisar', tone: 'amber' },
+  rejected: { label: 'Rechazado', tone: 'rose' },
+  not_submitted: { label: 'Sin carnet', tone: 'neutral' },
+}
+
+export default function UsersTableClient({ initialUsers, stats = {} }: Props) {
   const [users, setUsers] = useState<any[]>(initialUsers)
   const [search, setSearch] = useState('')
+  const [segment, setSegment] = useState<Segment>('customers')
   const [selectedUserId, setSelectedUserId] = useState<string | null>(null)
+  const [roleError, setRoleError] = useState<string | null>(null)
+  const searchParams = useSearchParams()
 
-  const handleStatusUpdated = (userId: string, newStatus: string) => {
-    setUsers(prev =>
-      prev.map(u => (u.id === userId ? { ...u, verification_status: newStatus } : u))
-    )
+  // Abrir con una búsqueda ya hecha (?search=… desde el buscador rápido)
+  useEffect(() => {
+    const q = searchParams.get('search')
+    if (!q) return
+    setSearch(q)
+    const match = initialUsers.find(u => (u.email || '').toLowerCase() === q.toLowerCase())
+    if (match) setSegment(segmentOf(match))
+  }, [searchParams, initialUsers])
+
+  const removeAdmin = async (u: any) => {
+    if (!window.confirm(`¿Quitar el acceso de administrador a ${u.email}? Pasará a ser una cuenta de cliente.`)) return
+    setRoleError(null)
+    try {
+      const res = await fetch('/api/admin/users/role', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ userId: u.id, role: 'customer' }),
+      })
+      const data = await res.json()
+      if (!res.ok) throw new Error(data.error || 'No se pudo cambiar el rol')
+      setUsers(prev => prev.map(x => (x.id === u.id ? { ...x, role: 'customer' } : x)))
+    } catch (err: any) {
+      setRoleError(err.message)
+    }
   }
 
-  const filteredUsers = users.filter(u => {
-    const q = search.toLowerCase()
-    const name = (u.full_name || '').toLowerCase()
-    const email = (u.email || '').toLowerCase()
-    const dni = (u.dni_nie || '').toLowerCase()
-    const phone = (u.phone || u.phone_number || '').toLowerCase()
-    return name.includes(q) || email.includes(q) || dni.includes(q) || phone.includes(q)
-  })
+  const handleStatusUpdated = (userId: string, newStatus: string) => {
+    setUsers(prev => prev.map(u => (u.id === userId ? { ...u, verification_status: newStatus } : u)))
+  }
+
+  const counts = useMemo(() => ({
+    customers: users.filter(u => segmentOf(u) === 'customers').length,
+    team: users.filter(u => segmentOf(u) === 'team').length,
+    internal: users.filter(u => segmentOf(u) === 'internal').length,
+  }), [users])
+
+  const filteredUsers = users
+    .filter(u => segmentOf(u) === segment)
+    .filter(u => {
+      const q = search.toLowerCase().trim()
+      if (!q) return true
+      return [u.full_name, u.email, u.dni_nie, u.phone || u.phone_number].some(v => (v || '').toLowerCase().includes(q))
+    })
+    // Los mejores clientes primero
+    .sort((a, b) => (stats[b.id]?.spent || 0) - (stats[a.id]?.spent || 0))
 
   return (
-    <div>
-      {/* Search Bar & Quick Counters */}
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 'var(--space-4)', flexWrap: 'wrap', gap: 16 }}>
-        <div style={{ position: 'relative', width: '100%', maxWidth: 360 }}>
-          <Search
-            size={18}
-            style={{ position: 'absolute', left: 12, top: '50%', transform: 'translateY(-50%)', color: 'var(--gray-400)' }}
-          />
+    <>
+      <section className="adm-card users-card" aria-labelledby="users-list-title">
+      <div className="adm-card-head">
+        <h2 id="users-list-title" className="adm-card-title">
+          <span className="adm-icon-square"><Contact size={22} /></span>
+          {segment === 'customers' ? 'Clientes' : segment === 'team' ? 'Equipo' : 'Cuentas internas'}
+          <span className="adm-card-count">{filteredUsers.length}</span>
+        </h2>
+        <div className="adm-search">
+          <Search size={16} className="adm-search__icon" aria-hidden="true" />
           <input
             id="admin-users-search"
             name="admin_users_search"
-            aria-label="Buscar clientes por nombre, email o DNI"
-            type="text"
-            placeholder="Buscar por nombre, email o DNI..."
+            aria-label="Buscar clientes por nombre, email, DNI o teléfono"
+            type="search"
+            placeholder="Nombre, email, DNI o teléfono"
             value={search}
             onChange={e => setSearch(e.target.value)}
-            className="input"
-            style={{ paddingLeft: 38, width: '100%' }}
+            className="adm-search__input"
           />
-        </div>
-
-        <div style={{ display: 'flex', flexWrap: 'wrap', gap: 12, fontSize: '0.85rem', color: 'var(--gray-600)' }}>
-          <span>Total: <strong>{users.length}</strong> clientes</span>
-          <span>·</span>
-          <span style={{ color: 'var(--forest-green)' }}>
-            Validados: <strong>{users.filter(u => u.verification_status === 'verified').length}</strong>
-          </span>
-          <span>·</span>
-          <span style={{ color: 'var(--sand-dark)' }}>
-            Pendientes: <strong>{users.filter(u => u.verification_status === 'pending' || u.verification_status === 'pending_validation').length}</strong>
-          </span>
+          {search && (
+            <button type="button" className="adm-search__clear" onClick={() => setSearch('')} aria-label="Borrar búsqueda">
+              <X size={14} />
+            </button>
+          )}
         </div>
       </div>
 
-      <div className="table-container">
-        <table className="admin-table" style={{ minWidth: 880 }}>
-          <thead>
-            <tr>
-              <th>Nombre</th>
-              <th>Email</th>
-              <th>Teléfono</th>
-              <th>DNI / NIE</th>
-              <th>Rol</th>
-              <th>Estado Carnet</th>
-              <th>Registro</th>
-              <th style={{ textAlign: 'right' }}>Acciones</th>
-            </tr>
-          </thead>
-          <tbody>
-            {filteredUsers.map((u: any) => {
-              const status = normalizeVerificationStatus(u.verification_status)
-              return (
-                <tr key={u.id}>
-                  <td style={{ fontWeight: 600 }}>{u.full_name || 'Sin nombre'}</td>
-                  <td className="text-small">{u.email}</td>
-                  <td className="text-small" style={{ color: 'var(--gray-600)' }}>
-                    {u.phone || u.phone_number || '-'}
-                  </td>
-                  <td className="text-small" style={{ fontFamily: 'monospace' }}>
-                    {u.dni_nie || '-'}
-                  </td>
-                  <td>
-                    <span className="badge badge-sand" style={{ textTransform: 'capitalize' }}>
-                      {u.role || 'customer'}
-                    </span>
-                  </td>
-                  <td>
-                    {status === 'verified' && (
-                      <span className="flex-center-gap text-xs" style={{ color: 'var(--success)', fontWeight: 600 }}>
-                        <ShieldCheck size={14} /> Validado
+      <div className="adm-card-tabs">
+        <div className="adm-tabs" role="tablist" aria-label="Tipo de cuenta">
+          {([
+            ['customers', 'Clientes'],
+            ['team', 'Equipo'],
+            ['internal', 'Cuentas internas'],
+          ] as [Segment, string][]).filter(([id]) => id !== 'internal' || counts.internal > 0).map(([id, label]) => (
+            <button
+              key={id}
+              type="button"
+              role="tab"
+              aria-selected={segment === id}
+              className={`adm-tab ${segment === id ? 'adm-tab--on' : ''}`}
+              onClick={() => setSegment(id)}
+            >
+              {label}
+              <span className="adm-tab__count">{counts[id]}</span>
+            </button>
+          ))}
+        </div>
+      </div>
+
+      {roleError && <div className="adm-note adm-card-note" role="alert">{roleError}</div>}
+
+        <div className="adm-table-wrap">
+          <table className="adm-table adm-table--cards">
+            <thead>
+              <tr>
+                <th>Cliente</th>
+                <th>Contacto</th>
+                <th className="adm-table__num">Viajes</th>
+                <th className="adm-table__num">Total gastado</th>
+                <th>Último viaje</th>
+                <th>Carnet</th>
+                <th className="adm-table__actions"><span className="sr-only">Acciones</span></th>
+              </tr>
+            </thead>
+            <tbody>
+              {filteredUsers.map((u: any) => {
+                const status = normalizeVerificationStatus(u.verification_status)
+                const chip = VERIFICATION_CHIP[status]
+                const s = stats[u.id]
+                return (
+                  <tr key={u.id}>
+                    <td data-label="Cliente">
+                      <span className="adm-table__strong">{u.full_name || 'Sin nombre'}</span>
+                      <span className="adm-table__muted">
+                        {u.dni_nie || 'Sin DNI'} · desde {new Date(u.created_at).toLocaleDateString('es-ES', { month: 'short', year: 'numeric' })}
                       </span>
-                    )}
-                    {status === 'pending' && (
-                      <span className="flex-center-gap text-xs" style={{ color: 'var(--sand-dark)', fontWeight: 600 }}>
-                        <Clock size={14} /> Pendiente
-                      </span>
-                    )}
-                    {status === 'rejected' && (
-                      <span className="flex-center-gap text-xs" style={{ color: 'var(--error)', fontWeight: 600 }}>
-                        <XCircle size={14} /> Rechazado
-                      </span>
-                    )}
-                    {status === 'not_submitted' && (
-                      <span className="flex-center-gap text-xs" style={{ color: 'var(--gray-400)' }}>
-                        <AlertCircle size={14} /> Sin carnet
-                      </span>
-                    )}
-                  </td>
-                  <td className="text-xs" style={{ color: 'var(--gray-500)' }}>
-                    {new Date(u.created_at).toLocaleDateString('es-ES')}
-                  </td>
-                  <td style={{ textAlign: 'right' }}>
-                    <button
-                      onClick={() => setSelectedUserId(u.id)}
-                      className="btn btn-outline btn-sm"
-                      style={{
-                        display: 'inline-flex',
-                        alignItems: 'center',
-                        gap: 6,
-                        padding: '5px 12px',
-                        fontSize: '0.82rem',
-                        fontWeight: 600
-                      }}
-                      title="Consultar expediente completo del cliente"
-                    >
-                      <Eye size={14} /> Ver Ficha
-                    </button>
+                    </td>
+                    <td data-label="Contacto">
+                      {u.email}
+                      <span className="adm-table__muted">{u.phone || u.phone_number || 'Sin teléfono'}</span>
+                    </td>
+                    <td data-label="Viajes" className="adm-table__num">
+                      {s?.trips || 0}
+                      {(s?.trips || 0) >= 2 && <span className="adm-table__muted">Repite</span>}
+                    </td>
+                    <td data-label="Total gastado" className="adm-table__num adm-table__strong">{formatPrice(s?.spent || 0)}</td>
+                    <td data-label="Último viaje">
+                      {s?.lastTrip
+                        ? new Date(s.lastTrip).toLocaleDateString('es-ES', { day: 'numeric', month: 'short', year: 'numeric', timeZone: 'UTC' })
+                        : '—'}
+                    </td>
+                    <td data-label="Carnet">
+                      <span className={`adm-chip adm-chip--${chip.tone}`}>{chip.label}</span>
+                    </td>
+                    <td className="adm-table__actions">
+                      {segment === 'team' && (
+                        <button
+                          type="button"
+                          onClick={() => removeAdmin(u)}
+                          className="adm-btn adm-btn--sm adm-btn--danger users-role-btn"
+                          title="Quitar el acceso de administrador"
+                        >
+                          <UserMinus size={14} /> Quitar admin
+                        </button>
+                      )}
+                      <button
+                        type="button"
+                        onClick={() => setSelectedUserId(u.id)}
+                        className="adm-btn adm-btn--sm"
+                        title="Consultar el expediente completo del cliente"
+                      >
+                        <Eye size={14} /> Ficha
+                      </button>
+                    </td>
+                  </tr>
+                )
+              })}
+              {filteredUsers.length === 0 && (
+                <tr>
+                  <td colSpan={7} className="adm-empty">
+                    {search ? 'Nadie coincide con la búsqueda.' : 'Todavía no hay cuentas en este grupo.'}
                   </td>
                 </tr>
-              )
-            })}
-            {filteredUsers.length === 0 && (
-              <tr>
-                <td colSpan={8} style={{ textAlign: 'center', padding: 'var(--space-8)', color: 'var(--gray-500)' }}>
-                  {search ? 'No se encontraron clientes que coincidan con la búsqueda.' : 'No hay usuarios registrados aún.'}
-                </td>
-              </tr>
-            )}
-          </tbody>
-        </table>
-      </div>
+              )}
+            </tbody>
+          </table>
+        </div>
+      </section>
 
-      {/* Customer Detail Modal */}
+
       {selectedUserId && (
         <CustomerDetailModal
           userId={selectedUserId}
@@ -168,6 +226,6 @@ export default function UsersTableClient({ initialUsers }: Props) {
           onStatusUpdated={handleStatusUpdated}
         />
       )}
-    </div>
+    </>
   )
 }

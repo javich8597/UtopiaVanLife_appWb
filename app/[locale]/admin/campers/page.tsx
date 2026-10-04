@@ -1,5 +1,6 @@
 import { createClient } from '@/lib/supabase/server'
 import CampersClient from './CampersClient'
+import { calculateFleetLiveStatus, calculateFleetOccupancy } from '@/lib/admin/dashboardMetrics'
 
 export default async function AdminCampersPage() {
     const supabase = await createClient()
@@ -25,9 +26,16 @@ export default async function AdminCampersPage() {
         }
     })
 
-    return (
-        <div style={{ maxWidth: 1200, margin: '0 auto', width: '100%' }}>
-            <CampersClient initialCampers={campersWithPricing} />
-        </div>
-    )
+    // Estado de hoy de cada vehículo (en viaje o libre) y próximas fechas
+    const { data: liveBookings } = await supabase
+        .from('bookings')
+        .select('id, camper_id, start_date, end_date, total_price, status, customer_name')
+        .in('status', ['confirmed', 'active'])
+
+    const now = new Date()
+    const occupancy = calculateFleetOccupancy(campers || [], liveBookings || [], now)
+    const live = calculateFleetLiveStatus(campers || [], liveBookings || [], occupancy, now)
+    const liveStatus = Object.fromEntries(live.map(l => [l.id, l]))
+
+    return <CampersClient initialCampers={campersWithPricing} liveStatus={liveStatus} />
 }

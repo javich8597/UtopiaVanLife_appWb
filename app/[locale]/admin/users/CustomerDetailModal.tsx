@@ -253,7 +253,7 @@ export default function CustomerDetailModal({
                   {/* Segundo Conductor */}
                   {user?.has_second_driver && (
                     <div className="cd-card cd-card--second-driver">
-                      <h4 className="cd-card-title" style={{ color: '#0369a1' }}>
+                      <h4 className="cd-card-title" style={{ color: 'var(--adm-text-2)' }}>
                         Segundo Conductor Autorizado
                       </h4>
                       <div className="cd-grid cd-grid--3">
@@ -376,7 +376,7 @@ export default function CustomerDetailModal({
 
                   {/* Acciones de Validación Rápida */}
                   <div className="cd-action-bar">
-                    <span style={{ fontSize: '0.88rem', color: '#4b5563', fontWeight: 500 }}>
+                    <span style={{ fontSize: '0.88rem', color: 'var(--adm-text-2)', fontWeight: 500 }}>
                       Acción Administrativa sobre la Documentación:
                     </span>
                     <div style={{ display: 'flex', gap: 10 }}>
@@ -496,7 +496,7 @@ export default function CustomerDetailModal({
         }
 
         .cd-modal {
-          background: #ffffff;
+          background: var(--adm-surface);
           border-radius: 16px;
           width: 100%;
           max-width: 820px;
@@ -518,8 +518,8 @@ export default function CustomerDetailModal({
           align-items: center;
           justify-content: space-between;
           padding: 20px 24px;
-          border-bottom: 1px solid #E5E7EB;
-          background: #FAFAFA;
+          border-bottom: 1px solid var(--adm-border);
+          background: var(--adm-surface-2);
         }
 
         .cd-header-left {
@@ -532,8 +532,8 @@ export default function CustomerDetailModal({
           width: 48px;
           height: 48px;
           border-radius: 50%;
-          background: #DCFCE7;
-          color: #166534;
+          background: var(--adm-sage-soft);
+          color: var(--adm-sage);
           display: flex;
           align-items: center;
           justify-content: center;
@@ -550,35 +550,35 @@ export default function CustomerDetailModal({
         .cd-title {
           font-size: 1.3rem;
           font-weight: 700;
-          color: #111827;
+          color: var(--adm-text);
           margin: 0;
         }
 
         .cd-subtitle {
           font-size: 0.88rem;
-          color: #6B7280;
+          color: var(--adm-text-2);
           margin: 2px 0 0;
         }
 
         .cd-close-btn {
           background: transparent;
           border: none;
-          color: #9CA3AF;
+          color: var(--adm-text-3);
           cursor: pointer;
           padding: 6px;
           border-radius: 50%;
           transition: background 0.12s ease;
         }
         .cd-close-btn:hover {
-          background: #E5E7EB;
-          color: #111827;
+          background: var(--adm-border);
+          color: var(--adm-text);
         }
 
         /* Tabs */
         .cd-tabs {
           display: flex;
-          border-bottom: 1px solid #E5E7EB;
-          background: #F9FAFB;
+          border-bottom: 1px solid var(--adm-border);
+          background: var(--adm-surface-2);
           padding: 0 24px;
           gap: 8px;
         }
@@ -592,18 +592,18 @@ export default function CustomerDetailModal({
           background: transparent;
           font-size: 0.88rem;
           font-weight: 600;
-          color: #6B7280;
+          color: var(--adm-text-2);
           cursor: pointer;
           border-bottom: 2px solid transparent;
           transition: all 0.15s ease;
         }
         .cd-tab:hover {
-          color: #111827;
+          color: var(--adm-text);
         }
         .cd-tab--active {
-          color: #16A34A;
-          border-bottom-color: #16A34A;
-          background: #FFFFFF;
+          color: var(--adm-sage);
+          border-bottom-color: var(--adm-sage);
+          background: var(--adm-surface);
         }
 
         /* Body */
@@ -620,15 +620,15 @@ export default function CustomerDetailModal({
           justify-content: center;
           gap: 12px;
           padding: 48px;
-          color: #6B7280;
+          color: var(--adm-text-2);
           font-size: 0.95rem;
         }
 
         .cd-spinner {
           width: 32px;
           height: 32px;
-          border: 3px solid #E5E7EB;
-          border-top-color: #16A34A;
+          border: 3px solid var(--adm-border);
+          border-top-color: var(--adm-sage);
           border-radius: 50%;
           animation: cdSpin 0.7s linear infinite;
         }
@@ -652,15 +652,15 @@ export default function CustomerDetailModal({
         }
 
         .cd-card {
-          background: #F9FAFB;
-          border: 1px solid #E5E7EB;
+          background: var(--adm-surface-2);
+          border: 1px solid var(--adm-border);
           border-radius: 12px;
           padding: 18px;
         }
 
         .cd-card--second-driver {
           background: #F0F9FF;
-          border-color: #BAE6FD;
+          border-color: var(--adm-border);
         }
 
         .cd-card--license-check {
@@ -671,7 +671,7 @@ export default function CustomerDetailModal({
         .cd-card-title {
           font-size: 0.95rem;
           font-weight: 700;
-          color: #1F2937;
+          color: var(--adm-text);
           margin: 0 0 14px;
         }
 
@@ -699,12 +699,12 @@ export default function CustomerDetailModal({
           font-size: 0.72rem;
           text-transform: uppercase;
           font-weight: 700;
-          color: #6B7280;
+          color: var(--adm-text-2);
         }
 
         .cd-field-value {
           font-size: 0.92rem;
-          color: #111827;
+          color: var(--adm-text);
         }
 
         .flex-align {
@@ -714,12 +714,12 @@ export default function CustomerDetailModal({
         }
 
         .cd-icon-muted {
-          color: #9CA3AF;
+          color: var(--adm-text-3);
         }
 
         .cd-role-tag {
           display: inline-block;
-          background: #E5E7EB;
+          background: var(--adm-border);
           padding: 2px 8px;
           border-radius: 6px;
           font-size: 0.78rem;
@@ -730,11 +730,11 @@ export default function CustomerDetailModal({
 
         .cd-code {
           font-family: monospace;
-          background: #E5E7EB;
+          background: var(--adm-border);
           padding: 2px 6px;
           border-radius: 4px;
           font-size: 0.78rem;
-          color: #374151;
+          color: var(--adm-text);
         }
 
         /* Badges */
@@ -748,27 +748,27 @@ export default function CustomerDetailModal({
           font-weight: 700;
         }
         .cd-badge--verified {
-          background: #DCFCE7;
-          color: #166534;
+          background: var(--adm-sage-soft);
+          color: var(--adm-sage);
         }
         .cd-badge--pending {
-          background: #FEF9C3;
-          color: #854D0E;
+          background: var(--adm-amber-soft);
+          color: var(--adm-amber);
         }
         .cd-badge--rejected {
-          background: #FEE2E2;
-          color: #991B1B;
+          background: var(--adm-rose-soft);
+          color: var(--adm-rose);
         }
         .cd-badge--neutral {
-          background: #F3F4F6;
-          color: #6B7280;
+          background: var(--adm-surface-2);
+          color: var(--adm-text-2);
         }
 
         /* Docs Grid */
         .cd-section-title {
           font-size: 0.95rem;
           font-weight: 700;
-          color: #1F2937;
+          color: var(--adm-text);
           margin: 8px 0 0;
         }
 
@@ -779,8 +779,8 @@ export default function CustomerDetailModal({
         }
 
         .cd-doc-box {
-          background: #FAFAFA;
-          border: 1px solid #E5E7EB;
+          background: var(--adm-surface-2);
+          border: 1px solid var(--adm-border);
           border-radius: 10px;
           padding: 10px;
           display: flex;
@@ -791,7 +791,7 @@ export default function CustomerDetailModal({
         .cd-doc-label {
           font-size: 0.72rem;
           font-weight: 700;
-          color: #4B5563;
+          color: var(--adm-text-2);
           text-align: center;
         }
 
@@ -800,7 +800,7 @@ export default function CustomerDetailModal({
           aspect-ratio: 4/3;
           border-radius: 8px;
           overflow: hidden;
-          background: #E5E7EB;
+          background: var(--adm-border);
           cursor: pointer;
         }
 
@@ -818,7 +818,7 @@ export default function CustomerDetailModal({
           position: absolute;
           inset: 0;
           background: rgba(0,0,0,0.4);
-          color: white;
+          color: var(--adm-surface);
           display: flex;
           align-items: center;
           justify-content: center;
@@ -837,19 +837,19 @@ export default function CustomerDetailModal({
           display: flex;
           align-items: center;
           justify-content: center;
-          background: #F3F4F6;
-          border: 1px dashed #D1D5DB;
+          background: var(--adm-surface-2);
+          border: 1px dashed var(--adm-border-strong);
           border-radius: 8px;
           font-size: 0.75rem;
-          color: #9CA3AF;
+          color: var(--adm-text-3);
         }
 
         .cd-action-bar {
           display: flex;
           align-items: center;
           justify-content: space-between;
-          background: #F9FAFB;
-          border: 1px solid #E5E7EB;
+          background: var(--adm-surface-2);
+          border: 1px solid var(--adm-border);
           border-radius: 12px;
           padding: 14px 18px;
           flex-wrap: wrap;
@@ -864,10 +864,10 @@ export default function CustomerDetailModal({
           align-items: center;
           justify-content: center;
           padding: 48px;
-          background: #F9FAFB;
+          background: var(--adm-surface-2);
           border-radius: 12px;
-          border: 1px dashed #D1D5DB;
-          color: #6B7280;
+          border: 1px dashed var(--adm-border-strong);
+          color: var(--adm-text-2);
           gap: 8px;
         }
 
@@ -882,8 +882,8 @@ export default function CustomerDetailModal({
           align-items: center;
           justify-content: space-between;
           padding: 16px;
-          background: #FAFAFA;
-          border: 1px solid #E5E7EB;
+          background: var(--adm-surface-2);
+          border: 1px solid var(--adm-border);
           border-radius: 12px;
           flex-wrap: wrap;
           gap: 14px;
@@ -898,7 +898,7 @@ export default function CustomerDetailModal({
         .cd-camper-tag {
           font-weight: 700;
           font-size: 0.95rem;
-          color: #111827;
+          color: var(--adm-text);
         }
 
         .cd-booking-status {
@@ -907,16 +907,16 @@ export default function CustomerDetailModal({
           padding: 2px 8px;
           border-radius: 12px;
         }
-        .cd-booking-status--confirmed { background: #DCFCE7; color: #166534; }
-        .cd-booking-status--pending { background: #FEF9C3; color: #854D0E; }
-        .cd-booking-status--active { background: #16A34A; color: #ffffff; }
+        .cd-booking-status--confirmed { background: var(--adm-sage-soft); color: var(--adm-sage); }
+        .cd-booking-status--pending { background: var(--adm-amber-soft); color: var(--adm-amber); }
+        .cd-booking-status--active { background: var(--adm-sage); color: var(--adm-surface); }
 
         .cd-booking-dates {
           display: flex;
           align-items: center;
           gap: 6px;
           font-size: 0.85rem;
-          color: #4B5563;
+          color: var(--adm-text-2);
         }
 
         .cd-booking-right {
@@ -928,7 +928,7 @@ export default function CustomerDetailModal({
         .cd-booking-price {
           font-size: 1.1rem;
           font-weight: 700;
-          color: #16A34A;
+          color: var(--adm-sage);
           display: flex;
           flex-direction: column;
           align-items: flex-end;
@@ -936,7 +936,7 @@ export default function CustomerDetailModal({
 
         .cd-booking-deposit {
           font-size: 0.72rem;
-          color: #6B7280;
+          color: var(--adm-text-2);
           font-weight: 400;
         }
 
@@ -945,18 +945,18 @@ export default function CustomerDetailModal({
           align-items: center;
           gap: 4px;
           padding: 6px 12px;
-          background: #ffffff;
-          border: 1px solid #D1D5DB;
+          background: var(--adm-surface);
+          border: 1px solid var(--adm-border-strong);
           border-radius: 6px;
           font-size: 0.82rem;
           font-weight: 600;
-          color: #374151;
+          color: var(--adm-text);
           text-decoration: none;
           transition: all 0.12s ease;
         }
         .cd-booking-link:hover {
-          background: #F3F4F6;
-          border-color: #9CA3AF;
+          background: var(--adm-surface-2);
+          border-color: var(--adm-text-3);
         }
 
         /* Buttons */
@@ -978,37 +978,37 @@ export default function CustomerDetailModal({
         }
 
         .cd-btn--secondary {
-          background: #F3F4F6;
-          color: #374151;
-          border: 1px solid #D1D5DB;
+          background: var(--adm-surface-2);
+          color: var(--adm-text);
+          border: 1px solid var(--adm-border-strong);
         }
         .cd-btn--secondary:hover {
-          background: #E5E7EB;
+          background: var(--adm-border);
         }
 
         .cd-btn--danger {
-          background: #FEE2E2;
-          color: #991B1B;
-          border: 1px solid #FECACA;
+          background: var(--adm-rose-soft);
+          color: var(--adm-rose);
+          border: 1px solid var(--adm-rose-soft);
         }
         .cd-btn--danger:hover {
-          background: #FCA5A5;
+          background: var(--adm-rose-soft);
         }
 
         .cd-btn--success {
-          background: #16A34A;
-          color: white;
+          background: var(--adm-sage);
+          color: var(--adm-surface);
         }
         .cd-btn--success:hover {
-          background: #15803d;
+          background: var(--adm-sage);
         }
 
         .cd-footer {
           display: flex;
           justify-content: flex-end;
           padding: 16px 24px;
-          border-top: 1px solid #E5E7EB;
-          background: #FAFAFA;
+          border-top: 1px solid var(--adm-border);
+          background: var(--adm-surface-2);
         }
 
         /* Zoom View */
@@ -1024,7 +1024,7 @@ export default function CustomerDetailModal({
         }
 
         .cd-zoom-card {
-          background: #ffffff;
+          background: var(--adm-surface);
           border-radius: 12px;
           max-width: 900px;
           width: 100%;
@@ -1039,9 +1039,9 @@ export default function CustomerDetailModal({
           align-items: center;
           justify-content: space-between;
           padding: 12px 20px;
-          border-bottom: 1px solid #E5E7EB;
+          border-bottom: 1px solid var(--adm-border);
           font-weight: 600;
-          color: #111827;
+          color: var(--adm-text);
         }
 
         .cd-zoom-img-container {
@@ -1068,12 +1068,12 @@ export default function CustomerDetailModal({
           opacity: 0.85;
         }
         .cd-phone-action--call {
-          background: #E0E7FF;
+          background: var(--adm-surface-2);
           color: #3730A3;
         }
         .cd-phone-action--wa {
-          background: #DCFCE7;
-          color: #15803D;
+          background: var(--adm-sage-soft);
+          color: var(--adm-sage);
         }
 
         @media (max-width: 640px) {

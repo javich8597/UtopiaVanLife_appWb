@@ -1,3 +1,4 @@
+import { Suspense } from 'react'
 import { createClient } from '@/lib/supabase/server'
 import BookingsClient from './BookingsClient'
 
@@ -14,6 +15,8 @@ export default async function AdminBookingsPage() {
         .order('created_at', { ascending: false })
 
     return (
-        <BookingsClient initialBookings={bookings || []} />
+        <Suspense fallback={<div className="adm-empty">Cargando reservas…</div>}>
+            <BookingsClient initialBookings={bookings || []} />
+        </Suspense>
     )
 }

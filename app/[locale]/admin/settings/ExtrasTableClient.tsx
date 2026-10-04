@@ -250,38 +250,17 @@ export default function ExtrasTableClient({ initialExtras }: Props) {
   }
 
   return (
-    <div className="card" style={{ padding: 'var(--space-6)', background: 'white', borderRadius: 'var(--radius-xl)', boxShadow: '0 4px 20px rgba(0,0,0,0.04)', border: '1px solid var(--gray-200)' }}>
-      {/* Header */}
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 'var(--space-6)', flexWrap: 'wrap', gap: 'var(--space-3)' }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-3)' }}>
-          <div style={{ width: 40, height: 40, borderRadius: '10px', background: 'rgba(217, 119, 6, 0.1)', color: '#d97706', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-            <Sparkles size={22} />
-          </div>
-          <div>
-            <h2 className="text-h4" style={{ margin: 0, fontWeight: 700 }}>Extras de Alquiler</h2>
-            <p className="text-xs" style={{ color: 'var(--gray-500)', margin: '2px 0 0' }}>
-              Catálogo de equipamiento adicional disponible para los viajeros en el checkout.
-            </p>
-          </div>
+    <div className="adm-card adm-card--pad settings-section">
+      <div className="settings-section__head">
+        <div>
+          <h2 className="adm-card-title">
+            <span className="adm-icon-square"><Sparkles size={22} /></span>
+            Extras del checkout
+          </h2>
+          <p className="settings-section__desc">Equipamiento que el viajero puede añadir al reservar.</p>
         </div>
-
-        <button
-          onClick={handleOpenCreate}
-          className="btn btn-forest"
-          style={{
-            display: 'inline-flex',
-            alignItems: 'center',
-            gap: '8px',
-            padding: '10px 18px',
-            borderRadius: 'var(--radius-md)',
-            fontSize: '0.9rem',
-            fontWeight: 700,
-            boxShadow: '0 3px 10px rgba(46,74,56,0.25)',
-            border: 'none',
-            cursor: 'pointer',
-          }}
-        >
-          <Plus size={18} strokeWidth={2.5} /> Añadir Nuevo Extra
+        <button type="button" onClick={handleOpenCreate} className="adm-btn adm-btn--primary">
+          <Plus size={16} /> Añadir extra
         </button>
       </div>
 
@@ -289,13 +268,13 @@ export default function ExtrasTableClient({ initialExtras }: Props) {
       <div className="table-container" style={{ overflowX: 'auto' }}>
         <table className="admin-table" style={{ width: '100%', borderCollapse: 'collapse', minWidth: 780 }}>
           <thead>
-            <tr style={{ borderBottom: '1px solid var(--gray-200)', background: 'var(--gray-50)' }}>
-              <th style={{ padding: '12px 16px', textAlign: 'left', fontSize: '0.8rem', color: 'var(--gray-600)', fontWeight: 600 }}>Extra</th>
-              <th style={{ padding: '12px 16px', textAlign: 'left', fontSize: '0.8rem', color: 'var(--gray-600)', fontWeight: 600 }}>Descripción</th>
-              <th style={{ padding: '12px 16px', textAlign: 'left', fontSize: '0.8rem', color: 'var(--gray-600)', fontWeight: 600 }}>Precio</th>
-              <th style={{ padding: '12px 16px', textAlign: 'left', fontSize: '0.8rem', color: 'var(--gray-600)', fontWeight: 600 }}>Tipo</th>
-              <th style={{ padding: '12px 16px', textAlign: 'center', fontSize: '0.8rem', color: 'var(--gray-600)', fontWeight: 600 }}>Estado</th>
-              <th style={{ padding: '12px 16px', textAlign: 'right', fontSize: '0.8rem', color: 'var(--gray-600)', fontWeight: 600 }}>Acciones</th>
+            <tr style={{ borderBottom: '1px solid var(--adm-border)', background: 'var(--adm-surface-2)' }}>
+              <th style={{ padding: '12px 16px', textAlign: 'left', fontSize: '0.8rem', color: 'var(--adm-text-2)', fontWeight: 600 }}>Extra</th>
+              <th style={{ padding: '12px 16px', textAlign: 'left', fontSize: '0.8rem', color: 'var(--adm-text-2)', fontWeight: 600 }}>Descripción</th>
+              <th style={{ padding: '12px 16px', textAlign: 'left', fontSize: '0.8rem', color: 'var(--adm-text-2)', fontWeight: 600 }}>Precio</th>
+              <th style={{ padding: '12px 16px', textAlign: 'left', fontSize: '0.8rem', color: 'var(--adm-text-2)', fontWeight: 600 }}>Tipo</th>
+              <th style={{ padding: '12px 16px', textAlign: 'center', fontSize: '0.8rem', color: 'var(--adm-text-2)', fontWeight: 600 }}>Estado</th>
+              <th style={{ padding: '12px 16px', textAlign: 'right', fontSize: '0.8rem', color: 'var(--adm-text-2)', fontWeight: 600 }}>Acciones</th>
             </tr>
           </thead>
           <tbody>
@@ -303,17 +282,17 @@ export default function ExtrasTableClient({ initialExtras }: Props) {
               const isToggling = togglingId === e.id
 
               return (
-                <tr key={e.id} style={{ borderBottom: '1px solid var(--gray-100)', transition: 'background 0.15s' }}>
+                <tr key={e.id} style={{ borderBottom: '1px solid var(--adm-surface-2)', transition: 'background 0.15s' }}>
                   {/* Icon & Name */}
                   <td style={{ padding: '14px 16px' }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                      <div style={{ width: 32, height: 32, borderRadius: '8px', background: 'var(--sand-light)', color: 'var(--forest-green)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                      <div style={{ width: 32, height: 32, borderRadius: '8px', background: 'var(--adm-gold-soft)', color: 'var(--adm-primary-bg)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
                         {renderIcon(e.icon)}
                       </div>
                       <div>
-                        <div style={{ fontWeight: 600, color: 'var(--black-matte)', fontSize: '0.9rem' }}>{e.name_es}</div>
+                        <div style={{ fontWeight: 600, color: 'var(--adm-text)', fontSize: '0.9rem' }}>{e.name_es}</div>
                         {e.name_en && e.name_en !== e.name_es && (
-                          <div className="text-xs" style={{ color: 'var(--gray-400)' }}>{e.name_en}</div>
+                          <div className="text-xs" style={{ color: 'var(--adm-text-3)' }}>{e.name_en}</div>
                         )}
                       </div>
                     </div>
@@ -321,13 +300,13 @@ export default function ExtrasTableClient({ initialExtras }: Props) {
 
                   {/* Description */}
                   <td style={{ padding: '14px 16px', maxWidth: 260 }}>
-                    <p style={{ margin: 0, fontSize: '0.8rem', color: 'var(--gray-600)', lineHeight: 1.4 }} className="line-clamp-2">
+                    <p style={{ margin: 0, fontSize: '0.8rem', color: 'var(--adm-text-2)', lineHeight: 1.4 }} className="line-clamp-2">
                       {e.description_es || '-'}
                     </p>
                   </td>
 
                   {/* Price */}
-                  <td style={{ padding: '14px 16px', fontWeight: 700, color: 'var(--forest-green)', fontSize: '0.95rem' }}>
+                  <td style={{ padding: '14px 16px', fontWeight: 700, color: 'var(--adm-primary-bg)', fontSize: '0.95rem' }}>
                     {formatPrice(e.price)}
                   </td>
 
@@ -342,7 +321,7 @@ export default function ExtrasTableClient({ initialExtras }: Props) {
                         padding: '3px 8px',
                         borderRadius: '6px',
                         background: e.price_type === 'per_day' ? 'rgba(59, 130, 246, 0.1)' : 'rgba(16, 185, 129, 0.1)',
-                        color: e.price_type === 'per_day' ? '#2563eb' : '#059669',
+                        color: e.price_type === 'per_day' ? 'var(--adm-text-2)' : 'var(--adm-sage)',
                       }}
                     >
                       {e.price_type === 'per_day' ? 'Por día' : 'Por alquiler'}
@@ -371,21 +350,21 @@ export default function ExtrasTableClient({ initialExtras }: Props) {
                           gap: '6px',
                           padding: '6px 14px',
                           borderRadius: 'var(--radius-md)',
-                          border: '1.5px solid var(--forest-green)',
-                          background: 'rgba(46,74,56,0.06)',
-                          color: 'var(--forest-green)',
+                          border: '1.5px solid var(--adm-primary-bg)',
+                          background: 'var(--adm-surface-2)',
+                          color: 'var(--adm-primary-bg)',
                           cursor: 'pointer',
                           fontSize: '0.82rem',
                           fontWeight: 700,
                           transition: 'all 0.15s ease',
                         }}
                         onMouseEnter={el => {
-                          el.currentTarget.style.background = 'var(--forest-green)'
-                          el.currentTarget.style.color = '#FFFFFF'
+                          el.currentTarget.style.background = 'var(--adm-primary-bg)'
+                          el.currentTarget.style.color = 'var(--adm-surface)'
                         }}
                         onMouseLeave={el => {
-                          el.currentTarget.style.background = 'rgba(46,74,56,0.06)'
-                          el.currentTarget.style.color = 'var(--forest-green)'
+                          el.currentTarget.style.background = 'var(--adm-surface-2)'
+                          el.currentTarget.style.color = 'var(--adm-primary-bg)'
                         }}
                         title="Editar información y precio de este extra"
                       >
@@ -403,9 +382,9 @@ export default function ExtrasTableClient({ initialExtras }: Props) {
                           width: '32px',
                           height: '32px',
                           borderRadius: '6px',
-                          border: '1px solid #fee2e2',
-                          background: '#fff5f5',
-                          color: '#dc2626',
+                          border: '1px solid var(--adm-rose-soft)',
+                          background: 'var(--adm-rose-soft)',
+                          color: 'var(--adm-rose)',
                           cursor: 'pointer',
                         }}
                         title="Eliminar extra"
@@ -420,10 +399,10 @@ export default function ExtrasTableClient({ initialExtras }: Props) {
 
             {extras.length === 0 && (
               <tr>
-                <td colSpan={6} style={{ textAlign: 'center', padding: 'var(--space-10)', color: 'var(--gray-500)' }}>
-                  <Sparkles size={32} style={{ color: 'var(--gray-300)', margin: '0 auto 8px' }} />
+                <td colSpan={6} style={{ textAlign: 'center', padding: 'var(--space-10)', color: 'var(--adm-text-2)' }}>
+                  <Sparkles size={32} style={{ color: 'var(--adm-border-strong)', margin: '0 auto 8px' }} />
                   <p style={{ fontWeight: 600, margin: '4px 0' }}>No hay extras configurados</p>
-                  <p className="text-xs" style={{ color: 'var(--gray-400)' }}>
+                  <p className="text-xs" style={{ color: 'var(--adm-text-3)' }}>
                     Haz clic en "Nuevo Extra" para añadir equipamiento adicional al catálogo.
                   </p>
                 </td>
@@ -444,23 +423,23 @@ export default function ExtrasTableClient({ initialExtras }: Props) {
           justifyContent: 'center',
           gap: '10px',
           padding: '16px 20px',
-          background: 'rgba(46,74,56,0.03)',
-          border: '2px dashed rgba(46,74,56,0.3)',
+          background: 'var(--adm-surface-2)',
+          border: '2px dashed var(--adm-border-strong)',
           borderRadius: 'var(--radius-lg)',
-          color: 'var(--forest-green)',
+          color: 'var(--adm-primary-bg)',
           fontSize: '0.92rem',
           fontWeight: 700,
           cursor: 'pointer',
           transition: 'all 0.2s cubic-bezier(0.4, 0, 0.2, 1)',
         }}
         onMouseEnter={e => {
-          e.currentTarget.style.background = 'rgba(46,74,56,0.08)'
-          e.currentTarget.style.borderColor = 'var(--forest-green)'
+          e.currentTarget.style.background = 'var(--adm-surface-2)'
+          e.currentTarget.style.borderColor = 'var(--adm-primary-bg)'
           e.currentTarget.style.transform = 'translateY(-1px)'
         }}
         onMouseLeave={e => {
-          e.currentTarget.style.background = 'rgba(46,74,56,0.03)'
-          e.currentTarget.style.borderColor = 'rgba(46,74,56,0.3)'
+          e.currentTarget.style.background = 'var(--adm-surface-2)'
+          e.currentTarget.style.borderColor = 'var(--adm-border-strong)'
           e.currentTarget.style.transform = 'none'
         }}
       >
@@ -469,12 +448,12 @@ export default function ExtrasTableClient({ initialExtras }: Props) {
             width: 28,
             height: 28,
             borderRadius: '50%',
-            background: 'var(--forest-green)',
-            color: 'white',
+            background: 'var(--adm-primary-bg)',
+            color: 'var(--adm-surface)',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
-            boxShadow: '0 2px 5px rgba(46,74,56,0.25)',
+            boxShadow: '0 2px 5px var(--adm-border-strong)',
           }}
         >
           <Plus size={16} strokeWidth={2.5} />
@@ -498,7 +477,7 @@ export default function ExtrasTableClient({ initialExtras }: Props) {
         >
           <div
             style={{
-              background: 'white',
+              background: 'var(--adm-surface)',
               borderRadius: 'var(--radius-xl)',
               maxWidth: 520,
               width: '100%',
@@ -514,8 +493,8 @@ export default function ExtrasTableClient({ initialExtras }: Props) {
                 alignItems: 'center',
                 justifyContent: 'space-between',
                 padding: '16px 20px',
-                borderBottom: '1px solid var(--gray-200)',
-                background: 'var(--gray-50)',
+                borderBottom: '1px solid var(--adm-border)',
+                background: 'var(--adm-surface-2)',
               }}
             >
               <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
@@ -524,8 +503,8 @@ export default function ExtrasTableClient({ initialExtras }: Props) {
                     width: 36,
                     height: 36,
                     borderRadius: '8px',
-                    background: 'var(--sand-light)',
-                    color: 'var(--forest-green)',
+                    background: 'var(--adm-gold-soft)',
+                    color: 'var(--adm-primary-bg)',
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'center',
@@ -537,7 +516,7 @@ export default function ExtrasTableClient({ initialExtras }: Props) {
                   <h3 className="text-h4" style={{ margin: 0, fontSize: '1.05rem', fontWeight: 700 }}>
                     {modalMode === 'create' ? 'Nuevo Extra de Alquiler' : `Editar: ${editingExtra?.name_es}`}
                   </h3>
-                  <p className="text-xs" style={{ margin: 0, color: 'var(--gray-500)' }}>
+                  <p className="text-xs" style={{ margin: 0, color: 'var(--adm-text-2)' }}>
                     Parámetros de tarificación y visualización en la web.
                   </p>
                 </div>
@@ -546,7 +525,7 @@ export default function ExtrasTableClient({ initialExtras }: Props) {
               <button
                 type="button"
                 onClick={() => !isSaving && setIsModalOpen(false)}
-                style={{ background: 'none', border: 'none', color: 'var(--gray-400)', cursor: 'pointer' }}
+                style={{ background: 'none', border: 'none', color: 'var(--adm-text-3)', cursor: 'pointer' }}
                 disabled={isSaving}
               >
                 <X size={20} />
@@ -562,10 +541,10 @@ export default function ExtrasTableClient({ initialExtras }: Props) {
                     alignItems: 'center',
                     gap: '8px',
                     padding: '10px 14px',
-                    background: '#fef2f2',
-                    border: '1px solid #fecaca',
+                    background: 'var(--adm-rose-soft)',
+                    border: '1px solid var(--adm-rose-soft)',
                     borderRadius: '8px',
-                    color: '#991b1b',
+                    color: 'var(--adm-rose)',
                     fontSize: '0.85rem',
                     marginBottom: '16px',
                   }}
@@ -578,8 +557,8 @@ export default function ExtrasTableClient({ initialExtras }: Props) {
               {/* Nombre ES y EN */}
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px', marginBottom: '14px' }}>
                 <div>
-                  <label htmlFor="extra-form-name-es" style={{ display: 'block', fontSize: '0.8rem', fontWeight: 600, color: 'var(--gray-700)', marginBottom: '4px' }}>
-                    Nombre (Español) <span style={{ color: '#ef4444' }}>*</span>
+                  <label htmlFor="extra-form-name-es" style={{ display: 'block', fontSize: '0.8rem', fontWeight: 600, color: 'var(--adm-text)', marginBottom: '4px' }}>
+                    Nombre (Español) <span style={{ color: 'var(--adm-rose)' }}>*</span>
                   </label>
                   <input
                     id="extra-form-name-es"
@@ -590,12 +569,12 @@ export default function ExtrasTableClient({ initialExtras }: Props) {
                     placeholder="Ej. Kit Snorkel"
                     value={formData.name_es}
                     onChange={e => setFormData(prev => ({ ...prev, name_es: e.target.value }))}
-                    style={{ width: '100%', padding: '8px 12px', borderRadius: '8px', border: '1px solid var(--gray-300)', fontSize: '0.875rem' }}
+                    style={{ width: '100%', padding: '8px 12px', borderRadius: '8px', border: '1px solid var(--adm-border-strong)', fontSize: '0.875rem' }}
                   />
                 </div>
 
                 <div>
-                  <label htmlFor="extra-form-name-en" style={{ display: 'block', fontSize: '0.8rem', fontWeight: 600, color: 'var(--gray-700)', marginBottom: '4px' }}>
+                  <label htmlFor="extra-form-name-en" style={{ display: 'block', fontSize: '0.8rem', fontWeight: 600, color: 'var(--adm-text)', marginBottom: '4px' }}>
                     Nombre (Inglés)
                   </label>
                   <input
@@ -606,7 +585,7 @@ export default function ExtrasTableClient({ initialExtras }: Props) {
                     placeholder="Ej. Snorkel Kit"
                     value={formData.name_en}
                     onChange={e => setFormData(prev => ({ ...prev, name_en: e.target.value }))}
-                    style={{ width: '100%', padding: '8px 12px', borderRadius: '8px', border: '1px solid var(--gray-300)', fontSize: '0.875rem' }}
+                    style={{ width: '100%', padding: '8px 12px', borderRadius: '8px', border: '1px solid var(--adm-border-strong)', fontSize: '0.875rem' }}
                   />
                 </div>
               </div>
@@ -614,8 +593,8 @@ export default function ExtrasTableClient({ initialExtras }: Props) {
               {/* Precio y Tipo de Precio */}
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px', marginBottom: '14px' }}>
                 <div>
-                  <label htmlFor="extra-form-price" style={{ display: 'block', fontSize: '0.8rem', fontWeight: 600, color: 'var(--gray-700)', marginBottom: '4px' }}>
-                    Precio (€) <span style={{ color: '#ef4444' }}>*</span>
+                  <label htmlFor="extra-form-price" style={{ display: 'block', fontSize: '0.8rem', fontWeight: 600, color: 'var(--adm-text)', marginBottom: '4px' }}>
+                    Precio (€) <span style={{ color: 'var(--adm-rose)' }}>*</span>
                   </label>
                   <input
                     id="extra-form-price"
@@ -628,13 +607,13 @@ export default function ExtrasTableClient({ initialExtras }: Props) {
                     placeholder="25"
                     value={formData.price}
                     onChange={e => setFormData(prev => ({ ...prev, price: parseFloat(e.target.value) || 0 }))}
-                    style={{ width: '100%', padding: '8px 12px', borderRadius: '8px', border: '1px solid var(--gray-300)', fontSize: '0.875rem', fontWeight: 700 }}
+                    style={{ width: '100%', padding: '8px 12px', borderRadius: '8px', border: '1px solid var(--adm-border-strong)', fontSize: '0.875rem', fontWeight: 700 }}
                   />
                 </div>
 
                 <div>
-                  <label htmlFor="extra-form-price-type" style={{ display: 'block', fontSize: '0.8rem', fontWeight: 600, color: 'var(--gray-700)', marginBottom: '4px' }}>
-                    Tipo de Tarificación <span style={{ color: '#ef4444' }}>*</span>
+                  <label htmlFor="extra-form-price-type" style={{ display: 'block', fontSize: '0.8rem', fontWeight: 600, color: 'var(--adm-text)', marginBottom: '4px' }}>
+                    Tipo de Tarificación <span style={{ color: 'var(--adm-rose)' }}>*</span>
                   </label>
                   <select
                     id="extra-form-price-type"
@@ -642,7 +621,7 @@ export default function ExtrasTableClient({ initialExtras }: Props) {
                     aria-label="Tipo de tarificación del extra"
                     value={formData.price_type}
                     onChange={e => setFormData(prev => ({ ...prev, price_type: e.target.value as any }))}
-                    style={{ width: '100%', padding: '8px 12px', borderRadius: '8px', border: '1px solid var(--gray-300)', fontSize: '0.875rem', background: 'white' }}
+                    style={{ width: '100%', padding: '8px 12px', borderRadius: '8px', border: '1px solid var(--adm-border-strong)', fontSize: '0.875rem', background: 'var(--adm-surface)' }}
                   >
                     <option value="per_rental">Por alquiler completo (tarifa fija)</option>
                     <option value="per_day">Por día de viaje (diario)</option>
@@ -652,7 +631,7 @@ export default function ExtrasTableClient({ initialExtras }: Props) {
 
               {/* Descripción */}
               <div style={{ marginBottom: '14px' }}>
-                <label htmlFor="extra-form-desc-es" style={{ display: 'block', fontSize: '0.8rem', fontWeight: 600, color: 'var(--gray-700)', marginBottom: '4px' }}>
+                <label htmlFor="extra-form-desc-es" style={{ display: 'block', fontSize: '0.8rem', fontWeight: 600, color: 'var(--adm-text)', marginBottom: '4px' }}>
                   Descripción para el Viajero
                 </label>
                 <textarea
@@ -663,13 +642,13 @@ export default function ExtrasTableClient({ initialExtras }: Props) {
                   placeholder="Detalle o características del extra para el checkout..."
                   value={formData.description_es}
                   onChange={e => setFormData(prev => ({ ...prev, description_es: e.target.value }))}
-                  style={{ width: '100%', padding: '8px 12px', borderRadius: '8px', border: '1px solid var(--gray-300)', fontSize: '0.875rem', resize: 'vertical' }}
+                  style={{ width: '100%', padding: '8px 12px', borderRadius: '8px', border: '1px solid var(--adm-border-strong)', fontSize: '0.875rem', resize: 'vertical' }}
                 />
               </div>
 
               {/* Selector de Icono */}
               <div style={{ marginBottom: '16px' }}>
-                <label style={{ display: 'block', fontSize: '0.8rem', fontWeight: 600, color: 'var(--gray-700)', marginBottom: '6px' }}>
+                <label style={{ display: 'block', fontSize: '0.8rem', fontWeight: 600, color: 'var(--adm-text)', marginBottom: '6px' }}>
                   Icono Representativo
                 </label>
                 <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
@@ -687,9 +666,9 @@ export default function ExtrasTableClient({ initialExtras }: Props) {
                           gap: '6px',
                           padding: '6px 10px',
                           borderRadius: '8px',
-                          border: isSelected ? '2px solid var(--forest-green)' : '1px solid var(--gray-300)',
-                          background: isSelected ? 'var(--sand-light)' : 'white',
-                          color: isSelected ? 'var(--forest-green)' : 'var(--gray-600)',
+                          border: isSelected ? '2px solid var(--adm-primary-bg)' : '1px solid var(--adm-border-strong)',
+                          background: isSelected ? 'var(--adm-gold-soft)' : 'var(--adm-surface)',
+                          color: isSelected ? 'var(--adm-primary-bg)' : 'var(--adm-text-2)',
                           cursor: 'pointer',
                           fontSize: '0.75rem',
                           fontWeight: isSelected ? 700 : 500,
@@ -710,17 +689,17 @@ export default function ExtrasTableClient({ initialExtras }: Props) {
                   alignItems: 'center',
                   justifyContent: 'space-between',
                   padding: '12px 16px',
-                  background: 'var(--gray-50)',
+                  background: 'var(--adm-surface-2)',
                   borderRadius: 'var(--radius-lg)',
-                  border: '1px solid var(--gray-200)',
+                  border: '1px solid var(--adm-border)',
                   marginBottom: '20px',
                 }}
               >
                 <div>
-                  <div style={{ fontSize: '0.85rem', fontWeight: 600, color: 'var(--gray-800)' }}>
+                  <div style={{ fontSize: '0.85rem', fontWeight: 600, color: 'var(--adm-text)' }}>
                     Visibilidad en la Web
                   </div>
-                  <div className="text-xs" style={{ color: 'var(--gray-500)' }}>
+                  <div className="text-xs" style={{ color: 'var(--adm-text-2)' }}>
                     Si está activo, los clientes podrán añadirlo al reservar.
                   </div>
                 </div>
@@ -775,7 +754,7 @@ export default function ExtrasTableClient({ initialExtras }: Props) {
         >
           <div
             style={{
-              background: 'white',
+              background: 'var(--adm-surface)',
               borderRadius: 'var(--radius-xl)',
               maxWidth: 420,
               width: '100%',
@@ -790,8 +769,8 @@ export default function ExtrasTableClient({ initialExtras }: Props) {
                 width: 48,
                 height: 48,
                 borderRadius: '50%',
-                background: '#fee2e2',
-                color: '#dc2626',
+                background: 'var(--adm-rose-soft)',
+                color: 'var(--adm-rose)',
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
@@ -801,10 +780,10 @@ export default function ExtrasTableClient({ initialExtras }: Props) {
               <Trash2 size={24} />
             </div>
 
-            <h3 className="text-h4" style={{ marginBottom: '8px', color: 'var(--black-matte)' }}>
+            <h3 className="text-h4" style={{ marginBottom: '8px', color: 'var(--adm-text)' }}>
               ¿Eliminar extra?
             </h3>
-            <p className="text-body text-small" style={{ color: 'var(--gray-600)', marginBottom: '20px' }}>
+            <p className="text-body text-small" style={{ color: 'var(--adm-text-2)', marginBottom: '20px' }}>
               Estás a punto de eliminar <strong>"{extraToDelete.name_es}"</strong>. Si existen reservas previas que lo contrataron, el sistema lo desactivará automáticamente para preservar los registros contables.
             </p>
 
@@ -828,8 +807,8 @@ export default function ExtrasTableClient({ initialExtras }: Props) {
                   gap: '6px',
                   padding: '8px 20px',
                   borderRadius: '8px',
-                  background: '#dc2626',
-                  color: 'white',
+                  background: 'var(--adm-rose)',
+                  color: 'var(--adm-surface)',
                   border: 'none',
                   fontWeight: 600,
                   cursor: isDeleting ? 'not-allowed' : 'pointer',

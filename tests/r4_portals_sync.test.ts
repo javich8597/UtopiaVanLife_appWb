@@ -171,9 +171,9 @@ export function mapCalendarBlockedDateEvent(b: BlockedDateDataModel, camperName:
         ? `🔒 Auto-Bloqueo Redsys (#${orderId}) · ${camperName}`
         : `⛔ Bloqueo Flota (${b.reason || 'Mantenimiento'}) · ${camperName}`
 
-    const backgroundColor = isRedsysAutoBlock ? '#FEF3C7' : '#F1F5F9'
-    const borderColor = isRedsysAutoBlock ? '#D97706' : '#94A3B8'
-    const textColor = isRedsysAutoBlock ? '#92400E' : '#334155'
+    const backgroundColor = isRedsysAutoBlock ? 'var(--adm-amber-soft)' : 'var(--adm-surface-2)'
+    const borderColor = isRedsysAutoBlock ? 'var(--adm-amber)' : 'var(--adm-border-strong)'
+    const textColor = isRedsysAutoBlock ? 'var(--adm-amber)' : 'var(--adm-text-2)'
 
     return {
         id: b.id,
@@ -388,9 +388,9 @@ describe('R4 Portals Synchronization Test Suite', () => {
             assert.equal(event.id, 'block-001')
             assert.match(event.title, /🔒 Auto-Bloqueo Redsys \(#0009order\)/)
             assert.match(event.title, /NEO/)
-            assert.equal(event.backgroundColor, '#FEF3C7')
-            assert.equal(event.borderColor, '#D97706')
-            assert.equal(event.textColor, '#92400E')
+            assert.equal(event.backgroundColor, 'var(--adm-amber-soft)')
+            assert.equal(event.borderColor, 'var(--adm-amber)')
+            assert.equal(event.textColor, 'var(--adm-amber)')
             assert.equal(event.extendedProps.isRedsysAutoBlock, true)
             assert.equal(event.extendedProps.orderId, '0009order')
         })
@@ -408,9 +408,9 @@ describe('R4 Portals Synchronization Test Suite', () => {
 
             assert.equal(event.id, 'block-002')
             assert.match(event.title, /⛔ Bloqueo Flota \(Revisión ITV\)/)
-            assert.equal(event.backgroundColor, '#F1F5F9')
-            assert.equal(event.borderColor, '#94A3B8')
-            assert.equal(event.textColor, '#334155')
+            assert.equal(event.backgroundColor, 'var(--adm-surface-2)')
+            assert.equal(event.borderColor, 'var(--adm-border-strong)')
+            assert.equal(event.textColor, 'var(--adm-text-2)')
             assert.equal(event.extendedProps.isRedsysAutoBlock, false)
         })
     })

@@ -4,11 +4,12 @@
       "title": "Tu Utopía te espera",
       "subtitle": "Campers de alta gama en Mallorca. Diseño, confort y autonomía total para descubrir la isla a tu propio ritmo.",
       "cta": "Ver campers",
-      "eyebrow": "Mallorca · Van Life · Freedom",
+      "eyebrow": "MALLORCA · 39.6953° N",
+      "tagline": "Dos formas de entrar en la aventura. El camino fuera. Tu refugio dentro.",
       "llegada": "Llegada",
       "salida": "Salida",
       "viajeros": "Viajeros",
-      "buscar": "Buscar mi Utopía",
+      "buscar": "Buscar mi Utopia",
       "explorar": "Explorar",
       "guarantee1": "Sin rutas marcadas",
       "guarantee2": "Autonomía solar & litio",
@@ -65,13 +66,13 @@
   },
   "Navigation": {
     "home": "Inicio",
-    "campers": "Nuestras Campers",
-    "about": "Nosotros",
+    "campers": "Campers",
+    "about": "Conócenos",
     "venta": "Venta",
     "faq": "FAQ",
     "contact": "Contacto",
-    "login": "Entrar",
-    "bookNow": "Reservar Ahora"
+    "login": "Acceder",
+    "bookNow": "Reservar"
   },
   "Campers": {
     "neo": {

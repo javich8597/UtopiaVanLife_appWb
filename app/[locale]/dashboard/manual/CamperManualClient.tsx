@@ -15,7 +15,6 @@ import {
   ChevronUp,
   AlertTriangle,
   Sparkles,
-  BookOpen,
   Play,
   Video,
   Phone,
@@ -454,15 +453,10 @@ export default function CamperManualClient() {
       {/* Header */}
       <div className="manual-header">
         <div>
-          <div className="manual-kicker">
-            <BookOpen size={13} />
-            <span>Videotutoriales & Guías Oficiales</span>
-          </div>
-          <h1 className="text-h2" style={{ marginTop: 'var(--space-1)', textWrap: 'balance' }}>
-            Manual de Uso & Videotutoriales
-          </h1>
+          <span className="manual-kicker">Manual de la camper</span>
+          <h1 className="manual-title">Cómo funciona tu camper</h1>
           <p className="text-body hero-subtitle">
-            Aprende a utilizar todos los sistemas de tu camper (NEO & SPACE) con mini videotutoriales explicativos y pasos rápidos.
+            Todos los sistemas de la NEO y la SPACE explicados en pasos cortos y vídeos breves.
           </p>
         </div>
 
@@ -505,8 +499,8 @@ export default function CamperManualClient() {
             <PhoneCall size={17} />
           </div>
           <div>
-            <strong className="emergency-bar__title">¿Tienes una incidencia o avería en ruta?</strong>
-            <span className="emergency-bar__text">Llámanos directamente o contacta con asistencia 24h</span>
+            <strong className="emergency-bar__title">¿Una avería o incidencia en ruta?</strong>
+            <span className="emergency-bar__text">Llámanos o contacta con la asistencia 24 h de ARAG</span>
           </div>
         </div>
 
@@ -532,7 +526,7 @@ export default function CamperManualClient() {
       {/* Top Filter & Search Card */}
       <div className="search-row">
         <div className="search-card">
-          <Search size={18} style={{ color: 'var(--gray-400)', flexShrink: 0 }} />
+          <Search size={18} style={{ color: 'var(--usr-text-3)', flexShrink: 0 }} />
           <input 
             id="manual-search-query"
             name="manual_search_query"
@@ -553,13 +547,13 @@ export default function CamperManualClient() {
           className={`filter-video-btn ${filterVideosOnly ? 'filter-video-btn--active' : ''}`}
         >
           <Video size={16} />
-          <span>Solo con Videotutorial</span>
+          <span>Solo con vídeo</span>
         </button>
       </div>
 
       {/* Results Count if searching */}
       {searchQuery && (
-        <div className="text-small" style={{ color: 'var(--gray-600)' }}>
+        <div className="text-small" style={{ color: 'var(--usr-text-2)' }}>
           Mostrando {filteredGuides.length} resultado{filteredGuides.length !== 1 ? 's' : ''} para &quot;<strong>{searchQuery}</strong>&quot;
         </div>
       )}
@@ -592,7 +586,7 @@ export default function CamperManualClient() {
                   </div>
                   <h3 className="text-h4" style={{ marginTop: 2 }}>{guide.title}</h3>
                   {!isExpanded && (
-                    <p className="text-small" style={{ color: 'var(--gray-600)', marginTop: 4, lineHeight: 1.5 }}>
+                    <p className="text-small" style={{ color: 'var(--usr-text-2)', marginTop: 4, lineHeight: 1.5 }}>
                       {guide.summary}
                     </p>
                   )}
@@ -609,12 +603,12 @@ export default function CamperManualClient() {
                     <div className="video-player-box">
                       <div className="video-player-header">
                         <div className="video-player-title-row">
-                          <Video size={15} style={{ color: 'var(--forest-green)' }} />
-                          <span className="text-xs" style={{ fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase', color: 'var(--black-matte)' }}>
+                          <Video size={15} style={{ color: 'var(--usr-text)' }} />
+                          <span className="text-xs" style={{ fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase', color: 'var(--usr-text)' }}>
                             Videotutorial Explicativo ({guide.videoDuration})
                           </span>
                         </div>
-                        <span className="text-xs" style={{ color: 'var(--gray-500)' }}>Vídeo HD</span>
+                        <span className="text-xs" style={{ color: 'var(--usr-text-2)' }}>Vídeo HD</span>
                       </div>
 
                       <div className="video-wrapper">
@@ -634,38 +628,38 @@ export default function CamperManualClient() {
                     </div>
                   )}
 
-                  <p className="text-body" style={{ color: 'var(--gray-700)', lineHeight: 1.6, marginTop: 'var(--space-4)', marginBottom: 'var(--space-4)' }}>
+                  <p className="text-body" style={{ color: 'var(--usr-text-2)', lineHeight: 1.6, marginTop: 'var(--space-4)', marginBottom: 'var(--space-4)' }}>
                     {guide.summary}
                   </p>
 
-                  <h4 className="text-label" style={{ color: 'var(--sand-dark)', marginBottom: 'var(--space-2)' }}>
+                  <h4 className="text-label" style={{ color: 'var(--usr-gold-text)', marginBottom: 'var(--space-2)' }}>
                     Puntos Clave y Pasos de Uso
                   </h4>
                   <div className="steps-list">
                     {guide.steps.map((step, idx) => (
                       <div key={idx} className="step-item">
                         <div className="step-number">{idx + 1}</div>
-                        <p className="text-small" style={{ color: 'var(--gray-800)', lineHeight: 1.6 }}>{step}</p>
+                        <p className="text-small" style={{ color: 'var(--usr-text)', lineHeight: 1.6 }}>{step}</p>
                       </div>
                     ))}
                   </div>
 
                   {guide.proTip && (
                     <div className="tip-box">
-                      <Sparkles size={16} style={{ color: 'var(--forest-green)', flexShrink: 0, marginTop: 2 }} />
+                      <Sparkles size={16} style={{ color: 'var(--usr-text)', flexShrink: 0, marginTop: 2 }} />
                       <div>
-                        <strong style={{ display: 'block', fontSize: '0.8rem', color: 'var(--forest-green)', marginBottom: 2 }}>Consejo Utopia</strong>
-                        <span className="text-small" style={{ color: 'var(--gray-700)' }}>{guide.proTip}</span>
+                        <strong style={{ display: 'block', fontSize: '0.8rem', color: 'var(--usr-text)', marginBottom: 2 }}>Consejo Utopia</strong>
+                        <span className="text-small" style={{ color: 'var(--usr-text-2)' }}>{guide.proTip}</span>
                       </div>
                     </div>
                   )}
 
                   {guide.warning && (
                     <div className="warning-box">
-                      <AlertTriangle size={16} style={{ color: '#c0392b', flexShrink: 0, marginTop: 2 }} />
+                      <AlertTriangle size={16} style={{ color: 'var(--usr-rose)', flexShrink: 0, marginTop: 2 }} />
                       <div>
-                        <strong style={{ display: 'block', fontSize: '0.8rem', color: '#c0392b', marginBottom: 2 }}>Importante</strong>
-                        <span className="text-small" style={{ color: 'var(--gray-700)' }}>{guide.warning}</span>
+                        <strong style={{ display: 'block', fontSize: '0.8rem', color: 'var(--usr-rose)', marginBottom: 2 }}>Importante</strong>
+                        <span className="text-small" style={{ color: 'var(--usr-text-2)' }}>{guide.warning}</span>
                       </div>
                     </div>
                   )}
@@ -677,7 +671,7 @@ export default function CamperManualClient() {
 
         {filteredGuides.length === 0 && (
           <div className="empty-guides">
-            <p className="text-body" style={{ color: 'var(--gray-600)' }}>No encontramos ninguna guía para esa búsqueda.</p>
+            <p className="text-body" style={{ color: 'var(--usr-text-2)' }}>No encontramos ninguna guía para esa búsqueda.</p>
             <button onClick={() => { setSearchQuery(''); setFilterVideosOnly(false); }} className="btn btn-outline btn-sm" style={{ marginTop: 'var(--space-3)' }}>
               Ver todas las guías
             </button>
@@ -693,10 +687,10 @@ export default function CamperManualClient() {
               <Wrench size={13} />
               <span>Resolución Autónoma de Incidencias</span>
             </div>
-            <h2 className="text-h3" style={{ marginTop: 'var(--space-1)', color: 'var(--forest-green)' }}>
+            <h2 className="text-h3" style={{ marginTop: 'var(--space-1)', color: 'var(--usr-text)' }}>
               Resolución de Averías Frecuentes (Troubleshooting)
             </h2>
-            <p className="text-body" style={{ color: 'var(--gray-600)', marginTop: 'var(--space-1)', maxWidth: 680 }}>
+            <p className="text-body" style={{ color: 'var(--usr-text-2)', marginTop: 'var(--space-1)', maxWidth: 680 }}>
               Protocolos guiados paso a paso para solucionar de inmediato las incidencias más comunes en ruta (inversor 230V, bomba de agua, calefacción, nevera y batería).
             </p>
           </div>
@@ -729,7 +723,7 @@ export default function CamperManualClient() {
           </div>
 
           <div className="troubleshoot-search-box">
-            <Search size={15} style={{ color: 'var(--gray-400)', flexShrink: 0 }} />
+            <Search size={15} style={{ color: 'var(--usr-text-3)', flexShrink: 0 }} />
             <input
               id="troubleshoot-search-query"
               name="troubleshoot_search_query"
@@ -802,7 +796,7 @@ export default function CamperManualClient() {
 
                     <div className="troubleshoot-steps-box">
                       <div className="troubleshoot-steps-header">
-                        <CheckCircle2 size={16} style={{ color: '#059669' }} />
+                        <CheckCircle2 size={16} style={{ color: 'var(--usr-sage)' }} />
                         <span>Protocolo de resolución paso a paso:</span>
                       </div>
                       <ol className="troubleshoot-steps-list">
@@ -817,16 +811,16 @@ export default function CamperManualClient() {
 
                     {item.note && (
                       <div className="troubleshoot-tip-box">
-                        <Sparkles size={16} style={{ color: 'var(--sand-dark)', flexShrink: 0, marginTop: 2 }} />
+                        <Sparkles size={16} style={{ color: 'var(--usr-gold-text)', flexShrink: 0, marginTop: 2 }} />
                         <div>
-                          <strong style={{ display: 'block', fontSize: '0.8rem', color: 'var(--sand-dark)', marginBottom: 2 }}>Nota del equipo Utopia:</strong>
-                          <span className="text-small" style={{ color: 'var(--gray-700)' }}>{item.note}</span>
+                          <strong style={{ display: 'block', fontSize: '0.8rem', color: 'var(--usr-gold-text)', marginBottom: 2 }}>Nota del equipo Utopia:</strong>
+                          <span className="text-small" style={{ color: 'var(--usr-text-2)' }}>{item.note}</span>
                         </div>
                       </div>
                     )}
 
                     <div className="troubleshoot-action-footer">
-                      <span className="text-xs" style={{ color: 'var(--gray-600)' }}>
+                      <span className="text-xs" style={{ color: 'var(--usr-text-2)' }}>
                         ¿Has completado el protocolo y la incidencia persiste?
                       </span>
                       <a href="tel:+34611560916" className="btn btn-forest btn-sm" style={{ gap: 6, textDecoration: 'none' }}>
@@ -842,7 +836,7 @@ export default function CamperManualClient() {
 
           {filteredTroubleshooting.length === 0 && (
             <div className="empty-troubleshoot">
-              <p className="text-body" style={{ color: 'var(--gray-600)' }}>No hay averías que coincidan con &quot;{troubleshootSearch}&quot;.</p>
+              <p className="text-body" style={{ color: 'var(--usr-text-2)' }}>No hay averías que coincidan con &quot;{troubleshootSearch}&quot;.</p>
               <button onClick={() => { setTroubleshootSearch(''); setTroubleshootFilter('all'); }} className="btn btn-outline btn-sm" style={{ marginTop: 'var(--space-2)' }}>
                 Ver todas las averías
               </button>
@@ -863,21 +857,25 @@ export default function CamperManualClient() {
           align-items: flex-end;
           gap: var(--space-6);
           flex-wrap: wrap;
-          padding-bottom: var(--space-4);
-          border-bottom: 1px solid var(--gray-200);
         }
         .manual-kicker {
-          display: inline-flex;
-          align-items: center;
-          gap: 6px;
+          display: block;
+          margin-bottom: 6px;
           font-size: 0.72rem;
           font-weight: 700;
-          letter-spacing: 0.1em;
+          letter-spacing: 0.14em;
           text-transform: uppercase;
-          color: var(--sand-dark);
-          background: rgba(200, 168, 130, 0.15);
-          padding: 3px 10px;
-          border-radius: var(--radius-full);
+          color: var(--usr-gold-text);
+        }
+        .manual-title {
+          margin: 0;
+          font-family: var(--font-heading);
+          font-size: clamp(1.7rem, 3vw, 2.25rem);
+          font-weight: 700;
+          line-height: 1.1;
+          letter-spacing: -0.03em;
+          color: var(--usr-text);
+          text-wrap: balance;
         }
         .manual-header__actions {
           display: flex;
@@ -896,11 +894,15 @@ export default function CamperManualClient() {
           display: flex;
           align-items: center;
           gap: var(--space-3);
-          background: white;
-          border: 1px solid var(--gray-200);
-          border-radius: var(--radius-lg);
-          padding: var(--space-3) var(--space-4);
-          box-shadow: var(--shadow-sm);
+          background: var(--usr-surface);
+          border: 1px solid var(--usr-card-border);
+          border-radius: 14px;
+          min-height: 48px;
+          padding: 4px 8px 4px 16px;
+          box-shadow: var(--usr-card-shadow);
+        }
+        .search-card:focus-within {
+          border-color: var(--usr-gold);
         }
         .search-input {
           border: none;
@@ -908,12 +910,12 @@ export default function CamperManualClient() {
           background: transparent;
           font-size: 0.95rem;
           width: 100%;
-          color: var(--black-matte);
+          color: var(--usr-text);
         }
         .btn-clear {
           border: none;
-          background: var(--gray-100);
-          color: var(--gray-600);
+          background: var(--usr-surface-2);
+          color: var(--usr-text-2);
           font-size: 0.75rem;
           padding: 4px 10px;
           border-radius: var(--radius-sm);
@@ -924,25 +926,27 @@ export default function CamperManualClient() {
           display: inline-flex;
           align-items: center;
           gap: 6px;
+          min-height: 48px;
           padding: 0 var(--space-4);
-          border-radius: var(--radius-lg);
-          border: 1px solid var(--gray-200);
-          background: white;
+          border-radius: 14px;
+          border: 1px solid var(--usr-card-border);
+          box-shadow: var(--usr-card-shadow);
+          background: var(--usr-surface);
           font-size: 0.85rem;
           font-weight: 600;
-          color: var(--gray-700);
+          color: var(--usr-text-2);
           cursor: pointer;
           transition: all var(--transition-fast);
           white-space: nowrap;
         }
         .filter-video-btn:hover {
-          border-color: var(--forest-green);
-          color: var(--forest-green);
+          border-color: var(--usr-border-strong);
+          color: var(--usr-text);
         }
         .filter-video-btn--active {
-          background: var(--forest-green) !important;
-          color: var(--sand) !important;
-          border-color: var(--forest-green) !important;
+          background: var(--usr-primary-bg) !important;
+          color: var(--usr-primary-text) !important;
+          border-color: var(--usr-primary-bg) !important;
         }
 
         .video-pill {
@@ -951,8 +955,8 @@ export default function CamperManualClient() {
           gap: 4px;
           font-size: 0.7rem;
           font-weight: 600;
-          background: rgba(45, 58, 45, 0.08);
-          color: var(--forest-green);
+          background: var(--usr-surface-2);
+          color: var(--usr-text);
           padding: 2px 8px;
           border-radius: var(--radius-full);
         }
@@ -963,8 +967,8 @@ export default function CamperManualClient() {
           gap: var(--space-4);
         }
         .guide-card {
-          background: white;
-          border: 1px solid var(--gray-200);
+          background: var(--usr-surface);
+          border: 1px solid var(--usr-border);
           border-radius: var(--radius-lg);
           overflow: hidden;
           box-shadow: var(--shadow-sm);
@@ -989,8 +993,8 @@ export default function CamperManualClient() {
           width: 44px;
           height: 44px;
           border-radius: var(--radius-md);
-          background: rgba(45, 58, 45, 0.06);
-          color: var(--forest-green);
+          background: var(--usr-surface-2);
+          color: var(--usr-text);
           display: flex;
           align-items: center;
           justify-content: center;
@@ -1004,21 +1008,21 @@ export default function CamperManualClient() {
           font-weight: 700;
           letter-spacing: 0.06em;
           text-transform: uppercase;
-          color: var(--sand-dark);
+          color: var(--usr-gold-text);
         }
         .guide-card__chevron {
-          color: var(--gray-400);
+          color: var(--usr-text-3);
           padding-top: 4px;
         }
         .guide-card__content {
           padding: 0 var(--space-5) var(--space-5) calc(var(--space-5) + 44px + var(--space-4));
-          border-top: 1px solid var(--gray-100);
+          border-top: 1px solid var(--usr-border);
           padding-top: var(--space-4);
         }
 
         .video-player-box {
-          background: var(--gray-50);
-          border: 1px solid var(--gray-200);
+          background: var(--usr-surface-2);
+          border: 1px solid var(--usr-border);
           border-radius: var(--radius-md);
           overflow: hidden;
           margin-bottom: var(--space-4);
@@ -1028,8 +1032,8 @@ export default function CamperManualClient() {
           justify-content: space-between;
           align-items: center;
           padding: 8px 12px;
-          background: white;
-          border-bottom: 1px solid var(--gray-200);
+          background: var(--usr-surface);
+          border-bottom: 1px solid var(--usr-border);
         }
         .video-wrapper {
           position: relative;
@@ -1059,7 +1063,7 @@ export default function CamperManualClient() {
           width: 22px;
           height: 22px;
           border-radius: 50%;
-          background: var(--forest-green);
+          background: var(--usr-primary-bg);
           color: var(--sand);
           font-size: 0.75rem;
           font-weight: 700;
@@ -1072,8 +1076,8 @@ export default function CamperManualClient() {
         .tip-box {
           display: flex;
           gap: var(--space-3);
-          background: rgba(45, 58, 45, 0.05);
-          border: 1px solid rgba(45, 58, 45, 0.12);
+          background: var(--usr-surface-2);
+          border: 1px solid var(--usr-surface-2);
           border-radius: var(--radius-md);
           padding: var(--space-3) var(--space-4);
           margin-top: var(--space-3);
@@ -1088,10 +1092,10 @@ export default function CamperManualClient() {
           margin-top: var(--space-3);
         }
         .empty-guides {
-          background: white;
+          background: var(--usr-surface);
           padding: var(--space-12);
           border-radius: var(--radius-lg);
-          border: 1px solid var(--gray-200);
+          border: 1px solid var(--usr-border);
           text-align: center;
         }
 
@@ -1111,8 +1115,8 @@ export default function CamperManualClient() {
 
         /* ─── Troubleshooting Section Styles ─── */
         .troubleshoot-section {
-          background: #FAF8F5;
-          border: 1px solid #EAE5DC;
+          background: var(--usr-surface-2);
+          border: 1px solid var(--usr-border);
           border-radius: var(--radius-xl, 16px);
           padding: var(--space-6);
           display: flex;
@@ -1127,7 +1131,7 @@ export default function CamperManualClient() {
           gap: 16px;
           flex-wrap: wrap;
           padding-bottom: var(--space-4);
-          border-bottom: 1px solid #E5DFD5;
+          border-bottom: 1px solid var(--usr-border);
         }
         .troubleshoot-kicker {
           display: inline-flex;
@@ -1137,8 +1141,8 @@ export default function CamperManualClient() {
           font-weight: 700;
           letter-spacing: 0.08em;
           text-transform: uppercase;
-          color: #B45309;
-          background: #FEF3C7;
+          color: var(--usr-amber);
+          background: var(--usr-amber-soft);
           padding: 3px 10px;
           border-radius: 9999px;
         }
@@ -1148,8 +1152,8 @@ export default function CamperManualClient() {
           gap: 6px;
           font-size: 0.75rem;
           font-weight: 700;
-          color: var(--forest-green);
-          background: #E8F5E9;
+          color: var(--usr-text);
+          background: var(--usr-sage-soft);
           padding: 5px 12px;
           border-radius: 9999px;
         }
@@ -1168,29 +1172,29 @@ export default function CamperManualClient() {
         .troubleshoot-pill {
           padding: 6px 14px;
           border-radius: 9999px;
-          border: 1px solid #D8D2C6;
-          background: #FFFFFF;
+          border: 1px solid var(--usr-border-strong);
+          background: var(--usr-surface);
           font-size: 0.78rem;
           font-weight: 600;
-          color: #4A5568;
+          color: var(--usr-text-2);
           cursor: pointer;
           transition: all 0.15s ease;
         }
         .troubleshoot-pill:hover {
-          border-color: var(--forest-green);
-          color: var(--forest-green);
+          border-color: var(--usr-primary-bg);
+          color: var(--usr-text);
         }
         .troubleshoot-pill--active {
-          background: var(--forest-green) !important;
-          color: #FFFFFF !important;
-          border-color: var(--forest-green) !important;
+          background: var(--usr-primary-bg) !important;
+          color: var(--usr-primary-text) !important;
+          border-color: var(--usr-primary-bg) !important;
         }
         .troubleshoot-search-box {
           display: flex;
           align-items: center;
           gap: 8px;
-          background: #FFFFFF;
-          border: 1px solid #D8D2C6;
+          background: var(--usr-surface);
+          border: 1px solid var(--usr-border-strong);
           border-radius: var(--radius-lg, 10px);
           padding: 6px 12px;
           min-width: 260px;
@@ -1201,12 +1205,12 @@ export default function CamperManualClient() {
           background: transparent;
           font-size: 0.82rem;
           width: 100%;
-          color: var(--black-matte);
+          color: var(--usr-text);
         }
         .troubleshoot-clear-btn {
           border: none;
           background: transparent;
-          color: #9CA3AF;
+          color: var(--usr-text-3);
           font-size: 0.75rem;
           cursor: pointer;
           padding: 0 4px;
@@ -1217,8 +1221,8 @@ export default function CamperManualClient() {
           gap: 12px;
         }
         .troubleshoot-card {
-          background: #FFFFFF;
-          border: 1px solid #E5DFD5;
+          background: var(--usr-surface);
+          border: 1px solid var(--usr-border);
           border-radius: var(--radius-lg, 12px);
           overflow: hidden;
           transition: all 0.2s ease;
@@ -1247,10 +1251,10 @@ export default function CamperManualClient() {
           justify-content: center;
           flex-shrink: 0;
         }
-        .troubleshoot-icon-box--electricidad { background: #FEF3C7; color: #D97706; }
-        .troubleshoot-icon-box--aguas { background: #E0F2FE; color: #0284C7; }
-        .troubleshoot-icon-box--clima { background: #FEE2E2; color: #DC2626; }
-        .troubleshoot-icon-box--bateria { background: #DCFCE7; color: #16A34A; }
+        .troubleshoot-icon-box--electricidad { background: var(--usr-amber-soft); color: var(--usr-amber); }
+        .troubleshoot-icon-box--aguas { background: var(--usr-sky-soft); color: var(--usr-sky); }
+        .troubleshoot-icon-box--clima { background: var(--usr-rose-soft); color: var(--usr-rose); }
+        .troubleshoot-icon-box--bateria { background: var(--usr-sage-soft); color: var(--usr-sage); }
 
         .troubleshoot-card__title-area {
           flex: 1;
@@ -1263,30 +1267,30 @@ export default function CamperManualClient() {
           padding: 2px 7px;
           border-radius: 4px;
         }
-        .troubleshoot-cat-tag--electricidad { background: #FFFBEB; color: #B45309; }
-        .troubleshoot-cat-tag--aguas { background: #F0F9FF; color: #0369A1; }
-        .troubleshoot-cat-tag--clima { background: #FEF2F2; color: #B91C1C; }
-        .troubleshoot-cat-tag--bateria { background: #F0FDF4; color: #15803D; }
+        .troubleshoot-cat-tag--electricidad { background: var(--usr-amber-soft); color: var(--usr-amber); }
+        .troubleshoot-cat-tag--aguas { background: var(--usr-sky-soft); color: var(--usr-sky); }
+        .troubleshoot-cat-tag--clima { background: var(--usr-rose-soft); color: var(--usr-rose); }
+        .troubleshoot-cat-tag--bateria { background: var(--usr-sage-soft); color: var(--usr-sage); }
 
         .troubleshoot-steps-badge {
           font-size: 0.68rem;
           font-weight: 600;
-          color: #6B7280;
+          color: var(--usr-text-2);
         }
         .troubleshoot-card__title {
           font-size: 0.96rem;
           font-weight: 700;
-          color: #1A2B21;
+          color: var(--usr-text);
           margin: 4px 0 0 0;
         }
         .troubleshoot-card__symptom-preview {
           font-size: 0.8rem;
-          color: #64748B;
+          color: var(--usr-text-2);
           margin: 4px 0 0 0;
           line-height: 1.4;
         }
         .troubleshoot-card__chevron {
-          color: var(--gray-400);
+          color: var(--usr-text-3);
           padding-top: 2px;
         }
         .troubleshoot-card__body {
@@ -1308,12 +1312,12 @@ export default function CamperManualClient() {
           border: 1px solid transparent;
         }
         .diagnosis-box--symptom {
-          background: #FEF2F2;
-          border-color: #FECACA;
+          background: var(--usr-rose-soft);
+          border-color: var(--usr-rose-line);
         }
         .diagnosis-box--cause {
-          background: #FFFBEB;
-          border-color: #FDE68A;
+          background: var(--usr-amber-soft);
+          border-color: var(--usr-amber-line);
         }
         .diagnosis-badge {
           font-size: 0.72rem;
@@ -1321,8 +1325,8 @@ export default function CamperManualClient() {
           display: block;
           margin-bottom: 4px;
         }
-        .diagnosis-badge--symptom { color: #991B1B; }
-        .diagnosis-badge--cause { color: #92400E; }
+        .diagnosis-badge--symptom { color: var(--usr-rose); }
+        .diagnosis-badge--cause { color: var(--usr-amber); }
         .diagnosis-text {
           font-size: 0.82rem;
           color: #1F2937;
@@ -1330,8 +1334,8 @@ export default function CamperManualClient() {
           line-height: 1.45;
         }
         .troubleshoot-steps-box {
-          background: #F8FAFC;
-          border: 1px solid #E2E8F0;
+          background: var(--usr-surface-2);
+          border: 1px solid var(--usr-border);
           border-radius: 10px;
           padding: 14px 16px;
         }
@@ -1341,7 +1345,7 @@ export default function CamperManualClient() {
           gap: 8px;
           font-size: 0.84rem;
           font-weight: 700;
-          color: #1A2B21;
+          color: var(--usr-text);
           margin-bottom: 10px;
         }
         .troubleshoot-steps-list {
@@ -1361,8 +1365,8 @@ export default function CamperManualClient() {
           width: 20px;
           height: 20px;
           border-radius: 50%;
-          background: var(--forest-green);
-          color: #FFFFFF;
+          background: var(--usr-primary-bg);
+          color: var(--usr-primary-text);
           font-size: 0.7rem;
           font-weight: 700;
           display: flex;
@@ -1373,14 +1377,14 @@ export default function CamperManualClient() {
         }
         .troubleshoot-step-desc {
           font-size: 0.82rem;
-          color: #334155;
+          color: var(--usr-text);
           line-height: 1.5;
         }
         .troubleshoot-tip-box {
           display: flex;
           gap: 10px;
           background: #F5F1EB;
-          border: 1px solid #E2DDD5;
+          border: 1px solid var(--usr-border);
           border-radius: 8px;
           padding: 10px 14px;
         }
@@ -1391,13 +1395,13 @@ export default function CamperManualClient() {
           flex-wrap: wrap;
           gap: 10px;
           padding-top: 6px;
-          border-top: 1px dashed #E2E8F0;
+          border-top: 1px dashed var(--usr-border);
         }
         .empty-troubleshoot {
-          background: #FFFFFF;
+          background: var(--usr-surface);
           padding: var(--space-8);
           border-radius: var(--radius-lg);
-          border: 1px solid var(--gray-200);
+          border: 1px solid var(--usr-border);
           text-align: center;
         }
         @media (max-width: 768px) {
@@ -1411,17 +1415,18 @@ export default function CamperManualClient() {
 
         /* Hero subtitle */
         .hero-subtitle {
-          color: var(--gray-600);
+          color: var(--usr-text-2);
           margin-top: var(--space-1);
           max-width: 620px;
         }
 
         /* Emergency Bar */
         .emergency-bar {
-          background: linear-gradient(135deg, #F0FDF4 0%, #FFFFFF 100%);
-          border: 1px solid #BBF7D0;
-          border-radius: var(--radius-lg);
-          padding: 14px 18px;
+          background: var(--usr-surface);
+          border: 1px solid var(--usr-card-border);
+          box-shadow: var(--usr-card-shadow);
+          border-radius: 18px;
+          padding: 16px 20px;
           display: flex;
           align-items: center;
           justify-content: space-between;
@@ -1434,23 +1439,24 @@ export default function CamperManualClient() {
           gap: 10px;
         }
         .emergency-bar__icon {
-          width: 34px;
-          height: 34px;
-          border-radius: 50%;
-          background: #DCFCE7;
+          width: 40px;
+          height: 40px;
+          border-radius: 12px;
+          background: var(--usr-rose-soft);
           display: flex;
           align-items: center;
           justify-content: center;
-          color: #16a34a;
+          flex-shrink: 0;
+          color: var(--usr-rose);
         }
         .emergency-bar__title {
           display: block;
-          font-size: 0.86rem;
-          color: #14532D;
+          font-size: 0.92rem;
+          color: var(--usr-text);
         }
         .emergency-bar__text {
-          font-size: 0.78rem;
-          color: #166534;
+          font-size: 0.8rem;
+          color: var(--usr-text-2);
         }
         .emergency-bar__actions {
           display: flex;
@@ -1461,18 +1467,21 @@ export default function CamperManualClient() {
           display: inline-flex;
           align-items: center;
           gap: 6px;
-          color: #FFFFFF;
-          padding: 6px 14px;
-          border-radius: var(--radius-md);
-          font-size: 0.78rem;
-          font-weight: 700;
+          min-height: 40px;
+          padding: 8px 14px;
+          border-radius: 12px;
+          font-size: 0.82rem;
+          font-weight: 600;
           text-decoration: none;
+          font-variant-numeric: tabular-nums;
         }
         .emergency-btn--utopia {
-          background: #16a34a;
+          background: var(--usr-primary-bg);
+          color: var(--usr-primary-text);
         }
         .emergency-btn--arag {
-          background: #dc2626;
+          background: var(--usr-rose-soft);
+          color: var(--usr-rose);
         }
 
         .manual-action-btn {

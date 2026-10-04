@@ -53,12 +53,14 @@ export default function FAQAccordionList({
   initialCategory = 'all',
   title,
   subtitle,
+  variant = 'light',
 }: {
   showSearch?: boolean
   showCategories?: boolean
   initialCategory?: string
   title?: string
   subtitle?: string
+  variant?: 'light' | 'dark'
 }) {
   const locale = useLocale()
   const isEs = locale === 'es'
@@ -188,7 +190,7 @@ export default function FAQAccordionList({
   }
 
   return (
-    <div className="faq-experience">
+    <div className={`faq-experience ${variant === 'dark' ? 'faq-experience--dark' : ''}`}>
       {/* Header */}
       <div className="faq-header">
         <div className="faq-eyebrow-pill">
@@ -1023,6 +1025,138 @@ export default function FAQAccordionList({
             width: 100%;
             justify-content: center;
           }
+        }
+
+        /* ── Dark Luxury Variant (matching Home & Camper Detail) ── */
+        .faq-experience--dark .faq-eyebrow-pill {
+          background: rgba(204, 160, 83, 0.12);
+          border-color: rgba(204, 160, 83, 0.35);
+          color: #CCA053;
+        }
+        .faq-experience--dark .faq-eyebrow-pill :global(.text-forest) {
+          color: #CCA053;
+        }
+        .faq-experience--dark .faq-title {
+          color: #FFFFFF;
+          font-family: var(--font-display, sans-serif);
+          font-weight: 800;
+          text-transform: uppercase;
+        }
+        .faq-experience--dark .faq-subtitle {
+          color: rgba(255, 255, 255, 0.65);
+        }
+        .faq-experience--dark .faq-search-bar {
+          background: #131518;
+          border-color: rgba(255, 255, 255, 0.12);
+          box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4);
+        }
+        .faq-experience--dark .faq-search-bar:focus-within {
+          border-color: #CCA053;
+          box-shadow: 0 0 0 3px rgba(204, 160, 83, 0.2);
+        }
+        .faq-experience--dark .faq-search-input {
+          color: #FFFFFF;
+        }
+        .faq-experience--dark .faq-search-input::placeholder {
+          color: rgba(255, 255, 255, 0.4);
+        }
+        .faq-experience--dark :global(.faq-search-icon) {
+          color: #CCA053;
+        }
+        .faq-experience--dark .faq-search-clear {
+          background: rgba(255, 255, 255, 0.1);
+          color: rgba(255, 255, 255, 0.7);
+        }
+        .faq-experience--dark .faq-quick-chip {
+          background: #131518;
+          border-color: rgba(255, 255, 255, 0.1);
+          color: rgba(255, 255, 255, 0.7);
+        }
+        .faq-experience--dark .faq-quick-chip:hover {
+          border-color: #CCA053;
+          color: #CCA053;
+        }
+        .faq-experience--dark .faq-quick-chip--active {
+          background: #CCA053;
+          border-color: #CCA053;
+          color: #0B0C0E;
+          font-weight: 700;
+        }
+        .faq-experience--dark .faq-cat-btn {
+          background: #131518;
+          border-color: rgba(255, 255, 255, 0.1);
+          color: rgba(255, 255, 255, 0.75);
+        }
+        .faq-experience--dark .faq-cat-btn:hover {
+          border-color: rgba(204, 160, 83, 0.5);
+          color: #FFFFFF;
+        }
+        .faq-experience--dark .faq-cat-btn--active {
+          background: #CCA053;
+          border-color: #CCA053;
+          color: #0B0C0E;
+          font-weight: 700;
+        }
+        .faq-experience--dark .faq-cat-badge {
+          background: rgba(255, 255, 255, 0.1);
+          color: rgba(255, 255, 255, 0.75);
+        }
+        .faq-experience--dark .faq-cat-badge--active {
+          background: rgba(0, 0, 0, 0.2);
+          color: #0B0C0E;
+        }
+        .faq-experience--dark .faq-results-count {
+          color: rgba(255, 255, 255, 0.5);
+        }
+        .faq-experience--dark .faq-results-count strong {
+          color: #CCA053;
+        }
+        .faq-experience--dark .faq-action-link {
+          color: #CCA053;
+        }
+        .faq-experience--dark .faq-card {
+          background: #131518;
+          border-color: rgba(255, 255, 255, 0.08);
+          border-radius: 18px;
+        }
+        .faq-experience--dark .faq-card:hover {
+          border-color: rgba(204, 160, 83, 0.35);
+        }
+        .faq-experience--dark .faq-card--open {
+          border-color: rgba(204, 160, 83, 0.5);
+          box-shadow: 0 12px 36px rgba(0, 0, 0, 0.5);
+        }
+        .faq-experience--dark .faq-card__category-chip {
+          background: rgba(204, 160, 83, 0.12);
+          color: #CCA053;
+        }
+        .faq-experience--dark .faq-card__question {
+          color: #FFFFFF;
+        }
+        .faq-experience--dark .faq-card__chevron-wrap {
+          background: rgba(255, 255, 255, 0.08);
+          color: rgba(255, 255, 255, 0.75);
+        }
+        .faq-experience--dark .faq-card__body {
+          color: rgba(255, 255, 255, 0.72);
+          border-color: rgba(255, 255, 255, 0.07);
+        }
+        .faq-experience--dark :global(.faq-bullet-icon) {
+          background: rgba(204, 160, 83, 0.15);
+          color: #CCA053;
+        }
+        .faq-experience--dark :global(.faq-strong-highlight) {
+          color: #FFFFFF;
+        }
+        .faq-experience--dark .faq-view-all-btn {
+          background: #CCA053;
+          border-color: #CCA053;
+          color: #0B0C0E;
+          font-weight: 700;
+        }
+        .faq-experience--dark .faq-view-all-btn:hover {
+          background: #d8ad5e;
+          box-shadow: 0 6px 20px rgba(204, 160, 83, 0.35);
         }
       `}</style>
     </div>

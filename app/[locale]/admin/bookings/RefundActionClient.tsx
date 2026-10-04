@@ -40,20 +40,22 @@ export default function RefundActionClient({ bookingId, status }: { bookingId: s
     }
 
     return (
-        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 'var(--space-2)' }}>
-            {error && <div className="text-xs" style={{ color: 'var(--error)', display: 'flex', alignItems: 'center', gap: 4 }}><AlertCircle size={12} /> {error}</div>}
+        <div className="refund-action">
+            {error && <div className="refund-action__error"><AlertCircle size={12} /> {error}</div>}
             <button
-                className="btn btn-outline btn-sm"
+                type="button"
+                className="adm-btn adm-btn--sm adm-btn--danger"
                 onClick={handleRefund}
                 disabled={isProcessing}
-                style={{ color: 'var(--error)', borderColor: '#fca5a5', display: 'flex', gap: 'var(--space-2)' }}
-                title="Cancelar y Reembolsar"
+                title="Cancelar y reembolsar"
             >
                 {isProcessing ? <Loader2 size={14} className="animate-spin" /> : <Undo2 size={14} />}
                 Reembolsar
             </button>
 
             <style jsx>{`
+        .refund-action { display: inline-flex; flex-direction: column; align-items: flex-end; gap: 4px; }
+        .refund-action__error { display: flex; align-items: center; gap: 4px; font-size: 0.72rem; color: var(--adm-rose); }
         .animate-spin { animation: spin 1s linear infinite; }
         @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
       `}</style>

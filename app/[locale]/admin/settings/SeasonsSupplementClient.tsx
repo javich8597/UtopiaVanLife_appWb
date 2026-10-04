@@ -218,28 +218,23 @@ export default function SeasonsSupplementClient({
       className="card"
       style={{
         padding: 'var(--space-6)',
-        background: 'white',
-        borderRadius: 'var(--radius-xl)',
-        boxShadow: '0 4px 20px rgba(0,0,0,0.04)',
-        border: '1px solid var(--gray-200)',
+        background: 'var(--adm-surface)',
+        borderRadius: '20px',
+        boxShadow: 'var(--adm-card-shadow)',
+        border: '1px solid var(--adm-card-border)',
         display: 'flex',
         flexDirection: 'column',
         gap: 'var(--space-6)',
       }}
     >
-      {/* 1. Header con Resumen */}
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: 'var(--space-4)' }}>
+      <div className="settings-section__head">
         <div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-2)' }}>
-            <CalendarRange size={22} style={{ color: 'var(--forest-green)' }} />
-            <h2 className="text-h3" style={{ margin: 0, fontWeight: 700, fontSize: '1.35rem' }}>
-              Temporadas & Suplementos por Noche
-            </h2>
-          </div>
-          <p className="text-body text-small" style={{ color: 'var(--gray-600)', margin: '6px 0 0', maxWidth: 750 }}>
-            Configura los suplementos por noche (+ €) según la temporada. El precio de alquiler será{' '}
-            <strong style={{ color: 'var(--gray-900)' }}>Precio Base de la Camper + Suplemento de Temporada</strong>.
-            Puedes asignar múltiples periodos de fechas no continuos a cada temporada.
+          <h2 className="adm-card-title">
+            <span className="adm-icon-square"><CalendarRange size={22} /></span>
+            Temporadas y suplementos
+          </h2>
+          <p className="settings-section__desc">
+            Precio por noche = precio base del camper + suplemento de la temporada. Cada temporada puede tener varios periodos.
           </p>
         </div>
       </div>
@@ -247,20 +242,20 @@ export default function SeasonsSupplementClient({
       {/* 2. Simulador en Vivo de Tarifas por Camper */}
       <div
         style={{
-          background: 'linear-gradient(135deg, rgba(46,74,56,0.04) 0%, rgba(200,169,126,0.08) 100%)',
-          border: '1px solid rgba(46,74,56,0.15)',
+          background: 'linear-gradient(135deg, var(--adm-surface-2) 0%, rgba(200,169,126,0.08) 100%)',
+          border: '1px solid var(--adm-border-strong)',
           borderRadius: 'var(--radius-lg)',
           padding: 'var(--space-4) var(--space-5)',
         }}
       >
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 'var(--space-2)', marginBottom: 'var(--space-3)' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-            <TrendingUp size={18} style={{ color: 'var(--forest-green)' }} />
-            <span style={{ fontWeight: 700, fontSize: '0.95rem', color: 'var(--gray-900)' }}>
+            <TrendingUp size={18} style={{ color: 'var(--adm-primary-bg)' }} />
+            <span style={{ fontWeight: 700, fontSize: '0.95rem', color: 'var(--adm-text)' }}>
               Simulador en Vivo de Precios Resultantes
             </span>
           </div>
-          <span style={{ fontSize: '0.8rem', color: 'var(--gray-600)' }}>
+          <span style={{ fontSize: '0.8rem', color: 'var(--adm-text-2)' }}>
             Los precios base se configuran en Flota / Campers
           </span>
         </div>
@@ -272,16 +267,16 @@ export default function SeasonsSupplementClient({
               <div
                 key={camper.id}
                 style={{
-                  background: 'white',
+                  background: 'var(--adm-surface)',
                   borderRadius: 'var(--radius-md)',
                   padding: 'var(--space-3) var(--space-4)',
-                  border: '1px solid var(--gray-200)',
+                  border: '1px solid var(--adm-border)',
                   boxShadow: '0 2px 8px rgba(0,0,0,0.03)',
                 }}
               >
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid var(--gray-100)', paddingBottom: '6px', marginBottom: '8px' }}>
-                  <span style={{ fontWeight: 700, color: 'var(--gray-900)' }}>{camper.name}</span>
-                  <span style={{ fontSize: '0.8rem', background: 'var(--gray-100)', color: 'var(--gray-700)', padding: '2px 8px', borderRadius: '12px' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid var(--adm-surface-2)', paddingBottom: '6px', marginBottom: '8px' }}>
+                  <span style={{ fontWeight: 700, color: 'var(--adm-text)' }}>{camper.name}</span>
+                  <span style={{ fontSize: '0.8rem', background: 'var(--adm-surface-2)', color: 'var(--adm-text)', padding: '2px 8px', borderRadius: '12px' }}>
                     Base: <strong>{formatPrice(basePrice)}/noche</strong>
                   </span>
                 </div>
@@ -291,7 +286,7 @@ export default function SeasonsSupplementClient({
                     const sup = Number(s.supplement_per_night) || 0
                     const finalNight = basePrice + sup
                     const isBaja = s.code === 'baja' || s.is_default
-                    const badgeColor = s.color_badge || (s.code === 'alta' ? '#dc2626' : s.code === 'media' ? '#2563eb' : '#64748b')
+                    const badgeColor = s.color_badge || (s.code === 'alta' ? '#dc2626' : s.code === 'media' ? '#64748b' : '#64748b')
 
                     return (
                       <div
@@ -303,7 +298,7 @@ export default function SeasonsSupplementClient({
                           fontSize: '0.85rem',
                         }}
                       >
-                        <span style={{ display: 'flex', alignItems: 'center', gap: '6px', color: 'var(--gray-700)' }}>
+                        <span style={{ display: 'flex', alignItems: 'center', gap: '6px', color: 'var(--adm-text)' }}>
                           <span
                             style={{
                               width: 8,
@@ -316,10 +311,10 @@ export default function SeasonsSupplementClient({
                           {s.name}:
                         </span>
                         <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                          <span style={{ fontSize: '0.75rem', color: 'var(--gray-500)' }}>
+                          <span style={{ fontSize: '0.75rem', color: 'var(--adm-text-2)' }}>
                             {isBaja ? '(sin suplemento)' : `(+${formatPrice(sup)})`}
                           </span>
-                          <span style={{ fontWeight: 700, color: 'var(--gray-900)' }}>
+                          <span style={{ fontWeight: 700, color: 'var(--adm-text)' }}>
                             {formatPrice(finalNight)}/noche
                           </span>
                         </div>
@@ -337,7 +332,7 @@ export default function SeasonsSupplementClient({
       <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-4)' }}>
         {seasons.map(season => {
           const isBaja = season.code === 'baja' || season.is_default
-          const badgeColor = season.color_badge || (season.code === 'alta' ? '#dc2626' : season.code === 'media' ? '#2563eb' : '#64748b')
+          const badgeColor = season.color_badge || (season.code === 'alta' ? '#dc2626' : season.code === 'media' ? '#64748b' : '#64748b')
           const seasonPeriods = periods.filter(p => p.season_id === season.id)
           const isSaving = savingSeasonId === season.id
           const isSaved = savedSeasonId === season.id
@@ -347,11 +342,11 @@ export default function SeasonsSupplementClient({
             <div
               key={season.id}
               style={{
-                border: `1px solid ${isBaja ? 'var(--gray-200)' : badgeColor + '40'}`,
+                border: `1px solid ${isBaja ? 'var(--adm-border)' : badgeColor + '40'}`,
                 borderLeft: `4px solid ${badgeColor}`,
                 borderRadius: 'var(--radius-lg)',
                 padding: 'var(--space-4) var(--space-5)',
-                background: 'white',
+                background: 'var(--adm-surface)',
                 boxShadow: '0 2px 10px rgba(0,0,0,0.02)',
               }}
             >
@@ -367,10 +362,10 @@ export default function SeasonsSupplementClient({
                     }}
                   />
                   <div>
-                    <h3 style={{ margin: 0, fontSize: '1.1rem', fontWeight: 700, color: 'var(--gray-900)' }}>
+                    <h3 style={{ margin: 0, fontSize: '1.1rem', fontWeight: 700, color: 'var(--adm-text)' }}>
                       {season.name}
                     </h3>
-                    <p style={{ margin: '2px 0 0', fontSize: '0.8rem', color: 'var(--gray-500)' }}>
+                    <p style={{ margin: '2px 0 0', fontSize: '0.8rem', color: 'var(--adm-text-2)' }}>
                       {isBaja
                         ? 'Temporada base por defecto. Se aplica automáticamente a cualquier fecha fuera de temporada Alta o Media.'
                         : `Añade un suplemento por noche sobre la tarifa base de las campers.`}
@@ -389,9 +384,9 @@ export default function SeasonsSupplementClient({
                         gap: '8px',
                         padding: '8px 14px',
                         borderRadius: 'var(--radius-md)',
-                        background: 'var(--gray-100)',
-                        border: '1px solid var(--gray-200)',
-                        color: 'var(--gray-600)',
+                        background: 'var(--adm-surface-2)',
+                        border: '1px solid var(--adm-border)',
+                        color: 'var(--adm-text-2)',
                         fontSize: '0.82rem',
                         fontWeight: 600,
                       }}
@@ -404,7 +399,7 @@ export default function SeasonsSupplementClient({
                         display: 'flex',
                         flexDirection: 'column',
                         gap: '3px',
-                        background: 'white',
+                        background: 'var(--adm-surface)',
                         padding: '6px 12px',
                         borderRadius: 'var(--radius-md)',
                         border: `2px solid ${badgeColor}70`,
@@ -436,18 +431,18 @@ export default function SeasonsSupplementClient({
                             width: '68px',
                             padding: '3px 6px',
                             borderRadius: '6px',
-                            border: '1.5px solid #CBD5E1',
+                            border: '1.5px solid var(--adm-border-strong)',
                             fontSize: '0.95rem',
                             fontWeight: 800,
                             textAlign: 'right',
-                            color: 'var(--gray-900)',
-                            background: 'white',
+                            color: 'var(--adm-text)',
+                            background: 'var(--adm-surface)',
                             outline: 'none',
                           }}
                           onFocus={e => (e.currentTarget.style.borderColor = badgeColor)}
-                          onBlur={e => (e.currentTarget.style.borderColor = '#CBD5E1')}
+                          onBlur={e => (e.currentTarget.style.borderColor = 'var(--adm-border-strong)')}
                         />
-                        <span style={{ fontSize: '0.8rem', fontWeight: 700, color: 'var(--gray-600)' }}>
+                        <span style={{ fontSize: '0.8rem', fontWeight: 700, color: 'var(--adm-text-2)' }}>
                           €/noche
                         </span>
                       </div>
@@ -460,18 +455,18 @@ export default function SeasonsSupplementClient({
                       display: 'flex',
                       flexDirection: 'column',
                       gap: '3px',
-                      background: 'white',
+                      background: 'var(--adm-surface)',
                       padding: '6px 12px',
                       borderRadius: 'var(--radius-md)',
-                      border: '1.5px solid #CBD5E1',
+                      border: '1.5px solid var(--adm-border-strong)',
                       boxShadow: '0 2px 6px rgba(0,0,0,0.03)',
                     }}
                   >
                     <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '6px' }}>
-                      <span style={{ fontSize: '0.68rem', fontWeight: 700, color: 'var(--gray-500)', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
+                      <span style={{ fontSize: '0.68rem', fontWeight: 700, color: 'var(--adm-text-2)', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
                         Estancia Mínima
                       </span>
-                      <Clock size={11} style={{ color: 'var(--gray-400)' }} />
+                      <Clock size={11} style={{ color: 'var(--adm-text-3)' }} />
                     </div>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
                       <label htmlFor={`season-min-nights-${season.id}`} className="sr-only">
@@ -494,18 +489,18 @@ export default function SeasonsSupplementClient({
                           width: '52px',
                           padding: '3px 6px',
                           borderRadius: '6px',
-                          border: '1.5px solid #CBD5E1',
+                          border: '1.5px solid var(--adm-border-strong)',
                           fontSize: '0.95rem',
                           fontWeight: 800,
                           textAlign: 'center',
-                          color: 'var(--gray-900)',
-                          background: 'white',
+                          color: 'var(--adm-text)',
+                          background: 'var(--adm-surface)',
                           outline: 'none',
                         }}
-                        onFocus={e => (e.currentTarget.style.borderColor = 'var(--forest-green)')}
-                        onBlur={e => (e.currentTarget.style.borderColor = '#CBD5E1')}
+                        onFocus={e => (e.currentTarget.style.borderColor = 'var(--adm-primary-bg)')}
+                        onBlur={e => (e.currentTarget.style.borderColor = 'var(--adm-border-strong)')}
                       />
-                      <span style={{ fontSize: '0.8rem', fontWeight: 600, color: 'var(--gray-600)' }}>
+                      <span style={{ fontSize: '0.8rem', fontWeight: 600, color: 'var(--adm-text-2)' }}>
                         noches
                       </span>
                     </div>
@@ -513,11 +508,11 @@ export default function SeasonsSupplementClient({
 
                   {/* Feedback Status Indicator */}
                   <div style={{ minWidth: 26, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                    {isSaving && <Loader2 size={18} className="animate-spin" style={{ color: 'var(--forest-green)' }} />}
-                    {isSaved && <Check size={20} style={{ color: '#16a34a' }} />}
+                    {isSaving && <Loader2 size={18} className="animate-spin" style={{ color: 'var(--adm-primary-bg)' }} />}
+                    {isSaved && <Check size={20} style={{ color: 'var(--adm-sage)' }} />}
                     {hasError && (
                       <span title="Error al guardar">
-                        <AlertCircle size={20} style={{ color: '#dc2626' }} />
+                        <AlertCircle size={20} style={{ color: 'var(--adm-rose)' }} />
                       </span>
                     )}
                   </div>
@@ -527,12 +522,12 @@ export default function SeasonsSupplementClient({
               {/* Lista de Periodos de Fechas */}
               <div
                 style={{
-                  borderTop: '1px solid var(--gray-100)',
+                  borderTop: '1px solid var(--adm-surface-2)',
                   paddingTop: 'var(--space-3)',
                 }}
               >
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px' }}>
-                  <span style={{ fontSize: '0.85rem', fontWeight: 700, color: 'var(--gray-800)' }}>
+                  <span style={{ fontSize: '0.85rem', fontWeight: 700, color: 'var(--adm-text)' }}>
                     Periodos de Fechas ({seasonPeriods.length})
                   </span>
 
@@ -545,7 +540,7 @@ export default function SeasonsSupplementClient({
                         alignItems: 'center',
                         gap: '6px',
                         background: badgeColor,
-                        color: 'white',
+                        color: 'var(--adm-surface)',
                         border: 'none',
                         borderRadius: 'var(--radius-md)',
                         padding: '6px 12px',
@@ -573,18 +568,18 @@ export default function SeasonsSupplementClient({
                 {isBaja ? (
                   <div
                     style={{
-                      background: 'var(--gray-50)',
+                      background: 'var(--adm-surface-2)',
                       padding: '10px 14px',
                       borderRadius: 'var(--radius-md)',
                       fontSize: '0.82rem',
-                      color: 'var(--gray-600)',
+                      color: 'var(--adm-text-2)',
                       display: 'flex',
                       alignItems: 'center',
                       gap: '8px',
-                      border: '1px solid var(--gray-200)',
+                      border: '1px solid var(--adm-border)',
                     }}
                   >
-                    <Info size={16} style={{ color: 'var(--gray-500)', flexShrink: 0 }} />
+                    <Info size={16} style={{ color: 'var(--adm-text-2)', flexShrink: 0 }} />
                     <span>
                       La Temporada Baja cubre todas las fechas del año que no estén expresamente incluidas en periodos de Temporada Alta o Media.
                     </span>
@@ -623,7 +618,7 @@ export default function SeasonsSupplementClient({
                         height: 34,
                         borderRadius: '50%',
                         background: badgeColor,
-                        color: 'white',
+                        color: 'var(--adm-surface)',
                         display: 'flex',
                         alignItems: 'center',
                         justifyContent: 'center',
@@ -636,7 +631,7 @@ export default function SeasonsSupplementClient({
                       <div style={{ fontWeight: 700, fontSize: '0.92rem' }}>
                         Añadir Primer Periodo de Fechas para {season.name}
                       </div>
-                      <div style={{ fontSize: '0.78rem', color: 'var(--gray-600)' }}>
+                      <div style={{ fontSize: '0.78rem', color: 'var(--adm-text-2)' }}>
                         Haz clic aquí para programar rangos (ej. Verano, Semana Santa, Puentes o fines de semana clave)
                       </div>
                     </div>
@@ -657,8 +652,8 @@ export default function SeasonsSupplementClient({
                         <div
                           key={period.id}
                           style={{
-                            background: 'white',
-                            border: '1px solid var(--gray-200)',
+                            background: 'var(--adm-surface)',
+                            border: '1px solid var(--adm-border)',
                             borderRadius: 'var(--radius-md)',
                             padding: '10px 14px',
                             display: 'flex',
@@ -671,7 +666,7 @@ export default function SeasonsSupplementClient({
                           <div style={{ minWidth: 0, flex: 1 }}>
                             <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
                               <Calendar size={14} style={{ color: badgeColor, flexShrink: 0 }} />
-                              <span style={{ fontWeight: 700, fontSize: '0.88rem', color: 'var(--gray-900)' }}>
+                              <span style={{ fontWeight: 700, fontSize: '0.88rem', color: 'var(--adm-text)' }}>
                                 {period.label || 'Periodo de Temporada'}
                               </span>
                               {days && (
@@ -689,7 +684,7 @@ export default function SeasonsSupplementClient({
                                 </span>
                               )}
                             </div>
-                            <div style={{ fontSize: '0.8rem', color: 'var(--gray-600)', marginTop: '2px', fontWeight: 500 }}>
+                            <div style={{ fontSize: '0.8rem', color: 'var(--adm-text-2)', marginTop: '2px', fontWeight: 500 }}>
                               {text}
                             </div>
                           </div>
@@ -701,8 +696,8 @@ export default function SeasonsSupplementClient({
                             onClick={() => period.id && handleDeletePeriod(period.id)}
                             style={{
                               background: 'transparent',
-                              border: '1px solid var(--gray-200)',
-                              color: 'var(--gray-400)',
+                              border: '1px solid var(--adm-border)',
+                              color: 'var(--adm-text-3)',
                               cursor: isDeleting ? 'not-allowed' : 'pointer',
                               padding: '6px',
                               borderRadius: '6px',
@@ -712,14 +707,14 @@ export default function SeasonsSupplementClient({
                               transition: 'all 0.15s ease',
                             }}
                             onMouseEnter={e => {
-                              e.currentTarget.style.borderColor = '#fee2e2'
-                              e.currentTarget.style.background = '#fef2f2'
-                              e.currentTarget.style.color = '#dc2626'
+                              e.currentTarget.style.borderColor = 'var(--adm-rose-soft)'
+                              e.currentTarget.style.background = 'var(--adm-rose-soft)'
+                              e.currentTarget.style.color = 'var(--adm-rose)'
                             }}
                             onMouseLeave={e => {
-                              e.currentTarget.style.borderColor = 'var(--gray-200)'
+                              e.currentTarget.style.borderColor = 'var(--adm-border)'
                               e.currentTarget.style.background = 'transparent'
-                              e.currentTarget.style.color = 'var(--gray-400)'
+                              e.currentTarget.style.color = 'var(--adm-text-3)'
                             }}
                           >
                             {isDeleting ? <Loader2 size={14} className="animate-spin" /> : <Trash2 size={14} />}
@@ -786,19 +781,19 @@ export default function SeasonsSupplementClient({
         >
           <div
             style={{
-              background: 'white',
+              background: 'var(--adm-surface)',
               borderRadius: 'var(--radius-xl)',
               maxWidth: 480,
               width: '100%',
               padding: 'var(--space-6)',
               boxShadow: '0 20px 40px rgba(0,0,0,0.15)',
-              border: '1px solid var(--gray-200)',
+              border: '1px solid var(--adm-border)',
             }}
             onClick={e => e.stopPropagation()}
           >
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 'var(--space-4)' }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                <CalendarRange size={20} style={{ color: 'var(--forest-green)' }} />
+                <CalendarRange size={20} style={{ color: 'var(--adm-primary-bg)' }} />
                 <h3 style={{ margin: 0, fontSize: '1.2rem', fontWeight: 700 }}>
                   Añadir Periodo de Temporada
                 </h3>
@@ -806,7 +801,7 @@ export default function SeasonsSupplementClient({
               <button
                 type="button"
                 onClick={() => setIsAddModalOpen(false)}
-                style={{ background: 'transparent', border: 'none', cursor: 'pointer', color: 'var(--gray-400)' }}
+                style={{ background: 'transparent', border: 'none', cursor: 'pointer', color: 'var(--adm-text-3)' }}
               >
                 <X size={20} />
               </button>
@@ -815,9 +810,9 @@ export default function SeasonsSupplementClient({
             {addPeriodError && (
               <div
                 style={{
-                  background: '#fef2f2',
-                  border: '1px solid #fecaca',
-                  color: '#b91c1c',
+                  background: 'var(--adm-rose-soft)',
+                  border: '1px solid var(--adm-rose-soft)',
+                  color: 'var(--adm-rose)',
                   padding: '10px 12px',
                   borderRadius: 'var(--radius-md)',
                   fontSize: '0.85rem',
@@ -834,7 +829,7 @@ export default function SeasonsSupplementClient({
 
             <form onSubmit={handleAddPeriodSubmit} style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-4)' }}>
               <div>
-                <label htmlFor="modal-season-select" style={{ display: 'block', fontSize: '0.85rem', fontWeight: 600, color: 'var(--gray-700)', marginBottom: '4px' }}>
+                <label htmlFor="modal-season-select" style={{ display: 'block', fontSize: '0.85rem', fontWeight: 600, color: 'var(--adm-text)', marginBottom: '4px' }}>
                   Temporada
                 </label>
                 <select
@@ -847,9 +842,9 @@ export default function SeasonsSupplementClient({
                     width: '100%',
                     padding: '8px 12px',
                     borderRadius: 'var(--radius-md)',
-                    border: '1px solid var(--gray-300)',
+                    border: '1px solid var(--adm-border-strong)',
                     fontSize: '0.9rem',
-                    background: 'white',
+                    background: 'var(--adm-surface)',
                   }}
                 >
                   {seasons.filter(s => s.code !== 'baja').map(s => (
@@ -861,7 +856,7 @@ export default function SeasonsSupplementClient({
               </div>
 
               <div>
-                <label htmlFor="modal-period-label" style={{ display: 'block', fontSize: '0.85rem', fontWeight: 600, color: 'var(--gray-700)', marginBottom: '4px' }}>
+                <label htmlFor="modal-period-label" style={{ display: 'block', fontSize: '0.85rem', fontWeight: 600, color: 'var(--adm-text)', marginBottom: '4px' }}>
                   Etiqueta / Nombre Descriptivo (Opcional)
                 </label>
                 <input
@@ -876,7 +871,7 @@ export default function SeasonsSupplementClient({
                     width: '100%',
                     padding: '8px 12px',
                     borderRadius: 'var(--radius-md)',
-                    border: '1px solid var(--gray-300)',
+                    border: '1px solid var(--adm-border-strong)',
                     fontSize: '0.9rem',
                   }}
                 />
@@ -884,7 +879,7 @@ export default function SeasonsSupplementClient({
 
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 'var(--space-3)' }}>
                 <div>
-                  <label htmlFor="modal-period-start-date" style={{ display: 'block', fontSize: '0.85rem', fontWeight: 600, color: 'var(--gray-700)', marginBottom: '4px' }}>
+                  <label htmlFor="modal-period-start-date" style={{ display: 'block', fontSize: '0.85rem', fontWeight: 600, color: 'var(--adm-text)', marginBottom: '4px' }}>
                     Fecha Inicio
                   </label>
                   <input
@@ -899,14 +894,14 @@ export default function SeasonsSupplementClient({
                       width: '100%',
                       padding: '8px 10px',
                       borderRadius: 'var(--radius-md)',
-                      border: '1px solid var(--gray-300)',
+                      border: '1px solid var(--adm-border-strong)',
                       fontSize: '0.9rem',
                     }}
                   />
                 </div>
 
                 <div>
-                  <label htmlFor="modal-period-end-date" style={{ display: 'block', fontSize: '0.85rem', fontWeight: 600, color: 'var(--gray-700)', marginBottom: '4px' }}>
+                  <label htmlFor="modal-period-end-date" style={{ display: 'block', fontSize: '0.85rem', fontWeight: 600, color: 'var(--adm-text)', marginBottom: '4px' }}>
                     Fecha Fin
                   </label>
                   <input
@@ -921,7 +916,7 @@ export default function SeasonsSupplementClient({
                       width: '100%',
                       padding: '8px 10px',
                       borderRadius: 'var(--radius-md)',
-                      border: '1px solid var(--gray-300)',
+                      border: '1px solid var(--adm-border-strong)',
                       fontSize: '0.9rem',
                     }}
                   />
@@ -936,9 +931,9 @@ export default function SeasonsSupplementClient({
                   style={{
                     padding: '8px 14px',
                     borderRadius: 'var(--radius-md)',
-                    border: '1px solid var(--gray-300)',
-                    background: 'white',
-                    color: 'var(--gray-700)',
+                    border: '1px solid var(--adm-border-strong)',
+                    background: 'var(--adm-surface)',
+                    color: 'var(--adm-text)',
                     fontSize: '0.85rem',
                     fontWeight: 600,
                     cursor: 'pointer',
@@ -953,8 +948,8 @@ export default function SeasonsSupplementClient({
                     padding: '8px 18px',
                     borderRadius: 'var(--radius-md)',
                     border: 'none',
-                    background: 'var(--forest-green)',
-                    color: 'white',
+                    background: 'var(--adm-primary-bg)',
+                    color: 'var(--adm-surface)',
                     fontSize: '0.85rem',
                     fontWeight: 600,
                     cursor: isAddingPeriod ? 'not-allowed' : 'pointer',

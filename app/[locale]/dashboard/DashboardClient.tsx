@@ -1,10 +1,14 @@
 'use client'
 
-import { useMemo } from 'react'
+import { useMemo, useState } from 'react'
 import Image from 'next/image'
 import { Link } from '@/i18n/routing'
-import { Calendar, Euro, MapPin, Clock, BookOpen, ChevronRight, Sparkles, ShieldCheck, Compass, Users, AlertCircle, CheckCircle, Navigation, Zap, FileDown, Phone, PhoneCall, LifeBuoy, MessageCircle } from 'lucide-react'
+import {
+    Check, ChevronDown, CreditCard, FileSignature, IdCard, Hourglass, KeyRound, Navigation,
+    CalendarPlus, Phone, Compass, MapPin, Sparkles, RotateCcw, type LucideIcon,
+} from 'lucide-react'
 import { formatPrice } from '@/lib/pricing/engine'
+import { getTripState, pickCurrentBooking, type NextStep } from '@/lib/user/tripState'
 
 const FALLBACK_IMAGES: Record<string, string> = {
     neo: '/images/campers/neo/neo-ext.png',
@@ -26,7 +30,7 @@ export function mapDashboardBookingBadge(booking: {
 
     if (isConfirmed) {
         return {
-            text: 'Reserva Confirmada',
+            text: 'Confirmada',
             badgeClass: 'status-badge--confirmed',
             status: 'confirmed',
         }
@@ -34,7 +38,7 @@ export function mapDashboardBookingBadge(booking: {
 
     if (isPaidPending) {
         return {
-            text: 'Pagada · En Aprobación Admin',
+            text: 'Pagada · en validación',
             badgeClass: 'status-badge--paid-pending',
             status: 'paid-pending',
         }
@@ -49,7 +53,7 @@ export function mapDashboardBookingBadge(booking: {
     }
 
     return {
-        text: 'Pendiente de Pago',
+        text: 'Pendiente de pago',
         badgeClass: 'status-badge--pending',
         status: 'pending',
     }
@@ -65,985 +69,899 @@ export function formatBookingSlotTime(time?: string, fallback: string = '14:00 -
     return t
 }
 
+const BADGE_TONE: Record<string, string> = {
+    confirmed: 'usr-chip--sage',
+    'paid-pending': 'usr-chip--sky',
+    cancelled: 'usr-chip--rose',
+    pending: 'usr-chip--amber',
+}
+
+function parseExtras(raw: any): string[] {
+    const toLabel = (item: any) => {
+        if (typeof item === 'string') return item
+        const name = item?.name_es || item?.name || item?.extra?.name_es || item?.extra?.name || item?.description
+        const qty = item?.quantity && item.quantity > 1 ? ` ×${item.quantity}` : ''
+        return name ? `${name}${qty}` : ''
+    }
+    if (!raw) return []
+    if (Array.isArray(raw)) return raw.map(toLabel).filter(Boolean)
+    if (typeof raw === 'string') {
+        try {
+            const parsed = JSON.parse(raw)
+            return Array.isArray(parsed) ? parsed.map(toLabel).filter(Boolean) : []
+        } catch {
+            return raw.split(',').map(s => s.trim()).filter(Boolean)
+        }
+    }
+    return []
+}
+
+const fmtDate = (d: string) => new Date(d).toLocaleDateString('es-ES', { weekday: 'short', day: 'numeric', month: 'short' })
+const fmtYear = (d: string) => new Date(d).getFullYear()
+
+
+const PICKUP = {
+    address: 'Carrer Son Oms, Palma de Mallorca',
+    hint: 'A 5 minutos del aeropuerto',
+    maps: 'https://maps.google.com/?q=Carrer+Son+Oms+Palma+de+Mallorca',
+}
+const UTOPIA_TEL = 'tel:+34611560916'
+
+const fmtLong = (d: string) => new Date(d).toLocaleDateString('es-ES', { weekday: 'long', day: 'numeric', month: 'long' })
+
+/** Descarga un .ics con la recogida y la devolución para añadirlas al calendario */
+function downloadIcs(booking: any, camperName: string) {
+    const day = (d: string) => new Date(d).toISOString().slice(0, 10).replace(/-/g, '')
+    const nextDay = (d: string) => {
+        const x = new Date(d)
+        x.setDate(x.getDate() + 1)
+        return x.toISOString().slice(0, 10).replace(/-/g, '')
+    }
+    const event = (uid: string, date: string, title: string, desc: string) => [
+        'BEGIN:VEVENT',
+        `UID:${uid}@utopiavanlife`,
+        `DTSTART;VALUE=DATE:${day(date)}`,
+        `DTEND;VALUE=DATE:${nextDay(date)}`,
+        `SUMMARY:${title}`,
+        `LOCATION:${PICKUP.address}`,
+        `DESCRIPTION:${desc}`,
+        'END:VEVENT',
+    ].join('\r\n')
+    const ics = [
+        'BEGIN:VCALENDAR',
+        'VERSION:2.0',
+        'PRODID:-//Utopia Van Life//Mi reserva//ES',
+        event(`pick-${booking.id}`, booking.start_date, `Recogida camper ${camperName}`, `Franja: ${formatBookingSlotTime(booking.pickup_time, '14:00 - 18:00')}`),
+        event(`drop-${booking.id}`, booking.end_date, `Devolución camper ${camperName}`, `Franja: ${formatBookingSlotTime(booking.dropoff_time, '10:00 - 12:00')}`),
+        'END:VCALENDAR',
+    ].join('\r\n')
+    const url = URL.createObjectURL(new Blob([ics], { type: 'text/calendar;charset=utf-8' }))
+    const a = document.createElement('a')
+    a.href = url
+    a.download = 'utopia-van-life-viaje.ics'
+    a.click()
+    URL.revokeObjectURL(url)
+}
+
+interface StepCopy {
+    icon: LucideIcon
+    eyebrow: string
+    title: string
+    text: string
+    tone: 'action' | 'calm' | 'done'
+}
+
+const STEP_COPY: Record<NextStep, StepCopy> = {
+    pay: {
+        icon: CreditCard,
+        eyebrow: 'Siguiente paso',
+        title: 'Completa el pago',
+        text: 'Tu reserva está creada pero aún no hemos recibido el pago. Las fechas se guardan durante unos minutos.',
+        tone: 'action',
+    },
+    license: {
+        icon: IdCard,
+        eyebrow: 'Siguiente paso',
+        title: 'Sube tu carnet de conducir',
+        text: 'Necesitamos validar el carnet del conductor principal antes de entregarte la camper. Son dos fotos: anverso y reverso.',
+        tone: 'action',
+    },
+    'license-fix': {
+        icon: IdCard,
+        eyebrow: 'Revisa tu carnet',
+        title: 'No hemos podido validar tu carnet',
+        text: 'Vuelve a subir las fotos del carnet, bien enfocadas y sin reflejos. Si tienes dudas, escríbenos.',
+        tone: 'action',
+    },
+    contract: {
+        icon: FileSignature,
+        eyebrow: 'Siguiente paso',
+        title: 'Firma el contrato de alquiler',
+        text: 'Revisa las condiciones y fírmalo desde el móvil o el ordenador. Tardas un par de minutos.',
+        tone: 'action',
+    },
+    waiting: {
+        icon: Hourglass,
+        eyebrow: 'En revisión',
+        title: 'Lo estamos revisando',
+        text: 'Ya tenemos todo lo que necesitamos. Te avisaremos por email en cuanto esté validado.',
+        tone: 'calm',
+    },
+    ready: {
+        icon: KeyRound,
+        eyebrow: 'Todo listo',
+        title: 'Te esperamos en la recogida',
+        text: 'Tu reserva está confirmada y la documentación en regla. Solo queda venir a por la camper.',
+        tone: 'done',
+    },
+    'on-trip': {
+        icon: Compass,
+        eyebrow: 'En ruta',
+        title: '¡Buen viaje!',
+        text: 'Si necesitas algo durante el viaje, estamos a una llamada. El manual y la guía están siempre a mano.',
+        tone: 'done',
+    },
+    returned: {
+        icon: RotateCcw,
+        eyebrow: 'Viaje terminado',
+        title: 'Gracias por viajar con nosotros',
+        text: 'Revisamos la camper tras la devolución y, si todo está bien, te devolvemos la fianza al mismo medio de pago.',
+        tone: 'calm',
+    },
+}
+
 export default function DashboardClient({ bookings, profile, user }: Props) {
-    const activeBookings = bookings?.filter(b => b.status === 'confirmed' || b.status === 'active') || []
-    const pastBookings = bookings?.filter(b => b.status === 'completed' || b.status === 'cancelled') || []
-    const pendingBookings = bookings?.filter(b => b.status === 'pending') || []
+    const [showDetails, setShowDetails] = useState(false)
+    const now = new Date()
+    const booking = pickCurrentBooking(bookings || [], now)
+    const pastBookings = (bookings || []).filter(b => b.status === 'completed' || b.status === 'cancelled')
+    const firstName = profile?.full_name?.split(' ')[0] || user.email?.split('@')[0] || 'viajero'
 
-    const nextBooking = activeBookings[0] || pendingBookings[0]
-    const userName = profile?.full_name?.split(' ')[0] || user.email?.split('@')[0] || 'Viajero'
-    const isVerified = profile?.verification_status === 'verified'
-    const isPendingDoc = profile?.verification_status === 'pending'
+    const extras = useMemo(() => {
+        if (!booking) return []
+        return parseExtras(booking.extras_selected || booking.extras || booking.booking_extras)
+    }, [booking])
 
-    const parsedExtras: string[] = useMemo(() => {
-        if (!nextBooking) return []
-        const raw = nextBooking.extras_selected || nextBooking.extras || nextBooking.booking_extras
-        if (!raw) return []
-
-        if (Array.isArray(raw)) {
-            return raw.map((item: any) => {
-                if (typeof item === 'string') return item
-                const name = item?.name_es || item?.name || item?.extra?.name_es || item?.extra?.name || item?.description
-                const qty = item?.quantity ? ` (x${item.quantity})` : ''
-                if (name) return `${name}${qty}`
-                return String(item)
-            }).filter(Boolean)
-        }
-
-        if (typeof raw === 'string') {
-            try {
-                const parsed = JSON.parse(raw)
-                if (Array.isArray(parsed)) {
-                    return parsed.map((item: any) => {
-                        if (typeof item === 'string') return item
-                        const name = item?.name_es || item?.name || item?.extra?.name_es || item?.extra?.name || item?.description
-                        const qty = item?.quantity ? ` (x${item.quantity})` : ''
-                        return name ? `${name}${qty}` : String(item)
-                    }).filter(Boolean)
-                }
-            } catch {
-                return raw.split(',').map(s => s.trim()).filter(Boolean)
-            }
-        }
-
-        return []
-    }, [nextBooking])
-
-    const defaultExtrasFallback = [
-        '🛏️ Pack Ropa de Cama Premium',
-        '🤿 Kit Snorkel Utopia (x2)',
-        '⚡ Autonomía Solar Victron 540Ah',
-        '🧼 Kit Limpieza & Ducha Eco'
-    ]
-
-    const getExtraEmoji = (extraName: string) => {
-        const lower = extraName.toLowerCase()
-        if (lower.includes('cama') || lower.includes('ropa') || lower.includes('sábana') || lower.includes('almohada')) return '🛏️'
-        if (lower.includes('snorkel') || lower.includes('buceo')) return '🤿'
-        if (lower.includes('solar') || lower.includes('victron') || lower.includes('electricidad') || lower.includes('batería')) return '⚡'
-        if (lower.includes('surf') || lower.includes('paddle') || lower.includes('tabla')) return '🏄'
-        if (lower.includes('wifi') || lower.includes('starlink') || lower.includes('internet')) return '📡'
-        if (lower.includes('café') || lower.includes('cafetera') || lower.includes('coffee')) return '☕'
-        if (lower.includes('barbacoa') || lower.includes('bbq') || lower.includes('parrilla')) return '🍳'
-        if (lower.includes('bici') || lower.includes('bike')) return '🚲'
-        if (lower.includes('silla') || lower.includes('mesa') || lower.includes('camping') || lower.includes('exterior')) return '🪑'
-        if (lower.includes('nevera') || lower.includes('hielo')) return '🧊'
-        if (lower.includes('ducha') || lower.includes('toalla')) return '🚿'
-        if (lower.includes('wc') || lower.includes('químico')) return '🚽'
-        return '✨'
+    if (!booking) {
+        return (
+            <div className="dash">
+                <header className="usr-page-head">
+                    <div>
+                        <span className="usr-page-head__eyebrow">Mi reserva</span>
+                        <h1 className="usr-page-head__title">Hola, {firstName}</h1>
+                    </div>
+                </header>
+                <section className="usr-card dash-empty">
+                    <span className="usr-icon-square dash-empty__icon"><Compass size={22} aria-hidden="true" /></span>
+                    <h2 className="dash-empty__title">{pastBookings.length > 0 ? '¿Volvemos a Mallorca?' : 'Aún no tienes ningún viaje'}</h2>
+                    <p className="dash-empty__text">
+                        Elige camper y fechas y aquí verás todo lo que necesitas para tu viaje, paso a paso.
+                    </p>
+                    <div className="dash-empty__ctas">
+                        <Link href="/campers" className="usr-btn usr-btn--primary">
+                            <Sparkles size={16} aria-hidden="true" />
+                            Ver las campers
+                        </Link>
+                        <Link href="/dashboard/guia" className="usr-btn">
+                            <MapPin size={16} aria-hidden="true" />
+                            Guía de Mallorca
+                        </Link>
+                    </div>
+                </section>
+                {pastBookings.length > 0 && <PastTrips bookings={pastBookings} />}
+                <DashStyles />
+            </div>
+        )
     }
 
-
-    let daysToTrip = -1
-    let nightsCount = 7
-    if (nextBooking) {
-        const from = new Date(nextBooking.start_date)
-        const to = new Date(nextBooking.end_date)
-        const now = new Date()
-        daysToTrip = Math.ceil((from.getTime() - now.getTime()) / (1000 * 3600 * 24))
-        nightsCount = Math.max(1, Math.round((to.getTime() - from.getTime()) / (1000 * 3600 * 24)))
-    }
-
-    const camperSlug = nextBooking?.camper?.slug || 'neo'
-    const camperName = nextBooking?.camper?.name || (camperSlug === 'space' ? 'SPACE' : 'NEO')
-    const camperImg = nextBooking?.camper?.thumbnail_url || FALLBACK_IMAGES[camperSlug] || FALLBACK_IMAGES['neo']
+    const trip = getTripState(booking, profile, now)
+    const copy = STEP_COPY[trip.step]
+    const StepIcon = copy.icon
+    const camperSlug = booking.camper?.slug || 'neo'
+    const camperName = booking.camper?.name || (camperSlug === 'space' ? 'SPACE' : 'NEO')
+    const camperImg = booking.camper?.thumbnail_url || FALLBACK_IMAGES[camperSlug] || FALLBACK_IMAGES['neo']
+    const travelers = booking.guests_count || booking.travelers_count
+    const badge = mapDashboardBookingBadge(booking)
+    const pickupSlot = formatBookingSlotTime(booking.pickup_time, '14:00 - 18:00')
+    const dropoffSlot = formatBookingSlotTime(booking.dropoff_time, '10:00 - 12:00')
+    const showCountdown = trip.daysToStart > 0 && trip.isPaid
 
     return (
-        <div className="dash-page-wrapper">
-            {/* Page Header Section */}
-            <div className="dash-header">
+        <div className="dash">
+            <header className="usr-page-head">
                 <div>
-                    <h1 className="dash-title">
-                        ¡Hola, {userName}!<br />
-                        <span className="dash-title-sub">Tu aventura en Mallorca te espera</span>
-                    </h1>
+                    <span className="usr-page-head__eyebrow">Mi reserva</span>
+                    <h1 className="usr-page-head__title">Hola, {firstName}</h1>
                 </div>
+            </header>
 
-                {daysToTrip > 0 && (
-                    <div className="countdown-pill">
-                        <Clock size={16} style={{ color: 'var(--sand-dark)' }} />
-                        <span>Faltan <strong>{daysToTrip} días</strong> para la recogida</span>
-                    </div>
-                )}
-                {daysToTrip === 0 && (
-                    <div className="countdown-pill countdown-pill--today">
-                        <Sparkles size={16} />
-                        <span>¡Hoy comienza tu aventura!</span>
-                    </div>
-                )}
-            </div>
-
-            {/* If has an active or pending booking */}
-            {nextBooking && (
-                <div className="bento-layout">
-                    {/* Hero Booking Card */}
-                    <div className="booking-hero-card">
-                        <div className="booking-hero-card__img-wrap">
-                            <Image 
-                                src={camperImg}
-                                alt={camperName}
-                                fill
-                                sizes="(max-width: 768px) 100vw, 600px"
-                                style={{ objectFit: 'cover' }}
-                                priority
-                            />
-                            <div className="booking-hero-card__img-overlay" />
-                            <div className="booking-hero-card__img-content">
-                                <span className="tier-tag">PREMIUM TIER</span>
-                                <h2 className="camper-overlay-title">Camper {camperName}</h2>
-                                <p className="camper-overlay-sub">Utopia Van Life</p>
-                            </div>
-                        </div>
-
-                        <div className="booking-hero-card__body">
-                            <div>
-                                <div className="trip-header-row">
-                                    <div>
-                                        <h3 className="text-h3" style={{ color: 'var(--forest-green)' }}>Detalles del Viaje</h3>
-                                        <div className="trip-meta-pills">
-                                            <p className="text-small" style={{ color: 'var(--gray-600)', margin: 0 }}>
-                                                {nightsCount} Noches • {nextBooking.guests_count || nextBooking.travelers_count || 2} Viajeros
-                                            </p>
-                                            {nextBooking.km_package && (
-                                                <span className="text-xs trip-pill">
-                                                    {nextBooking.km_package === 'unlimited' ? 'KM Ilimitado' : '150 km/día'}
-                                                </span>
-                                            )}
-                                            {nextBooking.cancellation_policy && (
-                                                <span className="text-xs trip-pill">
-                                                    {nextBooking.cancellation_policy === 'flexible' ? 'Cancelación Flexible' : 'Cancelación Estándar'}
-                                                </span>
-                                            )}
-                                        </div>
-                                    </div>
-                                    {(() => {
-                                        const badge = mapDashboardBookingBadge(nextBooking)
-                                        return (
-                                            <span className={`status-badge ${badge.badgeClass}`}>
-                                                {badge.text}
-                                            </span>
-                                        )
-                                    })()}
-                                </div>
-
-                                {nextBooking.payment_status === 'paid' && nextBooking.status === 'pending' && (
-                                    <div className="paid-pending-banner">
-                                        <Sparkles size={16} style={{ color: '#D97706', flexShrink: 0, marginTop: 2 }} />
-                                        <div>
-                                            <strong>Pago confirmado vía Redsys.</strong> Tu viaje está pagado al 100% y en proceso de validación final por administración. Puedes subir ya tu carnet de conducir y firmar el contrato de alquiler oficial.
-                                        </div>
-                                    </div>
-                                )}
-
-                                <div className="trip-dates-grid">
-                                    <div className="date-block">
-                                        <span className="date-label">Recogida</span>
-                                        <p className="date-val">
-                                            {new Date(nextBooking.start_date).toLocaleDateString('es-ES', { day: 'numeric', month: 'short', year: 'numeric' })}
-                                        </p>
-                                        <span className="date-time">{formatBookingSlotTime(nextBooking.pickup_time, '14:00 - 18:00')}</span>
-                                    </div>
-                                    <div className="date-block">
-                                        <span className="date-label">Devolución</span>
-                                        <p className="date-val">
-                                            {new Date(nextBooking.end_date).toLocaleDateString('es-ES', { day: 'numeric', month: 'short', year: 'numeric' })}
-                                        </p>
-                                        <span className="date-time">{formatBookingSlotTime(nextBooking.dropoff_time, '10:00 - 12:00')}</span>
-                                    </div>
-                                </div>
-
-                                {/* Extras */}
-                                <div className="extras-section">
-                                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 6 }}>
-                                        <span className="date-label" style={{ margin: 0, display: 'block' }}>
-                                            {parsedExtras.length > 0 ? 'Extras de tu Reserva' : 'Extras Incluidos de Serie'}
-                                        </span>
-                                        {parsedExtras.length > 0 && (
-                                            <span className="text-xs" style={{ color: 'var(--forest-green)', fontWeight: 600 }}>
-                                                {parsedExtras.length} personalizados
-                                            </span>
-                                        )}
-                                    </div>
-                                    <div className="extras-chips">
-                                        {parsedExtras.length > 0 ? (
-                                            parsedExtras.map((extra, idx) => {
-                                                const hasEmoji = /\p{Extended_Pictographic}/u.test(extra)
-                                                const displayLabel = hasEmoji ? extra : `${getExtraEmoji(extra)} ${extra}`
-                                                return (
-                                                    <span key={idx} className="extra-chip">
-                                                        {displayLabel}
-                                                    </span>
-                                                )
-                                            })
-                                        ) : (
-                                            defaultExtrasFallback.map((extra, idx) => (
-                                                <span key={idx} className="extra-chip">
-                                                    {extra}
-                                                </span>
-                                            ))
-                                        )}
-                                    </div>
-                                </div>
-                            </div>
-
-                            <div className="price-summary-bar">
-                                <div className="price-summary-row">
-                                    <span className="price-label">Total Alquiler</span>
-                                    <span className="price-value price-value--total">
-                                        {formatPrice(Number(nextBooking.total_price || 0))}
-                                    </span>
-                                </div>
-                                <div className="price-summary-row price-summary-row--deposit">
-                                    <span className="price-label">Fianza Reembolsable</span>
-                                    <span className="price-value price-value--deposit">
-                                        {formatPrice(Number(nextBooking.deposit_amount || 0))}
-                                    </span>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    {/* Right Column: Pick-up Location & Driver Validation */}
-                    <div className="bento-side-col">
-                        {/* Pick-up Location Card */}
-                        <div className="side-card">
-                            <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 'var(--space-3)' }}>
-                                <div className="side-card__icon-wrap">
-                                    <MapPin size={18} style={{ color: 'var(--forest-green)' }} />
-                                </div>
-                                <h3 className="text-h4">Punto de Recogida</h3>
-                            </div>
-
-                            <div style={{ position: 'relative', borderRadius: 'var(--radius-md)', overflow: 'hidden', height: 110, background: 'var(--gray-100)', marginBottom: 'var(--space-3)' }}>
-                                <Image 
-                                    src="/images/experiences/exp2.png" 
-                                    alt="Palma de Mallorca" 
-                                    fill 
-                                    sizes="(max-width: 768px) 100vw, 360px"
-                                    style={{ objectFit: 'cover' }} 
-                                />
-                                <div style={{ position: 'absolute', inset: 0, background: 'rgba(45,58,45,0.4)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                                    <span style={{ color: 'white', fontWeight: 600, fontSize: '0.8rem', background: 'rgba(0,0,0,0.4)', padding: '4px 10px', borderRadius: 'var(--radius-full)' }}>
-                                        Palma de Mallorca
-                                    </span>
-                                </div>
-                            </div>
-
-                            <p style={{ fontWeight: 600, fontSize: '0.88rem', color: 'var(--black-matte)' }}>
-                                Carrer Son Oms, Palma de Mallorca
-                            </p>
-                            <p className="text-xs" style={{ color: 'var(--gray-600)', marginTop: 2, marginBottom: 'var(--space-4)' }}>
-                                (a 5 min del aeropuerto con transfer rápido)
-                            </p>
-
-                            <a 
-                                href="https://maps.google.com/?q=Carrer+Son+Oms+Palma+de+Mallorca" 
-                                target="_blank" 
-                                rel="noopener noreferrer"
-                                className="btn btn-outline btn-sm"
-                                style={{ width: '100%', justifyContent: 'center', gap: 6 }}
-                            >
-                                <Navigation size={14} />
-                                <span>Abrir en GPS</span>
-                            </a>
-                        </div>
-
-                        {/* Driver Validation Card */}
-                        <div className="side-card side-card--accent">
-                            <div style={{ display: 'flex', alignItems: 'flex-start', gap: 10, marginBottom: 'var(--space-3)' }}>
-                                <div className="side-card__icon-wrap side-card__icon-wrap--sand">
-                                    <ShieldCheck size={18} style={{ color: 'var(--sand-dark)' }} />
-                                </div>
-                                <div>
-                                    <h3 className="text-h4" style={{ lineHeight: 1.2 }}>Validación de Carnet</h3>
-                                    <p className="text-xs" style={{ color: 'var(--gray-500)', marginTop: 2 }}>
-                                        Paso obligatorio antes de la recogida
-                                    </p>
-                                </div>
-                            </div>
-
-                            <div className="driver-rows">
-                                {/* Main Driver */}
-                                <div className="driver-row">
-                                    <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                                        <div className="driver-avatar-mini">
-                                            {userName.charAt(0)}
-                                        </div>
-                                        <div>
-                                            <span style={{ fontWeight: 600, fontSize: '0.82rem', display: 'block', color: 'var(--black-matte)' }}>
-                                                Conductor Principal
-                                            </span>
-                                            <span className="text-xs" style={{ color: 'var(--gray-500)' }}>
-                                                {profile?.full_name || user.email}
-                                            </span>
-                                        </div>
-                                    </div>
-
-                                    {isVerified && (
-                                        <span className="doc-chip doc-chip--verified">
-                                            <CheckCircle size={12} /> Verificado
-                                        </span>
-                                    )}
-                                    {isPendingDoc && (
-                                        <span className="doc-chip doc-chip--pending">
-                                            <Clock size={12} /> En revisión
-                                        </span>
-                                    )}
-                                    {!isVerified && !isPendingDoc && (
-                                        <Link href="/dashboard/documentos" className="btn btn-forest btn-sm" style={{ padding: '4px 10px', fontSize: '0.75rem' }}>
-                                            Subir Carnet
-                                        </Link>
-                                    )}
-                                </div>
-
-                                {/* Second Driver */}
-                                {profile?.has_second_driver && profile?.second_driver_name ? (
-                                    <div className="driver-row">
-                                        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                                            <div className="driver-avatar-mini" style={{ background: 'var(--sand-light)', color: 'var(--forest-green)' }}>
-                                                {profile.second_driver_name.charAt(0).toUpperCase()}
-                                            </div>
-                                            <div>
-                                                <span style={{ fontWeight: 600, fontSize: '0.82rem', display: 'block', color: 'var(--black-matte)' }}>
-                                                    Segundo Conductor
-                                                </span>
-                                                <span className="text-xs" style={{ color: 'var(--gray-600)' }}>
-                                                    {profile.second_driver_name}
-                                                </span>
-                                            </div>
-                                        </div>
-                                        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                                            <span className="doc-chip doc-chip--verified" style={{ padding: '2px 8px', fontSize: '0.72rem' }}>
-                                                <CheckCircle size={10} /> Añadido
-                                            </span>
-                                            <Link href="/dashboard/profile" className="text-xs font-semibold" style={{ color: 'var(--forest-green)' }}>
-                                                Editar
-                                            </Link>
-                                        </div>
-                                    </div>
-                                ) : (
-                                    <div className="driver-row driver-row--dashed">
-                                        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                                            <div className="driver-avatar-mini driver-avatar-mini--dashed">
-                                                <ShieldCheck size={14} style={{ color: 'var(--gray-400)' }} />
-                                            </div>
-                                            <div>
-                                                <span style={{ fontWeight: 500, fontSize: '0.82rem', display: 'block', color: 'var(--gray-700)' }}>
-                                                    Segundo Conductor
-                                                </span>
-                                                <span className="text-xs" style={{ color: 'var(--gray-400)' }}>Opcional</span>
-                                            </div>
-                                        </div>
-                                        <Link href="/dashboard/profile" className="text-xs font-semibold" style={{ color: 'var(--sand-dark)' }}>
-                                            Añadir
-                                        </Link>
-                                    </div>
-                                )}
-                            </div>
-
-                            <div style={{ marginTop: 'var(--space-3)', paddingTop: 'var(--space-3)', borderTop: '1px dashed var(--gray-200)' }}>
-                                <Link 
-                                    href="/dashboard/documentos" 
-                                    className="btn btn-forest btn-sm" 
-                                    style={{ width: '100%', justifyContent: 'center', gap: 6, fontSize: '0.8rem', padding: '8px 12px' }}
-                                >
-                                    <FileDown size={14} />
-                                    <span>Subir Carnet & Firmar Contrato →</span>
-                                </Link>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            )}
-
-
-
-            {/* Empty State if NO bookings */}
-            {(!bookings || bookings.length === 0) && (
-                <div className="empty-state-card">
-                    <div className="empty-state__graphic">🚐</div>
-                    <h2 className="text-h2" style={{ marginTop: 'var(--space-2)' }}>
-                        Aún no tienes ninguna aventura planificada
-                    </h2>
-                    <p className="text-body" style={{ color: 'var(--gray-600)', maxWidth: 520, margin: 'var(--space-2) auto var(--space-6)' }}>
-                        Descubre Mallorca a tu propio ritmo con nuestras furgonetas camper premium 100% autónomas.
+            {/* 1. El viaje */}
+            <article className="usr-card dash-hero">
+                <div className="dash-hero__info">
+                    <span className={`usr-chip ${BADGE_TONE[badge.status]}`}>{badge.text}</span>
+                    <h2 className="dash-hero__name">Camper {camperName}</h2>
+                    <p className="dash-hero__dates">
+                        <span>{fmtDate(booking.start_date)}</span>
+                        <span className="dash-hero__arrow" aria-hidden="true">→</span>
+                        <span>{fmtDate(booking.end_date)}</span>
                     </p>
-                    <div className="empty-state-ctas">
-                        <Link href="/campers" className="btn btn-forest btn-lg">
-                            <Sparkles size={18} />
-                            <span>Explorar Nuestras Campers</span>
-                        </Link>
-                        <Link href="/dashboard/guia" className="btn btn-outline btn-lg">
-                            <Compass size={18} />
-                            <span>Ver Guía de Mallorca</span>
-                        </Link>
-                    </div>
+                    <p className="dash-hero__meta">
+                        {trip.nights} {trip.nights === 1 ? 'noche' : 'noches'}
+                        {travelers ? ` · ${travelers} viajeros` : ''}
+                    </p>
+                    {showCountdown && (
+                        <div className="dash-hero__count">
+                            <strong>{trip.daysToStart}</strong>
+                            <span>{trip.daysToStart === 1 ? 'día para tu viaje' : 'días para tu viaje'}</span>
+                        </div>
+                    )}
                 </div>
-            )}
+                <div className="dash-hero__media">
+                    <Image src={camperImg} alt={`Camper ${camperName}`} fill sizes="(max-width: 860px) 90vw, 420px" className="dash-hero__img" priority />
+                </div>
 
-            {/* Past Bookings Section */}
-            {pastBookings.length > 0 && (
-                <div style={{ marginTop: 'var(--space-6)' }}>
-                    <h3 className="text-h4" style={{ marginBottom: 'var(--space-4)', color: 'var(--gray-600)' }}>
-                        Historial de Viajes Pasados
-                    </h3>
-                    <div className="past-grid">
-                        {pastBookings.map(b => (
-                            <div key={b.id} className="past-card">
-                                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                                    <h4 className="text-h4">Camper {b.camper?.name || 'NEO'}</h4>
-                                    <span className="status-pill status-pill--completed">Finalizado</span>
-                                </div>
-                                <div className="text-small" style={{ color: 'var(--gray-600)', marginTop: 4 }}>
-                                    {new Date(b.start_date).toLocaleDateString('es-ES')} → {new Date(b.end_date).toLocaleDateString('es-ES')}
-                                </div>
-                                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: 'var(--space-3)', paddingTop: 'var(--space-3)', borderTop: '1px solid var(--gray-100)' }}>
-                                    <span style={{ fontWeight: 600, color: 'var(--forest-green)' }}>{formatPrice(Number(b.total_price || 0))}</span>
-                                    <Link href={`/campers/${b.camper?.slug || 'neo'}`} className="btn btn-ghost btn-sm">
-                                        Reservar de nuevo →
-                                    </Link>
-                                </div>
+                {/* Progreso */}
+                <ol className="dash-progress" aria-label="Progreso de tu reserva">
+                    {trip.milestones.map(m => (
+                        <li
+                            key={m.key}
+                            className={`dash-progress__item ${m.done ? 'is-done' : ''} ${m.current ? 'is-current' : ''}`}
+                            aria-current={m.current ? 'step' : undefined}
+                        >
+                            <span className="dash-progress__dot">{m.done ? <Check size={12} strokeWidth={3} aria-hidden="true" /> : null}</span>
+                            <span className="dash-progress__label">{m.label}</span>
+                        </li>
+                    ))}
+                </ol>
+            </article>
+
+            {/* 2. Lo único que tiene que hacer ahora */}
+            <section className={`usr-card dash-next dash-next--${copy.tone}`} aria-labelledby="dash-next-title">
+                <span className="dash-next__icon"><StepIcon size={22} aria-hidden="true" /></span>
+                <div className="dash-next__body">
+                    <span className="dash-next__eyebrow">{copy.eyebrow}</span>
+                    <h2 id="dash-next-title" className="dash-next__title">{copy.title}</h2>
+                    <p className="dash-next__text">{copy.text}</p>
+
+                    {(trip.step === 'ready' || trip.step === 'waiting') && (
+                        <dl className="dash-pickup">
+                            <div>
+                                <dt>Recogida</dt>
+                                <dd>{fmtLong(booking.start_date)}<span>{pickupSlot}</span></dd>
                             </div>
-                        ))}
+                            <div>
+                                <dt>Dónde</dt>
+                                <dd>{PICKUP.address}<span>{PICKUP.hint}</span></dd>
+                            </div>
+                        </dl>
+                    )}
+
+                    {trip.step === 'on-trip' && (
+                        <dl className="dash-pickup">
+                            <div>
+                                <dt>Devolución</dt>
+                                <dd>{fmtLong(booking.end_date)}<span>{dropoffSlot}</span></dd>
+                            </div>
+                            <div>
+                                <dt>Dónde</dt>
+                                <dd>{PICKUP.address}<span>Mismo punto de la recogida</span></dd>
+                            </div>
+                        </dl>
+                    )}
+
+                    <div className="dash-next__actions">
+                        {trip.step === 'pay' && (
+                            <Link
+                                href={`/checkout?camper=${camperSlug}&from=${booking.start_date.slice(0, 10)}&to=${booking.end_date.slice(0, 10)}&pax=${travelers || 2}`}
+                                className="usr-btn usr-btn--primary"
+                            >
+                                <CreditCard size={16} aria-hidden="true" /> Volver al pago
+                            </Link>
+                        )}
+                        {(trip.step === 'license' || trip.step === 'license-fix') && (
+                            <Link href="/dashboard/profile" className="usr-btn usr-btn--primary">
+                                <IdCard size={16} aria-hidden="true" /> Subir carnet
+                            </Link>
+                        )}
+                        {trip.step === 'contract' && (
+                            <Link href="/dashboard/documentos" className="usr-btn usr-btn--primary">
+                                <FileSignature size={16} aria-hidden="true" /> Firmar contrato
+                            </Link>
+                        )}
+                        {(trip.step === 'ready' || trip.step === 'waiting') && (
+                            <>
+                                <a href={PICKUP.maps} target="_blank" rel="noopener noreferrer" className="usr-btn usr-btn--primary">
+                                    <Navigation size={16} aria-hidden="true" /> Cómo llegar
+                                </a>
+                                <button type="button" className="usr-btn" onClick={() => downloadIcs(booking, camperName)}>
+                                    <CalendarPlus size={16} aria-hidden="true" /> Añadir al calendario
+                                </button>
+                            </>
+                        )}
+                        {trip.step === 'on-trip' && (
+                            <>
+                                <a href={UTOPIA_TEL} className="usr-btn usr-btn--primary">
+                                    <Phone size={16} aria-hidden="true" /> Llamar a Utopia
+                                </a>
+                                <Link href="/dashboard/manual" className="usr-btn">
+                                    <Compass size={16} aria-hidden="true" /> Manual de la camper
+                                </Link>
+                            </>
+                        )}
+                        {trip.step === 'returned' && (
+                            <Link href={`/campers/${camperSlug}`} className="usr-btn usr-btn--primary">
+                                <Sparkles size={16} aria-hidden="true" /> Reservar de nuevo
+                            </Link>
+                        )}
+                        {trip.step === 'license-fix' && (
+                            <a href="https://wa.me/34611560916" target="_blank" rel="noopener noreferrer" className="usr-btn">
+                                Escribirnos por WhatsApp
+                            </a>
+                        )}
                     </div>
                 </div>
-            )}
+            </section>
 
-            <style jsx>{`
-                .dash-page-wrapper {
-                    display: flex;
-                    flex-direction: column;
-                    gap: var(--space-6);
-                    width: 100%;
-                    max-width: 100%;
-                    min-width: 0;
-                    box-sizing: border-box;
-                }
-                .dash-header {
-                    display: flex;
-                    justify-content: space-between;
-                    align-items: flex-end;
-                    gap: var(--space-6);
-                    flex-wrap: wrap;
-                    padding-bottom: var(--space-4);
-                    border-bottom: 1px solid var(--gray-200);
-                    width: 100%;
-                    box-sizing: border-box;
-                }
-                .dash-title {
-                    font-family: var(--font-heading);
-                    font-size: clamp(1.75rem, 4vw, 2.5rem);
-                    font-weight: 700;
-                    line-height: 1.15;
-                    color: var(--forest-green);
-                }
-                .dash-title-sub {
-                    color: var(--black-matte);
-                    font-weight: 600;
-                    font-size: 0.85em;
-                }
-                .countdown-pill {
-                    display: inline-flex;
-                    align-items: center;
-                    gap: 8px;
-                    background: rgba(200, 168, 130, 0.15);
-                    border: 1px solid rgba(200, 168, 130, 0.4);
-                    color: var(--black-matte);
-                    padding: 8px 16px;
-                    border-radius: var(--radius-full);
-                    font-size: 0.85rem;
-                }
-                .countdown-pill--today {
-                    background: var(--forest-green);
-                    color: var(--sand);
-                    border-color: var(--forest-green);
-                }
+            {/* 3. Detalles, plegados */}
+            <section className="usr-card dash-details">
+                <button
+                    type="button"
+                    className="dash-details__toggle"
+                    aria-expanded={showDetails}
+                    aria-controls="dash-details-panel"
+                    onClick={() => setShowDetails(v => !v)}
+                >
+                    <span>
+                        <strong>Detalles de la reserva</strong>
+                        <span className="dash-details__summary">
+                            Total {formatPrice(Number(booking.total_price || 0))}
+                            {extras.length > 0 ? ` · ${extras.length} ${extras.length === 1 ? 'extra' : 'extras'}` : ''}
+                        </span>
+                    </span>
+                    <ChevronDown size={18} className={`dash-details__chev ${showDetails ? 'is-open' : ''}`} aria-hidden="true" />
+                </button>
+                {showDetails && (
+                    <div id="dash-details-panel" className="dash-details__panel">
+                        <dl className="dash-rows">
+                            <div><dt>Recogida</dt><dd>{fmtLong(booking.start_date)} · {pickupSlot}</dd></div>
+                            <div><dt>Devolución</dt><dd>{fmtLong(booking.end_date)} · {dropoffSlot}</dd></div>
+                            <div><dt>Punto de entrega</dt><dd>{PICKUP.address}</dd></div>
+                            {booking.km_package && (
+                                <div><dt>Kilometraje</dt><dd>{booking.km_package === 'unlimited' ? 'Ilimitado' : '150 km/día'}</dd></div>
+                            )}
+                            {booking.cancellation_policy && (
+                                <div><dt>Cancelación</dt><dd>{booking.cancellation_policy === 'flexible' ? 'Flexible' : 'Estándar'}</dd></div>
+                            )}
+                            <div><dt>Extras</dt><dd>{extras.length > 0 ? extras.join(', ') : 'Sin extras'}</dd></div>
+                            <div><dt>Fianza reembolsable</dt><dd>{formatPrice(Number(booking.deposit_amount || 0))}</dd></div>
+                            <div className="dash-rows__total"><dt>Total del alquiler</dt><dd>{formatPrice(Number(booking.total_price || 0))}</dd></div>
+                        </dl>
+                        <Link href="/dashboard/documentos" className="dash-link">Ver contrato y justificantes</Link>
+                    </div>
+                )}
+            </section>
 
-                .bento-layout {
-                    display: grid;
-                    grid-template-columns: 1.45fr minmax(0, 1fr);
-                    gap: var(--space-6);
-                    width: 100%;
-                    min-width: 0;
-                    box-sizing: border-box;
-                }
-
-                .booking-hero-card {
-                    background: white;
-                    border: 1px solid var(--gray-200);
-                    border-radius: var(--radius-lg);
-                    overflow: hidden;
-                    box-shadow: var(--shadow-sm);
-                    display: flex;
-                    flex-direction: column;
-                    transition: transform 0.3s ease, box-shadow 0.3s ease;
-                    width: 100%;
-                    max-width: 100%;
-                    min-width: 0;
-                    box-sizing: border-box;
-                }
-                .booking-hero-card:hover {
-                    transform: translateY(-2px);
-                    box-shadow: 0 8px 30px rgba(45, 58, 45, 0.08);
-                }
-                .booking-hero-card__img-wrap {
-                    position: relative;
-                    aspect-ratio: 16/9;
-                    background: var(--gray-100);
-                    width: 100%;
-                }
-                .booking-hero-card__img-overlay {
-                    position: absolute;
-                    inset: 0;
-                    background: linear-gradient(to top, rgba(0, 0, 0, 0.65) 0%, transparent 60%);
-                }
-                .booking-hero-card__img-content {
-                    position: absolute;
-                    bottom: var(--space-4);
-                    left: var(--space-4);
-                    right: var(--space-4);
-                    color: white;
-                }
-                .tier-tag {
-                    display: inline-block;
-                    background: rgba(255, 255, 255, 0.9);
-                    color: var(--forest-green);
-                    font-size: 0.65rem;
-                    font-weight: 700;
-                    letter-spacing: 0.1em;
-                    text-transform: uppercase;
-                    padding: 2px 8px;
-                    border-radius: var(--radius-sm);
-                    margin-bottom: 4px;
-                }
-                .camper-overlay-title {
-                    font-family: var(--font-heading);
-                    font-size: 1.75rem;
-                    font-weight: 700;
-                    color: white;
-                    margin: 0;
-                }
-                .camper-overlay-sub {
-                    font-size: 0.85rem;
-                    color: rgba(255, 255, 255, 0.85);
-                    margin: 0;
-                }
-
-                .booking-hero-card__body {
-                    padding: var(--space-6);
-                    display: flex;
-                    flex-direction: column;
-                    justify-content: space-between;
-                    flex: 1;
-                    gap: var(--space-5);
-                    width: 100%;
-                    max-width: 100%;
-                    min-width: 0;
-                    box-sizing: border-box;
-                }
-
-                .trip-header-row {
-                    display: flex;
-                    justify-content: space-between;
-                    align-items: flex-start;
-                    margin-bottom: var(--space-4);
-                    gap: 12px;
-                    width: 100%;
-                    box-sizing: border-box;
-                }
-                .trip-meta-pills {
-                    display: flex;
-                    align-items: center;
-                    gap: 6px;
-                    flex-wrap: wrap;
-                    margin-top: 4px;
-                    width: 100%;
-                }
-                .trip-pill {
-                    background: #f3f4f6;
-                    padding: 2px 8px;
-                    border-radius: 6px;
-                    color: #374151;
-                    font-weight: 600;
-                    font-size: 0.72rem;
-                }
-
-                .status-badge {
-                    padding: 4px 12px;
-                    border-radius: var(--radius-full);
-                    font-size: 0.75rem;
-                    font-weight: 600;
-                    white-space: nowrap;
-                    flex-shrink: 0;
-                }
-                .status-badge--confirmed {
-                    background: var(--forest-green);
-                    color: var(--sand);
-                }
-                .status-badge--pending {
-                    background: rgba(230, 126, 34, 0.15);
-                    color: var(--warning);
-                }
-                .status-badge--paid-pending {
-                    background: #FEF3C7;
-                    color: #92400E;
-                    border: 1px solid #F59E0B;
-                }
-                .status-badge--completed {
-                    background: var(--gray-200);
-                    color: var(--gray-700);
-                }
-                .status-badge--cancelled {
-                    background: #FEE2E2;
-                    color: #991B1B;
-                }
-
-                .paid-pending-banner {
-                    display: flex;
-                    align-items: flex-start;
-                    gap: 10px;
-                    background: #FFFBEB;
-                    border: 1px solid #FDE68A;
-                    border-radius: var(--radius-md);
-                    padding: 10px 14px;
-                    margin-bottom: var(--space-4);
-                    font-size: 0.82rem;
-                    color: #92400E;
-                    line-height: 1.4;
-                }
-
-                .trip-dates-grid {
-                    display: grid;
-                    grid-template-columns: 1fr 1fr;
-                    gap: var(--space-4);
-                    background: var(--gray-50);
-                    border: 1px solid var(--gray-200);
-                    border-radius: var(--radius-md);
-                    padding: var(--space-4);
-                    margin-bottom: var(--space-4);
-                    width: 100%;
-                    box-sizing: border-box;
-                }
-                .date-block {
-                    display: flex;
-                    flex-direction: column;
-                }
-                .date-label {
-                    font-size: 0.7rem;
-                    font-weight: 700;
-                    letter-spacing: 0.06em;
-                    text-transform: uppercase;
-                    color: var(--gray-500);
-                }
-                .date-val {
-                    font-weight: 700;
-                    font-size: 0.95rem;
-                    color: var(--forest-green);
-                    margin: 2px 0;
-                }
-                .date-time {
-                    font-size: 0.75rem;
-                    color: var(--gray-600);
-                }
-
-                .extras-section {
-                    border-top: 1px solid var(--gray-100);
-                    padding-top: var(--space-3);
-                    width: 100%;
-                    box-sizing: border-box;
-                }
-                .extras-chips {
-                    display: flex;
-                    gap: 6px;
-                    flex-wrap: wrap;
-                    width: 100%;
-                }
-                .extra-chip {
-                    font-size: 0.75rem;
-                    font-weight: 500;
-                    padding: 3px 10px;
-                    border-radius: var(--radius-sm);
-                    background: var(--gray-100);
-                    color: var(--gray-800);
-                }
-
-                .price-summary-bar {
-                    display: flex;
-                    justify-content: space-between;
-                    align-items: center;
-                    border-top: 1px solid var(--gray-200);
-                    padding-top: var(--space-4);
-                    width: 100%;
-                    box-sizing: border-box;
-                    gap: 12px;
-                }
-                .price-summary-row {
-                    display: flex;
-                    flex-direction: column;
-                }
-                .price-summary-row--deposit {
-                    text-align: right;
-                    align-items: flex-end;
-                }
-                .price-label {
-                    font-size: 0.7rem;
-                    font-weight: 700;
-                    letter-spacing: 0.04em;
-                    text-transform: uppercase;
-                    color: var(--gray-500);
-                }
-                .price-value--total {
-                    font-weight: 700;
-                    font-size: 1.25rem;
-                    color: var(--forest-green);
-                }
-                .price-value--deposit {
-                    font-weight: 600;
-                    font-size: 1rem;
-                    color: var(--black-matte);
-                }
-
-                .bento-side-col {
-                    display: flex;
-                    flex-direction: column;
-                    gap: var(--space-6);
-                    width: 100%;
-                    min-width: 0;
-                    box-sizing: border-box;
-                }
-                .side-card {
-                    background: white;
-                    border: 1px solid var(--gray-200);
-                    border-radius: var(--radius-lg);
-                    padding: var(--space-6);
-                    box-shadow: var(--shadow-sm);
-                    width: 100%;
-                    max-width: 100%;
-                    min-width: 0;
-                    box-sizing: border-box;
-                }
-                .side-card--accent {
-                    border-color: rgba(200, 168, 130, 0.4);
-                }
-                .side-card__icon-wrap {
-                    width: 36px;
-                    height: 36px;
-                    border-radius: var(--radius-md);
-                    background: rgba(45, 58, 45, 0.08);
-                    display: flex;
-                    align-items: center;
-                    justify-content: center;
-                }
-                .side-card__icon-wrap--sand {
-                    background: rgba(200, 168, 130, 0.2);
-                }
-
-                .driver-rows {
-                    display: flex;
-                    flex-direction: column;
-                    gap: var(--space-3);
-                }
-                .driver-row {
-                    display: flex;
-                    justify-content: space-between;
-                    align-items: center;
-                    padding: 10px 12px;
-                    background: var(--gray-50);
-                    border: 1px solid var(--gray-200);
-                    border-radius: var(--radius-md);
-                    gap: 8px;
-                    flex-wrap: wrap;
-                }
-                .driver-row--dashed {
-                    background: transparent;
-                    border-style: dashed;
-                }
-                .driver-avatar-mini {
-                    width: 28px;
-                    height: 28px;
-                    border-radius: 50%;
-                    background: var(--forest-green);
-                    color: var(--sand);
-                    font-size: 0.75rem;
-                    font-weight: 700;
-                    display: flex;
-                    align-items: center;
-                    justify-content: center;
-                    flex-shrink: 0;
-                }
-                .driver-avatar-mini--dashed {
-                    background: var(--gray-100);
-                }
-                .doc-chip {
-                    display: inline-flex;
-                    align-items: center;
-                    gap: 4px;
-                    font-size: 0.72rem;
-                    font-weight: 600;
-                    padding: 3px 8px;
-                    border-radius: var(--radius-full);
-                }
-                .doc-chip--verified {
-                    background: rgba(39, 174, 96, 0.15);
-                    color: var(--success);
-                }
-                .doc-chip--pending {
-                    background: rgba(52, 152, 219, 0.15);
-                    color: #2980b9;
-                }
-
-
-
-                .empty-adventure-card {
-                    background: white;
-                    border: 1px solid var(--gray-200);
-                    border-radius: var(--radius-lg);
-                    padding: var(--space-16) var(--space-8);
-                    text-align: center;
-                    box-shadow: var(--shadow-sm);
-                }
-                .empty-icon {
-                    font-size: 3.5rem;
-                    line-height: 1;
-                }
-                .empty-state-ctas {
-                    display: flex;
-                    gap: var(--space-3);
-                    justify-content: center;
-                    flex-wrap: wrap;
-                }
-
-                .past-grid {
-                    display: grid;
-                    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-                    gap: var(--space-4);
-                }
-                .past-card {
-                    background: white;
-                    border: 1px solid var(--gray-200);
-                    border-radius: var(--radius-lg);
-                    padding: var(--space-5);
-                    box-shadow: var(--shadow-sm);
-                }
-
-
-
-                /* ── TABLET ── */
-                @media (max-width: 992px) {
-                    .bento-layout {
-                        grid-template-columns: minmax(0, 1fr);
-                        width: 100%;
-                        min-width: 0;
-                    }
-                }
-
-                /* ── MOBILE ── */
-                @media (max-width: 640px) {
-                    .dash-page-wrapper {
-                        gap: var(--space-4);
-                        width: 100%;
-                        max-width: 100%;
-                        overflow-x: hidden;
-                    }
-                    .dash-header {
-                        gap: var(--space-3);
-                        padding-bottom: var(--space-3);
-                    }
-                    .dash-title {
-                        font-size: 1.4rem;
-                    }
-                    .countdown-pill {
-                        width: 100%;
-                        justify-content: center;
-                        font-size: 0.8rem;
-                        padding: 7px 12px;
-                    }
-                    .booking-hero-card__body {
-                        padding: 14px 16px;
-                        gap: 12px;
-                    }
-                    .trip-header-row {
-                        flex-direction: column;
-                        align-items: flex-start;
-                        gap: 10px;
-                    }
-                    .booking-hero-card__img-content {
-                        bottom: 12px;
-                        left: 12px;
-                        right: 12px;
-                    }
-                    .camper-overlay-title {
-                        font-size: 1.35rem;
-                    }
-                    .trip-dates-grid {
-                        grid-template-columns: 1fr;
-                        gap: 10px;
-                        padding: 12px 14px;
-                    }
-                    .date-block:first-child {
-                        border-bottom: 1px dashed var(--gray-200);
-                        padding-bottom: 8px;
-                    }
-                    .date-val {
-                        font-size: 0.88rem;
-                    }
-                    .date-time {
-                        font-size: 0.72rem;
-                    }
-                    .extras-chips {
-                        gap: 4px;
-                    }
-                    .extra-chip {
-                        font-size: 0.7rem;
-                        padding: 2px 8px;
-                    }
-                    .price-summary-bar {
-                        flex-direction: column;
-                        align-items: stretch;
-                        gap: 8px;
-                    }
-                    .price-summary-row {
-                        flex-direction: row;
-                        justify-content: space-between;
-                        align-items: center;
-                        width: 100%;
-                    }
-                    .price-summary-row--deposit {
-                        border-top: 1px dashed var(--gray-200);
-                        padding-top: 8px;
-                        text-align: left;
-                        align-items: center;
-                    }
-
-                    .side-card {
-                        padding: 14px 16px;
-                    }
-                    .past-grid {
-                        grid-template-columns: 1fr;
-                    }
-                    .past-card {
-                        padding: var(--space-4);
-                    }
-                    .paid-pending-banner {
-                        font-size: 0.78rem;
-                        padding: 10px 12px;
-                    }
-                    .empty-state-ctas {
-                        flex-direction: column;
-                        align-items: stretch;
-                    }
-                    .empty-state-ctas :global(.btn) {
-                        justify-content: center;
-                    }
-                    .driver-row {
-                        padding: 8px 10px;
-                    }
-                    .status-badge {
-                        font-size: 0.7rem;
-                        padding: 3px 8px;
-                    }
-                }
-            `}</style>
+            {pastBookings.length > 0 && <PastTrips bookings={pastBookings} />}
+            <DashStyles />
         </div>
+    )
+}
+
+function PastTrips({ bookings }: { bookings: any[] }) {
+    return (
+        <section className="dash-history">
+            <h3 className="dash-history__title">Viajes anteriores</h3>
+            <ul className="usr-card dash-history__list">
+                {bookings.map(b => (
+                    <li key={b.id} className="dash-history__row">
+                        <span className="dash-history__main">
+                            <strong>Camper {b.camper?.name || 'NEO'}</strong>
+                            <span>{fmtDate(b.start_date)} – {fmtDate(b.end_date)} {fmtYear(b.end_date)}</span>
+                        </span>
+                        {b.status === 'cancelled'
+                            ? <span className="usr-chip usr-chip--rose">Cancelado</span>
+                            : <span className="dash-history__price">{formatPrice(Number(b.total_price || 0))}</span>}
+                    </li>
+                ))}
+            </ul>
+        </section>
+    )
+}
+
+function DashStyles() {
+    return (
+        <style jsx global>{`
+            .dash {
+                display: flex;
+                flex-direction: column;
+                gap: 20px;
+                width: 100%;
+                max-width: 880px;
+                min-width: 0;
+                margin: 0 auto;
+            }
+
+            /* ── El viaje ── */
+            .dash-hero {
+                display: grid;
+                grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+                overflow: hidden;
+            }
+            .dash-hero__info {
+                display: flex;
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 6px;
+                padding: 28px 0 24px 30px;
+            }
+            .dash-hero__name {
+                margin: 8px 0 0;
+                font-family: var(--font-heading);
+                font-size: 2rem;
+                font-weight: 700;
+                line-height: 1.05;
+                letter-spacing: -0.03em;
+                color: var(--usr-text);
+            }
+            .dash-hero__dates {
+                display: flex;
+                flex-wrap: wrap;
+                gap: 8px;
+                margin: 4px 0 0;
+                font-size: 1rem;
+                font-weight: 600;
+                color: var(--usr-text);
+                text-transform: capitalize;
+            }
+            .dash-hero__arrow {
+                color: var(--usr-text-3);
+            }
+            .dash-hero__meta {
+                margin: 0;
+                font-size: 0.86rem;
+                color: var(--usr-text-2);
+            }
+            .dash-hero__count {
+                display: flex;
+                align-items: baseline;
+                gap: 8px;
+                margin-top: 14px;
+            }
+            .dash-hero__count strong {
+                font-family: var(--font-heading);
+                font-size: 2.4rem;
+                font-weight: 700;
+                line-height: 1;
+                color: var(--usr-gold-text);
+                font-variant-numeric: tabular-nums;
+            }
+            .dash-hero__count span {
+                font-size: 0.86rem;
+                color: var(--usr-text-2);
+            }
+            .dash-hero__media {
+                position: relative;
+                min-height: 220px;
+                margin: 16px 16px 0 0;
+                border-radius: 16px;
+                /* Panel claro siempre: las fotos de las campers vienen con fondo blanco */
+                background: #FFFFFF;
+            }
+            .user-layout[data-theme='dark'] .dash-hero__media {
+                background: #F4F1EC;
+            }
+            .dash-hero__img {
+                object-fit: contain;
+                padding: 12px;
+            }
+            .user-layout[data-theme='dark'] .dash-hero__img {
+                mix-blend-mode: multiply;
+            }
+
+            .dash-progress {
+                grid-column: 1 / -1;
+                display: grid;
+                grid-template-columns: repeat(4, 1fr);
+                margin: 0;
+                padding: 18px 30px 22px;
+                list-style: none;
+                border-top: 1px solid var(--usr-border);
+                margin-top: 16px;
+            }
+            .dash-progress__item {
+                position: relative;
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                gap: 8px;
+                text-align: center;
+            }
+            .dash-progress__item + .dash-progress__item::before {
+                content: '';
+                position: absolute;
+                top: 11px;
+                right: 50%;
+                width: 100%;
+                height: 2px;
+                background: var(--usr-border);
+                margin-right: 14px;
+                width: calc(100% - 28px);
+            }
+            .dash-progress__item.is-done + .dash-progress__item::before,
+            .dash-progress__item.is-done + .dash-progress__item.is-done::before {
+                background: var(--usr-sage);
+            }
+            .dash-progress__dot {
+                position: relative;
+                z-index: 1;
+                width: 24px;
+                height: 24px;
+                border-radius: 50%;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                background: var(--usr-surface);
+                border: 2px solid var(--usr-border-strong);
+                color: var(--usr-surface);
+            }
+            .dash-progress__item.is-done .dash-progress__dot {
+                background: var(--usr-sage);
+                border-color: var(--usr-sage);
+            }
+            .dash-progress__item.is-current .dash-progress__dot {
+                border-color: var(--usr-gold);
+                box-shadow: 0 0 0 4px var(--usr-gold-soft);
+            }
+            .dash-progress__label {
+                font-size: 0.78rem;
+                font-weight: 600;
+                color: var(--usr-text-3);
+            }
+            .dash-progress__item.is-done .dash-progress__label,
+            .dash-progress__item.is-current .dash-progress__label {
+                color: var(--usr-text);
+            }
+
+            /* ── Siguiente paso ── */
+            .dash-next {
+                display: flex;
+                gap: 18px;
+                padding: 26px 28px;
+                border-left: 4px solid var(--usr-gold);
+            }
+            .dash-next--calm {
+                border-left-color: var(--usr-sky);
+            }
+            .dash-next--done {
+                border-left-color: var(--usr-sage);
+            }
+            .dash-next__icon {
+                width: 48px;
+                height: 48px;
+                border-radius: 14px;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                flex-shrink: 0;
+                background: var(--usr-gold-soft);
+                color: var(--usr-gold-text);
+            }
+            .dash-next--calm .dash-next__icon {
+                background: var(--usr-sky-soft);
+                color: var(--usr-sky);
+            }
+            .dash-next--done .dash-next__icon {
+                background: var(--usr-sage-soft);
+                color: var(--usr-sage);
+            }
+            .dash-next__body {
+                flex: 1;
+                min-width: 0;
+                display: flex;
+                flex-direction: column;
+                gap: 6px;
+            }
+            .dash-next__eyebrow {
+                font-size: 0.7rem;
+                font-weight: 700;
+                letter-spacing: 0.14em;
+                text-transform: uppercase;
+                color: var(--usr-text-3);
+            }
+            .dash-next__title {
+                margin: 0;
+                font-family: var(--font-heading);
+                font-size: 1.35rem;
+                font-weight: 600;
+                letter-spacing: -0.02em;
+                color: var(--usr-text);
+            }
+            .dash-next__text {
+                margin: 0;
+                max-width: 560px;
+                font-size: 0.92rem;
+                line-height: 1.55;
+                color: var(--usr-text-2);
+            }
+            .dash-next__actions {
+                display: flex;
+                flex-wrap: wrap;
+                gap: 10px;
+                margin-top: 10px;
+            }
+            .dash-pickup {
+                display: grid;
+                grid-template-columns: repeat(2, minmax(0, 1fr));
+                gap: 12px;
+                margin: 10px 0 0;
+                padding: 14px 16px;
+                border-radius: 14px;
+                background: var(--usr-surface-2);
+            }
+            .dash-pickup dt {
+                font-size: 0.68rem;
+                font-weight: 700;
+                letter-spacing: 0.12em;
+                text-transform: uppercase;
+                color: var(--usr-text-3);
+            }
+            .dash-pickup dd {
+                margin: 4px 0 0;
+                font-weight: 600;
+                font-size: 0.92rem;
+                color: var(--usr-text);
+            }
+            .dash-pickup dd:first-letter {
+                text-transform: uppercase;
+            }
+            .dash-pickup dd span {
+                display: block;
+                font-weight: 400;
+                font-size: 0.8rem;
+                color: var(--usr-text-2);
+            }
+
+            /* ── Detalles ── */
+            .dash-details {
+                overflow: hidden;
+            }
+            .dash-details__toggle {
+                display: flex;
+                align-items: center;
+                justify-content: space-between;
+                gap: 12px;
+                width: 100%;
+                min-height: 64px;
+                padding: 16px 24px;
+                border: 0;
+                background: transparent;
+                font: inherit;
+                text-align: left;
+                color: var(--usr-text);
+                cursor: pointer;
+            }
+            .dash-details__toggle strong {
+                display: block;
+                font-weight: 600;
+            }
+            .dash-details__summary {
+                font-size: 0.82rem;
+                color: var(--usr-text-3);
+            }
+            .dash-details__chev {
+                color: var(--usr-text-3);
+                transition: transform 200ms var(--ease-out);
+                flex-shrink: 0;
+            }
+            .dash-details__chev.is-open {
+                transform: rotate(180deg);
+            }
+            .dash-details__panel {
+                padding: 0 24px 22px;
+                display: flex;
+                flex-direction: column;
+                gap: 14px;
+                animation: dashReveal 200ms var(--ease-out);
+            }
+            @keyframes dashReveal {
+                from { opacity: 0; transform: translateY(-4px); }
+                to { opacity: 1; transform: none; }
+            }
+            .dash-rows {
+                margin: 0;
+                border-top: 1px solid var(--usr-border);
+            }
+            .dash-rows > div {
+                display: flex;
+                justify-content: space-between;
+                gap: 16px;
+                padding: 11px 0;
+                border-bottom: 1px solid var(--usr-border);
+                font-size: 0.88rem;
+            }
+            .dash-rows dt {
+                color: var(--usr-text-2);
+                flex-shrink: 0;
+            }
+            .dash-rows dd {
+                margin: 0;
+                text-align: right;
+                color: var(--usr-text);
+                font-weight: 500;
+            }
+            .dash-rows dd:first-letter {
+                text-transform: uppercase;
+            }
+            .dash-rows__total {
+                border-bottom: 0 !important;
+            }
+            .dash-rows__total dt,
+            .dash-rows__total dd {
+                font-weight: 700;
+                color: var(--usr-text);
+                font-size: 1rem;
+            }
+            .dash-link {
+                align-self: flex-start;
+                font-size: 0.86rem;
+                font-weight: 600;
+                color: var(--usr-text);
+                text-decoration: underline;
+                text-decoration-color: var(--usr-gold-line);
+                text-underline-offset: 3px;
+            }
+
+            /* ── Sin viaje ── */
+            .dash-empty {
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                text-align: center;
+                gap: 10px;
+                padding: 56px 24px;
+            }
+            .dash-empty__icon {
+                width: 56px !important;
+                height: 56px !important;
+                border-radius: 16px !important;
+                margin-bottom: 6px;
+            }
+            .dash-empty__title {
+                margin: 0;
+                font-family: var(--font-heading);
+                font-size: 1.5rem;
+                font-weight: 600;
+                letter-spacing: -0.02em;
+                color: var(--usr-text);
+            }
+            .dash-empty__text {
+                margin: 0 0 12px;
+                max-width: 440px;
+                color: var(--usr-text-2);
+            }
+            .dash-empty__ctas {
+                display: flex;
+                gap: 10px;
+                flex-wrap: wrap;
+                justify-content: center;
+            }
+
+            /* ── Historial ── */
+            .dash-history {
+                display: flex;
+                flex-direction: column;
+                gap: 10px;
+                margin-top: 8px;
+            }
+            .dash-history__title {
+                margin: 0;
+                font-size: 0.72rem;
+                font-weight: 700;
+                letter-spacing: 0.12em;
+                text-transform: uppercase;
+                color: var(--usr-text-3);
+            }
+            .dash-history__list {
+                margin: 0;
+                padding: 4px 22px;
+                list-style: none;
+            }
+            .dash-history__row {
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                gap: 12px;
+                min-height: 60px;
+                padding: 10px 0;
+            }
+            .dash-history__row + .dash-history__row {
+                border-top: 1px solid var(--usr-border);
+            }
+            .dash-history__main {
+                display: flex;
+                flex-direction: column;
+                min-width: 0;
+            }
+            .dash-history__main strong {
+                font-weight: 600;
+                font-size: 0.92rem;
+                color: var(--usr-text);
+            }
+            .dash-history__main span {
+                font-size: 0.8rem;
+                color: var(--usr-text-3);
+            }
+            .dash-history__price {
+                font-weight: 600;
+                font-size: 0.9rem;
+                color: var(--usr-text-2);
+                font-variant-numeric: tabular-nums;
+            }
+
+            /* ── Móvil ── */
+            @media (max-width: 640px) {
+                .dash-hero {
+                    grid-template-columns: minmax(0, 1fr);
+                }
+                .dash-hero__media {
+                    grid-row: 1;
+                    min-height: 170px;
+                    margin: 12px 12px 0;
+                }
+                .dash-hero__info {
+                    padding: 18px 18px 0;
+                }
+                .dash-hero__name {
+                    font-size: 1.6rem;
+                }
+                .dash-progress {
+                    padding: 16px 8px 18px;
+                }
+                .dash-progress__label {
+                    font-size: 0.72rem;
+                }
+                .dash-next {
+                    flex-direction: column;
+                    gap: 12px;
+                    padding: 20px 18px;
+                    border-left-width: 0;
+                    border-top: 4px solid var(--usr-gold);
+                }
+                .dash-next--calm { border-top-color: var(--usr-sky); }
+                .dash-next--done { border-top-color: var(--usr-sage); }
+                .dash-next__actions {
+                    flex-direction: column;
+                }
+                .dash-next__actions .usr-btn {
+                    width: 100%;
+                }
+                .dash-pickup {
+                    grid-template-columns: minmax(0, 1fr);
+                }
+                .dash-details__toggle {
+                    padding: 14px 18px;
+                }
+                .dash-details__panel {
+                    padding: 0 18px 18px;
+                }
+                .dash-rows > div {
+                    flex-direction: column;
+                    gap: 2px;
+                }
+                .dash-rows dd {
+                    text-align: left;
+                }
+                .dash-empty {
+                    padding: 40px 18px;
+                }
+                .dash-empty__ctas {
+                    flex-direction: column;
+                    align-self: stretch;
+                }
+                .dash-history__list {
+                    padding: 4px 16px;
+                }
+            }
+        `}</style>
     )
 }

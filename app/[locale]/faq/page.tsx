@@ -1,7 +1,7 @@
 import type { Metadata } from 'next'
 import Navbar from '@/components/layout/Navbar'
 import Footer from '@/components/layout/Footer'
-import FAQAccordionList from '@/components/faq/FAQAccordionList'
+import FAQClient from './FAQClient'
 
 export async function generateMetadata({
   params,
@@ -33,11 +33,7 @@ export default function FAQPage() {
   return (
     <>
       <Navbar />
-      <main className="faq-page-main bg-light-cream" style={{ minHeight: '80vh' }}>
-        <div className="container" style={{ paddingBlock: 'var(--space-16) var(--space-20)' }}>
-          <FAQAccordionList />
-        </div>
-      </main>
+      <FAQClient />
       <Footer />
     </>
   )

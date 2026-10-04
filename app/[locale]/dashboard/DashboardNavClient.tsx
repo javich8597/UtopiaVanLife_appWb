@@ -22,6 +22,7 @@ import {
 } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
 import { USER_THEME_COOKIE, type UserTheme } from '@/lib/user/theme'
+import { UserThemeContext } from '@/lib/user/themeContext'
 import './user-shell.css'
 
 interface Props {
@@ -259,7 +260,9 @@ export default function DashboardNavClient({ user, profile, initialTheme = 'ligh
 
       {/* 3. Contenido */}
       <main className="usr-main">
-        <div className="usr-main__inner">{children}</div>
+        <div className="usr-main__inner">
+          <UserThemeContext.Provider value={theme}>{children}</UserThemeContext.Provider>
+        </div>
       </main>
 
       {/* 4. Barra inferior flotante (<= 860px) */}

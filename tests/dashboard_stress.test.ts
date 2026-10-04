@@ -3,7 +3,7 @@ import assert from 'node:assert/strict'
 import { validateDriverLicense } from '../lib/contracts/licenseValidator'
 import { validateContractRequirements, generateContractData } from '../lib/contracts/contractEngine'
 import { generateOfficialContractPdfBlob } from '../lib/contracts/pdfGenerator'
-import { SPOTS_34, WATER_SERVICE_POINTS } from '../app/[locale]/dashboard/guia/MallorcaGuideClient'
+import { GUIDE_SPOTS, GUIDE_ROUTES } from '../lib/guide/mallorcaSpots'
 import { TROUBLESHOOTING_ITEMS } from '../app/[locale]/dashboard/manual/CamperManualClient'
 import { jsPDF } from 'jspdf'
 
@@ -288,83 +288,25 @@ describe('User Area (/dashboard) — Empirical Stress Testing', () => {
   })
 
   describe('Links, Anchor Tags & Coordinates: /dashboard/guia and /dashboard/manual', () => {
-    test('all 35 spots in SPOTS_34 have valid coordinates inside Mallorca geographic bounds', () => {
-      assert.equal(SPOTS_34.length, 35, `Expected 35 spots, got ${SPOTS_34.length}`)
-
-      // Mallorca Bounding Box: Latitude ~39.15 to 40.05, Longitude ~2.30 to 3.55
-      const LAT_MIN = 39.15
-      const LAT_MAX = 40.05
-      const LNG_MIN = 2.30
-      const LNG_MAX = 3.55
-
-      const spotIds = new Set<string>()
-
-      for (const spot of SPOTS_34) {
-        assert.ok(spot.id, 'Spot must have an ID')
-        assert.ok(!spotIds.has(spot.id), `Duplicate spot ID found: ${spot.id}`)
-        spotIds.add(spot.id)
-
-        assert.ok(spot.name && spot.name.trim().length > 0, `Spot ${spot.id} must have a name`)
-        assert.ok(spot.description && spot.description.trim().length > 0, `Spot ${spot.id} must have description`)
-        assert.ok(spot.coordinates, `Spot ${spot.id} must have coordinates`)
-
-        const { lat, lng } = spot.coordinates
-        assert.equal(typeof lat, 'number', `Spot ${spot.id} lat must be a number`)
-        assert.equal(typeof lng, 'number', `Spot ${spot.id} lng must be a number`)
-        assert.ok(!isNaN(lat) && !isNaN(lng), `Spot ${spot.id} lat/lng must not be NaN`)
-
-        assert.ok(
-          lat >= LAT_MIN && lat <= LAT_MAX,
-          `Spot ${spot.id} (${spot.name}) lat ${lat} outside Mallorca bounds [${LAT_MIN}, ${LAT_MAX}]`
-        )
-        assert.ok(
-          lng >= LNG_MIN && lng <= LNG_MAX,
-          `Spot ${spot.id} (${spot.name}) lng ${lng} outside Mallorca bounds [${LNG_MIN}, ${LNG_MAX}]`
-        )
-
-        // Verify googleMapsUrl format
-        assert.ok(
-          spot.googleMapsUrl.startsWith('https://maps.google.com/') || spot.googleMapsUrl.startsWith('https://goo.gl/maps/'),
-          `Spot ${spot.id} has invalid Google Maps URL: ${spot.googleMapsUrl}`
-        )
+    test('all guide spots have unique ids, text, a local photo and coordinates inside Mallorca', () => {
+      const ids = new Set<string>()
+      for (const spot of GUIDE_SPOTS) {
+        assert.ok(!ids.has(spot.id), `Duplicate spot ID found: ${spot.id}`)
+        ids.add(spot.id)
+        assert.ok(spot.name.trim() && spot.summary.trim() && spot.camperTip.trim(), `Spot ${spot.id} must have name, summary and camper tip`)
+        assert.ok(spot.lat >= 39.15 && spot.lat <= 40.05, `Spot ${spot.id} lat ${spot.lat} outside Mallorca`)
+        assert.ok(spot.lng >= 2.3 && spot.lng <= 3.55, `Spot ${spot.id} lng ${spot.lng} outside Mallorca`)
+        assert.ok(spot.image.startsWith('/images/'), `Spot ${spot.id} must use a local image`)
+        if (spot.credit) assert.ok(spot.credit.source.startsWith('https://commons.wikimedia.org/wiki/File:'), `Spot ${spot.id} credit must link to Commons`)
       }
     })
 
-    test('all 6 water service points have valid coordinates inside Mallorca bounds and valid URLs', () => {
-      assert.equal(WATER_SERVICE_POINTS.length, 6, `Expected 6 water points, got ${WATER_SERVICE_POINTS.length}`)
-
-      const LAT_MIN = 39.15
-      const LAT_MAX = 40.05
-      const LNG_MIN = 2.30
-      const LNG_MAX = 3.55
-
-      for (const wp of WATER_SERVICE_POINTS) {
-        assert.ok(wp.name && wp.name.trim().length > 0, `Water point ${wp.id} must have a name`)
-        assert.ok(wp.services && wp.services.length > 0, `Water point ${wp.id} must have services`)
-        const { lat, lng } = wp.coordinates
-        assert.ok(
-          lat >= LAT_MIN && lat <= LAT_MAX,
-          `Water point ${wp.id} lat ${lat} outside bounds [${LAT_MIN}, ${LAT_MAX}]`
-        )
-        assert.ok(
-          lng >= LNG_MIN && lng <= LNG_MAX,
-          `Water point ${wp.id} lng ${lng} outside bounds [${LNG_MIN}, ${LNG_MAX}]`
-        )
-        assert.ok(wp.googleMapsUrl.startsWith('https://maps.google.com/?q='), `Water point ${wp.id} has invalid URL`)
-      }
-    })
-
-    test('all suggested route spot references match existing spot IDs in SPOTS_34', () => {
-      const validSpotIds = new Set(SPOTS_34.map(s => s.id))
-
-      const route1Spots = ['sant-elm-dragonera', 'mirador-des-grau', 'mirador-ses-animes', 'port-valldemossa', 'mirador-sa-foradada', 'soller-santa-catalina', 'sa-calobra-torrent', 'nus-sa-corbata', 'santuari-lluc', 'mirador-colomer']
-      const route2Spots = ['cala-pi-torre', 'far-ses-salines', 'cala-llombards-almunia', 'cala-mondrago', 'cala-varques', 'torre-serral-falcons', 'cuevas-arta-canyamel', 'cala-lliteres-agulla', 'cala-mitjana-duaia', 'betlem-arta', 'son-serra-marina']
-      const route3Spots = ['son-serra-marina', 'parking-la-victoria', 'cami-vell-victoria', 'sant-vicenc-pollença', 'playa-formentor', 'atalaya-albercutx', 'mirador-colomer']
-
-      const allRouteSpots = [...route1Spots, ...route2Spots, ...route3Spots]
-
-      for (const spotId of allRouteSpots) {
-        assert.ok(validSpotIds.has(spotId), `Route references non-existent spot ID: "${spotId}"`)
+    test('all guide route spot references match existing spot IDs', () => {
+      const validSpotIds = new Set(GUIDE_SPOTS.map(s => s.id))
+      for (const route of GUIDE_ROUTES) {
+        for (const spotId of route.spotIds) {
+          assert.ok(validSpotIds.has(spotId), `Route ${route.id} references non-existent spot ID: "${spotId}"`)
+        }
       }
     })
 

@@ -7,6 +7,10 @@ import { isAdminUser } from '@/lib/admin/auth'
 import { actionablePendingFilter } from '@/lib/admin/bookingStatus'
 import { ADMIN_THEME_COOKIE } from '@/lib/admin/theme'
 
+export const metadata = {
+    title: 'Backoffice | Utopia Van Life',
+}
+
 export default async function AdminLayout({
     children,
     params

@@ -61,8 +61,14 @@ export default function BookingDetailModal({ booking, onClose }: Props) {
   const diffTime = Math.abs(endDate.getTime() - startDate.getTime())
   const nights = Math.max(1, Math.round(diffTime / (1000 * 60 * 60 * 24)))
 
-  const pickupTime = booking.pickup_time || '10:00'
-  const dropoffTime = booking.dropoff_time || '18:00'
+  // Puede venir como '10:00' o '10:00 (Mañana)': se muestra '10:00 h · mañana'
+  const formatSlotTime = (value: string) => {
+    const m = value.match(/^(\d{1,2}:\d{2})\s*(?:\((.+)\))?/)
+    if (!m) return value
+    return m[2] ? `${m[1]} h · ${m[2].toLowerCase()}` : `${m[1]} h`
+  }
+  const pickupTime = formatSlotTime(booking.pickup_time || '10:00')
+  const dropoffTime = formatSlotTime(booking.dropoff_time || '18:00')
   const pickupLocation = booking.pickup_location || 'Palma de Mallorca (Aeropuerto PMI / Base Utopia Son Oms)'
   const dropoffLocation = booking.dropoff_location || 'Palma de Mallorca (Aeropuerto PMI / Base Utopia Son Oms)'
 
@@ -267,14 +273,14 @@ export default function BookingDetailModal({ booking, onClose }: Props) {
                   <span className="bm-label">Recogida (Check-in)</span>
                   <div className="bm-val">
                     {startDate.toLocaleDateString('es-ES', { weekday: 'short', day: 'numeric', month: 'long', year: 'numeric' })}
-                    <span className="bm-time-tag"> a las {pickupTime}h</span>
+                    <span className="bm-time-tag"> a las {pickupTime}</span>
                   </div>
                 </div>
                 <div className="bm-field">
                   <span className="bm-label">Devolución (Check-out)</span>
                   <div className="bm-val">
                     {endDate.toLocaleDateString('es-ES', { weekday: 'short', day: 'numeric', month: 'long', year: 'numeric' })}
-                    <span className="bm-time-tag"> a las {dropoffTime}h</span>
+                    <span className="bm-time-tag"> a las {dropoffTime}</span>
                   </div>
                 </div>
                 <div className="bm-field">

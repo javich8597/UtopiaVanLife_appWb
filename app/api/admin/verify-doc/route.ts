@@ -79,7 +79,7 @@ export async function POST(request: Request) {
 
         // 2. Persist to document_validations log table if available
         try {
-            await clientToUse
+            const { error: logErr } = await clientToUse
                 .from('document_validations')
                 .insert({
                     user_id: userId,
@@ -90,6 +90,7 @@ export async function POST(request: Request) {
                     validated_by: user.id,
                     validated_at: new Date().toISOString(),
                 })
+            if (logErr) console.warn('Could not log to document_validations:', logErr.message)
         } catch (docLogErr) {
             console.warn('Could not log to document_validations:', docLogErr)
         }

@@ -180,8 +180,9 @@ export default function CalendarClient({ bookings, campers, blockedDates, blocke
       const camperName = b.campers?.name || 'Camper'
       const clientName = b.customer_name || b.users?.full_name || 'Viajero Utopia'
 
-      const pickupTime = b.pickup_time || '10:00'
-      const dropoffTime = b.dropoff_time || '18:00'
+      // Puede venir como '10:00 (Mañana)': nos quedamos con la hora para no mostrar '10:00 (Mañana)h'
+      const pickupTime = (b.pickup_time || '10:00').match(/\d{1,2}:\d{2}/)?.[0] || '10:00'
+      const dropoffTime = (b.dropoff_time || '18:00').match(/\d{1,2}:\d{2}/)?.[0] || '18:00'
 
       // Exact datetime strings for timeGrid & dayGrid
       const startIso = `${b.start_date}T${pickupTime.length === 5 ? pickupTime : '10:00'}:00`

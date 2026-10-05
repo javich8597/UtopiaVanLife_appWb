@@ -567,7 +567,7 @@ export default function BookingDetailModal({ booking, onClose }: Props) {
         <div className="bm-footer">
           <div className="bm-footer-actions">
             <ApproveActionClient bookingId={booking.id} status={booking.status} />
-            <RefundActionClient bookingId={booking.id} status={booking.status} />
+            <RefundActionClient bookingId={booking.id} status={booking.status} paymentStatus={booking.payment_status} />
           </div>
 
           <button onClick={onClose} className="bm-btn bm-btn--secondary">

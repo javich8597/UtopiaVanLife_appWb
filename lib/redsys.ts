@@ -65,6 +65,10 @@ export function getRedsysConfig(): RedsysConfig {
     // In production, require actual merchant code and secret key
     const merchantCode = process.env.REDSYS_MERCHANT_CODE || (environment === 'production' ? '36935583' : REDSYS_TEST_DEFAULTS.merchantCode)
     const terminal = process.env.REDSYS_TERMINAL || '1'
+    // La clave de pruebas es pública: en producción, usarla permitiría falsificar notificaciones de pago
+    if (environment === 'production' && !process.env.REDSYS_SECRET_KEY) {
+        throw new Error('REDSYS_SECRET_KEY es obligatoria con REDSYS_ENVIRONMENT=production')
+    }
     const secretKey = process.env.REDSYS_SECRET_KEY || REDSYS_TEST_DEFAULTS.secretKey
     const appUrl = (process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000').replace(/\/$/, '')
 

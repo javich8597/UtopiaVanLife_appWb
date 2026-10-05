@@ -42,6 +42,13 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'Reserva no encontrada o no pertenece al usuario.' }, { status: 404 })
     }
 
+    if (booking.status === 'cancelled' || booking.status === 'completed') {
+      return NextResponse.json({ error: 'Esta reserva ya no admite la firma del contrato.' }, { status: 409 })
+    }
+    if (booking.contract_signed_at) {
+      return NextResponse.json({ error: 'El contrato de esta reserva ya está firmado.' }, { status: 409 })
+    }
+
     // 2. Obtener perfil del usuario
     const { data: profile } = await supabase
       .from('users')

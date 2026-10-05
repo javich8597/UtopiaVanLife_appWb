@@ -356,7 +356,7 @@ export default function BookingsClient({ initialBookings }: Props) {
                             <KeyRound size={14} /> Devolución
                           </Link>
                         )}
-                        <RefundActionClient bookingId={b.id} status={b.status} />
+                        <RefundActionClient bookingId={b.id} status={b.status} paymentStatus={b.payment_status} />
                       </div>
                     </td>
                   </tr>

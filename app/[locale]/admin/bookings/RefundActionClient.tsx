@@ -4,13 +4,14 @@ import { useState } from 'react'
 import { Undo2, Loader2, AlertCircle } from 'lucide-react'
 import { useRouter } from 'next/navigation'
 
-export default function RefundActionClient({ bookingId, status }: { bookingId: string, status: string }) {
+export default function RefundActionClient({ bookingId, status, paymentStatus }: { bookingId: string, status: string, paymentStatus?: string | null }) {
     const [isProcessing, setIsProcessing] = useState(false)
     const [error, setError] = useState('')
     const router = useRouter()
 
     const handleRefund = async () => {
-        if (!window.confirm('¿Estás seguro de que deseas cancelar la reserva y tramitar el reembolso en Redsys? Esta acción es irreversible.')) {
+        // El servidor solo cancela y marca como reembolsada: la devolución se hace a mano en el TPV
+        if (!window.confirm('Se cancelará la reserva, se liberarán sus fechas y quedará marcada como reembolsada.\n\nRecuerda hacer la devolución del importe desde el panel del TPV (Redsys). ¿Continuar?')) {
             return
         }
 
@@ -34,8 +35,9 @@ export default function RefundActionClient({ bookingId, status }: { bookingId: s
         }
     }
 
-    // Only allow refunding if it's confirmed or active
-    if (status !== 'confirmed' && status !== 'active') {
+    // Confirmadas, en viaje, o pagadas que aún esperan ser aceptadas
+    const paidAwaiting = status === 'pending' && paymentStatus === 'paid'
+    if (status !== 'confirmed' && status !== 'active' && !paidAwaiting) {
         return null
     }
 

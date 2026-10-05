@@ -352,14 +352,7 @@ export default function DashboardClient({ bookings, profile, user }: Props) {
                     )}
 
                     <div className="dash-next__actions">
-                        {trip.step === 'pay' && (
-                            <Link
-                                href={`/reserva/${camperSlug}?from=${booking.start_date.slice(0, 10)}&to=${booking.end_date.slice(0, 10)}&pax=${travelers || 2}${booking.pickup_time ? `&pickup_time=${booking.pickup_time.slice(0, 5)}` : ''}${booking.dropoff_time ? `&dropoff_time=${booking.dropoff_time.slice(0, 5)}` : ''}`}
-                                className="usr-btn usr-btn--primary"
-                            >
-                                <CreditCard size={16} aria-hidden="true" /> Volver al pago
-                            </Link>
-                        )}
+                        {trip.step === 'pay' && <RetryPaymentButton bookingId={booking.id} />}
                         {(trip.step === 'license' || trip.step === 'license-fix') && (
                             <Link href="/dashboard/profile" className="usr-btn usr-btn--primary">
                                 <IdCard size={16} aria-hidden="true" /> Subir carnet
@@ -446,6 +439,61 @@ export default function DashboardClient({ bookings, profile, user }: Props) {
             {pastBookings.length > 0 && <PastTrips bookings={pastBookings} />}
             <DashStyles />
         </div>
+    )
+}
+
+/** Reintenta el pago de esta misma reserva en Redsys (no crea una nueva) */
+function RetryPaymentButton({ bookingId }: { bookingId: string }) {
+    const [loading, setLoading] = useState(false)
+    const [error, setError] = useState('')
+
+    const pay = async () => {
+        if (loading) return
+        setLoading(true)
+        setError('')
+        try {
+            const res = await fetch(`/api/bookings/${bookingId}/pay`, { method: 'POST' })
+            const data = await res.json()
+            if (!res.ok || !data.form) throw new Error(data.error || 'No se pudo preparar el pago')
+
+            const form = document.createElement('form')
+            form.method = 'POST'
+            form.action = data.form.url
+            const fields: Record<string, string> = {
+                Ds_SignatureVersion: data.form.signatureVersion,
+                Ds_MerchantParameters: data.form.merchantParameters,
+                Ds_Signature: data.form.signature,
+            }
+            for (const [name, value] of Object.entries(fields)) {
+                const input = document.createElement('input')
+                input.type = 'hidden'
+                input.name = name
+                input.value = value
+                form.appendChild(input)
+            }
+            document.body.appendChild(form)
+            form.submit()
+        } catch (e: any) {
+            setError(e.message || 'No se pudo conectar con la pasarela de pago')
+            setLoading(false)
+        }
+    }
+
+    return (
+        <>
+            <button type="button" className="usr-btn usr-btn--primary" onClick={pay} disabled={loading}>
+                <CreditCard size={16} aria-hidden="true" /> {loading ? 'Abriendo el pago…' : 'Volver al pago'}
+            </button>
+            {error && <p className="dash-pay-error" role="alert">{error}</p>}
+            <style jsx>{`
+                .dash-pay-error {
+                    flex-basis: 100%;
+                    margin: 4px 0 0;
+                    font-size: 0.85rem;
+                    color: var(--usr-rose, #c0392b);
+                }
+            `}</style>
+        </>
     )
 }
 

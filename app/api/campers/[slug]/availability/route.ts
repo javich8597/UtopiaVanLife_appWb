@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
+import { getSupabaseAdmin } from '@/lib/supabase/admin'
 import { parseBlockedSlots, parseBlockedRanges } from '@/lib/booking/availability'
 
 interface RouteParams {
@@ -24,8 +25,9 @@ export async function GET(request: Request, { params }: RouteParams) {
 
         const todayIso = new Date().toISOString().split('T')[0]
 
-        // 2. Obtener reservas confirmadas/activas futuras o en curso con sus horas
-        const { data: bookings } = await supabase
+        // 2. Obtener reservas confirmadas/activas futuras o en curso con sus horas.
+        // RLS oculta las reservas ajenas al visitante: se leen en servidor y solo se devuelven fechas
+        const { data: bookings } = await getSupabaseAdmin()
             .from('bookings')
             .select('start_date, pickup_time, end_date, dropoff_time')
             .eq('camper_id', camper.id)

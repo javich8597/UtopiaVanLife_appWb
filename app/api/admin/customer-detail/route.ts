@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server'
 import { createClient as createServerClient } from '@/lib/supabase/server'
 import { isAdminUser, getAdminClientOrSession } from '@/lib/admin/auth'
+import { resolveCustomerDocumentUrls } from '@/lib/admin/documents'
 
 export async function GET(request: Request) {
     try {
@@ -60,41 +61,12 @@ export async function GET(request: Request) {
             .order('created_at', { ascending: false })
 
         // 3. Resolve document URLs from Supabase Storage
-        let dniFrontUrl = null
-        let dniBackUrl = null
-        let licenseFrontUrl = null
-        let licenseBackUrl = null
-
-        try {
-            const { data: files } = await clientToUse.storage.from('documents').list(userId)
-            if (files && files.length > 0) {
-                const findSignedUrl = async (pattern: string) => {
-                    const file = files.filter((f: any) => f.name.includes(pattern)).sort((a: any, b: any) => b.name.localeCompare(a.name))[0]
-                    if (file) {
-                        const { data } = await clientToUse.storage.from('documents').createSignedUrl(`${userId}/${file.name}`, 3600)
-                        return data?.signedUrl || null
-                    }
-                    return null
-                }
-
-                dniFrontUrl = await findSignedUrl('dni_front')
-                dniBackUrl = await findSignedUrl('dni_back')
-                licenseFrontUrl = await findSignedUrl('license_front') || await findSignedUrl('front_')
-                licenseBackUrl = await findSignedUrl('license_back') || await findSignedUrl('back_')
-            }
-        } catch (e) {
-            console.error('Error fetching docs in customer details:', e)
-        }
+        const documents = await resolveCustomerDocumentUrls(clientToUse, userId)
 
         return NextResponse.json({
             user: targetUser,
             bookings: bookings || [],
-            documents: {
-                dniFrontUrl,
-                dniBackUrl,
-                licenseFrontUrl,
-                licenseBackUrl
-            }
+            documents
         })
 
     } catch (error: any) {

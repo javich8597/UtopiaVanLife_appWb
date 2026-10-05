@@ -6,13 +6,34 @@ import { validateDriverLicense } from '@/lib/contracts/licenseValidator'
 export async function POST(request: Request) {
   try {
     const supabase = await createServerClient()
-    const { data: { user }, error: authError } = await supabase.auth.getUser()
+    const { data: { user: sessionUser } } = await supabase.auth.getUser()
+    const formData = await request.formData()
 
-    if (authError || !user) {
-      return NextResponse.json({ error: 'No autorizado' }, { status: 401 })
+    // El checkout no exige sesión: tras pagar en Redsys el cliente llega a /checkout/success sin
+    // haber iniciado sesión. En ese caso se identifica por el pedido de Redsys, solo si es una
+    // reserva reciente y el cliente aún no tiene el carnet validado.
+    let targetUserId: string | null = sessionUser?.id || null
+    if (!targetUserId) {
+      const orderId = String(formData.get('orderId') || '').trim()
+      if (orderId && process.env.SUPABASE_SERVICE_ROLE_KEY) {
+        const admin = getAdminClientOrSession(supabase)
+        const { data: booking } = await admin
+          .from('bookings')
+          .select('user_id, created_at, users (verification_status)')
+          .eq('payment_intent_id', orderId)
+          .maybeSingle()
+        const isRecent = booking?.created_at && Date.now() - new Date(booking.created_at).getTime() < 48 * 60 * 60 * 1000
+        const owner: any = Array.isArray(booking?.users) ? booking?.users[0] : booking?.users
+        if (booking?.user_id && isRecent && owner?.verification_status !== 'verified') {
+          targetUserId = booking.user_id
+        }
+      }
     }
 
-    const formData = await request.formData()
+    if (!targetUserId) {
+      return NextResponse.json({ error: 'Inicia sesión para subir tu documentación.' }, { status: 401 })
+    }
+    const user = { id: targetUserId }
 
     const fullName = formData.get('fullName') as string || ''
     const dniNie = formData.get('dniNie') as string || ''

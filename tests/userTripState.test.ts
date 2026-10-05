@@ -53,6 +53,12 @@ describe('Mi reserva: siguiente paso', () => {
     assert.equal(s.daysToStart, 12)
     assert.equal(daysUntil('2026-10-04', now), 0)
   })
+  it('lee la fecha del viaje como día de calendario, sin desfase horario', () => {
+    // Sea cual sea la zona del proceso, '2026-10-05' es mañana respecto al 4 de octubre local
+    const localNow = new Date(2026, 9, 4, 22, 30)
+    assert.equal(daysUntil('2026-10-05', localNow), 1)
+    assert.equal(daysUntil('2026-10-04', localNow), 0)
+  })
 })
 
 describe('Mi reserva: qué reserva mostrar', () => {

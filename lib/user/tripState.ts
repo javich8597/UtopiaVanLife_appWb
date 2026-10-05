@@ -60,11 +60,16 @@ export function getLicenseState(profile?: TripProfileLike | null): LicenseState 
 
 /** Días naturales hasta el inicio (0 = hoy, negativo = ya empezó) */
 export function daysUntil(dateIso: string, now: Date = new Date()): number {
-  const start = new Date(dateIso)
-  const a = Date.UTC(start.getFullYear(), start.getMonth(), start.getDate())
+  // 'YYYY-MM-DD' es un día de calendario: se lee tal cual (new Date() lo trataría como
+  // medianoche UTC y fuera de Europa daría el día anterior). "Hoy" es el día local del cliente.
+  const [y, m, d] = dateIso.slice(0, 10).split('-').map(Number)
+  const a = Date.UTC(y, m - 1, d)
   const b = Date.UTC(now.getFullYear(), now.getMonth(), now.getDate())
   return Math.round((a - b) / DAY)
 }
+
+const localDayStr = (now: Date) =>
+  `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`
 
 /** Reservas vivas que el cliente debe ver (sin canceladas ni pagos abandonados) */
 export function isLiveBooking(b: TripBookingLike, now: Date = new Date()): boolean {
@@ -77,9 +82,9 @@ export function isLiveBooking(b: TripBookingLike, now: Date = new Date()): boole
 export function pickCurrentBooking<T extends TripBookingLike>(bookings: T[], now: Date = new Date()): T | undefined {
   const live = bookings
     .filter(b => isLiveBooking(b, now))
-    .sort((a, b) => new Date(a.start_date).getTime() - new Date(b.start_date).getTime())
-  const endOfToday = new Date(now.getFullYear(), now.getMonth(), now.getDate()).getTime()
-  return live.find(b => new Date(b.end_date).getTime() >= endOfToday) || live[live.length - 1]
+    .sort((a, b) => a.start_date.localeCompare(b.start_date))
+  const today = localDayStr(now)
+  return live.find(b => b.end_date.slice(0, 10) >= today) || live[live.length - 1]
 }
 
 export function getTripState(booking: TripBookingLike, profile?: TripProfileLike | null, now: Date = new Date()): TripState {

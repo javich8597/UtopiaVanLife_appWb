@@ -110,6 +110,16 @@ export async function POST(req: Request) {
                     })
             }
 
+            // 3. Email con enlace de acceso directo a "Mi reserva" (la cuenta se creó en el checkout
+            //    con una contraseña que el cliente no conoce). Solo la primera vez que se confirma el pago.
+            if (booking.payment_status !== 'paid' && booking.customer_email) {
+                const { error: otpErr } = await supabase.auth.signInWithOtp({
+                    email: booking.customer_email,
+                    options: { shouldCreateUser: false },
+                })
+                if (otpErr) console.warn(`Redsys Webhook: no se pudo enviar el enlace de acceso a la reserva ${booking.id}:`, otpErr.message)
+            }
+
             console.log(`Redsys Webhook: Reserva ${booking.id} pagada y fechas auto-bloqueadas con éxito`)
         } else {
             // Pago fallido o denegado por la pasarela

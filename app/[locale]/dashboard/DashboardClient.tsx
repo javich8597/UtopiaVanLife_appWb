@@ -96,8 +96,10 @@ function parseExtras(raw: any): string[] {
     return []
 }
 
-const fmtDate = (d: string) => new Date(d).toLocaleDateString('es-ES', { weekday: 'short', day: 'numeric', month: 'short' })
-const fmtYear = (d: string) => new Date(d).getFullYear()
+// Las fechas de reserva son 'YYYY-MM-DD' (medianoche UTC): se formatean en UTC para que
+// un cliente fuera de Europa (p. ej. en América) no vea el día anterior
+const fmtDate = (d: string) => new Date(d).toLocaleDateString('es-ES', { weekday: 'short', day: 'numeric', month: 'short', timeZone: 'UTC' })
+const fmtYear = (d: string) => new Date(d).getUTCFullYear()
 
 
 const PICKUP = {
@@ -107,7 +109,7 @@ const PICKUP = {
 }
 const UTOPIA_TEL = 'tel:+34611560916'
 
-const fmtLong = (d: string) => new Date(d).toLocaleDateString('es-ES', { weekday: 'long', day: 'numeric', month: 'long' })
+const fmtLong = (d: string) => new Date(d).toLocaleDateString('es-ES', { weekday: 'long', day: 'numeric', month: 'long', timeZone: 'UTC' })
 
 /** Descarga un .ics con la recogida y la devolución para añadirlas al calendario */
 function downloadIcs(booking: any, camperName: string) {

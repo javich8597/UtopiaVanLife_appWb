@@ -68,7 +68,8 @@ export default function SeasonsSupplementClient({
     setErrorSeasonId(null)
     setSavedSeasonId(null)
 
-    // Optimistic update
+    // Optimistic update (se revierte si falla el guardado)
+    const previousSeasons = seasons
     setSeasons(prev =>
       prev.map(s => (s.id === seasonId ? { ...s, ...updates } : s))
     )
@@ -94,6 +95,7 @@ export default function SeasonsSupplementClient({
       }, 2500)
     } catch (err: any) {
       console.error('Update season error:', err)
+      setSeasons(previousSeasons)
       setErrorSeasonId(seasonId)
     } finally {
       setSavingSeasonId(null)

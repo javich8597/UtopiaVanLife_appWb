@@ -128,10 +128,11 @@ function SuccessContent() {
       formData.append('address', address)
       formData.append('phone', phone)
 
-      formData.append('dniFront', dniFront)
-      formData.append('dniBack', dniBack)
-      formData.append('licenseFront', licenseFront)
-      formData.append('licenseBack', licenseBack)
+      // Mismos nombres que espera /api/upload-driver-docs (antes 'dniFront'… y las fotos se perdían)
+      formData.append('dni_front', dniFront)
+      formData.append('dni_back', dniBack)
+      formData.append('license_front', licenseFront)
+      formData.append('license_back', licenseBack)
 
       const response = await fetch('/api/upload-driver-docs', {
         method: 'POST',
@@ -261,6 +262,10 @@ function SuccessContent() {
           </h2>
           <p className="success-completed-desc">
             El administrador revisará tus datos para aprobar la reserva. En cuanto esté confirmada, tendrás acceso a tu contrato oficial auto-rellenado para firma y descarga.
+          </p>
+          <p className="success-completed-desc">
+            Te hemos enviado un email con un enlace para entrar directamente en tu reserva, sin contraseña.
+            Si no te llega, <Link href="/auth/recuperar">crea tu contraseña aquí</Link> con el email de la reserva.
           </p>
           <div className="success-completed-actions">
             <Link href="/dashboard/documentos" className="btn-gold">

@@ -18,9 +18,12 @@ interface Props {
 
 type Signed = Record<string, { signedAt: string; signature?: string }>
 
-const fmtDay = (d: string) => new Date(d).toLocaleDateString('es-ES', { day: 'numeric', month: 'short', year: 'numeric' })
+// 'YYYY-MM-DD' son fechas de calendario (medianoche UTC): se formatean en UTC para no
+// mostrar el día anterior fuera de Europa. Las marcas de tiempo (firma) van en hora local.
+const dateOnlyTz = (d: string) => (/^\d{4}-\d{2}-\d{2}$/.test(d) ? { timeZone: 'UTC' } : {})
+const fmtDay = (d: string) => new Date(d).toLocaleDateString('es-ES', { day: 'numeric', month: 'short', year: 'numeric', ...dateOnlyTz(d) })
 const fmtRange = (a: string, b: string) =>
-  `${new Date(a).toLocaleDateString('es-ES', { day: 'numeric', month: 'short' })} – ${fmtDay(b)}`
+  `${new Date(a).toLocaleDateString('es-ES', { day: 'numeric', month: 'short', ...dateOnlyTz(a) })} – ${fmtDay(b)}`
 
 function extrasOf(booking: any): string[] {
   const raw = booking?.extras_selected || booking?.extras || booking?.booking_extras

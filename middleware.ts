@@ -48,6 +48,7 @@ export const config = {
   matcher: [
     '/',
     '/(es|en|de|fr)/:path*',
-    '/((?!api|_next/static|_next/image|images|videos|icons|favicon.ico|manifest.json|.*\\.(?:svg|png|jpg|jpeg|gif|webp|json|mov|mp4)$).*)'
+    // auth/callback y auth/confirm son rutas sin idioma (enlaces de email): no deben redirigirse a /es/...
+    '/((?!api|auth/callback|auth/confirm|_next/static|_next/image|images|videos|icons|favicon.ico|manifest.json|.*\\.(?:svg|png|jpg|jpeg|gif|webp|json|mov|mp4)$).*)'
   ]
 };

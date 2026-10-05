@@ -1,6 +1,7 @@
 import { createClient } from '@/lib/supabase/server'
 import { redirect } from '@/i18n/routing'
 import ProfileClient from './ProfileClient'
+import SecurityCard from './SecurityCard'
 import { getAdminClientOrSession } from '@/lib/admin/auth'
 
 export const metadata = {
@@ -43,6 +44,11 @@ export default async function ProfilePage({
     }
 
     return (
-        <ProfileClient user={user} profile={profile} rejectionReason={rejectionReason} />
+        <>
+            <ProfileClient user={user} profile={profile} rejectionReason={rejectionReason} />
+            <div className="profile-security">
+                <SecurityCard />
+            </div>
+        </>
     )
 }

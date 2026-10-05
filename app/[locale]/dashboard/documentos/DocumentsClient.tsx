@@ -2,7 +2,7 @@
 
 import { useMemo, useState } from 'react'
 import { Link } from '@/i18n/routing'
-import { Download, FileSignature, FileText, IdCard, Loader2, ChevronRight, Check, Clock } from 'lucide-react'
+import { Download, FileSignature, FileText, IdCard, Loader2, ChevronRight, Check, Clock, Video, Truck } from 'lucide-react'
 import { generateContractData } from '@/lib/contracts/contractEngine'
 import { generateOfficialContractPdfBlob } from '@/lib/contracts/pdfGenerator'
 import { getLicenseState, pickCurrentBooking } from '@/lib/user/tripState'
@@ -14,6 +14,8 @@ interface Props {
   profile: any
   user: any
   contractTemplate?: any
+  /** Ficha técnica y permiso de circulación de la camper de la reserva actual (URLs firmadas) */
+  vehicleDocs?: { kind: string; url: string }[]
 }
 
 type Signed = Record<string, { signedAt: string; signature?: string }>
@@ -34,7 +36,7 @@ function extrasOf(booking: any): string[] {
     .filter(Boolean)
 }
 
-export default function DocumentsClient({ bookings, profile, user, contractTemplate }: Props) {
+export default function DocumentsClient({ bookings, profile, user, contractTemplate, vehicleDocs = [] }: Props) {
   const [signingBooking, setSigningBooking] = useState<any | null>(null)
   const [signed, setSigned] = useState<Signed>({})
   const [busy, setBusy] = useState<string | null>(null)
@@ -180,6 +182,36 @@ export default function DocumentsClient({ bookings, profile, user, contractTempl
                 </Link>
               </span>
             </li>
+
+            {/* Estado de la camper (vídeos y fotos de la entrega) */}
+            <li className="docs-row">
+              <span className="docs-row__icon"><Video size={20} aria-hidden="true" /></span>
+              <span className="docs-row__text">
+                <strong>Estado de la camper</strong>
+                <span>Vídeos, fotos y kilómetros de la entrega y la devolución</span>
+              </span>
+              <span className="docs-row__actions">
+                <Link href="/dashboard/estado" className="usr-btn">
+                  Ver <ChevronRight size={16} aria-hidden="true" />
+                </Link>
+              </span>
+            </li>
+
+            {/* Documentación del vehículo */}
+            {vehicleDocs.map(doc => (
+              <li key={doc.kind} className="docs-row">
+                <span className="docs-row__icon docs-row__icon--soft"><Truck size={20} aria-hidden="true" /></span>
+                <span className="docs-row__text">
+                  <strong>{doc.kind === 'ficha_tecnica' ? 'Ficha técnica del vehículo' : 'Permiso de circulación'}</strong>
+                  <span>Camper {current.camper?.name || ''}</span>
+                </span>
+                <span className="docs-row__actions">
+                  <a href={doc.url} target="_blank" rel="noopener" className="usr-btn">
+                    <Download size={16} aria-hidden="true" /> Abrir
+                  </a>
+                </span>
+              </li>
+            ))}
           </ul>
         </section>
       ) : (

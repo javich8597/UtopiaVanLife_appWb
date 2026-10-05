@@ -2,6 +2,8 @@ import { redirect } from '@/i18n/routing'
 import { createClient } from '@/lib/supabase/server'
 import DocumentsClient from './DocumentsClient'
 import { validateContractRequirements } from '@/lib/contracts/contractEngine'
+import { getAdminClientOrSession } from '@/lib/admin/auth'
+import { pickCurrentBooking } from '@/lib/user/tripState'
 
 export const metadata = {
   title: 'Documentos & Facturas | Utopia Van Life',
@@ -50,5 +52,17 @@ export default async function DocumentsPage({
   const { getContractTemplate } = await import('@/lib/contracts/templateService')
   const contractTemplate = await getContractTemplate()
 
-  return <DocumentsClient bookings={bookings || []} profile={profile} user={user} contractTemplate={contractTemplate} />
+  // Ficha técnica y permiso de circulación de la camper reservada (solo con la reserva confirmada)
+  const vehicleDocs: { kind: string; url: string }[] = []
+  const current = pickCurrentBooking(bookings || [])
+  if (current && ['confirmed', 'active'].includes(current.status) && current.camper_id) {
+    const db = getAdminClientOrSession(supabase)
+    const { data: docs } = await db.from('camper_documents').select('kind, file_path').eq('camper_id', current.camper_id)
+    for (const d of docs || []) {
+      const { data } = await db.storage.from('vehicle-docs').createSignedUrl(d.file_path, 3600)
+      if (data?.signedUrl) vehicleDocs.push({ kind: d.kind, url: data.signedUrl })
+    }
+  }
+
+  return <DocumentsClient bookings={bookings || []} profile={profile} user={user} contractTemplate={contractTemplate} vehicleDocs={vehicleDocs} />
 }

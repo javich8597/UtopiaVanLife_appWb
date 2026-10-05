@@ -2,7 +2,7 @@
 
 import { useState, useMemo, useEffect } from 'react'
 import { useSearchParams, useRouter } from 'next/navigation'
-import { Search, Eye, Archive, Loader2, X, BookOpen, CheckCircle2, Navigation, Clock, Calendar, BadgeCheck } from 'lucide-react'
+import { Search, Eye, Archive, Loader2, X, BookOpen, CheckCircle2, Navigation, Clock, Calendar, BadgeCheck, KeyRound } from 'lucide-react'
 import { Link } from '@/i18n/routing'
 import { formatPrice } from '@/lib/pricing/engine'
 import { ADMIN_STATUS_LABELS, AdminBookingStatus, getAdminBookingStatus } from '@/lib/admin/bookingStatus'
@@ -346,6 +346,16 @@ export default function BookingsClient({ initialBookings }: Props) {
                           <Eye size={14} /> Ver
                         </button>
                         {(status === 'review' || status === 'pending') && <ApproveActionClient bookingId={b.id} status={b.status} />}
+                        {status === 'confirmed' && (
+                          <Link href={`/admin/entregas/${b.id}` as any} className="adm-btn adm-btn--sm adm-btn--primary">
+                            <KeyRound size={14} /> Entrega
+                          </Link>
+                        )}
+                        {status === 'active' && (
+                          <Link href={`/admin/entregas/${b.id}?tipo=devolucion` as any} className="adm-btn adm-btn--sm adm-btn--primary">
+                            <KeyRound size={14} /> Devolución
+                          </Link>
+                        )}
                         <RefundActionClient bookingId={b.id} status={b.status} />
                       </div>
                     </td>

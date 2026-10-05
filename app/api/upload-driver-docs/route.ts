@@ -1,5 +1,5 @@
-import { createClient } from '@supabase/supabase-js'
 import { NextResponse } from 'next/server'
+import { getAdminClientOrSession } from '@/lib/admin/auth'
 import { createClient as createServerClient } from '@/lib/supabase/server'
 import { validateDriverLicense } from '@/lib/contracts/licenseValidator'
 
@@ -42,11 +42,9 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: validation.warningMessage || 'El carnet de conducir está caducado.' }, { status: 400 })
     }
 
-    // Usamos el Service Role para bypass RLS de Storage y actualización de perfil
-    const supabaseAdmin = createClient(
-      process.env.NEXT_PUBLIC_SUPABASE_URL!,
-      process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-    )
+    // Service Role para bypass RLS de Storage y actualización de perfil
+    // (sin service role, la sesión del propio cliente; nunca la clave anónima sin sesión)
+    const supabaseAdmin = getAdminClientOrSession(supabase)
 
     try {
       await supabaseAdmin.storage.createBucket('documents', { public: false })
@@ -64,11 +62,25 @@ export async function POST(request: Request) {
         .upload(filePath, file, { upsert: true })
       if (error) {
         console.error(`Error subiendo ${prefix}:`, error)
+        throw new Error('No hemos podido subir una de las fotos. Revisa el archivo e inténtalo de nuevo.')
       }
       return filePath
     }
 
-    await Promise.all([
+    // Solo imágenes o PDF de hasta 10 MB
+    const files = [dniFront, dniBack, licenseFront, licenseBack, secondDriverDniFront, secondDriverDniBack, secondDriverLicenseFront, secondDriverLicenseBack]
+    for (const f of files) {
+      if (!f || typeof f === 'string' || f.size === 0) continue
+      const okType = (f.type || '').startsWith('image/') || f.type === 'application/pdf' || /\.(heic|heif)$/i.test(f.name || '')
+      if (!okType) {
+        return NextResponse.json({ error: 'Solo se aceptan fotos (JPG, PNG, HEIC) o PDF.' }, { status: 400 })
+      }
+      if (f.size > 10 * 1024 * 1024) {
+        return NextResponse.json({ error: 'Cada archivo puede pesar como máximo 10 MB.' }, { status: 400 })
+      }
+    }
+
+    const uploaded = await Promise.all([
       uploadFile(dniFront, 'dni_front'),
       uploadFile(dniBack, 'dni_back'),
       uploadFile(licenseFront, 'front'), // 'front' is also compatible with existing verification view
@@ -79,11 +91,28 @@ export async function POST(request: Request) {
       uploadFile(secondDriverLicenseBack, 'second_license_back')
     ])
 
+    // Solo vuelve a revisión si hay fotos nuevas o cambian los datos del carnet/DNI.
+    // Cambiar el teléfono o la dirección no debe quitarle a un cliente la validación.
+    const { data: current } = await supabaseAdmin
+      .from('users')
+      .select('verification_status, dni_nie, driver_license_id, driver_license_issue_date, driver_license_expiry_date')
+      .eq('id', user.id)
+      .maybeSingle()
+    const hasNewFiles = uploaded.some(Boolean)
+    const identityChanged = !!current && (
+      (dniNie && dniNie !== (current.dni_nie || '')) ||
+      (driverLicenseId && driverLicenseId !== (current.driver_license_id || '')) ||
+      (driverLicenseIssueDate && driverLicenseIssueDate !== (current.driver_license_issue_date || '')) ||
+      (driverLicenseExpiryDate && driverLicenseExpiryDate !== (current.driver_license_expiry_date || ''))
+    )
+    const alreadyReviewed = ['verified', 'approved', 'pending_validation', 'pending'].includes(current?.verification_status || '')
+    const needsReview = hasNewFiles || (alreadyReviewed && identityChanged)
+
     // Update user profile in database
     const updatePayload: Record<string, any> = {
-      verification_status: 'pending_validation',
       updated_at: new Date().toISOString()
     }
+    if (needsReview) updatePayload.verification_status = 'pending_validation'
 
     if (fullName) updatePayload.full_name = fullName
     if (dniNie) updatePayload.dni_nie = dniNie
@@ -98,6 +127,8 @@ export async function POST(request: Request) {
       updatePayload.second_driver_name = secondDriverFullName
       updatePayload.second_driver_dni = secondDriverDni
       updatePayload.second_driver_license = secondDriverLicense
+    } else if (formData.get('hasSecondDriver') === 'false') {
+      updatePayload.has_second_driver = false
     }
 
     const { error: updateErr } = await supabaseAdmin
@@ -106,12 +137,14 @@ export async function POST(request: Request) {
       .eq('id', user.id)
 
     if (updateErr) {
-      console.warn('Could not update users table directly, attempting metadata update:', updateErr.message)
+      console.error('Could not update driver profile:', updateErr.message)
+      return NextResponse.json({ error: 'No hemos podido guardar tus datos. Inténtalo de nuevo.' }, { status: 500 })
     }
 
     return NextResponse.json({
       success: true,
       validation,
+      verificationStatus: needsReview ? 'pending_validation' : (current?.verification_status || 'not_submitted'),
       message: 'Documentación y datos de conductor guardados con éxito.'
     })
   } catch (error: any) {

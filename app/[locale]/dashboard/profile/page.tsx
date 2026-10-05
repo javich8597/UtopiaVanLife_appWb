@@ -1,6 +1,12 @@
 import { createClient } from '@/lib/supabase/server'
 import { redirect } from '@/i18n/routing'
 import ProfileClient from './ProfileClient'
+import { getAdminClientOrSession } from '@/lib/admin/auth'
+
+export const metadata = {
+    title: 'Mi perfil | Utopia Van Life',
+    description: 'Tus datos de conductor y la documentación para formalizar el contrato de alquiler.'
+}
 
 export default async function ProfilePage({
     params
@@ -22,7 +28,21 @@ export default async function ProfilePage({
         .eq('id', user.id)
         .maybeSingle()
 
+    // Motivo del último rechazo del carnet, para que el cliente sepa qué corregir
+    let rejectionReason: string | null = profile?.rejection_reason || null
+    if (!rejectionReason && profile?.verification_status === 'rejected') {
+        const { data: lastRejection } = await getAdminClientOrSession(supabase)
+            .from('document_validations')
+            .select('rejected_reason')
+            .eq('user_id', user.id)
+            .eq('status', 'rejected')
+            .order('validated_at', { ascending: false })
+            .limit(1)
+            .maybeSingle()
+        rejectionReason = lastRejection?.rejected_reason || null
+    }
+
     return (
-        <ProfileClient user={user} profile={profile} />
+        <ProfileClient user={user} profile={profile} rejectionReason={rejectionReason} />
     )
 }

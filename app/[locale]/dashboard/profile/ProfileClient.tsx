@@ -2,6 +2,7 @@
 
 import { useState, ChangeEvent } from 'react'
 import { useSearchParams } from 'next/navigation'
+import { useRouter } from '@/i18n/routing'
 import Image from 'next/image'
 import { 
   ShieldCheck, 
@@ -27,6 +28,7 @@ import { validateDriverLicense } from '@/lib/contracts/licenseValidator'
 interface Props {
   user: any
   profile: any
+  rejectionReason?: string | null
 }
 
 interface UploadedFilePreview {
@@ -34,8 +36,9 @@ interface UploadedFilePreview {
   previewUrl: string | null
 }
 
-export default function ProfileClient({ user, profile }: Props) {
+export default function ProfileClient({ user, profile, rejectionReason }: Props) {
   const searchParams = useSearchParams()
+  const router = useRouter()
   const isMissingContractData = searchParams.get('reason') === 'missing_contract_data'
 
   // Datos personales y de conductor principal
@@ -111,8 +114,8 @@ export default function ProfileClient({ user, profile }: Props) {
       if (licenseFront.file) formData.append('license_front', licenseFront.file)
       if (licenseBack.file) formData.append('license_back', licenseBack.file)
 
+      formData.append('hasSecondDriver', hasSecondDriver ? 'true' : 'false')
       if (hasSecondDriver) {
-        formData.append('hasSecondDriver', 'true')
         formData.append('secondDriverFullName', secondDriverFullName)
         formData.append('secondDriverDni', secondDriverDni)
         formData.append('secondDriverLicense', secondDriverLicense)
@@ -131,9 +134,16 @@ export default function ProfileClient({ user, profile }: Props) {
         throw new Error(data.error || 'Error al guardar los datos.')
       }
 
-      setStatus('pending_validation')
+      setStatus(data.verificationStatus || 'pending_validation')
       setSaveSuccess(true)
       setTimeout(() => setSaveSuccess(false), 5000)
+
+      // Si llegó aquí desde Documentos por faltar datos del contrato, devolverle allí
+      if (searchParams.get('redirect') === 'documentos') {
+        router.push('/dashboard/documentos')
+      } else {
+        router.refresh()
+      }
     } catch (err: any) {
       setErrorMessage(err.message || 'Ocurrió un error al guardar.')
     } finally {
@@ -175,7 +185,7 @@ export default function ProfileClient({ user, profile }: Props) {
           {!isVerified && !isPending && (
             <div className="status-pill status-pill--unverified">
               <AlertTriangle size={16} />
-              <span>Documentación pendiente</span>
+              <span>{status === 'rejected' ? 'Documentación rechazada' : 'Documentación pendiente'}</span>
             </div>
           )}
         </div>
@@ -229,13 +239,31 @@ export default function ProfileClient({ user, profile }: Props) {
         </div>
       )}
 
+      {/* Documentación rechazada: qué corregir */}
+      {status === 'rejected' && !saveSuccess && (
+        <div className="alert-box alert-box--error">
+          <AlertTriangle size={20} className="alert-icon" />
+          <div>
+            <strong>No hemos podido validar tu documentación</strong>
+            <p>
+              {rejectionReason ? `Motivo: ${rejectionReason}. ` : ''}
+              Corrige los datos o vuelve a subir las fotos y guarda de nuevo.
+            </p>
+          </div>
+        </div>
+      )}
+
       {/* Feedback Alerts */}
       {saveSuccess && (
         <div className="alert-box alert-box--success">
           <CheckCircle2 size={20} className="alert-icon" />
           <div>
-            <strong>Documentación guardada con éxito</strong>
-            <p>Hemos recibido tus datos y archivos. Nuestro equipo validará el carnet en breve.</p>
+            <strong>Datos guardados</strong>
+            <p>
+              {status === 'pending_validation'
+                ? 'Nuestro equipo revisará tu documentación en breve.'
+                : 'Tus cambios ya están guardados.'}
+            </p>
           </div>
         </div>
       )}

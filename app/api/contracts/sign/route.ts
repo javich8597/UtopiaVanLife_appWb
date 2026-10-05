@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server'
 import { createClient as createServerClient } from '@/lib/supabase/server'
-import { createClient as createAdminClient } from '@supabase/supabase-js'
+import { getAdminClientOrSession } from '@/lib/admin/auth'
 import { generateContractData, validateContractRequirements } from '@/lib/contracts/contractEngine'
 import { generateOfficialContractPdfBlob } from '@/lib/contracts/pdfGenerator'
 
@@ -66,22 +66,21 @@ export async function POST(request: Request) {
     const { getContractTemplate } = await import('@/lib/contracts/templateService')
     const activeTemplate = await getContractTemplate()
     const contractData = generateContractData(booking, profile, undefined, activeTemplate)
-    const { buffer, doc } = await generateOfficialContractPdfBlob(contractData, signatureDataUrl)
+    const { buffer } = await generateOfficialContractPdfBlob(contractData, signatureDataUrl)
 
     // 5. Conexión de administración para almacenamiento y bypass RLS
-    const supabaseAdmin = createAdminClient(
-      process.env.NEXT_PUBLIC_SUPABASE_URL!,
-      process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-    )
+    //    (sin service role, la sesión del propio cliente; nunca la clave anónima sin sesión)
+    const supabaseAdmin = getAdminClientOrSession(supabase)
 
-    // Asegurar que el bucket documents existe
+    // Asegurar que el bucket documents existe (privado: contiene DNI y contratos)
     try {
-      await supabaseAdmin.storage.createBucket('documents', { public: true })
+      await supabaseAdmin.storage.createBucket('documents', { public: false })
     } catch {
       // Ignorar si ya existe
     }
 
-    // Subir el PDF a Supabase Storage
+    // Archivar el PDF firmado. El bucket es privado, así que no guardamos una URL pública
+    // (daría "Bucket not found"); el cliente regenera el PDF a partir de la firma guardada.
     const storagePath = `contracts/${bookingId}_contrato_firmado.pdf`
     const { error: uploadError } = await supabaseAdmin.storage
       .from('documents')
@@ -89,41 +88,38 @@ export async function POST(request: Request) {
         contentType: 'application/pdf',
         upsert: true
       })
-
-    let pdfUrl = ''
-    if (!uploadError) {
-      const { data: urlData } = supabaseAdmin.storage.from('documents').getPublicUrl(storagePath)
-      pdfUrl = urlData?.publicUrl || ''
-    } else {
+    if (uploadError) {
       console.warn('Could not upload contract PDF to Storage:', uploadError.message)
     }
 
     const signedAt = new Date().toISOString()
 
-    // 6. Actualizar la reserva con la firma y el enlace al contrato
+    // 6. Actualizar la reserva con la firma
     const updatePayload: Record<string, any> = {
       contract_signed_at: signedAt,
       contract_signature: signatureDataUrl,
       updated_at: signedAt
     }
-    if (pdfUrl) {
-      updatePayload.contract_pdf_url = pdfUrl
-    }
 
-    const { error: updateErr } = await supabaseAdmin
+    const { data: updated, error: updateErr } = await supabaseAdmin
       .from('bookings')
       .update(updatePayload)
       .eq('id', bookingId)
+      .select('id')
 
-    if (updateErr) {
-      console.warn('Could not update booking contract fields directly:', updateErr.message)
+    // Sin la firma guardada el contrato no cuenta como firmado: no responder éxito.
+    if (updateErr || !updated || updated.length === 0) {
+      console.error('Could not save contract signature:', updateErr?.message || 'sin filas actualizadas')
+      return NextResponse.json(
+        { error: 'No hemos podido guardar tu firma. Inténtalo de nuevo o escríbenos.' },
+        { status: 500 }
+      )
     }
 
     return NextResponse.json({
       success: true,
       message: 'Contrato formalizado y firmado con éxito.',
       signedAt,
-      pdfUrl,
       contractNumber: contractData.contractNumber
     })
   } catch (err: any) {

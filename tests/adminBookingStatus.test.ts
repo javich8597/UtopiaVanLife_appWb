@@ -1,6 +1,6 @@
 import { describe, it } from 'node:test'
 import assert from 'node:assert/strict'
-import { isAbandonedPending, getAdminBookingStatus, livePendingSince } from '../lib/admin/bookingStatus'
+import { isAbandonedPending, getAdminBookingStatus, livePendingSince, actionablePendingFilter } from '../lib/admin/bookingStatus'
 
 describe('Admin booking status (reservas abandonadas)', () => {
   const now = new Date('2026-10-03T20:00:00Z')
@@ -17,12 +17,19 @@ describe('Admin booking status (reservas abandonadas)', () => {
   })
 
   it('never expires paid or non-pending bookings', () => {
-    assert.equal(getAdminBookingStatus({ status: 'pending', payment_status: 'paid', created_at: '2026-01-01' }, now), 'pending')
+    assert.equal(getAdminBookingStatus({ status: 'pending', payment_status: 'paid', created_at: '2026-01-01' }, now), 'review')
     assert.equal(getAdminBookingStatus({ status: 'confirmed', created_at: '2026-01-01' }, now), 'confirmed')
+  })
+
+  it('treats paid pending bookings as awaiting confirmation, not as unpaid', () => {
+    const fresh = { status: 'pending', payment_status: 'paid', created_at: '2026-10-03T19:50:00Z' }
+    assert.equal(getAdminBookingStatus(fresh, now), 'review')
+    assert.equal(isAbandonedPending(fresh, now), false)
   })
 
   it('exposes the cutoff for live pending queries', () => {
     assert.equal(livePendingSince(now), '2026-10-03T19:00:00.000Z')
+    assert.equal(actionablePendingFilter(now), 'payment_status.eq.paid,created_at.gte.2026-10-03T19:00:00.000Z')
   })
 })
 

@@ -372,6 +372,7 @@
 .dsh-dot--sage { background: var(--adm-sage); }
 .dsh-dot--amber { background: var(--adm-amber); }
 .dsh-dot--rose { background: var(--adm-rose); }
+.dsh-dot--sky { background: var(--adm-sky); }
 .dsh-dot--neutral { background: var(--adm-text-3); }
 
 /* ---------- Flota ahora ---------- */

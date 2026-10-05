@@ -16,7 +16,7 @@ interface Props {
   contractTemplate?: any
 }
 
-type Signed = Record<string, { signedAt: string; pdfUrl?: string }>
+type Signed = Record<string, { signedAt: string; signature?: string }>
 
 const fmtDay = (d: string) => new Date(d).toLocaleDateString('es-ES', { day: 'numeric', month: 'short', year: 'numeric' })
 const fmtRange = (a: string, b: string) =>
@@ -53,13 +53,10 @@ export default function DocumentsClient({ bookings, profile, user, contractTempl
     setBusy(`ctr-${b.id}`)
     setError(null)
     try {
-      const pdfUrl = signed[b.id]?.pdfUrl || b.contract_pdf_url
-      if (pdfUrl) {
-        window.open(pdfUrl, '_blank', 'noopener')
-        return
-      }
+      // El PDF archivado está en un bucket privado: lo regeneramos con la firma guardada.
+      const signature = signed[b.id]?.signature || b.contract_signature
       const data = generateContractData(b, safeProfile, undefined, contractTemplate)
-      const { doc } = await generateOfficialContractPdfBlob(data, b.contract_signature)
+      const { doc } = await generateOfficialContractPdfBlob(data, signature)
       doc.save(`${data.contractNumber}_contrato.pdf`)
     } catch {
       setError('No hemos podido generar el PDF. Inténtalo de nuevo o escríbenos.')
@@ -227,7 +224,7 @@ export default function DocumentsClient({ bookings, profile, user, contractTempl
           profile={safeProfile}
           contractTemplate={contractTemplate}
           onClose={() => setSigningBooking(null)}
-          onSigned={(at, pdfUrl) => setSigned(prev => ({ ...prev, [signingBooking.id]: { signedAt: at, pdfUrl } }))}
+          onSigned={(at, signature) => setSigned(prev => ({ ...prev, [signingBooking.id]: { signedAt: at, signature } }))}
         />
       )}
 

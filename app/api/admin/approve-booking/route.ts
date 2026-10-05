@@ -41,16 +41,22 @@ export async function POST(request: Request) {
 
     const targetStatus = action === 'approve' ? 'confirmed' : 'cancelled'
 
-    const { error: updateErr } = await clientToUse
+    // Solo se aprueban o rechazan reservas pendientes (nunca reabrir una cancelada o reembolsada)
+    const { data: updated, error: updateErr } = await clientToUse
       .from('bookings')
       .update({
         status: targetStatus,
         updated_at: new Date().toISOString()
       })
       .eq('id', bookingId)
+      .eq('status', 'pending')
+      .select('id')
 
     if (updateErr) {
       throw new Error(`Error al actualizar la reserva: ${updateErr.message}`)
+    }
+    if (!updated || updated.length === 0) {
+      return NextResponse.json({ error: 'La reserva ya no está pendiente. Recarga la página.' }, { status: 409 })
     }
 
     return NextResponse.json({

@@ -3,7 +3,7 @@ import { createClient as createAdminClient } from '@supabase/supabase-js'
 import { ShieldAlert, ShieldCheck, ShieldX, PlaneTakeoff } from 'lucide-react'
 import AdminPageHeader from '../AdminPageHeader'
 import AdminStatTiles from '../AdminStatTiles'
-import { normalizeVerificationStatus } from '@/lib/admin/auth'
+import { normalizeVerificationStatus, getAdminClientOrSession } from '@/lib/admin/auth'
 import VerificationsClient from './VerificationsClient'
 import VerificationHistory from './VerificationHistory'
 
@@ -29,6 +29,24 @@ export default async function AdminVerificationsPage() {
         .in('verification_status', ['verified', 'approved', 'rejected'])
         .order('created_at', { ascending: false })
         .limit(100)
+
+    // El motivo del rechazo vive en document_validations (users puede no tener rejection_reason)
+    const rejectedIds = (reviewedUsers || [])
+        .filter((u: any) => normalizeVerificationStatus(u.verification_status) === 'rejected' && !u.rejection_reason)
+        .map((u: any) => u.id)
+    const { data: rejections, error: rejectionsErr } = rejectedIds.length > 0
+        ? await getAdminClientOrSession(supabase)
+            .from('document_validations')
+            .select('user_id, rejected_reason, validated_at')
+            .in('user_id', rejectedIds)
+            .eq('status', 'rejected')
+            .order('validated_at', { ascending: false })
+        : { data: [] as any[], error: null }
+    if (rejectionsErr) console.warn('No se pudieron leer los motivos de rechazo:', rejectionsErr.message)
+    const historyUsers = (reviewedUsers || []).map((u: any) => ({
+        ...u,
+        rejection_reason: u.rejection_reason || (rejections || []).find((r: any) => r.user_id === u.id)?.rejected_reason || null,
+    }))
 
     // Próxima salida de cada cliente pendiente, para validar primero a quien sale antes
     const todayStr = new Date().toISOString().split('T')[0]
@@ -118,7 +136,7 @@ export default async function AdminVerificationsPage() {
 
             <VerificationsClient initialUsers={usersWithDocs} />
 
-            <VerificationHistory users={reviewedUsers || []} />
+            <VerificationHistory users={historyUsers} />
         </div>
     )
 }

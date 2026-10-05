@@ -1,6 +1,6 @@
 import createMiddleware from 'next-intl/middleware';
 import { routing } from './i18n/routing';
-import { NextRequest } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server';
 import { createServerClient } from '@supabase/ssr';
 
 const handleI18nRouting = createMiddleware(routing);
@@ -29,7 +29,17 @@ export async function middleware(request: NextRequest) {
   );
 
   // 3. Refresh auth session
-  await supabase.auth.getUser();
+  const { data: { user } } = await supabase.auth.getUser();
+
+  // 4. Zonas privadas sin sesión: al login conservando la página pedida
+  //    (los layouts solo conocen la raíz y mandaban siempre a /dashboard o /admin).
+  const privateMatch = request.nextUrl.pathname.match(/^\/(es|en|de|fr)(\/(?:dashboard|admin)(?:\/.*)?)$/);
+  if (!user && privateMatch) {
+    const [, locale, privatePath] = privateMatch;
+    const loginUrl = new URL(`/${locale}/auth/login`, request.url);
+    loginUrl.searchParams.set('redirect', privatePath + request.nextUrl.search);
+    return NextResponse.redirect(loginUrl);
+  }
 
   return response;
 }

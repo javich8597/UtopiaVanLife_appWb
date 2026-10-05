@@ -23,7 +23,7 @@ interface Props {
   booking: any
   profile: any
   onClose: () => void
-  onSigned: (signedAt: string, pdfUrl: string) => void
+  onSigned: (signedAt: string, signatureDataUrl: string) => void
   contractTemplate?: any
 }
 
@@ -163,7 +163,6 @@ export default function ContractSignModal({ booking, profile, onClose, onSigned,
     try {
       const signatureDataUrl = canvas.toDataURL('image/png')
       let signedAt = new Date().toISOString()
-      let pdfUrl = ''
 
       try {
         const res = await fetch('/api/contracts/sign', {
@@ -178,7 +177,6 @@ export default function ContractSignModal({ booking, profile, onClose, onSigned,
         const data = await res.json()
         if (res.ok) {
           signedAt = data.signedAt || signedAt
-          pdfUrl = data.pdfUrl || ''
         } else if (!booking.id?.startsWith('bk-')) {
           throw new Error(data.error || 'Error al registrar la firma del contrato.')
         }
@@ -196,7 +194,7 @@ export default function ContractSignModal({ booking, profile, onClose, onSigned,
         console.warn('Auto download error:', pdfErr)
       }
 
-      onSigned(signedAt, pdfUrl)
+      onSigned(signedAt, signatureDataUrl)
       onClose()
     } catch (err: any) {
       setErrorMsg(err.message || 'Error de conexión al firmar el contrato.')

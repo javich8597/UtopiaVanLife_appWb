@@ -163,6 +163,10 @@ export default function GuideMap({ spots, selectedId, onSelect, routeIds, dark =
     const L = leafletRef.current
     const map = mapRef.current
     if (!L || !map) return
+    // Con el mapa sin tamaño (oculto o aún sin maquetar) flyToBounds lanza "Invalid LatLng (NaN, NaN)"
+    map.invalidateSize()
+    const size = map.getSize()
+    if (!size.x || !size.y) return
     if (ordered.length > 1) {
       map.flyToBounds(L.latLngBounds(ordered.map(s => [s.lat, s.lng] as [number, number])), { padding: [28, 28], maxZoom: 11, duration: 0.6 })
     } else {

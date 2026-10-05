@@ -103,6 +103,24 @@
   border-radius: 8px;
 }
 
+/* ---------- Campos de formulario ---------- */
+.adm-input {
+  width: 100%;
+  min-height: 44px;
+  padding: 10px 12px;
+  border-radius: 10px;
+  border: 1px solid var(--adm-border);
+  background: var(--adm-surface);
+  color: var(--adm-text);
+  font: inherit;
+  font-size: 1rem; /* 16px: evita el zoom automático de iOS */
+}
+.adm-input:focus {
+  outline: none;
+  border-color: var(--adm-gold-fill);
+  box-shadow: 0 0 0 3px var(--adm-gold-soft);
+}
+
 /* ---------- Tarjeta ---------- */
 .adm-card {
   background: var(--adm-surface);

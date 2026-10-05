@@ -867,6 +867,12 @@
   color: var(--usr-text-2);
 }
 
+/* Bloque de seguridad bajo el perfil (mismo ancho que el formulario) */
+.profile-security {
+  max-width: 880px;
+  margin: 24px auto 0;
+}
+
 .usr-card {
   background: var(--usr-surface);
   border: 1px solid var(--usr-card-border);

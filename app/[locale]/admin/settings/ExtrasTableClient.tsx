@@ -1,6 +1,7 @@
 'use client'
 
 import React, { useState } from 'react'
+import { useBodyScrollLock } from '@/lib/ui/useBodyScrollLock'
 import {
   Sparkles,
   Plus,
@@ -79,6 +80,7 @@ export default function ExtrasTableClient({ initialExtras }: Props) {
 
   // Delete State
   const [extraToDelete, setExtraToDelete] = useState<ExtraItem | null>(null)
+  useBodyScrollLock(isModalOpen || Boolean(extraToDelete))
   const [isDeleting, setIsDeleting] = useState(false)
   const [togglingId, setTogglingId] = useState<string | null>(null)
 

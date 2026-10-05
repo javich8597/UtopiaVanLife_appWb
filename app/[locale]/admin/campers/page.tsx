@@ -1,5 +1,7 @@
 import { createClient } from '@/lib/supabase/server'
 import CampersClient from './CampersClient'
+import VehicleDocsClient from './VehicleDocsClient'
+import { getAdminClientOrSession } from '@/lib/admin/auth'
 import { calculateFleetLiveStatus, calculateFleetOccupancy } from '@/lib/admin/dashboardMetrics'
 
 export default async function AdminCampersPage() {
@@ -37,5 +39,21 @@ export default async function AdminCampersPage() {
     const live = calculateFleetLiveStatus(campers || [], liveBookings || [], occupancy, now)
     const liveStatus = Object.fromEntries(live.map(l => [l.id, l]))
 
-    return <CampersClient initialCampers={campersWithPricing} liveStatus={liveStatus} />
+    // Documentación de cada vehículo (bucket privado: URLs firmadas)
+    const db = getAdminClientOrSession(supabase)
+    const { data: docs } = await db.from('camper_documents').select('camper_id, kind, file_path, file_name, uploaded_at')
+    const docsByCamper: Record<string, any[]> = {}
+    for (const d of docs || []) {
+        const { data } = await db.storage.from('vehicle-docs').createSignedUrl(d.file_path, 3600)
+        ;(docsByCamper[d.camper_id] ||= []).push({ ...d, url: data?.signedUrl || null })
+    }
+
+    return (
+        <>
+            <CampersClient initialCampers={campersWithPricing} liveStatus={liveStatus} />
+            <div className="adm-page">
+                <VehicleDocsClient campers={(campers || []).map((c: any) => ({ id: c.id, name: c.name }))} initialDocs={docsByCamper} />
+            </div>
+        </>
+    )
 }

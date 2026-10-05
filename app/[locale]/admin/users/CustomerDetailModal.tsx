@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
+import { useBodyScrollLock } from '@/lib/ui/useBodyScrollLock'
 import Image from 'next/image'
 import {
   X,
@@ -39,6 +40,7 @@ export default function CustomerDetailModal({
   const [data, setData] = useState<{ user: any; bookings: any[]; documents: any } | null>(null)
   const [actionLoading, setActionLoading] = useState(false)
   const [zoomImage, setZoomImage] = useState<string | null>(null)
+  useBodyScrollLock()
 
   useEffect(() => {
     if (!userId) return
@@ -644,7 +646,7 @@ export default function CustomerDetailModal({
 
         .cd-grid {
           display: grid;
-          grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+          grid-template-columns: repeat(auto-fit, minmax(min(320px, 100%), 1fr));
           gap: 16px;
         }
         .cd-grid--3 {

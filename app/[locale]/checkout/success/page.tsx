@@ -264,8 +264,8 @@ function SuccessContent() {
             El administrador revisará tus datos para aprobar la reserva. En cuanto esté confirmada, tendrás acceso a tu contrato oficial auto-rellenado para firma y descarga.
           </p>
           <p className="success-completed-desc">
-            ¿Es tu primera reserva? Tu cuenta se ha creado con el email de la reserva:{' '}
-            <Link href="/auth/recuperar">crea tu contraseña aquí</Link> para entrar en tu área.
+            Te hemos enviado un email con un enlace para entrar directamente en tu reserva, sin contraseña.
+            Si no te llega, <Link href="/auth/recuperar">crea tu contraseña aquí</Link> con el email de la reserva.
           </p>
           <div className="success-completed-actions">
             <Link href="/dashboard/documentos" className="btn-gold">

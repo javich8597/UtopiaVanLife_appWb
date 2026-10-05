@@ -1,6 +1,7 @@
 'use client'
 
 import React, { useState } from 'react'
+import { useBodyScrollLock } from '@/lib/ui/useBodyScrollLock'
 import {
   Calendar,
   Plus,
@@ -49,6 +50,7 @@ export default function SeasonsSupplementClient({
 
   // Add Period Modal state
   const [isAddModalOpen, setIsAddModalOpen] = useState(false)
+  useBodyScrollLock(isAddModalOpen)
   const [modalSeasonId, setModalSeasonId] = useState<string>('')
   const [periodStartDate, setPeriodStartDate] = useState('')
   const [periodEndDate, setPeriodEndDate] = useState('')
@@ -262,7 +264,7 @@ export default function SeasonsSupplementClient({
           </span>
         </div>
 
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: 'var(--space-4)' }}>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(280px, 100%), 1fr))', gap: 'var(--space-4)' }}>
           {campers.map(camper => {
             const basePrice = Number(camper.base_price_per_night) || 120
             return (
@@ -642,7 +644,7 @@ export default function SeasonsSupplementClient({
                   <div
                     style={{
                       display: 'grid',
-                      gridTemplateColumns: 'repeat(auto-fill, minmax(320px, 1fr))',
+                      gridTemplateColumns: 'repeat(auto-fill, minmax(min(320px, 100%), 1fr))',
                       gap: '10px',
                     }}
                   >

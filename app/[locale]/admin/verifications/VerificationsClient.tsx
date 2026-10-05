@@ -1,6 +1,7 @@
 'use client'
 
 import React, { useState } from 'react'
+import { useBodyScrollLock } from '@/lib/ui/useBodyScrollLock'
 import {
   Check,
   X,
@@ -59,6 +60,7 @@ export default function VerificationsClient({ initialUsers }: Props) {
 
   // Rejection Dialog state
   const [rejectingUser, setRejectingUser] = useState<UserWithDocs | null>(null)
+  useBodyScrollLock(Boolean(zoomDoc || rejectingUser))
   const [selectedReason, setSelectedReason] = useState<string>(PREDEFINED_REASONS[0])
   const [customReason, setCustomReason] = useState<string>('')
   const [isRejecting, setIsRejecting] = useState(false)

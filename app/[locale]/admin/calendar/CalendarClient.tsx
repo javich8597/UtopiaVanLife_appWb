@@ -1357,7 +1357,7 @@ export default function CalendarClient({ bookings, campers, blockedDates, blocke
         /* Annual (Year) 12-Month Grid Styles */
         .gcal-year-grid {
           display: grid;
-          grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+          grid-template-columns: repeat(auto-fit, minmax(min(260px, 100%), 1fr));
           gap: 20px;
           padding: 8px 0;
         }

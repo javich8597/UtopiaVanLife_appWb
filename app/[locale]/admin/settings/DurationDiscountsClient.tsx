@@ -1,6 +1,7 @@
 'use client'
 
 import React, { useState } from 'react'
+import { useBodyScrollLock } from '@/lib/ui/useBodyScrollLock'
 import {
   Percent,
   Plus,
@@ -31,6 +32,7 @@ export default function DurationDiscountsClient({ initialDiscounts }: Props) {
 
   // Modal Create/Edit states
   const [isModalOpen, setIsModalOpen] = useState(false)
+  useBodyScrollLock(isModalOpen)
   const [editingDiscount, setEditingDiscount] = useState<DurationDiscount | null>(null)
   const [formMinDays, setFormMinDays] = useState(7)
   const [formDiscountPct, setFormDiscountPct] = useState(10)

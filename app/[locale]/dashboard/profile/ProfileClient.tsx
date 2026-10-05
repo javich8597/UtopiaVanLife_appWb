@@ -944,7 +944,7 @@ export default function ProfileClient({ user, profile, rejectionReason }: Props)
 
         .form-grid-3 {
           display: grid;
-          grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+          grid-template-columns: repeat(auto-fit, minmax(min(220px, 100%), 1fr));
           gap: var(--space-5);
         }
 

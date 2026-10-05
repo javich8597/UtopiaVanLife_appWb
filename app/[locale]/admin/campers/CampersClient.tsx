@@ -1,6 +1,7 @@
 'use client'
 
 import type { CamperLiveStatus } from '@/lib/admin/dashboardMetrics'
+import { useBodyScrollLock } from '@/lib/ui/useBodyScrollLock'
 import AdminPageHeader from '../AdminPageHeader'
 import AdminStatTiles from '../AdminStatTiles'
 import { Eye as EyeIcon, Wrench as WrenchIcon, Navigation as NavIcon, Gauge } from 'lucide-react'
@@ -122,6 +123,7 @@ export default function CampersClient({ initialCampers, liveStatus = {} }: Props
 
   // Delete Modal State
   const [camperToDelete, setCamperToDelete] = useState<CamperItem | null>(null)
+  useBodyScrollLock(isModalOpen || Boolean(camperToDelete))
   const [isDeleting, setIsDeleting] = useState(false)
   const [deleteMessage, setDeleteMessage] = useState<string | null>(null)
 
@@ -1317,7 +1319,7 @@ export default function CampersClient({ initialCampers, liveStatus = {} }: Props
         /* Fichas de vehículo */
         .fleet-grid {
           display: grid;
-          grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+          grid-template-columns: repeat(auto-fill, minmax(min(320px, 100%), 1fr));
           gap: 16px;
         }
         .fleet-card {

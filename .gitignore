@@ -42,3 +42,6 @@ next-env.d.ts
 
 # agent scratch dirs
 .agents/teamwork_preview_*
+
+# Supabase CLI
+supabase/.temp/

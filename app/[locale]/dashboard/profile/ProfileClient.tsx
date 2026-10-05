@@ -2,6 +2,7 @@
 
 import { useState, ChangeEvent } from 'react'
 import { useSearchParams } from 'next/navigation'
+import { useRouter } from '@/i18n/routing'
 import Image from 'next/image'
 import { 
   ShieldCheck, 
@@ -36,6 +37,7 @@ interface UploadedFilePreview {
 
 export default function ProfileClient({ user, profile }: Props) {
   const searchParams = useSearchParams()
+  const router = useRouter()
   const isMissingContractData = searchParams.get('reason') === 'missing_contract_data'
 
   // Datos personales y de conductor principal
@@ -111,8 +113,8 @@ export default function ProfileClient({ user, profile }: Props) {
       if (licenseFront.file) formData.append('license_front', licenseFront.file)
       if (licenseBack.file) formData.append('license_back', licenseBack.file)
 
+      formData.append('hasSecondDriver', hasSecondDriver ? 'true' : 'false')
       if (hasSecondDriver) {
-        formData.append('hasSecondDriver', 'true')
         formData.append('secondDriverFullName', secondDriverFullName)
         formData.append('secondDriverDni', secondDriverDni)
         formData.append('secondDriverLicense', secondDriverLicense)
@@ -131,9 +133,16 @@ export default function ProfileClient({ user, profile }: Props) {
         throw new Error(data.error || 'Error al guardar los datos.')
       }
 
-      setStatus('pending_validation')
+      setStatus(data.verificationStatus || 'pending_validation')
       setSaveSuccess(true)
       setTimeout(() => setSaveSuccess(false), 5000)
+
+      // Si llegó aquí desde Documentos por faltar datos del contrato, devolverle allí
+      if (searchParams.get('redirect') === 'documentos') {
+        router.push('/dashboard/documentos')
+      } else {
+        router.refresh()
+      }
     } catch (err: any) {
       setErrorMessage(err.message || 'Ocurrió un error al guardar.')
     } finally {

@@ -2,7 +2,7 @@
 
 import { useState, useMemo, useEffect } from 'react'
 import { useSearchParams, useRouter } from 'next/navigation'
-import { Search, Eye, Archive, Loader2, X, BookOpen, CheckCircle2, Navigation, Clock, Calendar } from 'lucide-react'
+import { Search, Eye, Archive, Loader2, X, BookOpen, CheckCircle2, Navigation, Clock, Calendar, BadgeCheck } from 'lucide-react'
 import { Link } from '@/i18n/routing'
 import { formatPrice } from '@/lib/pricing/engine'
 import { ADMIN_STATUS_LABELS, AdminBookingStatus, getAdminBookingStatus } from '@/lib/admin/bookingStatus'
@@ -19,6 +19,7 @@ type Filter = 'all' | AdminBookingStatus
 
 const TABS: { id: Filter; label: string }[] = [
   { id: 'all', label: 'Todas' },
+  { id: 'review', label: 'Por confirmar' },
   { id: 'confirmed', label: 'Confirmadas' },
   { id: 'active', label: 'En viaje' },
   { id: 'pending', label: 'Pendientes de pago' },
@@ -28,13 +29,14 @@ const TABS: { id: Filter; label: string }[] = [
 ]
 
 const STAT_TILES: { id: AdminBookingStatus; label: string; tone: string; icon: React.ComponentType<{ size?: number }> }[] = [
+  { id: 'review', label: 'Pagadas por confirmar', tone: 'sky', icon: BadgeCheck },
   { id: 'confirmed', label: 'Confirmadas', tone: 'sage', icon: CheckCircle2 },
   { id: 'active', label: 'En viaje', tone: 'gold', icon: Navigation },
   { id: 'pending', label: 'Pendientes de pago', tone: 'amber', icon: Clock },
-  { id: 'expired', label: 'Caducadas', tone: 'neutral', icon: Archive },
 ]
 
 const STATUS_TONE: Record<AdminBookingStatus, string> = {
+  review: 'sky',
   pending: 'amber',
   expired: 'neutral',
   confirmed: 'sage',
@@ -343,7 +345,7 @@ export default function BookingsClient({ initialBookings }: Props) {
                         >
                           <Eye size={14} /> Ver
                         </button>
-                        {status === 'pending' && <ApproveActionClient bookingId={b.id} status={b.status} />}
+                        {(status === 'review' || status === 'pending') && <ApproveActionClient bookingId={b.id} status={b.status} />}
                         <RefundActionClient bookingId={b.id} status={b.status} />
                       </div>
                     </td>

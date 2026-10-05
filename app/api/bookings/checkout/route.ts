@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server'
 import { getSupabaseAdmin } from '@/lib/supabase/admin'
+import { createClient as createServerClient } from '@/lib/supabase/server'
 import { calculatePriceV2 } from '@/lib/pricing/engine'
 import { CategorizedExtra, DaySlot, KmPackage, CancellationPolicy } from '@/lib/pricing/types'
 import { generateRedsysOrderId, createRedsysPaymentForm } from '@/lib/redsys'
@@ -182,12 +183,17 @@ export async function POST(req: Request) {
 
         if (existingUser) {
             userId = existingUser.id
+            // El checkout no exige sesión: solo completamos el perfil si quien reserva ES ese usuario.
+            // Si no, cualquiera podría escribir DNI/dirección en la cuenta ajena de ese email.
+            const sessionClient = await createServerClient()
+            const { data: { user: sessionUser } } = await sessionClient.auth.getUser()
+            const canUpdateProfile = sessionUser?.id === existingUser.id
             const updates: Record<string, any> = {}
             if (customerPhone && !existingUser.phone) updates.phone = customerPhone
             if (customerDni && !existingUser.dni_nie) updates.dni_nie = customerDni
             if (customerAddress && !existingUser.address) updates.address = customerAddress
             if (customerName && !existingUser.full_name) updates.full_name = customerName
-            if (Object.keys(updates).length > 0) {
+            if (canUpdateProfile && Object.keys(updates).length > 0) {
                 await supabase.from('users').update(updates).eq('id', userId)
             }
         } else {

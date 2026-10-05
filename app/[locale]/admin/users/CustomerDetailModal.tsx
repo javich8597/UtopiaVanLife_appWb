@@ -234,7 +234,7 @@ export default function CustomerDetailModal({
                         </div>
                         <div className="cd-field">
                           <span className="cd-field-label">Rol en Plataforma</span>
-                          <span className="cd-role-tag">{user?.role || 'customer'}</span>
+                          <span className="cd-role-tag">{user?.role === 'admin' ? 'Equipo' : 'Cliente'}</span>
                         </div>
                         <div className="cd-field">
                           <span className="cd-field-label">Fecha de Registro</span>

@@ -45,15 +45,19 @@ export async function POST(request: Request) {
         // 1. Update users table with fallback if rejection_reason column does not exist
         let updateErr: any = null
         try {
-            const { error } = await clientToUse
+            const { data: updatedRows, error } = await clientToUse
                 .from('users')
                 .update({
                     verification_status: newStatus,
                     rejection_reason: rejectionReason,
                 })
                 .eq('id', userId)
+                .select('id')
 
-            if (error) {
+            if (!error && (!updatedRows || updatedRows.length === 0)) {
+                // Sin filas: el cliente no existe o la sesión no tiene permiso (sin service role)
+                updateErr = new Error('no se actualizó ningún cliente')
+            } else if (error) {
                 // If column rejection_reason is unknown, fall back to updating verification_status only
                 if (error.message?.includes('rejection_reason') || error.code === '42703') {
                     const fallback = await clientToUse

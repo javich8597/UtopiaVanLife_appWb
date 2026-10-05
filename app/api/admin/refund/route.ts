@@ -59,12 +59,14 @@ export async function POST(request: Request) {
         const paymentReference = booking.payment_intent_id
 
         // Update the booking status in DB
-        const { error: updateErr } = await supabaseAdmin
+        const { data: updated, error: updateErr } = await supabaseAdmin
             .from('bookings')
             .update({ status: 'cancelled', payment_status: 'refunded' })
             .eq('id', bookingId)
+            .select('id')
 
         if (updateErr) throw new Error(updateErr.message)
+        if (!updated || updated.length === 0) throw new Error('No se pudo cancelar la reserva (sin permiso)')
 
         // Si había bloqueo en blocked_dates con session_id de esta reserva, liberarlo
         if (paymentReference) {

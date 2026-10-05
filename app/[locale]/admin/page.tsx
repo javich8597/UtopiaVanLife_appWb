@@ -21,6 +21,7 @@ import {
     ShieldCheck,
     Truck,
     Archive,
+    BadgeCheck,
 } from 'lucide-react'
 import { Link } from '@/i18n/routing'
 import RevenueChart from './RevenueChart'
@@ -38,6 +39,7 @@ const TZ = 'Europe/Madrid'
 const DAY_MS = 24 * 60 * 60 * 1000
 
 const STATUS_TONES: Record<string, string> = {
+    review: 'sky',
     pending: 'amber',
     expired: 'neutral',
     confirmed: 'sage',
@@ -105,6 +107,8 @@ export default async function AdminDashboardPage() {
     // Las pendientes abandonadas en Redsys no son cobros pendientes reales
     const pendingBookings = bookings.filter(b => getAdminBookingStatus(b, now) === 'pending')
     const expiredBookings = bookings.filter(b => getAdminBookingStatus(b, now) === 'expired')
+    // Pagadas en Redsys a la espera de que el admin las confirme
+    const reviewBookings = bookings.filter(b => getAdminBookingStatus(b, now) === 'review')
     const pendingRevenue = pendingBookings.reduce((sum, b) => sum + (Number(b.total_price) || 0), 0)
     const paidRevenue = paidBookings.reduce((sum, b) => sum + (Number(b.total_price) || 0), 0)
     const averageTicket = paidBookings.length > 0 ? Math.round(paidRevenue / paidBookings.length) : 0
@@ -149,10 +153,11 @@ export default async function AdminDashboardPage() {
         { key: 'pay', value: pendingBookings.length, label: 'Por cobrar', hint: pendingRevenue > 0 ? formatPrice(pendingRevenue) : 'al día', href: '/admin/bookings?status=pending', icon: Clock, tone: 'amber' },
         { key: 'docs', value: pendingVerificationsCount || 0, label: 'Carnets', hint: 'por validar', href: '/admin/verifications', icon: ShieldCheck, tone: 'rose' },
     ]
-    const tasksCount = tiles.reduce((s, t) => s + t.value, 0)
+    const tasksCount = tiles.reduce((s, t) => s + t.value, 0) + reviewBookings.length
 
     // Avisos (lista con contador)
     const notices = [
+        { key: 'review', label: 'Reservas pagadas por confirmar', count: reviewBookings.length, href: '/admin/bookings?status=review', icon: BadgeCheck },
         { key: 'pay', label: 'Cobros pendientes', count: pendingBookings.length, href: '/admin/bookings?status=pending', icon: Clock },
         { key: 'docs', label: 'Carnets por validar', count: pendingVerificationsCount || 0, href: '/admin/verifications', icon: ShieldCheck },
         { key: 'ret', label: 'Devoluciones hoy y mañana', count: returnsSoon.length, href: '/admin/calendar', icon: LogOut },

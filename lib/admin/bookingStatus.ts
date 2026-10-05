@@ -5,12 +5,16 @@
  * el bloqueo de fechas caduca (blocked_dates.expires_at, 30 min) pero la fila sigue en
  * 'pending'. Esas reservas abandonadas se tratan aquí como 'expired' para que no inflen
  * cobros pendientes, contadores ni el calendario.
+ *
+ * Cuando Redsys confirma el pago, el webhook deja la reserva en 'pending' con
+ * payment_status 'paid' a la espera de que el admin la confirme: eso es 'review'
+ * (pagada, por confirmar), no un cobro pendiente.
  */
 
 /** Margen tras crear la reserva para considerarla abandonada (hold de 30 min + colchón de Redsys) */
 export const ABANDONED_AFTER_MINUTES = 60
 
-export type AdminBookingStatus = 'pending' | 'expired' | 'confirmed' | 'active' | 'completed' | 'cancelled'
+export type AdminBookingStatus = 'review' | 'pending' | 'expired' | 'confirmed' | 'active' | 'completed' | 'cancelled'
 
 export interface StatusBookingLike {
   status: string
@@ -28,6 +32,7 @@ export function isAbandonedPending(b: StatusBookingLike, now: Date = new Date())
 }
 
 export function getAdminBookingStatus(b: StatusBookingLike, now: Date = new Date()): AdminBookingStatus {
+  if (b.status === 'pending' && b.payment_status === 'paid') return 'review'
   if (isAbandonedPending(b, now)) return 'expired'
   if (['pending', 'confirmed', 'active', 'completed', 'cancelled'].includes(b.status)) {
     return b.status as AdminBookingStatus
@@ -40,7 +45,13 @@ export function livePendingSince(now: Date = new Date()): string {
   return new Date(now.getTime() - ABANDONED_AFTER_MINUTES * 60 * 1000).toISOString()
 }
 
+/** Filtro PostgREST (.or) de las reservas 'pending' que requieren atención: pagadas o aún vivas */
+export function actionablePendingFilter(now: Date = new Date()): string {
+  return `payment_status.eq.paid,created_at.gte.${livePendingSince(now)}`
+}
+
 export const ADMIN_STATUS_LABELS: Record<AdminBookingStatus, string> = {
+  review: 'Pagada, por confirmar',
   pending: 'Pendiente de pago',
   expired: 'Caducada',
   confirmed: 'Confirmada',

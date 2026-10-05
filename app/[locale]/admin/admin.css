@@ -339,6 +339,7 @@
 .adm-chip--sage { background: var(--adm-sage-soft); color: var(--adm-sage); }
 .adm-chip--amber { background: var(--adm-amber-soft); color: var(--adm-amber); }
 .adm-chip--rose { background: var(--adm-rose-soft); color: var(--adm-rose); }
+.adm-chip--sky { background: var(--adm-sky-soft); color: var(--adm-sky); }
 .adm-chip--neutral { background: var(--adm-surface-2); color: var(--adm-text-2); }
 
 /* ---------- Tabla ---------- */

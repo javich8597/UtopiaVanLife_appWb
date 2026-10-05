@@ -4,7 +4,7 @@ import { createClient } from '@/lib/supabase/server'
 import AdminResponsiveShell from './AdminResponsiveShell'
 import './admin.css'
 import { isAdminUser } from '@/lib/admin/auth'
-import { livePendingSince } from '@/lib/admin/bookingStatus'
+import { actionablePendingFilter } from '@/lib/admin/bookingStatus'
 import { ADMIN_THEME_COOKIE } from '@/lib/admin/theme'
 
 export default async function AdminLayout({
@@ -53,8 +53,9 @@ export default async function AdminLayout({
 
     // Contadores para los avisos de la navegación
     const [{ count: pendingBookings }, { count: pendingVerifications }] = await Promise.all([
-        // Solo pendientes vivas: las abandonadas en Redsys se consideran caducadas
-        supabase.from('bookings').select('*', { count: 'exact', head: true }).eq('status', 'pending').gte('created_at', livePendingSince()),
+        // Pendientes que requieren atención: pagadas por confirmar o aún vivas
+        // (las abandonadas en Redsys se consideran caducadas)
+        supabase.from('bookings').select('*', { count: 'exact', head: true }).eq('status', 'pending').or(actionablePendingFilter()),
         supabase.from('users').select('*', { count: 'exact', head: true }).eq('verification_status', 'pending_validation'),
     ])
 

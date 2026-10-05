@@ -7,6 +7,7 @@ import dayGridPlugin from '@fullcalendar/daygrid'
 import timeGridPlugin from '@fullcalendar/timegrid'
 import interactionPlugin from '@fullcalendar/interaction'
 import esLocale from '@fullcalendar/core/locales/es'
+import { selectionToDayRange } from '@/lib/admin/calendarRange'
 import {
   ChevronLeft,
   ChevronRight,
@@ -238,21 +239,13 @@ export default function CalendarClient({ bookings, campers, blockedDates, blocke
   }, [filteredBookings, filteredBlockedDates, campers])
 
   const handleDateSelect = (selectInfo: any) => {
-    const startStr = selectInfo.startStr
-    const endDate = new Date(selectInfo.end)
-    if (selectInfo.allDay) {
-      endDate.setDate(endDate.getDate() - 1)
-    }
-    const endStr = endDate.toISOString().split('T')[0]
+    const range = selectionToDayRange(selectInfo.startStr, selectInfo.endStr, selectInfo.allDay)
 
     setBlockError(null)
     setBlockCamperId(selectedCamperFilter !== 'all'
       ? (campers.find(c => (c.slug || '').toLowerCase() === selectedCamperFilter)?.id || '')
       : '')
-    setSelectedRange({
-      start: startStr,
-      end: endStr
-    })
+    setSelectedRange(range)
   }
 
   const handleEventClick = (clickInfo: any) => {

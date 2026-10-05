@@ -19,7 +19,12 @@ export interface ReceiptInput {
   extras: string[]
 }
 
-const fmt = (d: string) => new Date(d).toLocaleDateString('es-ES', { day: 'numeric', month: 'long', year: 'numeric' })
+// Fechas 'YYYY-MM-DD' en UTC (si no, fuera de Europa salen con un día menos); marcas de tiempo en hora local
+const fmt = (d: string) =>
+  new Date(d).toLocaleDateString('es-ES', {
+    day: 'numeric', month: 'long', year: 'numeric',
+    ...(/^\d{4}-\d{2}-\d{2}$/.test(d) ? { timeZone: 'UTC' } : {}),
+  })
 
 export function receiptReference(bookingId: string) {
   return `RES-${bookingId.slice(0, 8).toUpperCase()}`

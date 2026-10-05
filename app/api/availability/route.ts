@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server'
 import { createServerClient } from '@supabase/ssr'
+import { getSupabaseAdmin } from '@/lib/supabase/admin'
 import { resolveSeasonForDate, SeasonV2, SeasonPeriod } from '@/lib/pricing/engine'
 
 const DEMO_CAMPERS = [
@@ -78,8 +79,8 @@ export async function GET(request: Request) {
             return NextResponse.json({ campers: campersWithPricing })
         }
 
-        // Find booked camper IDs in that range
-        const { data: bookings } = await supabase
+        // RLS oculta las reservas ajenas al visitante anónimo: se leen en servidor, solo el camper_id
+        const { data: bookings } = await getSupabaseAdmin()
             .from('bookings')
             .select('camper_id')
             .in('status', ['confirmed', 'active'])

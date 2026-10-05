@@ -42,6 +42,13 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'Reserva no encontrada o no pertenece al usuario.' }, { status: 404 })
     }
 
+    if (booking.status === 'cancelled' || booking.status === 'completed') {
+      return NextResponse.json({ error: 'Esta reserva ya no admite la firma del contrato.' }, { status: 409 })
+    }
+    if (booking.contract_signed_at) {
+      return NextResponse.json({ error: 'El contrato de esta reserva ya está firmado.' }, { status: 409 })
+    }
+
     // 2. Obtener perfil del usuario
     const { data: profile } = await supabase
       .from('users')
@@ -74,9 +81,9 @@ export async function POST(request: Request) {
       process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
     )
 
-    // Asegurar que el bucket documents existe
+    // Asegurar que el bucket documents existe. Privado: guarda también DNIs y carnets
     try {
-      await supabaseAdmin.storage.createBucket('documents', { public: true })
+      await supabaseAdmin.storage.createBucket('documents', { public: false })
     } catch {
       // Ignorar si ya existe
     }
@@ -90,10 +97,10 @@ export async function POST(request: Request) {
         upsert: true
       })
 
+    // Se descarga por una ruta que comprueba la sesión y genera una URL firmada
     let pdfUrl = ''
     if (!uploadError) {
-      const { data: urlData } = supabaseAdmin.storage.from('documents').getPublicUrl(storagePath)
-      pdfUrl = urlData?.publicUrl || ''
+      pdfUrl = `/api/contracts/${bookingId}/pdf`
     } else {
       console.warn('Could not upload contract PDF to Storage:', uploadError.message)
     }
@@ -115,8 +122,10 @@ export async function POST(request: Request) {
       .update(updatePayload)
       .eq('id', bookingId)
 
+    // Sin la firma guardada el cliente vería "firmado" y al recargar volvería a pedírselo
     if (updateErr) {
-      console.warn('Could not update booking contract fields directly:', updateErr.message)
+      console.error('Could not save contract signature:', updateErr.message)
+      return NextResponse.json({ error: 'No se pudo guardar la firma. Inténtalo de nuevo o contacta con nosotros.' }, { status: 500 })
     }
 
     return NextResponse.json({

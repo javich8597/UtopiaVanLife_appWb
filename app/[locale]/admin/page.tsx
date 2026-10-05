@@ -31,7 +31,7 @@ import {
     calculateFleetLiveStatus,
     calculateDelta
 } from '@/lib/admin/dashboardMetrics'
-import { ADMIN_STATUS_LABELS, getAdminBookingStatus } from '@/lib/admin/bookingStatus'
+import { adminStatusLabel, getAdminBookingStatus } from '@/lib/admin/bookingStatus'
 import './dashboard.css'
 
 const TZ = 'Europe/Madrid'
@@ -293,7 +293,7 @@ export default async function AdminDashboardPage() {
                                         <span className="dsh-row__status">
                                             <span className={`dsh-dot dsh-dot--${STATUS_TONES[adminStatus]}`} aria-hidden="true" />
                                             <span>
-                                                {ADMIN_STATUS_LABELS[adminStatus]}
+                                                {adminStatusLabel(b)}
                                                 <span className="dsh-row__sub">
                                                     {docPending ? 'Carnet por validar' : formatPrice(Number(b.total_price) || 0)}
                                                 </span>

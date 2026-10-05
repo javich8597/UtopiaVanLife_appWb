@@ -2,6 +2,7 @@ import { redirect } from '@/i18n/routing'
 import { createClient } from '@/lib/supabase/server'
 import DocumentsClient from './DocumentsClient'
 import { validateContractRequirements } from '@/lib/contracts/contractEngine'
+import { isAbandonedPending } from '@/lib/admin/bookingStatus'
 
 export const metadata = {
   title: 'Documentos & Facturas | Utopia Van Life',
@@ -38,7 +39,10 @@ export default async function DocumentsPage({
     .order('start_date', { ascending: false })
 
   // Comprobar si el usuario tiene reservas activas o confirmadas y le faltan datos clave para el contrato
-  const relevantBookings = bookings?.filter(b => b.status === 'confirmed' || b.status === 'active' || b.status === 'pending') || []
+  // Las pendientes abandonadas en Redsys no cuentan: no deben bloquear el acceso a esta pantalla
+  const relevantBookings = bookings?.filter(b =>
+    b.status === 'confirmed' || b.status === 'active' || (b.status === 'pending' && !isAbandonedPending(b))
+  ) || []
   if (relevantBookings.length > 0) {
     const validation = validateContractRequirements(profile)
     if (!validation.isValid) {

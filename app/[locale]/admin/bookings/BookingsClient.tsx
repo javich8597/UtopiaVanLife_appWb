@@ -5,7 +5,7 @@ import { useSearchParams, useRouter } from 'next/navigation'
 import { Search, Eye, Archive, Loader2, X, BookOpen, CheckCircle2, Navigation, Clock, Calendar } from 'lucide-react'
 import { Link } from '@/i18n/routing'
 import { formatPrice } from '@/lib/pricing/engine'
-import { ADMIN_STATUS_LABELS, AdminBookingStatus, getAdminBookingStatus } from '@/lib/admin/bookingStatus'
+import { AdminBookingStatus, adminStatusLabel, getAdminBookingStatus } from '@/lib/admin/bookingStatus'
 import AdminPageHeader from '../AdminPageHeader'
 import RefundActionClient from './RefundActionClient'
 import ApproveActionClient from './ApproveActionClient'
@@ -331,7 +331,7 @@ export default function BookingsClient({ initialBookings }: Props) {
                       {b.payment_status === 'paid' && <span className="adm-table__muted">Pagado con Redsys</span>}
                     </td>
                     <td data-label="Estado">
-                      <span className={`adm-chip adm-chip--${STATUS_TONE[status]}`}>{ADMIN_STATUS_LABELS[status]}</span>
+                      <span className={`adm-chip adm-chip--${STATUS_TONE[status]}`}>{adminStatusLabel(b)}</span>
                     </td>
                     <td className="adm-table__actions">
                       <div className="bk-actions">
@@ -344,7 +344,7 @@ export default function BookingsClient({ initialBookings }: Props) {
                           <Eye size={14} /> Ver
                         </button>
                         {status === 'pending' && <ApproveActionClient bookingId={b.id} status={b.status} />}
-                        <RefundActionClient bookingId={b.id} status={b.status} />
+                        <RefundActionClient bookingId={b.id} status={b.status} paymentStatus={b.payment_status} />
                       </div>
                     </td>
                   </tr>

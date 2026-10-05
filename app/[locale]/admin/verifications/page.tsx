@@ -6,6 +6,7 @@ import AdminStatTiles from '../AdminStatTiles'
 import { normalizeVerificationStatus } from '@/lib/admin/auth'
 import VerificationsClient from './VerificationsClient'
 import VerificationHistory from './VerificationHistory'
+import { resolveCustomerDocumentUrls } from '@/lib/admin/documents'
 
 export default async function AdminVerificationsPage() {
     const supabase = await createClient()
@@ -48,42 +49,11 @@ export default async function AdminVerificationsPage() {
 
     // Resolve document URLs for each pending user
     const usersWithDocs = await Promise.all(
-        (pendingUsers || []).map(async (user: any) => {
-            let dniFrontUrl = null
-            let dniBackUrl = null
-            let licenseFrontUrl = null
-            let licenseBackUrl = null
-
-            try {
-                const { data: files } = await supabaseAdmin.storage.from('documents').list(user.id)
-                if (files && files.length > 0) {
-                    const findSignedUrl = async (pattern: string) => {
-                        const file = files.filter(f => f.name.includes(pattern)).sort((a, b) => b.name.localeCompare(a.name))[0]
-                        if (file) {
-                            const { data } = await supabaseAdmin.storage.from('documents').createSignedUrl(`${user.id}/${file.name}`, 3600)
-                            return data?.signedUrl || null
-                        }
-                        return null
-                    }
-
-                    dniFrontUrl = await findSignedUrl('dni_front')
-                    dniBackUrl = await findSignedUrl('dni_back')
-                    licenseFrontUrl = await findSignedUrl('license_front') || await findSignedUrl('front_')
-                    licenseBackUrl = await findSignedUrl('license_back') || await findSignedUrl('back_')
-                }
-            } catch (e) {
-                console.error('Error fetching docs for user', user.id, e)
-            }
-
-            return {
-                ...user,
-                nextDepartureOn: nextDepartureOf(user.id),
-                dniFrontUrl,
-                dniBackUrl,
-                licenseFrontUrl,
-                licenseBackUrl
-            }
-        })
+        (pendingUsers || []).map(async (user: any) => ({
+            ...user,
+            nextDepartureOn: nextDepartureOf(user.id),
+            ...(await resolveCustomerDocumentUrls(supabaseAdmin, user.id)),
+        }))
     )
 
     const in7 = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString().split('T')[0]

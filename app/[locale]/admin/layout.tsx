@@ -53,8 +53,9 @@ export default async function AdminLayout({
 
     // Contadores para los avisos de la navegación
     const [{ count: pendingBookings }, { count: pendingVerifications }] = await Promise.all([
-        // Solo pendientes vivas: las abandonadas en Redsys se consideran caducadas
-        supabase.from('bookings').select('*', { count: 'exact', head: true }).eq('status', 'pending').gte('created_at', livePendingSince()),
+        // Solo pendientes vivas: las abandonadas en Redsys se consideran caducadas, pero las ya pagadas siguen esperando aceptación
+        supabase.from('bookings').select('*', { count: 'exact', head: true }).eq('status', 'pending')
+            .or(`payment_status.eq.paid,created_at.gte."${livePendingSince()}"`),
         supabase.from('users').select('*', { count: 'exact', head: true }).eq('verification_status', 'pending_validation'),
     ])
 

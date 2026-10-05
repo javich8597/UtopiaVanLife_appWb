@@ -48,3 +48,14 @@ export const ADMIN_STATUS_LABELS: Record<AdminBookingStatus, string> = {
   completed: 'Completada',
   cancelled: 'Cancelada',
 }
+
+/** Pagada en Redsys pero aún sin aceptar: el webhook la deja en 'pending' hasta que el equipo la confirma */
+export function isPaidAwaitingApproval(b: StatusBookingLike): boolean {
+  return b.status === 'pending' && b.payment_status === 'paid'
+}
+
+/** Etiqueta del estado, distinguiendo las pendientes ya pagadas de las que esperan el pago */
+export function adminStatusLabel(b: StatusBookingLike, now: Date = new Date()): string {
+  if (isPaidAwaitingApproval(b)) return 'Pagada · por aceptar'
+  return ADMIN_STATUS_LABELS[getAdminBookingStatus(b, now)]
+}

@@ -1,20 +1,29 @@
 import { createClient } from '@/lib/supabase/server'
 import { redirect } from '@/i18n/routing'
-import ProfileClient from './ProfileClient'
-import SecurityCard from './SecurityCard'
-import { getAdminClientOrSession } from '@/lib/admin/auth'
+import AccountClient from './AccountClient'
 
 export const metadata = {
     title: 'Mi perfil | Utopia Van Life',
-    description: 'Tus datos de conductor y la documentación para formalizar el contrato de alquiler.'
+    description: 'Tu cuenta de Utopia Van Life: contraseña, tema y sesión.'
 }
 
 export default async function ProfilePage({
-    params
+    params,
+    searchParams
 }: {
     params: Promise<{ locale: string }>
+    searchParams: Promise<Record<string, string | string[] | undefined>>
 }) {
     const { locale } = await params
+    const query = await searchParams
+
+    // Enlaces antiguos al formulario del carnet (emails, avisos) llevan estos parámetros: van a Datos y carnet
+    if (query.redirect || query.reason) {
+        const qs = new URLSearchParams(Object.entries(query).flatMap(([k, v]) => (Array.isArray(v) ? v : v ? [v] : []).map(x => [k, x] as [string, string])))
+        redirect({ href: `/dashboard/datos?${qs.toString()}`, locale })
+        return null
+    }
+
     const supabase = await createClient()
     const { data: { user }, error: authError } = await supabase.auth.getUser()
 
@@ -25,30 +34,16 @@ export default async function ProfilePage({
 
     const { data: profile } = await supabase
         .from('users')
-        .select('*')
+        .select('full_name, role, verification_status')
         .eq('id', user.id)
         .maybeSingle()
 
-    // Motivo del último rechazo del carnet, para que el cliente sepa qué corregir
-    let rejectionReason: string | null = profile?.rejection_reason || null
-    if (!rejectionReason && profile?.verification_status === 'rejected') {
-        const { data: lastRejection } = await getAdminClientOrSession(supabase)
-            .from('document_validations')
-            .select('rejected_reason')
-            .eq('user_id', user.id)
-            .eq('status', 'rejected')
-            .order('validated_at', { ascending: false })
-            .limit(1)
-            .maybeSingle()
-        rejectionReason = lastRejection?.rejected_reason || null
-    }
-
     return (
-        <>
-            <ProfileClient user={user} profile={profile} rejectionReason={rejectionReason} />
-            <div className="profile-security">
-                <SecurityCard />
-            </div>
-        </>
+        <AccountClient
+            email={user.email || ''}
+            fullName={profile?.full_name || ''}
+            isAdmin={profile?.role === 'admin' || user.app_metadata?.role === 'admin'}
+            verificationStatus={profile?.verification_status || null}
+        />
     )
 }

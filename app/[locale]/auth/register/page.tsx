@@ -83,8 +83,10 @@ function RegisterForm() {
                 <div className="auth-page__header">
                     <Link href="/" className="auth-page__logo-link" aria-label="Utopia Van Life Inicio">
                         <img
-                            src="/images/logo-white.png"
+                            src="/images/logo-bold.png"
                             alt="Utopia Van Life"
+                            width={2344}
+                            height={544}
                             className="auth-page__logo-img"
                         />
                     </Link>
@@ -288,9 +290,10 @@ function RegisterForm() {
                 .auth-page__logo-img,
                 :global(.auth-page__logo-img) {
                     object-fit: contain;
-                    height: 48px;
-                    width: auto;
-                    max-width: 185px;
+                    width: 280px;
+                    max-width: 100%;
+                    height: auto;
+                    margin-bottom: 14px;
                     display: block;
                     filter: brightness(0) invert(1);
                 }
@@ -481,8 +484,7 @@ function RegisterForm() {
 
                     .auth-page__logo-img,
                     :global(.auth-page__logo-img) {
-                        height: 40px;
-                        max-width: 155px;
+                        width: 230px;
                     }
                 }
             `}</style>

@@ -1,12 +1,13 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { Link, usePathname, useRouter } from '@/i18n/routing'
+import Image from 'next/image'
+import { Link, usePathname } from '@/i18n/routing'
 import {
   BookOpen,
   MapPin,
   Compass,
-  UserCircle,
+  IdCard,
   LogOut,
   MessageCircle,
   FileText,
@@ -20,9 +21,9 @@ import {
   Sun,
   type LucideIcon,
 } from 'lucide-react'
-import { createClient } from '@/lib/supabase/client'
 import { USER_THEME_COOKIE, type UserTheme } from '@/lib/user/theme'
-import { UserThemeContext } from '@/lib/user/themeContext'
+import { UserThemeContext, UserThemeSetterContext } from '@/lib/user/themeContext'
+import { useSignOut } from '@/lib/user/useSignOut'
 import './user-shell.css'
 
 interface Props {
@@ -45,7 +46,7 @@ const NAV_ITEMS: NavItem[] = [
   { href: '/dashboard/documentos', label: 'Documentos', short: 'Documentos', icon: FileText },
   { href: '/dashboard/guia', label: 'Guía de Mallorca', short: 'Guía', icon: MapPin },
   { href: '/dashboard/manual', label: 'Manual de la camper', short: 'Manual', icon: Compass },
-  { href: '/dashboard/profile', label: 'Mi perfil', short: 'Perfil', icon: UserCircle },
+  { href: '/dashboard/datos', label: 'Datos y carnet', short: 'Datos', icon: IdCard },
 ]
 
 const UTOPIA_PHONE = { href: 'tel:+34611560916', label: '+34 611 560 916' }
@@ -56,14 +57,23 @@ function isActive(pathname: string, item: NavItem) {
   return item.exact ? pathname === item.href : pathname.startsWith(item.href)
 }
 
+// Insignia redonda (montaña) + nombre en dos líneas: se lee a cualquier tamaño y en ambos temas
 function Brand() {
   return (
-    <Link href="/dashboard" className="usr-brand">
-      <span className="usr-brand__mark" aria-hidden="true">U</span>
-      <span className="usr-brand__text">
+    <Link href="/dashboard" className="usr-brand" aria-label="Utopia Van Life · Mi reserva">
+      <Image src="/images/logo-badge.png" alt="" width={256} height={256} className="usr-brand__badge" priority />
+      <span className="usr-brand__text" aria-hidden="true">
         <span className="usr-brand__name">Utopia</span>
-        <span className="usr-brand__tag">Mi viaje</span>
+        <span className="usr-brand__tag">Van Life</span>
       </span>
+    </Link>
+  )
+}
+
+function BackToWeb() {
+  return (
+    <Link href="/" className="usr-web-btn" aria-label="Volver a la web" title="Volver a la web">
+      <Globe size={18} aria-hidden="true" />
     </Link>
   )
 }
@@ -87,9 +97,8 @@ function ThemeToggle({ theme, onChange, variant }: { theme: UserTheme; onChange:
 }
 
 export default function DashboardNavClient({ user, profile, initialTheme = 'light', children }: Props) {
-  const router = useRouter()
   const pathname = usePathname()
-  const [loggingOut, setLoggingOut] = useState(false)
+  const { signOut: handleSignOut, loggingOut } = useSignOut()
   const [showHelp, setShowHelp] = useState(false)
   const [theme, setTheme] = useState<UserTheme>(initialTheme)
 
@@ -116,24 +125,12 @@ export default function DashboardNavClient({ user, profile, initialTheme = 'ligh
     setShowHelp(false)
   }, [pathname])
 
-  const handleSignOut = async () => {
-    if (loggingOut) return
-    setLoggingOut(true)
-    try {
-      const supabase = createClient()
-      await supabase.auth.signOut()
-      router.refresh()
-      router.push('/')
-    } catch {
-      window.location.href = '/es/auth/signout'
-    }
-  }
-
   const isVerified = profile?.verification_status === 'verified'
   const isPending = profile?.verification_status === 'pending' || profile?.verification_status === 'pending_validation'
   const isAdmin = profile?.role === 'admin' || user?.app_metadata?.role === 'admin'
   const displayName = profile?.full_name || 'Viajero Utopia'
-  const initial = (profile?.full_name || user?.email || 'U').trim().charAt(0)
+  const initial = (profile?.full_name || user?.email || 'U').trim().charAt(0).toUpperCase()
+  const profileActive = pathname.startsWith('/dashboard/profile')
 
   const profileTag = isVerified
     ? { text: 'Validado', tone: 'sage' }
@@ -147,15 +144,22 @@ export default function DashboardNavClient({ user, profile, initialTheme = 'ligh
       <aside className="usr-sidebar" aria-label="Panel de cliente">
         <div className="usr-sidebar__header">
           <Brand />
+          <BackToWeb />
         </div>
 
-        <div className="usr-user">
+        <Link
+          href="/dashboard/profile"
+          className={`usr-user ${profileActive ? 'usr-user--active' : ''}`}
+          aria-current={profileActive ? 'page' : undefined}
+          title="Mi perfil"
+        >
           <div className="usr-avatar" aria-hidden="true">{initial}</div>
           <div className="usr-user__text">
             <span className="usr-user__name">{displayName}</span>
             <span className="usr-user__mail">{user?.email}</span>
           </div>
-        </div>
+          <ChevronRight size={16} className="usr-user__arrow" aria-hidden="true" />
+        </Link>
 
         <nav className="usr-nav" aria-label="Secciones del panel">
           <span className="usr-nav__label">Tu viaje</span>
@@ -172,7 +176,7 @@ export default function DashboardNavClient({ user, profile, initialTheme = 'ligh
                   >
                     <Icon size={18} className="usr-nav__icon" aria-hidden="true" />
                     <span className="usr-nav__text">{item.label}</span>
-                    {item.href === '/dashboard/profile' && (
+                    {item.href === '/dashboard/datos' && (
                       <span className={`usr-tag usr-tag--${profileTag.tone}`}>{profileTag.text}</span>
                     )}
                   </Link>
@@ -223,10 +227,6 @@ export default function DashboardNavClient({ user, profile, initialTheme = 'ligh
             <span className="usr-footer-row__label">Tema</span>
             <ThemeToggle theme={theme} onChange={changeTheme} variant="full" />
           </div>
-          <Link href="/" className="usr-footer-link">
-            <Globe size={17} aria-hidden="true" />
-            <span>Volver a la web</span>
-          </Link>
           <button
             id="dashboard-logout-btn"
             type="button"
@@ -254,14 +254,24 @@ export default function DashboardNavClient({ user, profile, initialTheme = 'ligh
             <span className="usr-help-btn__dot" aria-hidden="true" />
             Ayuda 24h
           </button>
-          <ThemeToggle theme={theme} onChange={changeTheme} variant="compact" />
+          <BackToWeb />
+          <Link
+            href="/dashboard/profile"
+            className={`usr-avatar-btn ${profileActive ? 'usr-avatar-btn--active' : ''}`}
+            aria-label="Mi perfil"
+            aria-current={profileActive ? 'page' : undefined}
+          >
+            {initial}
+          </Link>
         </div>
       </header>
 
       {/* 3. Contenido */}
       <main className="usr-main">
         <div className="usr-main__inner">
-          <UserThemeContext.Provider value={theme}>{children}</UserThemeContext.Provider>
+          <UserThemeContext.Provider value={theme}>
+            <UserThemeSetterContext.Provider value={changeTheme}>{children}</UserThemeSetterContext.Provider>
+          </UserThemeContext.Provider>
         </div>
       </main>
 
@@ -270,7 +280,7 @@ export default function DashboardNavClient({ user, profile, initialTheme = 'ligh
         {NAV_ITEMS.map(item => {
           const active = isActive(pathname, item)
           const Icon = item.icon
-          const dot = item.href === '/dashboard/profile' && !isVerified
+          const dot = item.href === '/dashboard/datos' && !isVerified
             ? (isPending ? 'sky' : 'amber')
             : null
           return (
@@ -338,34 +348,6 @@ export default function DashboardNavClient({ user, profile, initialTheme = 'ligh
                 </span>
                 <ChevronRight size={18} className="usr-contact__arrow" aria-hidden="true" />
               </a>
-              {isAdmin && (
-                <Link href="/admin" className="usr-contact">
-                  <span className="usr-contact__icon"><ShieldCheck size={18} aria-hidden="true" /></span>
-                  <span className="usr-contact__text">
-                    <span className="usr-contact__tag">Equipo</span>
-                    <strong className="usr-contact__value">Panel admin</strong>
-                  </span>
-                  <ChevronRight size={18} className="usr-contact__arrow" aria-hidden="true" />
-                </Link>
-              )}
-              <Link href="/" className="usr-contact">
-                <span className="usr-contact__icon usr-contact__icon--sage"><Globe size={18} aria-hidden="true" /></span>
-                <span className="usr-contact__text">
-                  <span className="usr-contact__tag">Utopia Van Life</span>
-                  <strong className="usr-contact__value">Volver a la web</strong>
-                </span>
-                <ChevronRight size={18} className="usr-contact__arrow" aria-hidden="true" />
-              </Link>
-              <button
-                id="dash-mob-logout-btn"
-                type="button"
-                className="usr-btn usr-btn--block"
-                onClick={handleSignOut}
-                disabled={loggingOut}
-              >
-                <LogOut size={16} aria-hidden="true" />
-                {loggingOut ? 'Cerrando sesión…' : 'Cerrar sesión'}
-              </button>
             </div>
           </div>
         </div>

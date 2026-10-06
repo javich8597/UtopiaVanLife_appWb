@@ -176,7 +176,7 @@ export default function DocumentsClient({ bookings, profile, user, contractTempl
               {license === 'review' && <span className="usr-chip usr-chip--sky"><Clock size={12} aria-hidden="true" /> En revisión</span>}
               {(license === 'missing' || license === 'rejected') && <span className="usr-chip usr-chip--amber">Pendiente</span>}
               <span className="docs-row__actions">
-                <Link href="/dashboard/profile" className="usr-btn">
+                <Link href="/dashboard/datos" className="usr-btn">
                   {license === 'verified' || license === 'review' ? 'Ver' : 'Subir'}
                   <ChevronRight size={16} aria-hidden="true" />
                 </Link>

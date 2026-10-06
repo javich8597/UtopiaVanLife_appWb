@@ -178,41 +178,81 @@
 .usr-brand {
   display: inline-flex;
   align-items: center;
-  gap: 10px;
+  gap: 11px;
+  min-height: 44px;
+  min-width: 0;
   text-decoration: none;
   color: var(--usr-text);
+  border-radius: 8px;
 }
-.usr-brand__mark {
-  width: 34px;
-  height: 34px;
-  border-radius: 10px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background: var(--usr-primary-bg);
-  color: var(--usr-primary-text);
-  font-family: var(--font-heading);
-  font-weight: 700;
-  font-size: 1rem;
+.usr-brand:focus-visible {
+  outline: 2px solid var(--usr-gold-text);
+  outline-offset: 4px;
+}
+.usr-brand__badge {
+  width: 46px;
+  height: 46px;
   flex-shrink: 0;
 }
 .usr-brand__text {
   display: flex;
   flex-direction: column;
-  line-height: 1.1;
+  line-height: 1.05;
 }
 .usr-brand__name {
   font-family: var(--font-heading);
-  font-size: 1.15rem;
+  font-size: 1.2rem;
   font-weight: 700;
-  letter-spacing: -0.02em;
+  letter-spacing: -0.01em;
 }
 .usr-brand__tag {
   font-size: 0.66rem;
-  font-weight: 700;
-  letter-spacing: 0.14em;
+  font-weight: 600;
+  letter-spacing: 0.28em;
   text-transform: uppercase;
-  color: var(--usr-gold-text);
+  color: var(--usr-text-2);
+}
+/* Móvil: cabe junto a Ayuda, Web y Tema en 375px */
+.usr-mobile-header .usr-brand {
+  gap: 9px;
+}
+.usr-mobile-header .usr-brand__badge {
+  width: 40px;
+  height: 40px;
+}
+.usr-mobile-header .usr-brand__name {
+  font-size: 1.05rem;
+}
+.usr-mobile-header .usr-brand__tag {
+  font-size: 0.6rem;
+  letter-spacing: 0.22em;
+}
+
+/* Volver a la web (cabecera) */
+.usr-web-btn {
+  width: 44px;
+  height: 44px;
+  border-radius: 12px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  border: 1px solid var(--usr-border);
+  background: var(--usr-surface);
+  color: var(--usr-text-2);
+  text-decoration: none;
+  font-weight: 600;
+  transition: background-color var(--transition-fast), color var(--transition-fast), border-color var(--transition-fast);
+}
+.usr-web-btn:hover {
+  border-color: var(--usr-border-strong);
+  color: var(--usr-text);
+}
+@media (min-width: 861px) {
+  .usr-web-btn {
+    width: 40px;
+    height: 40px;
+  }
 }
 
 /* ---------- Menú lateral (escritorio) ---------- */
@@ -237,7 +277,9 @@
   height: 76px;
   display: flex;
   align-items: center;
-  padding: 0 24px;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 0 20px 0 24px;
   flex-shrink: 0;
 }
 
@@ -983,4 +1025,100 @@ body:has(.user-layout) {
 }
 body:has(.user-layout[data-theme="dark"]) {
   background: #0E1013;
+}
+
+/* ---------- Cuenta (móvil, al final de Mi perfil) ---------- */
+.usr-account {
+  margin-top: 28px;
+  display: flex;
+  flex-direction: column;
+  border: 1px solid var(--usr-border);
+  border-radius: 16px;
+  background: var(--usr-surface);
+  overflow: hidden;
+}
+@media (min-width: 861px) {
+  .usr-account {
+    display: none;
+  }
+}
+.usr-account__label {
+  padding: 14px 16px 6px;
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--usr-text-2);
+}
+.usr-account__row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  min-height: 52px;
+  padding: 0 16px;
+  border: 0;
+  border-top: 1px solid var(--usr-border);
+  background: transparent;
+  font: inherit;
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: var(--usr-text);
+  text-align: left;
+  text-decoration: none;
+  cursor: pointer;
+}
+.usr-account__arrow {
+  margin-left: auto;
+  color: var(--usr-text-2);
+}
+.usr-account__row--danger {
+  color: var(--usr-rose);
+}
+.usr-account__row:disabled {
+  opacity: 0.6;
+  cursor: wait;
+}
+
+/* ---------- Acceso a Mi perfil ---------- */
+/* Escritorio: la tarjeta de usuario del menú lateral es el enlace */
+.usr-user {
+  text-decoration: none;
+  color: inherit;
+  border: 1px solid transparent;
+  transition: border-color var(--transition-fast), background-color var(--transition-fast);
+}
+.usr-user:hover {
+  border-color: var(--usr-border-strong);
+}
+.usr-user--active {
+  border-color: var(--usr-gold-text);
+}
+.usr-user__arrow {
+  margin-left: auto;
+  flex-shrink: 0;
+  color: var(--usr-text-2);
+}
+.usr-user__text {
+  min-width: 0;
+}
+/* Móvil: avatar con la inicial en la cabecera */
+.usr-avatar-btn {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  background: var(--usr-primary-bg);
+  color: var(--usr-primary-text);
+  font-family: var(--font-heading);
+  font-weight: 700;
+  font-size: 1rem;
+  text-decoration: none;
+  border: 2px solid transparent;
+}
+.usr-avatar-btn--active {
+  border-color: var(--usr-gold-text);
 }

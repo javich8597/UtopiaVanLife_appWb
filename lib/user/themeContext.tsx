@@ -7,3 +7,8 @@ import type { UserTheme } from './theme'
 export const UserThemeContext = createContext<UserTheme>('light')
 
 export const useUserTheme = () => useContext(UserThemeContext)
+
+/** Cambia el tema desde cualquier pantalla del panel (p. ej. Mi perfil). Lo provee DashboardNavClient. */
+export const UserThemeSetterContext = createContext<(theme: UserTheme) => void>(() => {})
+
+export const useSetUserTheme = () => useContext(UserThemeSetterContext)

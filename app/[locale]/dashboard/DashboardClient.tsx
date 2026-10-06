@@ -354,7 +354,7 @@ export default function DashboardClient({ bookings, profile, user }: Props) {
                     <div className="dash-next__actions">
                         {trip.step === 'pay' && <RetryPaymentButton bookingId={booking.id} />}
                         {(trip.step === 'license' || trip.step === 'license-fix') && (
-                            <Link href="/dashboard/profile" className="usr-btn usr-btn--primary">
+                            <Link href="/dashboard/datos" className="usr-btn usr-btn--primary">
                                 <IdCard size={16} aria-hidden="true" /> Subir carnet
                             </Link>
                         )}

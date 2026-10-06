@@ -48,7 +48,7 @@ export default async function DocumentsPage({
   if (relevantBookings.length > 0) {
     const validation = validateContractRequirements(profile)
     if (!validation.isValid) {
-      redirect({ href: '/dashboard/profile?redirect=documentos&reason=missing_contract_data', locale })
+      redirect({ href: '/dashboard/datos?redirect=documentos&reason=missing_contract_data', locale })
       return null
     }
   }

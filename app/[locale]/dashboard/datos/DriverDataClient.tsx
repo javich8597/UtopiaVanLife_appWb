@@ -36,7 +36,7 @@ interface UploadedFilePreview {
   previewUrl: string | null
 }
 
-export default function ProfileClient({ user, profile, rejectionReason }: Props) {
+export default function DriverDataClient({ user, profile, rejectionReason }: Props) {
   const searchParams = useSearchParams()
   const router = useRouter()
   const isMissingContractData = searchParams.get('reason') === 'missing_contract_data'
@@ -162,8 +162,8 @@ export default function ProfileClient({ user, profile, rejectionReason }: Props)
       {/* 1. Header & Status Banner */}
       <div className="profile-header">
         <div className="profile-header__text">
-          <span className="profile-kicker">Mi perfil</span>
-          <h1 className="profile-title">Perfil y documentación</h1>
+          <span className="profile-kicker">Datos y carnet</span>
+          <h1 className="profile-title">Tus datos para el alquiler</h1>
           <p className="profile-subtitle">
             Rellena los campos con tus datos y adjunta tu carnet para formalizar el contrato y activar el seguro.
           </p>

@@ -1,7 +1,7 @@
 'use client'
 
 import React from 'react'
-import { Gauge, Check, Sparkles, Compass, Shield, Zap } from 'lucide-react'
+import { Gauge, Check, Compass, Shield, Zap } from 'lucide-react'
 import { KmPackage, Step2Data } from './types'
 import { formatPrice } from '@/lib/pricing/engine'
 
@@ -105,7 +105,7 @@ export default function Step2Mileage({
                             )}
                         </div>
                         <span className="km-card__badge km-card__badge--highlight">
-                            <Sparkles size={12} />
+                            <Compass size={12} />
                             Libertad Total
                         </span>
                     </div>

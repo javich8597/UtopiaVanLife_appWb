@@ -26,10 +26,21 @@ function NavigationLoaderContent() {
   const timerRef = useRef<NodeJS.Timeout | null>(null)
   const safetyTimerRef = useRef<NodeJS.Timeout | null>(null)
 
+  // Clear all active timers helper
+  const clearAllTimers = () => {
+    if (timerRef.current) {
+      clearTimeout(timerRef.current)
+      timerRef.current = null
+    }
+    if (safetyTimerRef.current) {
+      clearTimeout(safetyTimerRef.current)
+      safetyTimerRef.current = null
+    }
+  }
+
   // When pathname or searchParams change, navigation has completed
   useEffect(() => {
-    if (timerRef.current) clearTimeout(timerRef.current)
-    if (safetyTimerRef.current) clearTimeout(safetyTimerRef.current)
+    clearAllTimers()
     setIsLoading(false)
   }, [pathname, searchParams])
 
@@ -72,45 +83,60 @@ function NavigationLoaderContent() {
         const isSameSearch = targetUrl.search === currentSearch
         if (isSamePath && (isSameSearch || targetUrl.hash)) return
 
-        // Delay showing by 80ms: instant routes won't flicker, but slower routes show loading
-        if (timerRef.current) clearTimeout(timerRef.current)
+        // Delay showing: instant routes won't flicker, but slower routes show loading
+        clearAllTimers()
         timerRef.current = setTimeout(() => {
           setIsLoading(true)
-        }, 80)
+        }, 160)
 
         // Safety timeout so user is never stuck if navigation is cancelled or interrupted
-        if (safetyTimerRef.current) clearTimeout(safetyTimerRef.current)
         safetyTimerRef.current = setTimeout(() => {
           setIsLoading(false)
-        }, 8000)
+        }, 4000)
       } catch (err) {
         // Fallback on invalid url
       }
     }
 
     const handlePopState = () => {
-      // Back/Forward navigation
-      if (timerRef.current) clearTimeout(timerRef.current)
-      timerRef.current = setTimeout(() => {
-        setIsLoading(true)
-      }, 80)
+      // Browser Back/Forward navigation:
+      // NEVER trigger full-screen loader on history traversal to prevent freezing.
+      clearAllTimers()
+      setIsLoading(false)
     }
 
-    const handleCustomStart = () => setIsLoading(true)
-    const handleCustomStop = () => setIsLoading(false)
+    const handlePageShow = () => {
+      // Clear loading screen on bfcache restoration or page show
+      clearAllTimers()
+      setIsLoading(false)
+    }
+
+    const handleCustomStart = () => {
+      clearAllTimers()
+      setIsLoading(true)
+      safetyTimerRef.current = setTimeout(() => {
+        setIsLoading(false)
+      }, 5000)
+    }
+
+    const handleCustomStop = () => {
+      clearAllTimers()
+      setIsLoading(false)
+    }
 
     document.addEventListener('click', handleAnchorClick, true)
     window.addEventListener('popstate', handlePopState)
+    window.addEventListener('pageshow', handlePageShow)
     window.addEventListener('utopia:start-loading', handleCustomStart)
     window.addEventListener('utopia:stop-loading', handleCustomStop)
 
     return () => {
       document.removeEventListener('click', handleAnchorClick, true)
       window.removeEventListener('popstate', handlePopState)
+      window.removeEventListener('pageshow', handlePageShow)
       window.removeEventListener('utopia:start-loading', handleCustomStart)
       window.removeEventListener('utopia:stop-loading', handleCustomStop)
-      if (timerRef.current) clearTimeout(timerRef.current)
-      if (safetyTimerRef.current) clearTimeout(safetyTimerRef.current)
+      clearAllTimers()
     }
   }, [])
 

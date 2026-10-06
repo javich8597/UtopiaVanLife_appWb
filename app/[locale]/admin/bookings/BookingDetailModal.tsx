@@ -22,7 +22,6 @@ import {
   Shield,
   CreditCard,
   Package,
-  Sparkles,
   Waves,
   Check
 } from 'lucide-react'

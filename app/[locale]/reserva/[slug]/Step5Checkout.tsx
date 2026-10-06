@@ -15,7 +15,7 @@ import {
     FileText,
     MapPin,
     Globe,
-    Sparkles,
+    MessageSquare,
 } from 'lucide-react'
 import { Step5Customer, WizardCamper, Step1Data, Step2Data, Step3Data, Step4Data } from './types'
 import { validateStep5 } from './types'
@@ -404,7 +404,7 @@ export default function Step5Checkout({
                 {/* Special Requests */}
                 <div className="form-group-card">
                     <div className="form-group-card__header">
-                        <Sparkles size={18} className="text-forest" />
+                        <MessageSquare size={18} className="text-forest" />
                         <h4 className="form-group-card__title">Notas especiales o detalles del viaje</h4>
                     </div>
 

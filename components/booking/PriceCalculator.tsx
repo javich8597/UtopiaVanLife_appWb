@@ -1,8 +1,8 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { useRouter } from '@/i18n/routing'
-import { Calendar as CalendarIcon, Users, Plus, Minus, CheckCircle, ChevronDown, AlertCircle, Sparkles, Check, Info } from 'lucide-react'
+import { Calendar as CalendarIcon, Users, Plus, Minus, CheckCircle, ChevronDown, AlertCircle, Tag, Check, Info } from 'lucide-react'
 import { calculatePrice, calculatePriceV2, formatPrice, getMinNightsForDate, getMinNightsForDateV2, DaySlot } from '@/lib/pricing/engine'
 import type { Season, SeasonV2, SeasonPeriod, DurationDiscount, Extra } from '@/lib/pricing/engine'
 import BookingCalendar, { BlockedRange } from './BookingCalendar'
@@ -53,6 +53,40 @@ export default function PriceCalculator({
     const [breakdown, setBreakdown] = useState<ReturnType<typeof calculatePrice> | null>(null)
 
     const safeDeposit = Number(depositAmount) || 1000
+    const dateTriggerRef = useRef<HTMLDivElement>(null)
+    const calendarCollapseRef = useRef<HTMLDivElement>(null)
+
+    // Cerrar el calendario al hacer clic fuera del recuadro del calendario (a los lados incluidos) o presionar Escape
+    useEffect(() => {
+        if (!isCalendarOpen) return
+
+        const handleClickOutside = (e: MouseEvent | TouchEvent) => {
+            const target = e.target as Node
+            if (calendarCollapseRef.current && calendarCollapseRef.current.contains(target)) {
+                return
+            }
+            if (dateTriggerRef.current && dateTriggerRef.current.contains(target)) {
+                return
+            }
+            setIsCalendarOpen(false)
+        }
+
+        const handleKeyDown = (e: KeyboardEvent) => {
+            if (e.key === 'Escape') {
+                setIsCalendarOpen(false)
+            }
+        }
+
+        document.addEventListener('mousedown', handleClickOutside)
+        document.addEventListener('touchstart', handleClickOutside)
+        document.addEventListener('keydown', handleKeyDown)
+
+        return () => {
+            document.removeEventListener('mousedown', handleClickOutside)
+            document.removeEventListener('touchstart', handleClickOutside)
+            document.removeEventListener('keydown', handleKeyDown)
+        }
+    }, [isCalendarOpen])
 
     // Cargar fechas y slots bloqueados para esta furgoneta
     useEffect(() => {
@@ -177,6 +211,7 @@ export default function PriceCalculator({
             {/* Interactive Dates Selector */}
             <div className="price-calc__dates-wrapper">
                 <div
+                    ref={dateTriggerRef}
                     className={`price-calc__dates-card ${isCalendarOpen ? 'price-calc__dates-card--open' : ''}`}
                     onClick={() => setIsCalendarOpen(prev => !prev)}
                 >
@@ -226,6 +261,7 @@ export default function PriceCalculator({
                 <AnimatePresence>
                     {isCalendarOpen && (
                         <motion.div
+                            ref={calendarCollapseRef}
                             initial={{ opacity: 0, height: 0 }}
                             animate={{ opacity: 1, height: 'auto' }}
                             exit={{ opacity: 0, height: 0 }}
@@ -290,7 +326,7 @@ export default function PriceCalculator({
                         aria-expanded={isExtrasOpen}
                     >
                         <div className="price-calc__extras-toggle-left">
-                            <Sparkles size={16} className="text-forest" />
+                            <Plus size={16} className="text-forest" />
                             <div className="price-calc__extras-toggle-info">
                                 <span className="price-calc__extras-title">Personaliza tu viaje: Extras</span>
                                 <span className="price-calc__extras-hint">
@@ -420,7 +456,7 @@ export default function PriceCalculator({
             {/* Discount savings banner */}
             {breakdown && breakdown.discountAmount > 0 && (
                 <div className="price-calc__discount-banner">
-                    <Sparkles size={16} className="text-gold" />
+                    <Tag size={16} className="text-gold" />
                     <span>¡Ahorras <strong>{formatPrice(breakdown.discountAmount)}</strong> con el descuento del {breakdown.discountPct}% por estancia larga!</span>
                 </div>
             )}

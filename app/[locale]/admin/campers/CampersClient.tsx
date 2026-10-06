@@ -23,7 +23,6 @@ import {
   Car,
   Upload,
   Image as ImageIcon,
-  Sparkles,
   Settings,
   Fuel,
   Ruler,

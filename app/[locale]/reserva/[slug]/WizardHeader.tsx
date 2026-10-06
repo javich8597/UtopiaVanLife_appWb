@@ -3,7 +3,7 @@
 import React from 'react'
 import Image from 'next/image'
 import Link from 'next/link'
-import { ArrowLeft, Check, Sparkles, ShieldCheck, Users, BedDouble } from 'lucide-react'
+import { ArrowLeft, Check, ShieldCheck, Users, BedDouble } from 'lucide-react'
 import { WizardStep, WizardCamper } from './types'
 
 interface WizardHeaderProps {

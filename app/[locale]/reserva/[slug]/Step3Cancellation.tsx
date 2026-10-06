@@ -1,7 +1,7 @@
 'use client'
 
 import React from 'react'
-import { ShieldCheck, Check, Sparkles, AlertCircle, RefreshCw, CalendarCheck, HelpCircle } from 'lucide-react'
+import { ShieldCheck, Check, AlertCircle, RefreshCw, CalendarCheck, HelpCircle } from 'lucide-react'
 import { CancellationPolicy, Step3Data } from './types'
 import { formatPrice } from '@/lib/pricing/engine'
 
@@ -107,7 +107,7 @@ export default function Step3Cancellation({
                             )}
                         </div>
                         <span className="policy-card__badge policy-card__badge--highlight">
-                            <Sparkles size={12} />
+                            <ShieldCheck size={12} />
                             Máxima Tranquilidad
                         </span>
                     </div>

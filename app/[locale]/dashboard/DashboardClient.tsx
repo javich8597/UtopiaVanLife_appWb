@@ -5,7 +5,7 @@ import Image from 'next/image'
 import { Link } from '@/i18n/routing'
 import {
     Check, ChevronDown, CreditCard, FileSignature, IdCard, Hourglass, KeyRound, Navigation,
-    CalendarPlus, Phone, Compass, MapPin, Sparkles, RotateCcw, type LucideIcon,
+    CalendarPlus, Phone, Compass, MapPin, RotateCcw, type LucideIcon,
 } from 'lucide-react'
 import { formatPrice } from '@/lib/pricing/engine'
 import { getTripState, pickCurrentBooking, type NextStep } from '@/lib/user/tripState'
@@ -239,7 +239,7 @@ export default function DashboardClient({ bookings, profile, user }: Props) {
                     </p>
                     <div className="dash-empty__ctas">
                         <Link href="/campers" className="usr-btn usr-btn--primary">
-                            <Sparkles size={16} aria-hidden="true" />
+                            <Compass size={16} aria-hidden="true" />
                             Ver las campers
                         </Link>
                         <Link href="/dashboard/guia" className="usr-btn">
@@ -390,7 +390,7 @@ export default function DashboardClient({ bookings, profile, user }: Props) {
                         )}
                         {trip.step === 'returned' && (
                             <Link href={`/campers/${camperSlug}`} className="usr-btn usr-btn--primary">
-                                <Sparkles size={16} aria-hidden="true" /> Reservar de nuevo
+                                <RotateCcw size={16} aria-hidden="true" /> Reservar de nuevo
                             </Link>
                         )}
                         {trip.step === 'license-fix' && (

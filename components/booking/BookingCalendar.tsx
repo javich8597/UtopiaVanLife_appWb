@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useState, useMemo } from 'react'
+import React, { useState, useMemo, useEffect } from 'react'
 import {
     format,
     addMonths,
@@ -62,7 +62,18 @@ export default function BookingCalendar({
     monthsCount,
     showDoneButton,
 }: BookingCalendarProps) {
-    const activeMonthsCount = monthsCount ?? (variant === 'hero' ? 2 : 1)
+    const [isMobileScreen, setIsMobileScreen] = useState(false)
+
+    useEffect(() => {
+        const checkMobile = () => {
+            setIsMobileScreen(window.innerWidth <= 768)
+        }
+        checkMobile()
+        window.addEventListener('resize', checkMobile)
+        return () => window.removeEventListener('resize', checkMobile)
+    }, [])
+
+    const activeMonthsCount = isMobileScreen ? 1 : (monthsCount ?? (variant === 'hero' ? 2 : 1))
     const initialMonth = startDate ? parseISO(startDate) : new Date()
     const [currentMonth, setCurrentMonth] = useState<Date>(initialMonth)
     const [hoverDate, setHoverDate] = useState<string | null>(null)
@@ -858,24 +869,32 @@ export default function BookingCalendar({
                     box-shadow: 0 4px 10px rgba(45, 58, 45, 0.35);
                 }
 
-                @media (min-width: 681px) {
+                @media (min-width: 769px) {
                     .hide-desktop {
                         visibility: hidden;
                         pointer-events: none;
                     }
                 }
-                @media (max-width: 680px) {
+                @media (max-width: 768px) {
+                    .booking-cal {
+                        width: 100% !important;
+                        max-width: 330px !important;
+                        padding: 12px 14px 10px !important;
+                        box-sizing: border-box !important;
+                    }
                     .booking-cal--two-months {
-                        width: 92vw !important;
-                        max-width: 320px !important;
-                        padding: 12px 12px 10px;
+                        width: 100% !important;
+                        max-width: 330px !important;
+                    }
+                    .booking-cal--hero {
+                        width: 100% !important;
+                        max-width: 330px !important;
                     }
                     .booking-cal__months-wrap {
                         flex-direction: column;
-                        gap: 14px;
-                        max-height: 56vh;
-                        overflow-y: auto;
-                        -webkit-overflow-scrolling: touch;
+                        gap: 0;
+                        max-height: none;
+                        overflow-y: visible;
                     }
                     .booking-cal__months-divider {
                         display: none;

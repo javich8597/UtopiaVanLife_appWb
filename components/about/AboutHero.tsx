@@ -1,7 +1,7 @@
 'use client'
 
 import { motion } from 'framer-motion'
-import { Sparkles, ChevronDown } from 'lucide-react'
+import { ChevronDown } from 'lucide-react'
 import { useTranslations } from 'next-intl'
 
 export default function AboutHero() {
@@ -40,7 +40,6 @@ export default function AboutHero() {
           transition={{ duration: 0.5, ease: [0.23, 1, 0.32, 1] }}
         >
           <div className="about-hero__badge">
-            <Sparkles size={14} className="about-hero__badge-icon" />
             <span>{t('heroBadge')}</span>
           </div>
         </motion.div>

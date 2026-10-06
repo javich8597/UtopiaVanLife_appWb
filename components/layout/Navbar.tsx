@@ -135,7 +135,7 @@ export default function Navbar() {
               href={user ? "/dashboard" : "/auth/login"}
               className="navbar__cta-btn hide-mobile"
             >
-              <span>Mi Aventura</span>
+              <span>{user ? 'Mi aventura' : 'Entrar'}</span>
               <span className="navbar__cta-icon-circle">
                 <ArrowRight size={13} className="navbar__cta-arrow" />
               </span>
@@ -193,7 +193,7 @@ export default function Navbar() {
               className="navbar__cta-btn mobile-menu__adventure-btn"
               onClick={() => setMenuOpen(false)}
             >
-              <span>Mi Aventura</span>
+              <span>{user ? 'Mi aventura' : 'Entrar'}</span>
               <span className="navbar__cta-icon-circle">
                 <ArrowRight size={14} className="navbar__cta-arrow" />
               </span>

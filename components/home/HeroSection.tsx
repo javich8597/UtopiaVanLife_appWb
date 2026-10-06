@@ -54,6 +54,9 @@ export default function HeroSection() {
   const [isCalendarOpen, setIsCalendarOpen] = useState(false)
   const [activePhotoIndex, setActivePhotoIndex] = useState(0)
   const containerRef = useRef<HTMLDivElement>(null)
+  const calendarPopoverRef = useRef<HTMLDivElement>(null)
+  const salidaRef = useRef<HTMLDivElement>(null)
+  const llegadaRef = useRef<HTMLDivElement>(null)
 
   // Carousel rotativo de imágenes del habitáculo interior
   useEffect(() => {
@@ -63,31 +66,41 @@ export default function HeroSection() {
     return () => clearInterval(timer)
   }, [])
 
-  // Cerrar el popover al hacer clic fuera
+  // Cerrar el calendario al hacer clic en cualquier punto fuera del recuadro del calendario (a los lados incluidos)
   useEffect(() => {
-    function handleClickOutside(event: MouseEvent) {
-      if (containerRef.current && !containerRef.current.contains(event.target as Node)) {
+    if (!isCalendarOpen) return
+
+    const handleClickOutside = (e: MouseEvent | TouchEvent) => {
+      const target = e.target as Node
+      // Si el clic fue dentro del recuadro del calendario, permanece abierto
+      if (calendarPopoverRef.current && calendarPopoverRef.current.contains(target)) {
+        return
+      }
+      // Si el clic fue en los campos disparadores de fecha, no cerrar (tienen su propio toggle)
+      if (salidaRef.current && salidaRef.current.contains(target)) {
+        return
+      }
+      if (llegadaRef.current && llegadaRef.current.contains(target)) {
+        return
+      }
+      // Cualquier otro clic (a los lados del recuadro, fondo, etc.) cierra el calendario
+      setIsCalendarOpen(false)
+    }
+
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
         setIsCalendarOpen(false)
       }
     }
-    if (isCalendarOpen) {
-      document.addEventListener('mousedown', handleClickOutside)
-    }
+
+    document.addEventListener('mousedown', handleClickOutside)
+    document.addEventListener('touchstart', handleClickOutside)
+    document.addEventListener('keydown', handleKeyDown)
+
     return () => {
       document.removeEventListener('mousedown', handleClickOutside)
-    }
-  }, [isCalendarOpen])
-
-  // Centrar la barra de búsqueda y el calendario en el viewport al abrir para verlo sin escrolear
-  useEffect(() => {
-    if (isCalendarOpen && containerRef.current) {
-      requestAnimationFrame(() => {
-        containerRef.current?.scrollIntoView({
-          behavior: 'smooth',
-          block: 'center',
-          inline: 'nearest'
-        })
-      })
+      document.removeEventListener('touchstart', handleClickOutside)
+      document.removeEventListener('keydown', handleKeyDown)
     }
   }, [isCalendarOpen])
 
@@ -199,38 +212,75 @@ export default function HeroSection() {
         <div className="hero__search-container" ref={containerRef}>
           <form className="hero__searchbar" onSubmit={handleSearch}>
 
-            {/* Selector Fechas: Salida */}
-            <div
-              className={`hero__field hero__field--clickable ${isCalendarOpen ? 'hero__field--active' : ''}`}
-              onClick={() => setIsCalendarOpen(true)}
-            >
-              <span className="hero__field-label">
-                <CalendarIcon size={13} className="hero__field-icon" />
-                {t('salida')}
-              </span>
-              <div className="hero__field-display">
-                <span className={!startDate ? 'hero__field-placeholder' : 'hero__field-value'}>
-                  {formatDisplayDate(startDate) || 'Fecha de salida'}
-                </span>
-              </div>
-            </div>
+            {/* Contenedor relativo de Fechas y Popover */}
+            <div className="hero__dates-wrapper">
+              <div className="hero__dates-group">
+                {/* Selector Fechas: Salida */}
+                <div
+                  ref={salidaRef}
+                  className={`hero__field hero__field--clickable ${isCalendarOpen ? 'hero__field--active' : ''}`}
+                  onClick={() => setIsCalendarOpen(prev => !prev)}
+                  role="button"
+                  tabIndex={0}
+                  aria-label="Seleccionar fecha de salida"
+                >
+                  <span className="hero__field-label">
+                    <CalendarIcon size={13} className="hero__field-icon" />
+                    {t('salida')}
+                  </span>
+                  <div className="hero__field-display">
+                    <span className={!startDate ? 'hero__field-placeholder' : 'hero__field-value'}>
+                      {formatDisplayDate(startDate) || 'Fecha de salida'}
+                    </span>
+                  </div>
+                </div>
 
-            <div className="hero__separator" />
+                <div className="hero__separator hero__separator--dates" />
 
-            {/* Selector Fechas: Llegada */}
-            <div
-              className={`hero__field hero__field--clickable ${isCalendarOpen ? 'hero__field--active' : ''}`}
-              onClick={() => setIsCalendarOpen(true)}
-            >
-              <span className="hero__field-label">
-                <CalendarIcon size={13} className="hero__field-icon" />
-                {t('llegada')}
-              </span>
-              <div className="hero__field-display">
-                <span className={!endDate ? 'hero__field-placeholder' : 'hero__field-value'}>
-                  {formatDisplayDate(endDate) || 'Fecha de llegada'}
-                </span>
+                {/* Selector Fechas: Llegada */}
+                <div
+                  ref={llegadaRef}
+                  className={`hero__field hero__field--clickable ${isCalendarOpen ? 'hero__field--active' : ''}`}
+                  onClick={() => setIsCalendarOpen(prev => !prev)}
+                  role="button"
+                  tabIndex={0}
+                  aria-label="Seleccionar fecha de llegada"
+                >
+                  <span className="hero__field-label">
+                    <CalendarIcon size={13} className="hero__field-icon" />
+                    {t('llegada')}
+                  </span>
+                  <div className="hero__field-display">
+                    <span className={!endDate ? 'hero__field-placeholder' : 'hero__field-value'}>
+                      {formatDisplayDate(endDate) || 'Fecha de llegada'}
+                    </span>
+                  </div>
+                </div>
               </div>
+
+              {/* Popover flotante del calendario */}
+              <AnimatePresence>
+                {isCalendarOpen && (
+                  <motion.div
+                    ref={calendarPopoverRef}
+                    initial={{ opacity: 0, y: -6, scale: 0.98 }}
+                    animate={{ opacity: 1, y: 0, scale: 1 }}
+                    exit={{ opacity: 0, y: -6, scale: 0.98 }}
+                    transition={{ duration: 0.2, ease: [0.16, 1, 0.3, 1] }}
+                    className="hero__calendar-popover"
+                  >
+                    <BookingCalendar
+                      startDate={startDate}
+                      endDate={endDate}
+                      showSlots={false}
+                      variant="hero"
+                      onChange={handleDatesChange}
+                      onClose={() => setIsCalendarOpen(false)}
+                      showDoneButton={false}
+                    />
+                  </motion.div>
+                )}
+              </AnimatePresence>
             </div>
 
             <div className="hero__separator" />
@@ -270,30 +320,6 @@ export default function HeroSection() {
               <span>{t('buscar') || 'Buscar mi Utopia'}</span>
             </button>
           </form>
-
-          {/* Popover flotante del calendario */}
-          <AnimatePresence>
-            {isCalendarOpen && (
-              <motion.div
-                initial={{ opacity: 0, y: -6, scale: 0.98 }}
-                animate={{ opacity: 1, y: 0, scale: 1 }}
-                exit={{ opacity: 0, y: -6, scale: 0.98 }}
-                transition={{ duration: 0.2, ease: [0.16, 1, 0.3, 1] }}
-                className="hero__calendar-popover"
-              >
-                <BookingCalendar
-                  startDate={startDate}
-                  endDate={endDate}
-                  showSlots={false}
-                  variant="hero"
-                  monthsCount={2}
-                  onChange={handleDatesChange}
-                  onClose={() => setIsCalendarOpen(false)}
-                  showDoneButton={false}
-                />
-              </motion.div>
-            )}
-          </AnimatePresence>
 
           {/* Badges de micro-garantías bajo la barra de búsqueda */}
           <div className="hero__guarantees">
@@ -517,6 +543,7 @@ export default function HeroSection() {
 
         /* Barra de búsqueda (Glassmorphism Oscuro Premium como en el diseño) */
         .hero__searchbar {
+          position: relative;
           display: flex;
           align-items: center;
           border-radius: var(--radius-full);
@@ -534,6 +561,14 @@ export default function HeroSection() {
         .hero__searchbar:hover {
           border-color: rgba(204, 160, 83, 0.45);
           box-shadow: 0 24px 56px -10px rgba(0, 0, 0, 0.7), inset 0 1px 0 rgba(255, 255, 255, 0.18);
+        }
+
+        .hero__dates-wrapper {
+          display: contents;
+        }
+
+        .hero__dates-group {
+          display: contents;
         }
 
         .hero__field {
@@ -710,19 +745,38 @@ export default function HeroSection() {
         }
 
         @media (max-width: 768px) {
+          /* En móvil solo mostrar el vídeo de fondo a pantalla completa */
+          .hero__split-col--left {
+            width: 100% !important;
+          }
+          .hero__split-col--right {
+            display: none !important;
+          }
+          .hero__split-divider {
+            display: none !important;
+          }
           .hero__photo-indicators {
-            bottom: 16px;
-            right: 16px;
-            padding: 4px 8px;
-            gap: 4px;
+            display: none !important;
           }
-          .hero__photo-dot {
-            width: 5px;
-            height: 5px;
+
+          .hero__dates-wrapper {
+            position: relative;
+            width: 100%;
+            z-index: 40;
           }
-          .hero__photo-dot--active {
-            width: 12px;
+
+          /* Fechas de salida y llegada en 1 fila 2 columnas fijas y simétricas */
+          .hero__dates-group {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 8px;
+            width: 100%;
+            box-sizing: border-box;
           }
+          .hero__separator--dates {
+            display: none;
+          }
+
           .hero__searchbar {
             flex-direction: column;
             padding: var(--space-4);
@@ -734,10 +788,16 @@ export default function HeroSection() {
             display: none;
           }
           .hero__field {
-            min-width: unset;
-            padding: 8px 12px;
+            min-width: 0;
+            padding: 8px 10px;
             background: rgba(255, 255, 255, 0.04);
             border-radius: var(--radius-md);
+            box-sizing: border-box;
+          }
+          .hero__field-display {
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
           }
           .hero__search-btn {
             width: 100%;
@@ -745,17 +805,17 @@ export default function HeroSection() {
             padding: 14px;
           }
           .hero__calendar-popover {
-            position: fixed;
-            top: 50%;
-            bottom: auto;
+            position: absolute;
+            top: calc(100% + 8px);
             left: 50%;
             right: auto;
-            transform: translate(-50%, -50%) !important;
-            max-width: 360px;
-            width: 92vw;
-            max-height: 85vh;
-            overflow-y: auto;
-            z-index: 1000;
+            bottom: auto;
+            translate: -50% 0;
+            max-width: 330px;
+            width: 100%;
+            max-height: none;
+            overflow: visible;
+            z-index: 100;
           }
           .hero__guarantees {
             flex-direction: column;

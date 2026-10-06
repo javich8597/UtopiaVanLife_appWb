@@ -14,7 +14,6 @@ import {
     Users,
     Search,
     Shield,
-    Sparkles,
     BatteryCharging,
     Coffee,
     MapPin,
@@ -49,6 +48,9 @@ function ReservarContent() {
     const [filterModel, setFilterModel] = useState<'all' | 'space' | 'neo'>('all')
 
     const searchContainerRef = useRef<HTMLDivElement>(null)
+    const calendarPopoverRef = useRef<HTMLDivElement>(null)
+    const salidaRef = useRef<HTMLDivElement>(null)
+    const llegadaRef = useRef<HTMLDivElement>(null)
 
     const getDemoCampers = () => [
         {
@@ -83,21 +85,6 @@ function ReservarContent() {
         if (initialTo !== endDate) setEndDate(initialTo)
         if (initialPax !== pax) setPax(initialPax)
     }, [initialFrom, initialTo, initialPax])
-
-    // Close calendar popover on outside click
-    useEffect(() => {
-        function handleClickOutside(event: MouseEvent) {
-            if (searchContainerRef.current && !searchContainerRef.current.contains(event.target as Node)) {
-                setIsCalendarOpen(false)
-            }
-        }
-        if (isCalendarOpen) {
-            document.addEventListener('mousedown', handleClickOutside)
-        }
-        return () => {
-            document.removeEventListener('mousedown', handleClickOutside)
-        }
-    }, [isCalendarOpen])
 
     // Fetch availability from backend
     useEffect(() => {
@@ -171,6 +158,44 @@ function ReservarContent() {
         }
     }, [startDate, endDate])
 
+    // Cerrar el calendario al hacer clic en cualquier punto fuera del recuadro del calendario (a los lados incluidos) o presionar Escape
+    useEffect(() => {
+        if (!isCalendarOpen) return
+
+        const handleClickOutside = (e: MouseEvent | TouchEvent) => {
+            const target = e.target as Node
+            // Si el clic fue dentro del recuadro del calendario, permanece abierto
+            if (calendarPopoverRef.current && calendarPopoverRef.current.contains(target)) {
+                return
+            }
+            // Si el clic fue en los campos disparadores de fecha, no cerrar
+            if (salidaRef.current && salidaRef.current.contains(target)) {
+                return
+            }
+            if (llegadaRef.current && llegadaRef.current.contains(target)) {
+                return
+            }
+            // Cualquier otro clic (a los lados del recuadro, fondo, etc.) cierra el calendario
+            setIsCalendarOpen(false)
+        }
+
+        const handleKeyDown = (e: KeyboardEvent) => {
+            if (e.key === 'Escape') {
+                setIsCalendarOpen(false)
+            }
+        }
+
+        document.addEventListener('mousedown', handleClickOutside)
+        document.addEventListener('touchstart', handleClickOutside)
+        document.addEventListener('keydown', handleKeyDown)
+
+        return () => {
+            document.removeEventListener('mousedown', handleClickOutside)
+            document.removeEventListener('touchstart', handleClickOutside)
+            document.removeEventListener('keydown', handleKeyDown)
+        }
+    }, [isCalendarOpen])
+
     const hasDates = Boolean(startDate && endDate)
 
     // IMPORTANT: Once dates are selected, show ONLY available campers per user requirement
@@ -191,44 +216,75 @@ function ReservarContent() {
             {/* Floating Date Selector Bar */}
             <div className="reservar-search__container" ref={searchContainerRef}>
                 <form className="reservar-searchbar" onSubmit={handleSearchSubmit}>
-                    {/* Selector Fechas: Salida */}
-                    <div
-                        className={`reservar-search__field reservar-search__field--clickable ${isCalendarOpen ? 'reservar-search__field--active' : ''}`}
-                        onClick={() => setIsCalendarOpen(true)}
-                        role="button"
-                        tabIndex={0}
-                        aria-label="Seleccionar fecha de salida"
-                    >
-                        <span className="reservar-search__field-label">
-                            <CalendarIcon size={13} className="reservar-search__field-icon" />
-                            Salida
-                        </span>
-                        <div className="reservar-search__field-display">
-                            <span className={!startDate ? 'reservar-search__field-placeholder' : 'reservar-search__field-value'}>
-                                {formatDisplayDate(startDate) || 'Fecha de salida'}
-                            </span>
-                        </div>
-                    </div>
+                    {/* Selector Fechas: Salida y Llegada (1 fila 2 columnas en móvil) */}
+                    <div className="reservar-search__dates-wrapper">
+                        <div className="reservar-search__dates-group">
+                            <div
+                                ref={salidaRef}
+                                className={`reservar-search__field reservar-search__field--clickable ${isCalendarOpen ? 'reservar-search__field--active' : ''}`}
+                                onClick={() => setIsCalendarOpen(prev => !prev)}
+                                role="button"
+                                tabIndex={0}
+                                aria-label="Seleccionar fecha de salida"
+                            >
+                                <span className="reservar-search__field-label">
+                                    <CalendarIcon size={13} className="reservar-search__field-icon" />
+                                    Salida
+                                </span>
+                                <div className="reservar-search__field-display">
+                                    <span className={!startDate ? 'reservar-search__field-placeholder' : 'reservar-search__field-value'}>
+                                        {formatDisplayDate(startDate) || 'Fecha de salida'}
+                                    </span>
+                                </div>
+                            </div>
 
-                    <div className="reservar-search__separator" />
+                            <div className="reservar-search__separator reservar-search__separator--dates" />
 
-                    {/* Selector Fechas: Llegada */}
-                    <div
-                        className={`reservar-search__field reservar-search__field--clickable ${isCalendarOpen ? 'reservar-search__field--active' : ''}`}
-                        onClick={() => setIsCalendarOpen(true)}
-                        role="button"
-                        tabIndex={0}
-                        aria-label="Seleccionar fecha de llegada"
-                    >
-                        <span className="reservar-search__field-label">
-                            <CalendarIcon size={13} className="reservar-search__field-icon" />
-                            Llegada
-                        </span>
-                        <div className="reservar-search__field-display">
-                            <span className={!endDate ? 'reservar-search__field-placeholder' : 'reservar-search__field-value'}>
-                                {formatDisplayDate(endDate) || 'Fecha de llegada'}
-                            </span>
+                            {/* Selector Fechas: Llegada */}
+                            <div
+                                ref={llegadaRef}
+                                className={`reservar-search__field reservar-search__field--clickable ${isCalendarOpen ? 'reservar-search__field--active' : ''}`}
+                                onClick={() => setIsCalendarOpen(prev => !prev)}
+                                role="button"
+                                tabIndex={0}
+                                aria-label="Seleccionar fecha de llegada"
+                            >
+                                <span className="reservar-search__field-label">
+                                    <CalendarIcon size={13} className="reservar-search__field-icon" />
+                                    Llegada
+                                </span>
+                                <div className="reservar-search__field-display">
+                                    <span className={!endDate ? 'reservar-search__field-placeholder' : 'reservar-search__field-value'}>
+                                        {formatDisplayDate(endDate) || 'Fecha de llegada'}
+                                    </span>
+                                </div>
+                            </div>
                         </div>
+
+                        {/* Floating Calendar Popover */}
+                        <AnimatePresence>
+                            {isCalendarOpen && (
+                                <motion.div
+                                    ref={calendarPopoverRef}
+                                    initial={{ opacity: 0, y: -6, scale: 0.98 }}
+                                    animate={{ opacity: 1, y: 0, scale: 1 }}
+                                    exit={{ opacity: 0, y: -6, scale: 0.98 }}
+                                    transition={{ duration: 0.2, ease: [0.16, 1, 0.3, 1] }}
+                                    className="reservar-search__calendar-popover"
+                                >
+                                    <BookingCalendar
+                                        startDate={startDate}
+                                        endDate={endDate}
+                                        showSlots={false}
+                                        variant="hero"
+                                        monthsCount={2}
+                                        onChange={handleDatesChange}
+                                        onClose={() => setIsCalendarOpen(false)}
+                                        showDoneButton={false}
+                                    />
+                                </motion.div>
+                            )}
+                        </AnimatePresence>
                     </div>
 
                     <div className="reservar-search__separator" />
@@ -277,30 +333,6 @@ function ReservarContent() {
                     </button>
                 </form>
 
-                {/* Floating 2-month Calendar Popover */}
-                <AnimatePresence>
-                    {isCalendarOpen && (
-                        <motion.div
-                            initial={{ opacity: 0, y: -6, scale: 0.98 }}
-                            animate={{ opacity: 1, y: 0, scale: 1 }}
-                            exit={{ opacity: 0, y: -6, scale: 0.98 }}
-                            transition={{ duration: 0.2, ease: [0.16, 1, 0.3, 1] }}
-                            className="reservar-search__calendar-popover"
-                        >
-                            <BookingCalendar
-                                startDate={startDate}
-                                endDate={endDate}
-                                showSlots={false}
-                                variant="hero"
-                                monthsCount={2}
-                                onChange={handleDatesChange}
-                                onClose={() => setIsCalendarOpen(false)}
-                                showDoneButton={false}
-                            />
-                        </motion.div>
-                    )}
-                </AnimatePresence>
-
                 {/* Guarantees */}
                 <div className="reservar-search__guarantees">
                     <span className="reservar-search__guarantee-item">
@@ -340,7 +372,7 @@ function ReservarContent() {
                 </div>
             ) : (
                 <div className="reservar-prompt-banner">
-                    <Sparkles size={16} className="reservar-prompt-banner__icon" />
+                    <CalendarIcon size={16} className="reservar-prompt-banner__icon" />
                     <span>
                         Selecciona fecha de salida y llegada en el buscador superior para comprobar disponibilidad en tiempo real.
                     </span>
@@ -511,6 +543,7 @@ function ReservarContent() {
                 }
 
                 .reservar-searchbar {
+                    position: relative;
                     display: flex;
                     align-items: center;
                     border-radius: var(--radius-full);
@@ -528,6 +561,14 @@ function ReservarContent() {
                 .reservar-searchbar:hover {
                     border-color: rgba(204, 160, 83, 0.5);
                     box-shadow: 0 24px 56px -10px rgba(0, 0, 0, 0.7), inset 0 1px 0 rgba(255, 255, 255, 0.18);
+                }
+
+                .reservar-search__dates-wrapper {
+                    display: contents;
+                }
+
+                .reservar-search__dates-group {
+                    display: contents;
                 }
 
                 .reservar-search__field {
@@ -969,6 +1010,24 @@ function ReservarContent() {
                 }
 
                 @media (max-width: 768px) {
+                    .reservar-search__dates-wrapper {
+                        position: relative;
+                        width: 100%;
+                        z-index: 40;
+                    }
+
+                    /* Fechas de salida y llegada en 1 fila 2 columnas fijas y simétricas */
+                    .reservar-search__dates-group {
+                        display: grid;
+                        grid-template-columns: repeat(2, minmax(0, 1fr));
+                        gap: 8px;
+                        width: 100%;
+                        box-sizing: border-box;
+                    }
+                    .reservar-search__separator--dates {
+                        display: none;
+                    }
+
                     .reservar-searchbar {
                         flex-direction: column;
                         padding: var(--space-4);
@@ -980,10 +1039,16 @@ function ReservarContent() {
                         display: none;
                     }
                     .reservar-search__field {
-                        min-width: unset;
+                        min-width: 0;
                         padding: 8px 12px;
                         background: rgba(255, 255, 255, 0.04);
                         border-radius: var(--radius-md);
+                        box-sizing: border-box;
+                    }
+                    .reservar-search__field-display {
+                        white-space: nowrap;
+                        overflow: hidden;
+                        text-overflow: ellipsis;
                     }
                     .reservar-search__btn {
                         width: 100%;
@@ -991,17 +1056,17 @@ function ReservarContent() {
                         padding: 14px;
                     }
                     .reservar-search__calendar-popover {
-                        position: fixed;
-                        top: 50%;
-                        bottom: auto;
+                        position: absolute;
+                        top: calc(100% + 8px);
                         left: 50%;
                         right: auto;
-                        transform: translate(-50%, -50%) !important;
-                        max-width: 360px;
-                        width: 92vw;
-                        max-height: 85vh;
-                        overflow-y: auto;
-                        z-index: 1000;
+                        bottom: auto;
+                        translate: -50% 0;
+                        max-width: 330px;
+                        width: 100%;
+                        max-height: none;
+                        overflow: visible;
+                        z-index: 100;
                     }
                     .reservar-search__guarantees {
                         flex-direction: column;
@@ -1049,7 +1114,6 @@ export default function ReservarPage() {
                 <section className="reservar-hero">
                     <div className="container reservar-hero__container">
                         <div className="reservar-hero__eyebrow">
-                            <Sparkles size={13} className="reservar-hero__sparkle" />
                             <span>RESERVA DIRECTA · BOUTIQUE CAMPERS MALLORCA</span>
                         </div>
                         <h1 className="reservar-hero__title">
@@ -1110,9 +1174,6 @@ export default function ReservarPage() {
                     border: 1px solid rgba(204, 160, 83, 0.28);
                     padding: 5px 16px;
                     border-radius: 999px;
-                }
-                :global(.reservar-hero__sparkle) {
-                    color: #CCA053;
                 }
 
                 .reservar-hero__title {

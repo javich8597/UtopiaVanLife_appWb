@@ -11,7 +11,6 @@ import {
   MessageCircle, 
   Clock, 
   Send,
-  Sparkles,
   ArrowRight
 } from 'lucide-react'
 
@@ -87,7 +86,6 @@ export default function ContactClient({ t }: ContactClientProps) {
       <section className="contact-hero">
         <div className="container">
           <div className="hero-kicker-wrap">
-            <Sparkles size={13} className="hero-kicker-icon" />
             <span className="hero-kicker">UTOPIA CONCIERGE · ATENCIÓN EXCLUSIVA MALLORCA</span>
           </div>
           <h1 className="hero-title">{t.title}</h1>

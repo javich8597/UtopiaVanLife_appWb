@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react'
 import CamperCard from '@/components/campers/CamperCard'
-import { ArrowRight, Sparkles } from 'lucide-react'
+import { ArrowRight } from 'lucide-react'
 import { Link } from '@/i18n/routing'
 import { useTranslations } from 'next-intl'
 
@@ -52,7 +52,6 @@ export default function FeaturedCampers() {
                 {/* Centered Editorial Header */}
                 <div className="featured__header">
                     <div className="featured__eyebrow-pill">
-                        <Sparkles size={12} className="featured__eyebrow-icon" />
                         <span>{t('eyebrow')}</span>
                     </div>
                     <h2 className="featured__title">

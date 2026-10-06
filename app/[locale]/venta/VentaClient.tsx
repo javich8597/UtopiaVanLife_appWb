@@ -20,8 +20,7 @@ import {
   Facebook,
   Compass,
   Coins,
-  Clock,
-  Sparkles
+  Clock
 } from 'lucide-react'
 
 const CAROUSEL_IMAGES = [
@@ -466,7 +465,7 @@ export default function VentaClient() {
         <div className="venta-manifesto__grid">
           <div className="venta-manifesto__text-col">
             <div className="venta-manifesto__kicker">
-              <Sparkles size={14} className="venta-gold-icon" />
+              <Compass size={14} className="venta-gold-icon" />
               <span>Filosofía de Vida</span>
             </div>
             <h2 className="venta-manifesto__title">

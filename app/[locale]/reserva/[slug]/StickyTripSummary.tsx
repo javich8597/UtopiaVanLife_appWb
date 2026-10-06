@@ -9,7 +9,6 @@ import {
     Shield,
     ShieldCheck,
     Check,
-    Sparkles,
     CreditCard,
     Lock,
     X,

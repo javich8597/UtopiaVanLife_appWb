@@ -215,9 +215,9 @@ function ReservarContent() {
         <div className="reservar-content">
             {/* Floating Date Selector Bar */}
             <div className="reservar-search__container" ref={searchContainerRef}>
-                <form className="reservar-searchbar" onSubmit={handleSearchSubmit}>
-                    {/* Selector Fechas: Salida y Llegada (1 fila 2 columnas en móvil) */}
-                    <div className="reservar-search__dates-wrapper">
+                <div className="reservar-searchbar-wrapper">
+                    <form className="reservar-searchbar" onSubmit={handleSearchSubmit}>
+                        {/* Selector Fechas: Salida y Llegada (1 fila 2 columnas en móvil) */}
                         <div className="reservar-search__dates-group">
                             <div
                                 ref={salidaRef}
@@ -261,77 +261,77 @@ function ReservarContent() {
                             </div>
                         </div>
 
-                        {/* Floating Calendar Popover */}
-                        <AnimatePresence>
-                            {isCalendarOpen && (
-                                <motion.div
-                                    ref={calendarPopoverRef}
-                                    initial={{ opacity: 0, y: -6, scale: 0.98 }}
-                                    animate={{ opacity: 1, y: 0, scale: 1 }}
-                                    exit={{ opacity: 0, y: -6, scale: 0.98 }}
-                                    transition={{ duration: 0.2, ease: [0.16, 1, 0.3, 1] }}
-                                    className="reservar-search__calendar-popover"
+                        <div className="reservar-search__separator" />
+
+                        {/* Selector de Viajeros */}
+                        <div className="reservar-search__field">
+                            <span className="reservar-search__field-label">
+                                <Users size={13} className="reservar-search__field-icon" />
+                                Viajeros
+                            </span>
+                            <div className="reservar-search__pax-control">
+                                <button
+                                    type="button"
+                                    onClick={() => {
+                                        const nextPax = Math.max(1, pax - 1)
+                                        setPax(nextPax)
+                                        if (hasDates) updateUrlParams(startDate, endDate, nextPax)
+                                    }}
+                                    disabled={pax <= 1}
+                                    className="reservar-search__pax-btn"
+                                    aria-label="Menos viajeros"
                                 >
-                                    <BookingCalendar
-                                        startDate={startDate}
-                                        endDate={endDate}
-                                        showSlots={false}
-                                        variant="hero"
-                                        monthsCount={2}
-                                        onChange={handleDatesChange}
-                                        onClose={() => setIsCalendarOpen(false)}
-                                        showDoneButton={false}
-                                    />
-                                </motion.div>
-                            )}
-                        </AnimatePresence>
-                    </div>
-
-                    <div className="reservar-search__separator" />
-
-                    {/* Selector de Viajeros */}
-                    <div className="reservar-search__field">
-                        <span className="reservar-search__field-label">
-                            <Users size={13} className="reservar-search__field-icon" />
-                            Viajeros
-                        </span>
-                        <div className="reservar-search__pax-control">
-                            <button
-                                type="button"
-                                onClick={() => {
-                                    const nextPax = Math.max(1, pax - 1)
-                                    setPax(nextPax)
-                                    if (hasDates) updateUrlParams(startDate, endDate, nextPax)
-                                }}
-                                disabled={pax <= 1}
-                                className="reservar-search__pax-btn"
-                                aria-label="Menos viajeros"
-                            >
-                                −
-                            </button>
-                            <span className="reservar-search__pax-num">{pax}</span>
-                            <button
-                                type="button"
-                                onClick={() => {
-                                    const nextPax = Math.min(3, pax + 1)
-                                    setPax(nextPax)
-                                    if (hasDates) updateUrlParams(startDate, endDate, nextPax)
-                                }}
-                                disabled={pax >= 3}
-                                className="reservar-search__pax-btn"
-                                aria-label="Más viajeros (máximo 3)"
-                            >
-                                +
-                            </button>
+                                    −
+                                </button>
+                                <span className="reservar-search__pax-num">{pax}</span>
+                                <button
+                                    type="button"
+                                    onClick={() => {
+                                        const nextPax = Math.min(3, pax + 1)
+                                        setPax(nextPax)
+                                        if (hasDates) updateUrlParams(startDate, endDate, nextPax)
+                                    }}
+                                    disabled={pax >= 3}
+                                    className="reservar-search__pax-btn"
+                                    aria-label="Más viajeros (máximo 3)"
+                                >
+                                    +
+                                </button>
+                            </div>
                         </div>
-                    </div>
 
-                    {/* Search / Availability CTA button */}
-                    <button type="submit" className="reservar-search__btn">
-                        <Search size={16} />
-                        <span>{hasDates ? 'Actualizar búsqueda' : 'Buscar disponibilidad'}</span>
-                    </button>
-                </form>
+                        {/* Search / Availability CTA button */}
+                        <button type="submit" className="reservar-search__btn">
+                            <Search size={16} />
+                            <span>{hasDates ? 'Actualizar búsqueda' : 'Buscar disponibilidad'}</span>
+                        </button>
+                    </form>
+
+                    {/* Floating 2-month Calendar Popover */}
+                    <AnimatePresence>
+                        {isCalendarOpen && (
+                            <motion.div
+                                ref={calendarPopoverRef}
+                                initial={{ opacity: 0, y: -6, scale: 0.98 }}
+                                animate={{ opacity: 1, y: 0, scale: 1 }}
+                                exit={{ opacity: 0, y: -6, scale: 0.98 }}
+                                transition={{ duration: 0.2, ease: [0.16, 1, 0.3, 1] }}
+                                className="reservar-search__calendar-popover"
+                            >
+                                <BookingCalendar
+                                    startDate={startDate}
+                                    endDate={endDate}
+                                    showSlots={false}
+                                    variant="hero"
+                                    monthsCount={2}
+                                    onChange={handleDatesChange}
+                                    onClose={() => setIsCalendarOpen(false)}
+                                    showDoneButton={false}
+                                />
+                            </motion.div>
+                        )}
+                    </AnimatePresence>
+                </div>
 
                 {/* Guarantees */}
                 <div className="reservar-search__guarantees">
@@ -563,8 +563,9 @@ function ReservarContent() {
                     box-shadow: 0 24px 56px -10px rgba(0, 0, 0, 0.7), inset 0 1px 0 rgba(255, 255, 255, 0.18);
                 }
 
-                .reservar-search__dates-wrapper {
-                    display: contents;
+                .reservar-searchbar-wrapper {
+                    position: relative;
+                    width: 100%;
                 }
 
                 .reservar-search__dates-group {
@@ -1010,12 +1011,6 @@ function ReservarContent() {
                 }
 
                 @media (max-width: 768px) {
-                    .reservar-search__dates-wrapper {
-                        position: relative;
-                        width: 100%;
-                        z-index: 40;
-                    }
-
                     /* Fechas de salida y llegada en 1 fila 2 columnas fijas y simétricas */
                     .reservar-search__dates-group {
                         display: grid;
@@ -1057,7 +1052,7 @@ function ReservarContent() {
                     }
                     .reservar-search__calendar-popover {
                         position: absolute;
-                        top: calc(100% + 8px);
+                        top: 74px;
                         left: 50%;
                         right: auto;
                         bottom: auto;

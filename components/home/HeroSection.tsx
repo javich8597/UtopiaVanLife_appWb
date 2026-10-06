@@ -224,10 +224,10 @@ export default function HeroSection() {
 
         {/* Barra de Selección Flotante Glassmorphic */}
         <div className="hero__search-container" ref={containerRef}>
-          <form className="hero__searchbar" onSubmit={handleSearch}>
+          <div className="hero__searchbar-wrapper">
+            <form className="hero__searchbar" onSubmit={handleSearch}>
 
-            {/* Contenedor relativo de Fechas y Popover */}
-            <div className="hero__dates-wrapper">
+              {/* Contenedor de Fechas de Salida y Llegada */}
               <div className="hero__dates-group">
                 {/* Selector Fechas: Salida */}
                 <div
@@ -272,68 +272,69 @@ export default function HeroSection() {
                 </div>
               </div>
 
-              {/* Popover flotante del calendario */}
-              <AnimatePresence>
-                {isCalendarOpen && (
-                  <motion.div
-                    ref={calendarPopoverRef}
-                    initial={{ opacity: 0, y: -6, scale: 0.98 }}
-                    animate={{ opacity: 1, y: 0, scale: 1 }}
-                    exit={{ opacity: 0, y: -6, scale: 0.98 }}
-                    transition={{ duration: 0.2, ease: [0.16, 1, 0.3, 1] }}
-                    className="hero__calendar-popover"
+              <div className="hero__separator" />
+
+              {/* Selector de Viajeros (1 a 3) */}
+              <div className="hero__field">
+                <span className="hero__field-label">
+                  <Users size={13} className="hero__field-icon" />
+                  {t('viajeros')}
+                </span>
+                <div className="hero__pax-control">
+                  <button
+                    type="button"
+                    onClick={() => setPax(p => Math.max(1, p - 1))}
+                    disabled={pax <= 1}
+                    className="hero__pax-btn"
+                    aria-label="Menos viajeros"
                   >
-                    <BookingCalendar
-                      startDate={startDate}
-                      endDate={endDate}
-                      showSlots={false}
-                      variant="hero"
-                      onChange={handleDatesChange}
-                      onClose={() => setIsCalendarOpen(false)}
-                      showDoneButton={false}
-                    />
-                  </motion.div>
-                )}
-              </AnimatePresence>
-            </div>
-
-            <div className="hero__separator" />
-
-            {/* Selector de Viajeros (1 a 3) */}
-            <div className="hero__field">
-              <span className="hero__field-label">
-                <Users size={13} className="hero__field-icon" />
-                {t('viajeros')}
-              </span>
-              <div className="hero__pax-control">
-                <button
-                  type="button"
-                  onClick={() => setPax(p => Math.max(1, p - 1))}
-                  disabled={pax <= 1}
-                  className="hero__pax-btn"
-                  aria-label="Menos viajeros"
-                >
-                  −
-                </button>
-                <span className="hero__pax-num">{pax}</span>
-                <button
-                  type="button"
-                  onClick={() => setPax(p => Math.min(3, p + 1))}
-                  disabled={pax >= 3}
-                  className="hero__pax-btn"
-                  aria-label="Más viajeros (máximo 3)"
-                >
-                  +
-                </button>
+                    −
+                  </button>
+                  <span className="hero__pax-num">{pax}</span>
+                  <button
+                    type="button"
+                    onClick={() => setPax(p => Math.min(3, p + 1))}
+                    disabled={pax >= 3}
+                    className="hero__pax-btn"
+                    aria-label="Más viajeros (máximo 3)"
+                  >
+                    +
+                  </button>
+                </div>
               </div>
-            </div>
 
-            {/* Botón Buscar mi Utopia con el mismo color dorado que Reservar en la barra superior */}
-            <button type="submit" className="hero__search-btn">
-              <Search size={16} />
-              <span>{t('buscar') || 'Buscar mi Utopia'}</span>
-            </button>
-          </form>
+              {/* Botón Buscar mi Utopia con el mismo color dorado que Reservar en la barra superior */}
+              <button type="submit" className="hero__search-btn">
+                <Search size={16} />
+                <span>{t('buscar') || 'Buscar mi Utopia'}</span>
+              </button>
+            </form>
+
+            {/* Popover flotante del calendario */}
+            <AnimatePresence>
+              {isCalendarOpen && (
+                <motion.div
+                  ref={calendarPopoverRef}
+                  initial={{ opacity: 0, y: -6, scale: 0.98 }}
+                  animate={{ opacity: 1, y: 0, scale: 1 }}
+                  exit={{ opacity: 0, y: -6, scale: 0.98 }}
+                  transition={{ duration: 0.2, ease: [0.16, 1, 0.3, 1] }}
+                  className="hero__calendar-popover"
+                >
+                  <BookingCalendar
+                    startDate={startDate}
+                    endDate={endDate}
+                    showSlots={false}
+                    variant="hero"
+                    monthsCount={2}
+                    onChange={handleDatesChange}
+                    onClose={() => setIsCalendarOpen(false)}
+                    showDoneButton={false}
+                  />
+                </motion.div>
+              )}
+            </AnimatePresence>
+          </div>
 
           {/* Badges de micro-garantías bajo la barra de búsqueda */}
           <div className="hero__guarantees">
@@ -577,8 +578,9 @@ export default function HeroSection() {
           box-shadow: 0 24px 56px -10px rgba(0, 0, 0, 0.7), inset 0 1px 0 rgba(255, 255, 255, 0.18);
         }
 
-        .hero__dates-wrapper {
-          display: contents;
+        .hero__searchbar-wrapper {
+          position: relative;
+          width: 100%;
         }
 
         .hero__dates-group {
@@ -773,12 +775,6 @@ export default function HeroSection() {
             display: none !important;
           }
 
-          .hero__dates-wrapper {
-            position: relative;
-            width: 100%;
-            z-index: 40;
-          }
-
           /* Fechas de salida y llegada en 1 fila 2 columnas fijas y simétricas */
           .hero__dates-group {
             display: grid;
@@ -820,7 +816,7 @@ export default function HeroSection() {
           }
           .hero__calendar-popover {
             position: absolute;
-            top: calc(100% + 8px);
+            top: 74px;
             left: 50%;
             right: auto;
             bottom: auto;

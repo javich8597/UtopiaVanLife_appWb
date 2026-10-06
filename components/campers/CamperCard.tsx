@@ -53,9 +53,9 @@ export default function CamperCard({
       : null
 
   const subtitleTagline = slug === 'neo'
-    ? 'Más espacio, más comodidad y una experiencia pensada para viajar sin límites.'
+    ? 'Perfecta para quienes buscan equilibrio entre confort, autonomía y libertad.'
     : slug === 'space'
-      ? 'Perfecta para quienes buscan equilibrio entre confort, autonomía y libertad.'
+      ? 'Más espacio, más comodidad y una experiencia pensada para viajar sin límites.'
       : (description_es ? (description_es.length > 55 ? `${description_es.slice(0, 52)}...` : description_es) : 'Camper de lujo totalmente equipada')
 
   const handleMouseEnter = () => {

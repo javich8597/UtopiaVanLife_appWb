@@ -5,7 +5,7 @@ import { createClient } from '@/lib/supabase/server'
 import BookingWizardClient from './BookingWizardClient'
 import { WizardCamper, WizardExtraItem } from './types'
 
-export const dynamicParams = true
+export const dynamic = 'force-dynamic'
 
 const DEMO_CAMPERS: Record<string, any> = {
     neo: {
@@ -57,22 +57,6 @@ const DEMO_CAMPERS: Record<string, any> = {
         ],
         is_available: true,
     },
-}
-
-export async function generateStaticParams() {
-    try {
-        const supabase = await createClient()
-        const { data: campers } = await supabase
-            .from('campers')
-            .select('slug')
-            .eq('is_active', true)
-
-        if (campers && campers.length > 0) {
-            return campers.map((c: any) => ({ slug: c.slug }))
-        }
-    } catch { }
-
-    return Object.keys(DEMO_CAMPERS).map((slug) => ({ slug }))
 }
 
 interface PageProps {

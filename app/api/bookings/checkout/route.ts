@@ -558,7 +558,7 @@ export async function POST(req: Request) {
         // Comprobar si el usuario ya existe en public.users
         const { data: existingUser } = await supabase
             .from('users')
-            .select('id, phone, dni_nie, address, full_name, birth_date, driver_license_issue_date')
+            .select('id, email, phone, dni_nie, address, full_name, birth_date, driver_license_issue_date')
             .ilike('email', customerEmail)
             .maybeSingle()
 
@@ -584,9 +584,8 @@ export async function POST(req: Request) {
             }
 
             userId = existingUser.id
-            const sessionClient = await createServerClient()
-            const { data: { user: sessionUser } } = await sessionClient.auth.getUser()
-            const canUpdateProfile = sessionUser?.id === existingUser.id
+
+            // Completar datos vacíos en public.users con los datos del checkout actual
             const updates: Record<string, any> = {}
             if (customerPhone && !existingUser.phone) updates.phone = customerPhone
             if (customerDni && !existingUser.dni_nie) updates.dni_nie = customerDni
@@ -595,14 +594,15 @@ export async function POST(req: Request) {
             if (rawBirthDate && !existingUser.birth_date) updates.birth_date = rawBirthDate
             if (rawLicenseIssueDate && !existingUser.driver_license_issue_date) updates.driver_license_issue_date = rawLicenseIssueDate
 
-            if (canUpdateProfile && Object.keys(updates).length > 0) {
+            if (Object.keys(updates).length > 0) {
                 await supabase.from('users').update(updates).eq('id', userId)
             }
         } else {
-            // Usuario nuevo: crear en Supabase Auth
+            // Usuario no encontrado en public.users:
+            // 1. Intentar crear en Supabase Auth
             const secureRandomPassword = `Utopia_${crypto.randomBytes(12).toString("hex")}_2026!`
             try {
-                const { data: authCreated } = await supabase.auth.admin.createUser({
+                const { data: authCreated, error: authCreateErr } = await supabase.auth.admin.createUser({
                     email: customerEmail,
                     password: secureRandomPassword,
                     email_confirm: true,
@@ -617,11 +617,27 @@ export async function POST(req: Request) {
                 })
                 if (authCreated?.user) {
                     userId = authCreated.user.id
+                } else if (authCreateErr) {
+                    console.warn('createUser admin error:', authCreateErr.message)
                 }
             } catch (authErr) {
-                console.warn('createUser admin error, attempting fallback signUp:', authErr)
+                console.warn('createUser admin exception:', authErr)
             }
 
+            // 2. Si no se creó porque ya existía en Auth, recuperarlo de auth.admin.listUsers()
+            if (!userId) {
+                try {
+                    const { data: userList } = await supabase.auth.admin.listUsers({ page: 1, perPage: 1000 })
+                    const match = userList?.users?.find(u => u.email?.toLowerCase() === customerEmail.toLowerCase().trim())
+                    if (match) {
+                        userId = match.id
+                    }
+                } catch (listErr) {
+                    console.warn('Error al buscar usuario en auth.admin.listUsers:', listErr)
+                }
+            }
+
+            // 3. Fallback adicional con auth.signUp si aún no tenemos userId
             if (!userId) {
                 const { data: signUpData } = await supabase.auth.signUp({
                     email: customerEmail,
@@ -640,26 +656,34 @@ export async function POST(req: Request) {
                 userId = signUpData?.user?.id || null
             }
 
-            // Asegurar sincronización en public.users
+            // 4. Asegurar sincronización en public.users con upsert y update
             if (userId) {
-                const { data: checkPublic } = await supabase
-                    .from('users')
-                    .select('id')
-                    .eq('id', userId)
-                    .maybeSingle()
+                const userFields: Record<string, any> = {
+                    id: userId,
+                    full_name: customerName || 'Cliente Utopia',
+                    email: customerEmail,
+                    role: 'customer',
+                }
+                if (customerPhone) userFields.phone = customerPhone
+                if (customerDni) userFields.dni_nie = customerDni
+                if (customerAddress) userFields.address = customerAddress
+                if (rawBirthDate) userFields.birth_date = rawBirthDate
+                if (rawLicenseIssueDate) userFields.driver_license_issue_date = rawLicenseIssueDate
 
-                if (!checkPublic) {
-                    await supabase.from('users').upsert({
-                        id: userId,
-                        full_name: customerName || 'Cliente Utopia',
-                        email: customerEmail,
-                        phone: customerPhone || null,
-                        dni_nie: customerDni || null,
-                        address: customerAddress || null,
-                        birth_date: rawBirthDate || null,
-                        driver_license_issue_date: rawLicenseIssueDate || null,
-                        role: 'client',
-                    })
+                const { error: upsertErr } = await supabase
+                    .from('users')
+                    .upsert(userFields, { onConflict: 'id' })
+
+                if (upsertErr) {
+                    console.warn('Upsert fallback warning:', upsertErr.message)
+                    // Si el trigger handle_new_user ya insertó la fila, aseguramos los datos con update
+                    const { error: updateErr } = await supabase
+                        .from('users')
+                        .update(userFields)
+                        .eq('id', userId)
+                    if (updateErr) {
+                        console.error('Error actualizando usuario en public.users:', updateErr)
+                    }
                 }
             }
         }
@@ -733,7 +757,10 @@ export async function POST(req: Request) {
             if (holdRecord?.id) {
                 await supabase.from('blocked_dates').delete().eq('id', holdRecord.id)
             }
-            return NextResponse.json({ error: 'Error al registrar la reserva' }, { status: 500 })
+            return NextResponse.json({ 
+                error: 'Error al registrar la reserva',
+                details: bookingErr?.message || undefined 
+            }, { status: 500 })
         }
 
         // 11. Generar parámetros firmados de Redsys basados en el cálculo server-side inmutable

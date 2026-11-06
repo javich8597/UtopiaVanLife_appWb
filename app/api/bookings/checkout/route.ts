@@ -440,11 +440,14 @@ export async function POST(req: Request) {
         const supabase = getSupabaseAdmin()
 
         // 3. Comprobar existencia de la camper
-        const { data: camper, error: camperErr } = await supabase
-            .from('campers')
-            .select('*')
-            .or(`slug.eq.${camperSlug},id.eq.${camperSlug}`)
-            .single()
+        const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(camperSlug)
+        let camperQuery = supabase.from('campers').select('*')
+        if (isUuid) {
+            camperQuery = camperQuery.or(`id.eq.${camperSlug},slug.eq.${camperSlug}`)
+        } else {
+            camperQuery = camperQuery.eq('slug', camperSlug)
+        }
+        const { data: camper, error: camperErr } = await camperQuery.maybeSingle()
 
         if (camperErr || !camper) {
             return NextResponse.json({ error: 'Camper no encontrada' }, { status: 404 })
@@ -533,7 +536,7 @@ export async function POST(req: Request) {
             pickupSlot,
             endDate,
             dropoffSlot,
-            camperBasePrice: Number(camper.price_per_night || camper.price_per_day || 110),
+            camperBasePrice: Number(camper.base_price_per_night || camper.price_per_night || camper.price_per_day || 110),
             camperId: camper.id,
             seasons: seasonsV2 || [],
             periods: seasonPeriods || [],

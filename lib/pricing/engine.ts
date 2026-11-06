@@ -165,13 +165,17 @@ export function calculatePriceV2({
         return emptyBreakdown(finalDeposit, Number(camperBasePrice) || 0, resolvedDepositOption)
     }
 
+    const baseCamper = (typeof camperBasePrice === 'number' && !isNaN(camperBasePrice))
+        ? camperBasePrice
+        : (Number(camperBasePrice) || 110)
+
     const sSlot: DaySlot = pickupSlot || startSlot || 'afternoon'
     const eSlot: DaySlot = dropoffSlot || endSlot || 'morning'
 
     const startSeason = resolveSeasonForDate(sDate, seasons, periods)
     const endSeason = resolveSeasonForDate(eDate, seasons, periods)
-    const startPrice = Number(camperBasePrice) + Number(startSeason.supplement_per_night)
-    const endPrice = Number(camperBasePrice) + Number(endSeason.supplement_per_night)
+    const startPrice = baseCamper + Number(startSeason.supplement_per_night || 0)
+    const endPrice = baseCamper + Number(endSeason.supplement_per_night || 0)
 
     let extraDays = 0
     let extraSlotCost = 0
@@ -196,7 +200,7 @@ export function calculatePriceV2({
         currentDate.setDate(currentDate.getDate() + i)
 
         const activeSeason = resolveSeasonForDate(currentDate, seasons, periods)
-        const pricePerNight = Number(camperBasePrice) + Number(activeSeason.supplement_per_night)
+        const pricePerNight = baseCamper + Number(activeSeason.supplement_per_night || 0)
         const seasonName = activeSeason.name
 
         if (!nightsPerSeason[seasonName]) {

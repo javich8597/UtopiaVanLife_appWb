@@ -420,7 +420,13 @@ export async function POST(req: Request) {
 
         // 2b. Validaciones de acompañantes y segundo conductor server-side
         const rawPassengers = body.passengers || cust.passengers || body.companions || cust.companions || []
-        const separateSecondDriver = body.secondDriver || cust.secondDriver || null
+        const separateSecondDriver = 
+            body.secondDriver || 
+            cust.secondDriver || 
+            ((cust.secondDriverSoloEnabled || body.secondDriverSoloEnabled) 
+                ? (body.secondDriverSolo || cust.secondDriverSolo) 
+                : null) || 
+            null
 
         const passengerValidation = validateBookingPassengers(rawPassengers, startDate, separateSecondDriver)
         if (!passengerValidation.isValid) {
@@ -728,11 +734,13 @@ export async function POST(req: Request) {
         }
 
         // 11. Generar parámetros firmados de Redsys basados en el cálculo server-side inmutable
+        const requestedLocale = body.locale || 'es'
         const redsysFormData = createRedsysPaymentForm({
             amount: breakdown.payableTotal,
             orderId,
             description: `1x Camper ${camper.name || camperSlug.toUpperCase()} - Utopia Van Life`,
             customerName: customerName || 'Cliente Utopia',
+            locale: requestedLocale,
         })
 
         return NextResponse.json({

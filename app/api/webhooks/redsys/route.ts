@@ -41,6 +41,11 @@ export async function POST(req: Request) {
             return new Response('Missing parameters', { status: 400 })
         }
 
+        if (signatureVersion && signatureVersion !== 'HMAC_SHA256_V1') {
+            console.error('Redsys Webhook: Versión de firma incompatible:', signatureVersion)
+            return new Response('Invalid signature version', { status: 400 })
+        }
+
         const config = getRedsysConfig()
         const isValid = verifyRedsysSignature(merchantParameters, signature, config.secretKey)
 
@@ -105,15 +110,19 @@ export async function POST(req: Request) {
                 return new Response('Amount mismatch', { status: 400 })
             }
 
+            const wasAlreadyPaid = booking.payment_status === 'paid'
+
             // 1. Marcar reserva como pagada, asociar payment_intent_id y mantener en 'pending' a la espera de confirmación del admin
-            await supabase
-                .from('bookings')
-                .update({
-                    payment_status: 'paid',
-                    payment_intent_id: orderId,
-                    status: 'pending',
-                })
-                .eq('id', booking.id)
+            if (!wasAlreadyPaid) {
+                await supabase
+                    .from('bookings')
+                    .update({
+                        payment_status: 'paid',
+                        payment_intent_id: orderId,
+                        status: 'pending',
+                    })
+                    .eq('id', booking.id)
+            }
 
             // 2. Bloquear fechas en el calendario para asegurar que nadie más pueda reservar este rango
             // Comprobamos si ya existe el bloqueo para evitar duplicados (idempotencia)
@@ -147,7 +156,7 @@ export async function POST(req: Request) {
 
             // 3. Email con enlace de acceso directo a "Mi reserva" (la cuenta se creó en el checkout
             //    con una contraseña que el cliente no conoce). Solo la primera vez que se confirma el pago.
-            if (booking.payment_status !== 'paid' && booking.customer_email) {
+            if (!wasAlreadyPaid && booking.customer_email) {
                 const { error: otpErr } = await supabase.auth.signInWithOtp({
                     email: booking.customer_email,
                     options: { shouldCreateUser: false },
@@ -155,7 +164,7 @@ export async function POST(req: Request) {
                 if (otpErr) console.warn(`Redsys Webhook: no se pudo enviar el enlace de acceso a la reserva ${booking.id}:`, otpErr.message)
             }
 
-            console.log(`Redsys Webhook: Reserva ${booking.id} pagada y fechas auto-bloqueadas con éxito`)
+            console.log(`Redsys Webhook: Reserva ${booking.id} pagada y fechas auto-bloqueadas con éxito (idempotente)`)
         } else {
             // Pago fallido o denegado por la pasarela: liberar el bloqueo provisional de checkout
             await supabase
@@ -164,12 +173,14 @@ export async function POST(req: Request) {
                 .eq('camper_id', booking.camper_id)
                 .in('session_id', [`checkout_${orderId}`, `hold_${orderId}`])
 
-            await supabase
-                .from('bookings')
-                .update({
-                    payment_status: 'failed',
-                })
-                .eq('id', booking.id)
+            if (booking.payment_status !== 'paid') {
+                await supabase
+                    .from('bookings')
+                    .update({
+                        payment_status: 'failed',
+                    })
+                    .eq('id', booking.id)
+            }
 
             console.log(`Redsys Webhook: Reserva ${booking.id} marcada como pago fallido`)
         }

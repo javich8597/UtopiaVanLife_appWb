@@ -37,6 +37,11 @@ function SuccessContent() {
   const [errorMessage, setErrorMessage] = useState<string | null>(null)
   const [warningMessage, setWarningMessage] = useState<string | null>(null)
 
+  // Payment Verification State
+  const [isVerifyingPayment, setIsVerifyingPayment] = useState(true)
+  const [paymentVerified, setPaymentVerified] = useState<boolean | null>(null)
+  const [bookingDetails, setBookingDetails] = useState<any | null>(null)
+
   // Step 1: Form Fields
   const [fullName, setFullName] = useState('')
   const [dniNie, setDniNie] = useState('')
@@ -45,6 +50,61 @@ function SuccessContent() {
   const [driverLicenseExpiryDate, setDriverLicenseExpiryDate] = useState('')
   const [address, setAddress] = useState('')
   const [phone, setPhone] = useState('')
+
+  // Verify payment status with server / Redsys HMAC
+  useEffect(() => {
+    let isMounted = true
+    const verify = async () => {
+      try {
+        const queryParams = new URLSearchParams()
+        if (orderId) queryParams.set('order', orderId)
+        
+        const dsSigVer = searchParams.get('Ds_SignatureVersion')
+        const dsParams = searchParams.get('Ds_MerchantParameters')
+        const dsSig = searchParams.get('Ds_Signature')
+        
+        if (dsSigVer) queryParams.set('Ds_SignatureVersion', dsSigVer)
+        if (dsParams) queryParams.set('Ds_MerchantParameters', dsParams)
+        if (dsSig) queryParams.set('Ds_Signature', dsSig)
+
+        const res = await fetch(`/api/bookings/verify-payment?${queryParams.toString()}`)
+        const json = await res.json()
+
+        if (!isMounted) return
+
+        if (res.ok && json.success && json.isPaid) {
+          setPaymentVerified(true)
+          setBookingDetails(json.booking)
+          if (json.booking) {
+            if (json.booking.customerName) setFullName(json.booking.customerName)
+            if (json.booking.customerDni) setDniNie(json.booking.customerDni)
+            if (json.booking.customerPhone) setPhone(json.booking.customerPhone)
+            if (json.booking.customerAddress) setAddress(json.booking.customerAddress)
+            if (json.booking.driverLicenseIssueDate) setDriverLicenseIssueDate(json.booking.driverLicenseIssueDate)
+          }
+        } else {
+          setPaymentVerified(false)
+          if (json.booking?.paymentStatus === 'failed') {
+            setErrorMessage('El pago no ha sido autorizado por la pasarela de Redsys.')
+          }
+        }
+      } catch (e) {
+        console.error('Error verificando pago en checkout success:', e)
+        if (isMounted) setPaymentVerified(false)
+      } finally {
+        if (isMounted) setIsVerifyingPayment(false)
+      }
+    }
+
+    if (orderId) {
+      verify()
+    } else {
+      setIsVerifyingPayment(false)
+      setPaymentVerified(false)
+    }
+
+    return () => { isMounted = false }
+  }, [orderId])
 
   // Step 2: Files
   const [dniFront, setDniFront] = useState<File | null>(null)
@@ -153,7 +213,49 @@ function SuccessContent() {
     }
   }
 
-  const isFailed = redirectStatus === 'failed' || redirectStatus === 'canceled'
+  if (isVerifyingPayment) {
+    return (
+      <div className="success-loading-wrap">
+        <div className="success-spinner" />
+        <h2 className="success-loading-title">Verificando autorización de pago...</h2>
+        <p className="success-loading-desc">
+          Conectando con la pasarela bancaria de Redsys para confirmar tu reserva.
+        </p>
+        <style jsx>{`
+          .success-loading-wrap {
+            text-align: center;
+            padding: 100px 20px;
+            max-width: 520px;
+            margin: 0 auto;
+          }
+          .success-spinner {
+            width: 48px;
+            height: 48px;
+            border: 3px solid rgba(204, 160, 83, 0.2);
+            border-top-color: #CCA053;
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+            margin: 0 auto 24px;
+          }
+          @keyframes spin {
+            to { transform: rotate(360deg); }
+          }
+          .success-loading-title {
+            color: #FFFFFF;
+            font-size: 1.5rem;
+            font-weight: 700;
+            margin-bottom: 8px;
+          }
+          .success-loading-desc {
+            color: #94A3B8;
+            font-size: 0.95rem;
+          }
+        `}</style>
+      </div>
+    )
+  }
+
+  const isFailed = redirectStatus === 'failed' || redirectStatus === 'canceled' || paymentVerified === false
 
   if (isFailed) {
     return (

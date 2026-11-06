@@ -228,14 +228,34 @@ export default function CheckoutErrorPage() {
     return (
         <>
             <Navbar />
-            <main style={{ paddingTop: 120, paddingBottom: 80, minHeight: '80vh', background: '#0B0C0E' }}>
+            <main className="checkout-error-main">
                 <div className="container">
-                    <Suspense fallback={<div className="skeleton" style={{ height: 400, background: '#131518', borderRadius: 24 }} />}>
+                    <Suspense fallback={<div className="checkout-error-skeleton" />}>
                         <ErrorContent />
                     </Suspense>
                 </div>
             </main>
             <Footer />
+
+            <style jsx>{`
+                .checkout-error-main {
+                    padding-top: 120px;
+                    padding-bottom: 80px;
+                    min-height: 80vh;
+                    background: #0B0C0E;
+                }
+                .checkout-error-skeleton {
+                    height: 400px;
+                    background: #131518;
+                    border-radius: 24px;
+                }
+                @media (max-width: 640px) {
+                    .checkout-error-main {
+                        padding-top: 90px;
+                        padding-bottom: 40px;
+                    }
+                }
+            `}</style>
         </>
     )
 }

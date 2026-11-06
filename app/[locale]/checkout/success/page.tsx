@@ -1069,14 +1069,34 @@ export default function CheckoutSuccessPage() {
   return (
     <>
       <Navbar />
-      <main style={{ paddingTop: 110, paddingBottom: 80, minHeight: '85vh', background: '#0B0C0E' }}>
+      <main className="checkout-success-main">
         <div className="container">
-          <Suspense fallback={<div className="skeleton" style={{ height: 400, background: '#131518', borderRadius: 24 }} />}>
+          <Suspense fallback={<div className="checkout-success-skeleton" />}>
             <SuccessContent />
           </Suspense>
         </div>
       </main>
       <Footer />
+
+      <style jsx>{`
+        .checkout-success-main {
+          padding-top: 110px;
+          padding-bottom: 80px;
+          min-height: 85vh;
+          background: #0B0C0E;
+        }
+        .checkout-success-skeleton {
+          height: 400px;
+          background: #131518;
+          border-radius: 24px;
+        }
+        @media (max-width: 640px) {
+          .checkout-success-main {
+            padding-top: 90px;
+            padding-bottom: 40px;
+          }
+        }
+      `}</style>
     </>
   )
 }

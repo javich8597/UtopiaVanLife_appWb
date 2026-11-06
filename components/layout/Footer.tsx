@@ -157,8 +157,8 @@ export default function Footer() {
           margin-top: var(--space-5);
         }
         .footer__social-btn {
-          width: 38px;
-          height: 38px;
+          width: 44px;
+          height: 44px;
           border-radius: var(--radius-full);
           border: 1px solid rgba(255, 255, 255, 0.12);
           background: rgba(255, 255, 255, 0.04);

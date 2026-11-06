@@ -89,9 +89,10 @@ export default function BookingWizardClient({
         kmPackage: initialKmPackage,
     })
 
-    // Step 3 State: Cancellation Policy
+    // Step 3 State: Cancellation Policy & Deposit Option
     const [step3, setStep3] = useState<Step3Data>({
         cancellationPolicy: initialCancellationPolicy,
+        depositOption: 'standard_2000',
     })
 
     // Step 4 State: Selected Extras
@@ -109,25 +110,68 @@ export default function BookingWizardClient({
             })),
     })
 
-    // Step 5 State: Personal & Billing Customer Details
+    // Step 5 State: Personal & Billing Customer Details + Passengers
+    const initialPaxCount = Math.min(maxPax, Math.max(1, Number(initialPax) || 2))
     const [step5, setStep5] = useState<Step5Customer>({
         fullName: '',
         dniNie: '',
+        birthDate: '',
+        licenseDate: '',
         email: '',
         phone: '',
+        phoneCountryCode: '+34',
+        depositOption: 'standard_2000',
+        passengers: Array.from({ length: Math.max(0, initialPaxCount - 1) }, () => ({
+            fullName: '',
+            dniNie: '',
+            birthDate: '',
+            isSecondDriver: false,
+            licenseDate: '',
+        })),
+        secondDriverSoloEnabled: false,
+        secondDriverSolo: {
+            fullName: '',
+            dniNie: '',
+            birthDate: '',
+            licenseDate: '',
+        },
         address: '',
         city: '',
         postalCode: '',
         country: 'España',
-        travelersCount: step1.pax,
+        travelersCount: initialPaxCount,
         specialNotes: '',
         acceptTerms: false,
+        acceptCancellationPolicy: false,
         acceptPrivacy: false,
     })
 
     // Sincronizar número de viajeros si cambia en paso 1
     useEffect(() => {
-        setStep5((prev) => ({ ...prev, travelersCount: step1.pax }))
+        setStep5((prev) => {
+            const count = step1.pax
+            const currentPassengers = prev.passengers || []
+            const needed = Math.max(0, count - 1)
+            let updatedPassengers = [...currentPassengers]
+            if (updatedPassengers.length < needed) {
+                while (updatedPassengers.length < needed) {
+                    updatedPassengers.push({
+                        fullName: '',
+                        dniNie: '',
+                        birthDate: '',
+                        isSecondDriver: false,
+                        licenseDate: '',
+                    })
+                }
+            } else if (updatedPassengers.length > needed) {
+                updatedPassengers = updatedPassengers.slice(0, needed)
+            }
+            return {
+                ...prev,
+                travelersCount: count,
+                passengers: updatedPassengers,
+            }
+        })
     }, [step1.pax])
 
     // Calcular estancia mínima para Step 1
@@ -144,6 +188,7 @@ export default function BookingWizardClient({
         if (end <= start) return null
 
         const basePrice = Number(camper.base_price_per_night || camper.price_per_night || 110)
+        const activeDepositOption = step3.depositOption || step5.depositOption || 'standard_2000'
 
         return calculatePriceV2({
             startDate: start,
@@ -166,9 +211,10 @@ export default function BookingWizardClient({
                 quantity: e.quantity,
                 category: e.category,
             })),
-            depositAmount: Number(camper.deposit_amount) || 1000,
+            depositOption: activeDepositOption,
+            depositAmount: activeDepositOption === 'flex_1000' ? 1000 : (Number(camper.deposit_amount) || 2000),
         })
-    }, [camper, step1, step2, step3, step4, seasonsV2, seasonPeriods, durationDiscounts])
+    }, [camper, step1, step2, step3, step4, step5.depositOption, seasonsV2, seasonPeriods, durationDiscounts])
 
     // Validación de cada paso
     const isCurrentStepValid = useMemo(() => {
@@ -190,6 +236,23 @@ export default function BookingWizardClient({
 
     const scrollToTop = () => {
         window.scrollTo({ top: 0, behavior: 'smooth' })
+    }
+
+    const handleStep3Change = (newStep3: Step3Data) => {
+        setStep3(newStep3)
+        if (newStep3.depositOption && newStep3.depositOption !== step5.depositOption) {
+            setStep5((prev) => ({ ...prev, depositOption: newStep3.depositOption }))
+        }
+    }
+
+    const handleStep5Change = (newCustomer: Step5Customer) => {
+        setStep5(newCustomer)
+        if (newCustomer.depositOption && newCustomer.depositOption !== step3.depositOption) {
+            setStep3((prev) => ({ ...prev, depositOption: newCustomer.depositOption }))
+        }
+        if (newCustomer.travelersCount && newCustomer.travelersCount !== step1.pax) {
+            setStep1((prev) => ({ ...prev, pax: newCustomer.travelersCount }))
+        }
     }
 
     const handleNext = () => {
@@ -273,7 +336,7 @@ export default function BookingWizardClient({
                                     <Step3Cancellation
                                         data={step3}
                                         totalDays={totalDays}
-                                        onChange={setStep3}
+                                        onChange={handleStep3Change}
                                     />
                                 )}
 
@@ -294,7 +357,7 @@ export default function BookingWizardClient({
                                         step3={step3}
                                         step4={step4}
                                         customer={step5}
-                                        onChange={setStep5}
+                                        onChange={handleStep5Change}
                                         totalPayable={totalPayable}
                                     />
                                 )}

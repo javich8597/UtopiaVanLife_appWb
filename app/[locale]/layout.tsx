@@ -24,6 +24,8 @@ export const viewport: Viewport = {
   themeColor: '#1A1A1A',
 }
 
+import CookieBanner from '@/components/ui/CookieBanner';
+
 export default async function RootLayout({
   children,
   params,
@@ -56,6 +58,7 @@ export default async function RootLayout({
           <NextIntlClientProvider messages={messages}>
             <NavigationLoader />
             {children}
+            <CookieBanner />
           </NextIntlClientProvider>
         </StyledJsxRegistry>
       </body>

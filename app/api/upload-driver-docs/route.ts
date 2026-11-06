@@ -1,3 +1,4 @@
+import crypto from "crypto";
 import { NextResponse } from 'next/server'
 import { getAdminClientOrSession } from '@/lib/admin/auth'
 import { createClient as createServerClient } from '@/lib/supabase/server'
@@ -13,22 +14,6 @@ export async function POST(request: Request) {
     // haber iniciado sesión. En ese caso se identifica por el pedido de Redsys, solo si es una
     // reserva reciente y el cliente aún no tiene el carnet validado.
     let targetUserId: string | null = sessionUser?.id || null
-    if (!targetUserId) {
-      const orderId = String(formData.get('orderId') || '').trim()
-      if (orderId && process.env.SUPABASE_SERVICE_ROLE_KEY) {
-        const admin = getAdminClientOrSession(supabase)
-        const { data: booking } = await admin
-          .from('bookings')
-          .select('user_id, created_at, users (verification_status)')
-          .eq('payment_intent_id', orderId)
-          .maybeSingle()
-        const isRecent = booking?.created_at && Date.now() - new Date(booking.created_at).getTime() < 48 * 60 * 60 * 1000
-        const owner: any = Array.isArray(booking?.users) ? booking?.users[0] : booking?.users
-        if (booking?.user_id && isRecent && owner?.verification_status !== 'verified') {
-          targetUserId = booking.user_id
-        }
-      }
-    }
 
     if (!targetUserId) {
       return NextResponse.json({ error: 'Inicia sesión para subir tu documentación.' }, { status: 401 })
@@ -74,10 +59,23 @@ export async function POST(request: Request) {
     }
 
     const timestamp = Date.now()
+    const validateMagicBytes = async (f: File) => {
+        const buffer = await f.arrayBuffer()
+        const view = new Uint8Array(buffer)
+        if (view.length < 4) return false;
+        if (view[0] === 0xFF && view[1] === 0xD8 && view[2] === 0xFF) return true; // JPEG
+        if (view[0] === 0x89 && view[1] === 0x50 && view[2] === 0x4E && view[3] === 0x47) return true; // PNG
+        if (view[0] === 0x25 && view[1] === 0x50 && view[2] === 0x44 && view[3] === 0x46) return true; // PDF
+        if (view.length > 12) {
+            const type = String.fromCharCode(view[8], view[9], view[10], view[11])
+            if (['heic', 'heix', 'mif1', 'msf1'].includes(type)) return true; // HEIC
+        }
+        return false;
+    }
     const uploadFile = async (file: File | null, prefix: string) => {
       if (!file || typeof file === 'string' || (file instanceof File && file.size === 0)) return null
       const ext = file.name ? (file.name.split('.').pop() || 'jpg') : 'jpg'
-      const filePath = `${user.id}/${prefix}_${timestamp}.${ext}`
+      const filePath = `${user.id}/${prefix}_${crypto.randomUUID()}.${ext}`
       const { error } = await supabaseAdmin.storage
         .from('documents')
         .upload(filePath, file, { upsert: true })
@@ -92,9 +90,9 @@ export async function POST(request: Request) {
     const files = [dniFront, dniBack, licenseFront, licenseBack, secondDriverDniFront, secondDriverDniBack, secondDriverLicenseFront, secondDriverLicenseBack]
     for (const f of files) {
       if (!f || typeof f === 'string' || f.size === 0) continue
-      const okType = (f.type || '').startsWith('image/') || f.type === 'application/pdf' || /\.(heic|heif)$/i.test(f.name || '')
-      if (!okType) {
-        return NextResponse.json({ error: 'Solo se aceptan fotos (JPG, PNG, HEIC) o PDF.' }, { status: 400 })
+      const isValidMagic = await validateMagicBytes(f)
+      if (!isValidMagic) {
+        return NextResponse.json({ error: 'Solo se aceptan fotos reales (JPG, PNG, HEIC) o PDF.' }, { status: 400 })
       }
       if (f.size > 10 * 1024 * 1024) {
         return NextResponse.json({ error: 'Cada archivo puede pesar como máximo 10 MB.' }, { status: 400 })
@@ -173,3 +171,4 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: error.message || 'Error interno del servidor' }, { status: 500 })
   }
 }
+

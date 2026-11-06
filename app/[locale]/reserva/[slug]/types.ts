@@ -3,13 +3,13 @@
  * Ruta: app/[locale]/reserva/[slug]/types.ts
  */
 
-import { DaySlot, KmPackage, CancellationPolicy } from '@/lib/pricing/types'
+import { DaySlot, KmPackage, CancellationPolicy, DepositOption } from '@/lib/pricing/types'
 import { BlockedSlot } from '@/lib/booking/availability'
 import { validateBookingRange } from '@/lib/booking/calendarLogic'
 
 export type WizardStep = 1 | 2 | 3 | 4 | 5
 
-export type { DaySlot, KmPackage, CancellationPolicy }
+export type { DaySlot, KmPackage, CancellationPolicy, DepositOption }
 
 export interface WizardCamper {
     id: string
@@ -68,25 +68,42 @@ export interface Step2Data {
 
 export interface Step3Data {
     cancellationPolicy: CancellationPolicy
+    depositOption?: DepositOption // 'standard_2000' | 'flex_1000'
 }
 
 export interface Step4Data {
     selectedExtras: SelectedWizardExtra[]
 }
 
+export interface BookingPassenger {
+    fullName: string
+    dniNie: string
+    birthDate?: string // YYYY-MM-DD (con cálculo reactivo de edad)
+    isSecondDriver?: boolean
+    licenseDate?: string // YYYY-MM-DD (requerido si isSecondDriver)
+}
+
 export interface Step5Customer {
     fullName: string
     dniNie: string
+    birthDate?: string // YYYY-MM-DD (validación >= 25 años)
+    licenseDate?: string // YYYY-MM-DD (validación >= 2 años antigüedad carnet B)
     email: string
     phone: string
+    phoneCountryCode?: string // ej. "+34", "+33", "+49"
+    depositOption?: DepositOption // 'standard_2000' | 'flex_1000'
     address: string
     city: string
     postalCode: string
     country: string
     travelersCount: number
+    passengers?: BookingPassenger[]
+    secondDriverSoloEnabled?: boolean
+    secondDriverSolo?: BookingPassenger
     specialNotes?: string
-    acceptTerms: boolean
-    acceptPrivacy: boolean
+    acceptTerms: boolean // Términos y Condiciones Generales
+    acceptCancellationPolicy?: boolean // Política de Cancelación (100% >30d, 50% 15-29d, 0% <=14d)
+    acceptPrivacy: boolean // Política de Privacidad RGPD
 }
 
 export interface BookingWizardState {
@@ -157,13 +174,68 @@ export function validateEmail(email: string): { isValid: boolean; error?: string
     return { isValid: true }
 }
 
+export function validateDriverAge(birthDate: string): { isValid: boolean; error?: string; age?: number } {
+    if (!birthDate || typeof birthDate !== 'string') {
+        return { isValid: false, error: 'Fecha de nacimiento obligatoria' }
+    }
+    const dob = new Date(birthDate)
+    if (isNaN(dob.getTime())) {
+        return { isValid: false, error: 'Fecha de nacimiento no válida' }
+    }
+    const today = new Date()
+    if (dob > today) {
+        return { isValid: false, error: 'La fecha de nacimiento no puede ser en el futuro' }
+    }
+    let age = today.getFullYear() - dob.getFullYear()
+    const m = today.getMonth() - dob.getMonth()
+    if (m < 0 || (m === 0 && today.getDate() < dob.getDate())) {
+        age--
+    }
+    if (age < 25) {
+        return {
+            isValid: false,
+            age,
+            error: `La edad del conductor es de ${age} años. La edad mínima requerida por la póliza de seguro es de 25 años.`,
+        }
+    }
+    return { isValid: true, age }
+}
+
+export function validateDrivingLicense(licenseDate: string): { isValid: boolean; error?: string; years?: number } {
+    if (!licenseDate || typeof licenseDate !== 'string') {
+        return { isValid: false, error: 'Fecha de expedición del permiso de conducir B obligatoria' }
+    }
+    const exp = new Date(licenseDate)
+    if (isNaN(exp.getTime())) {
+        return { isValid: false, error: 'Fecha de expedición no válida' }
+    }
+    const today = new Date()
+    if (exp > today) {
+        return { isValid: false, error: 'La fecha de expedición no puede ser en el futuro' }
+    }
+    let years = today.getFullYear() - exp.getFullYear()
+    const m = today.getMonth() - exp.getMonth()
+    if (m < 0 || (m === 0 && today.getDate() < exp.getDate())) {
+        years--
+    }
+    if (years < 2) {
+        return {
+            isValid: false,
+            years,
+            error: `La antigüedad del carnet B es de ${years} ${years === 1 ? 'año' : 'años'}. Se requiere un mínimo de 2 años de experiencia.`,
+        }
+    }
+    return { isValid: true, years }
+}
+
 export function validatePhone(phone: string): { isValid: boolean; error?: string } {
     if (!phone || typeof phone !== 'string') {
-        return { isValid: false, error: 'Teléfono de contacto obligatorio' }
+        return { isValid: false, error: 'Teléfono de contacto obligatorio con prefijo de país' }
     }
-    const digitsOnly = phone.replace(/\D/g, '')
-    if (digitsOnly.length < 9 || digitsOnly.length > 15) {
-        return { isValid: false, error: 'El teléfono debe contener entre 9 y 15 dígitos numéricos' }
+    const trimmed = phone.trim()
+    const digitsOnly = trimmed.replace(/\D/g, '')
+    if (digitsOnly.length < 8 || digitsOnly.length > 15) {
+        return { isValid: false, error: 'El teléfono debe contener entre 8 y 15 dígitos numéricos' }
     }
     return { isValid: true }
 }
@@ -220,6 +292,9 @@ export function validateStep3(data: Step3Data): { isValid: boolean; error?: stri
     if (data.cancellationPolicy !== 'standard' && data.cancellationPolicy !== 'flexible') {
         return { isValid: false, error: 'Selección de política de cancelación no válida' }
     }
+    if (data.depositOption !== undefined && data.depositOption !== 'standard_2000' && data.depositOption !== 'flex_1000') {
+        return { isValid: false, error: 'Selección de modalidad de fianza no válida' }
+    }
     return { isValid: true }
 }
 
@@ -250,6 +325,20 @@ export function validateStep5(
         errors.dniNie = dniCheck.error!
     }
 
+    if (data.birthDate !== undefined && data.birthDate !== '') {
+        const ageCheck = validateDriverAge(data.birthDate)
+        if (!ageCheck.isValid) {
+            errors.birthDate = ageCheck.error!
+        }
+    }
+
+    if (data.licenseDate !== undefined && data.licenseDate !== '') {
+        const licenseCheck = validateDrivingLicense(data.licenseDate)
+        if (!licenseCheck.isValid) {
+            errors.licenseDate = licenseCheck.error!
+        }
+    }
+
     const emailCheck = validateEmail(data.email)
     if (!emailCheck.isValid) {
         errors.email = emailCheck.error!
@@ -258,6 +347,10 @@ export function validateStep5(
     const phoneCheck = validatePhone(data.phone)
     if (!phoneCheck.isValid) {
         errors.phone = phoneCheck.error!
+    }
+
+    if (data.depositOption !== undefined && data.depositOption !== 'standard_2000' && data.depositOption !== 'flex_1000') {
+        errors.depositOption = 'Selecciona una modalidad de fianza válida (Estándar 2.000 € o Flex 1.000 €)'
     }
 
     if (!data.address || data.address.trim().length < 3) {
@@ -284,12 +377,88 @@ export function validateStep5(
         errors.travelersCount = `El número de viajeros debe estar entre 1 y ${maxCamperBerths}`
     }
 
+    // Validar acompañantes adicionales si existen
+    if (data.passengers && Array.isArray(data.passengers)) {
+        data.passengers.forEach((passenger, idx) => {
+            const pNum = idx + 2
+            if (passenger.fullName !== undefined) {
+                if (!passenger.fullName || passenger.fullName.trim().length < 3) {
+                    errors[`passenger_${pNum}_fullName`] = `Nombre y apellidos completos requeridos para Pasajero ${pNum}`
+                }
+            }
+            if (passenger.dniNie !== undefined) {
+                const pDniCheck = validateDniNieOrPassport(passenger.dniNie)
+                if (!pDniCheck.isValid) {
+                    errors[`passenger_${pNum}_dniNie`] = `DNI/Pasaporte de Pasajero ${pNum}: ${pDniCheck.error}`
+                }
+            }
+            if (passenger.birthDate !== undefined && passenger.birthDate !== '') {
+                const dob = new Date(passenger.birthDate)
+                if (isNaN(dob.getTime()) || dob > new Date()) {
+                    errors[`passenger_${pNum}_birthDate`] = `Fecha de nacimiento no válida para Pasajero ${pNum}`
+                }
+            }
+
+            // Si es Fianza Flex y está marcado como 2º conductor
+            if (data.depositOption === 'flex_1000' && passenger.isSecondDriver) {
+                if (!passenger.birthDate) {
+                    errors[`passenger_${pNum}_birthDate`] = `Fecha de nacimiento requerida para 2º conductor (Pasajero ${pNum})`
+                } else {
+                    const ageCheck = validateDriverAge(passenger.birthDate)
+                    if (!ageCheck.isValid) {
+                        errors[`passenger_${pNum}_birthDate`] = `2º Conductor (Pasajero ${pNum}): ${ageCheck.error}`
+                    }
+                }
+                if (!passenger.licenseDate) {
+                    errors[`passenger_${pNum}_licenseDate`] = `Fecha de expedición carnet B requerida para 2º conductor (Pasajero ${pNum})`
+                } else {
+                    const licCheck = validateDrivingLicense(passenger.licenseDate)
+                    if (!licCheck.isValid) {
+                        errors[`passenger_${pNum}_licenseDate`] = `2º Conductor (Pasajero ${pNum}): ${licCheck.error}`
+                    }
+                }
+            }
+        })
+    }
+
+    // Validar 2º conductor opcional para 1 solo viajero con Fianza Flex
+    if (data.travelersCount === 1 && data.depositOption === 'flex_1000' && data.secondDriverSoloEnabled) {
+        const sec = data.secondDriverSolo || { fullName: '', dniNie: '', birthDate: '', licenseDate: '' }
+        if (!sec.fullName || sec.fullName.trim().length < 3) {
+            errors.secondDriverSolo_fullName = 'Nombre y apellidos completos requeridos para el 2º conductor'
+        }
+        const sDniCheck = validateDniNieOrPassport(sec.dniNie)
+        if (!sDniCheck.isValid) {
+            errors.secondDriverSolo_dniNie = `DNI/Pasaporte del 2º conductor: ${sDniCheck.error}`
+        }
+        if (!sec.birthDate) {
+            errors.secondDriverSolo_birthDate = 'Fecha de nacimiento requerida para el 2º conductor'
+        } else {
+            const ageCheck = validateDriverAge(sec.birthDate)
+            if (!ageCheck.isValid) {
+                errors.secondDriverSolo_birthDate = `2º Conductor: ${ageCheck.error}`
+            }
+        }
+        if (!sec.licenseDate) {
+            errors.secondDriverSolo_licenseDate = 'Fecha de expedición carnet B requerida para el 2º conductor'
+        } else {
+            const licCheck = validateDrivingLicense(sec.licenseDate)
+            if (!licCheck.isValid) {
+                errors.secondDriverSolo_licenseDate = `2º Conductor: ${licCheck.error}`
+            }
+        }
+    }
+
     if (!data.acceptTerms) {
-        errors.acceptTerms = 'Debes aceptar los Términos y Condiciones Generales'
+        errors.acceptTerms = 'Debes aceptar los Términos y Condiciones Generales de Alquiler'
+    }
+
+    if (data.acceptCancellationPolicy !== undefined && !data.acceptCancellationPolicy) {
+        errors.acceptCancellationPolicy = 'Debes aceptar la Política de Cancelación (100% >30 días, 50% 15-29 días, 0% <=14 días)'
     }
 
     if (!data.acceptPrivacy) {
-        errors.acceptPrivacy = 'Debes aceptar la Política de Privacidad'
+        errors.acceptPrivacy = 'Debes aceptar la Política de Privacidad (RGPD)'
     }
 
     return {

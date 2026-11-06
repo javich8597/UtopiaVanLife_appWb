@@ -761,6 +761,8 @@ export default function ContractSignModal({ booking, profile, onClose, onSigned,
           overflow: hidden;
           cursor: crosshair;
           touch-action: none;
+          -webkit-user-select: none;
+          user-select: none;
         }
 
         .csm-canvas {

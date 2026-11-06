@@ -52,6 +52,19 @@ export async function POST(req: Request) {
         const notificationData = decodeMerchantParameters<RedsysNotificationParams>(merchantParameters)
         const orderId = notificationData.Ds_Order || notificationData.DS_ORDER
         const responseCode = notificationData.Ds_Response !== undefined ? notificationData.Ds_Response : (notificationData as any).DS_RESPONSE
+        const dsAmount = notificationData.Ds_Amount || (notificationData as any).DS_AMOUNT
+        const dsCurrency = notificationData.Ds_Currency || (notificationData as any).DS_CURRENCY
+        const dsMerchantCode = notificationData.Ds_MerchantCode || (notificationData as any).DS_MERCHANTCODE
+
+        if (dsMerchantCode !== config.merchantCode) {
+            console.error('Redsys Webhook: MerchantCode mismatch')
+            return new Response('Invalid merchant code', { status: 400 })
+        }
+
+        if (dsCurrency !== '978') {
+            console.error('Redsys Webhook: Currency mismatch')
+            return new Response('Invalid currency', { status: 400 })
+        }
 
         if (!orderId) {
             console.error('Redsys Webhook: Número de pedido no encontrado en notificación')
@@ -77,6 +90,21 @@ export async function POST(req: Request) {
         }
 
         if (isSuccess) {
+            const expectedAmount = Math.round(Number(booking.total_price) * 100)
+            const receivedAmount = parseInt(String(dsAmount || '0'), 10)
+
+            if (receivedAmount !== expectedAmount) {
+                console.error(`Redsys Webhook: Discrepancia de importe. Esperado: ${expectedAmount}, Recibido: ${receivedAmount}`)
+                await supabase
+                    .from('bookings')
+                    .update({
+                        payment_status: 'failed',
+                        notes: (booking.notes || '') + '\n[ALERTA SEC]: Discrepancia de importe detectada en Redsys.'
+                    })
+                    .eq('id', booking.id)
+                return new Response('Amount mismatch', { status: 400 })
+            }
+
             // 1. Marcar reserva como pagada, asociar payment_intent_id y mantener en 'pending' a la espera de confirmación del admin
             await supabase
                 .from('bookings')
@@ -110,6 +138,13 @@ export async function POST(req: Request) {
                     })
             }
 
+            // Limpiar cualquier bloqueo provisional de checkout de 15 minutos
+            await supabase
+                .from('blocked_dates')
+                .delete()
+                .eq('camper_id', booking.camper_id)
+                .in('session_id', [`checkout_${orderId}`, `hold_${orderId}`])
+
             // 3. Email con enlace de acceso directo a "Mi reserva" (la cuenta se creó en el checkout
             //    con una contraseña que el cliente no conoce). Solo la primera vez que se confirma el pago.
             if (booking.payment_status !== 'paid' && booking.customer_email) {
@@ -122,7 +157,13 @@ export async function POST(req: Request) {
 
             console.log(`Redsys Webhook: Reserva ${booking.id} pagada y fechas auto-bloqueadas con éxito`)
         } else {
-            // Pago fallido o denegado por la pasarela
+            // Pago fallido o denegado por la pasarela: liberar el bloqueo provisional de checkout
+            await supabase
+                .from('blocked_dates')
+                .delete()
+                .eq('camper_id', booking.camper_id)
+                .in('session_id', [`checkout_${orderId}`, `hold_${orderId}`])
+
             await supabase
                 .from('bookings')
                 .update({
@@ -139,3 +180,4 @@ export async function POST(req: Request) {
         return new Response('Server Error', { status: 500 })
     }
 }
+

@@ -27,8 +27,17 @@ export default function LoadingScreen({ fullScreen = true }: { fullScreen?: bool
 
   if (!fullScreen) {
     return (
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: '100%', minHeight: '50vh' }}>
+      <div className="loader-partial">
         {spinner}
+        <style jsx>{`
+          .loader-partial {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 100%;
+            min-height: 50vh;
+          }
+        `}</style>
       </div>
     )
   }
@@ -38,19 +47,22 @@ export default function LoadingScreen({ fullScreen = true }: { fullScreen?: bool
       role="status"
       aria-live="polite"
       aria-label="Cargando"
-      style={{
-        position: 'fixed',
-        inset: 0,
-        zIndex: 99999,
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        backgroundColor: 'rgba(11, 12, 14, 0.9)',
-        backdropFilter: 'blur(12px)',
-        WebkitBackdropFilter: 'blur(12px)',
-      }}
+      className="loader-full"
     >
       {spinner}
+      <style jsx>{`
+        .loader-full {
+          position: fixed;
+          inset: 0;
+          z-index: 99999;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          background-color: rgba(11, 12, 14, 0.9);
+          backdrop-filter: blur(12px);
+          -webkit-backdrop-filter: blur(12px);
+        }
+      `}</style>
     </div>
   )
 }

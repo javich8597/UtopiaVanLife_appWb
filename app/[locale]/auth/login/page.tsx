@@ -444,7 +444,21 @@ function LoginForm() {
 
 export default function LoginPage() {
     return (
-        <Suspense fallback={<div style={{ minHeight: '100vh', background: '#0B0C0E', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#94A3B8' }}>Cargando...</div>}>
+        <Suspense fallback={
+            <div className="login-fallback">
+                Cargando...
+                <style jsx>{`
+                    .login-fallback {
+                        min-height: 100vh;
+                        background: #0B0C0E;
+                        display: flex;
+                        align-items: center;
+                        justify-content: center;
+                        color: #94A3B8;
+                    }
+                `}</style>
+            </div>
+        }>
             <LoginForm />
         </Suspense>
     )

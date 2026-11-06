@@ -91,6 +91,20 @@ export default function HeroSection() {
     }
   }, [isCalendarOpen])
 
+  // Bloquear scroll en móvil si el calendario está abierto
+  useEffect(() => {
+    if (typeof window === 'undefined') return
+    const isMobile = window.innerWidth <= 768
+    if (isCalendarOpen && isMobile) {
+      document.body.style.overflow = 'hidden'
+    } else {
+      document.body.style.overflow = ''
+    }
+    return () => {
+      document.body.style.overflow = ''
+    }
+  }, [isCalendarOpen])
+
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault()
     const params = new URLSearchParams()
@@ -591,14 +605,14 @@ export default function HeroSection() {
           gap: var(--space-2);
         }
         .hero__pax-btn {
-          width: 26px;
-          height: 26px;
+          width: 44px;
+          height: 44px;
           border-radius: 50%;
           border: 1px solid rgba(255, 255, 255, 0.22);
           display: flex;
           align-items: center;
           justify-content: center;
-          font-size: 1rem;
+          font-size: 1.2rem;
           font-weight: 600;
           color: #F5EFEB;
           background: rgba(255, 255, 255, 0.08);

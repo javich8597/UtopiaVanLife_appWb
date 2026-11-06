@@ -17,7 +17,7 @@ interface WizardHeaderProps {
 const STEPS = [
     { number: 1 as WizardStep, title: 'Fechas y Horarios', shortTitle: 'Fechas' },
     { number: 2 as WizardStep, title: 'Kilometraje', shortTitle: 'KM' },
-    { number: 3 as WizardStep, title: 'Cancelación', shortTitle: 'Cancelación' },
+    { number: 3 as WizardStep, title: 'Cobertura & Fianza', shortTitle: 'Fianza' },
     { number: 4 as WizardStep, title: 'Extras & Experiencias', shortTitle: 'Extras' },
     { number: 5 as WizardStep, title: 'Tus Datos & Pago', shortTitle: 'Pago' },
 ]

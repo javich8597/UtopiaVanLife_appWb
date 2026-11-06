@@ -110,6 +110,7 @@ export default function WizardBottomBar({
                     box-shadow: 0 -4px 20px rgba(255, 255, 255, 0.04);
                     z-index: 50;
                     padding: var(--space-3) 0;
+                    padding-bottom: calc(var(--space-3) + env(safe-area-inset-bottom, 16px));
                 }
 
                 .wizard-bottom-bar__container {

@@ -185,7 +185,7 @@ export default function VerificationsClient({ initialUsers }: Props) {
             <div key={user.id} className="validation-card card">
               {/* User Info Header */}
               <div className="user-info-section">
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: 12 }}>
+                <div className="user-info-row">
                   <div>
                     <h3 className="text-h4" style={{ marginBottom: 4 }}>
                       {user.full_name || 'Sin Nombre'}
@@ -204,7 +204,7 @@ export default function VerificationsClient({ initialUsers }: Props) {
                   </div>
 
                   {/* Warning Badges */}
-                  <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
+                  <div className="badges-row">
                     {user.driver_license_id && (
                       <span className="badge-pill badge-neutral">
                         Carnet: {user.driver_license_id}
@@ -308,13 +308,12 @@ export default function VerificationsClient({ initialUsers }: Props) {
                 <span className="actions-hint">
                   Acción sobre la documentación de este cliente:
                 </span>
-                <div style={{ display: 'flex', gap: '10px' }}>
+                <div className="actions-btn-group">
                   <button
                     type="button"
                     onClick={() => handleApprove(user)}
                     disabled={isApproving}
-                    className="btn btn-forest"
-                    style={{ display: 'inline-flex', alignItems: 'center', gap: '8px' }}
+                    className="btn btn-forest action-btn-approve"
                   >
                     {isApproving ? <Loader2 size={16} className="animate-spin" /> : <Check size={16} />}
                     Aprobar Documentación
@@ -324,8 +323,7 @@ export default function VerificationsClient({ initialUsers }: Props) {
                     type="button"
                     onClick={() => handleOpenReject(user)}
                     disabled={isApproving}
-                    className="btn btn-outline"
-                    style={{ color: 'var(--adm-rose)', borderColor: 'var(--adm-rose-soft)', display: 'inline-flex', alignItems: 'center', gap: '8px' }}
+                    className="btn btn-outline action-btn-reject"
                   >
                     <X size={16} />
                     Rechazar
@@ -356,7 +354,7 @@ export default function VerificationsClient({ initialUsers }: Props) {
                 <span className="lightbox-title">{zoomDoc.title}</span>
                 <span className="lightbox-subtitle"> · {zoomDoc.userName}</span>
               </div>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <div className="lightbox-header-actions">
                 <a
                   href={zoomDoc.url}
                   target="_blank"
@@ -389,7 +387,7 @@ export default function VerificationsClient({ initialUsers }: Props) {
         <div className="modal-backdrop" onClick={() => !isRejecting && setRejectingUser(null)}>
           <div className="modal-card" onClick={e => e.stopPropagation()}>
             <div className="modal-header">
-              <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+              <div className="modal-header-title-wrap">
                 <div className="modal-header-icon">
                   <AlertTriangle size={20} />
                 </div>
@@ -882,6 +880,14 @@ export default function VerificationsClient({ initialUsers }: Props) {
           from { transform: rotate(0deg); }
           to { transform: rotate(360deg); }
         }
+
+        .user-info-row { display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 12px; }
+        .badges-row { display: flex; gap: 6px; flex-wrap: wrap; }
+        .actions-btn-group { display: flex; gap: 10px; }
+        .action-btn-approve { display: inline-flex; align-items: center; gap: 8px; }
+        .action-btn-reject { color: var(--adm-rose); border-color: var(--adm-rose-soft); display: inline-flex; align-items: center; gap: 8px; }
+        .lightbox-header-actions { display: flex; align-items: center; gap: 8px; }
+        .modal-header-title-wrap { display: flex; align-items: center; gap: 10px; }
 
         @media (max-width: 640px) {
           .validation-card {

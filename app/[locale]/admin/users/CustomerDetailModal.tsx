@@ -192,12 +192,12 @@ export default function CustomerDetailModal({
                         </div>
                         <div className="cd-field">
                           <span className="cd-field-label">Teléfono de Contacto</span>
-                          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 8 }}>
+                          <div className="cd-phone-wrap">
                             <strong className="cd-field-value flex-align">
                               <Phone size={14} className="cd-icon-muted" /> {user?.phone || user?.phone_number || '-'}
                             </strong>
                             {(user?.phone || user?.phone_number) && (
-                              <div style={{ display: 'flex', gap: 6 }}>
+                              <div className="cd-phone-actions">
                                 <a
                                   href={`tel:${user.phone || user.phone_number}`}
                                   className="cd-phone-action cd-phone-action--call"
@@ -378,10 +378,10 @@ export default function CustomerDetailModal({
 
                   {/* Acciones de Validación Rápida */}
                   <div className="cd-action-bar">
-                    <span style={{ fontSize: '0.88rem', color: 'var(--adm-text-2)', fontWeight: 500 }}>
+                    <span className="cd-action-hint">
                       Acción Administrativa sobre la Documentación:
                     </span>
-                    <div style={{ display: 'flex', gap: 10 }}>
+                    <div className="cd-action-btns">
                       <button
                         onClick={() => handleVerify('reject')}
                         disabled={actionLoading}
@@ -414,7 +414,7 @@ export default function CustomerDetailModal({
                       {bookings.map((b: any) => (
                         <div key={b.id} className="cd-booking-item">
                           <div className="cd-booking-info">
-                            <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                            <div className="cd-booking-status-wrap">
                               <span className="cd-camper-tag">
                                 {b.campers?.name || 'Camper Utopia'}
                               </span>
@@ -1077,6 +1077,12 @@ export default function CustomerDetailModal({
           background: var(--adm-sage-soft);
           color: var(--adm-sage);
         }
+
+        .cd-phone-wrap { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 8px; }
+        .cd-phone-actions { display: flex; gap: 6px; }
+        .cd-action-hint { font-size: 0.88rem; color: var(--adm-text-2); font-weight: 500; }
+        .cd-action-btns { display: flex; gap: 10px; }
+        .cd-booking-status-wrap { display: flex; align-items: center; gap: 8px; }
 
         @media (max-width: 640px) {
           .cd-backdrop {

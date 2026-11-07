@@ -69,7 +69,7 @@ export default function StickyTripSummary({
     const totalPayable = breakdown ? breakdown.payableTotal : 0
     const totalDays = breakdown ? breakdown.totalDays : 0
     const numNights = breakdown ? breakdown.numNights : 0
-    const depositAmount = breakdown ? breakdown.depositAmount : 1000
+    const depositAmount = breakdown ? breakdown.depositAmount : (step3.depositOption === 'flex_1000' ? 1000 : (Number(camper.deposit_amount) || 2000))
 
     const contentProps: TripSummaryContentProps = {
         camper,
@@ -353,7 +353,7 @@ function TripSummaryContent({
                         {numNights} {numNights === 1 ? 'noche' : 'noches'} ({totalDays} días)
                     </span>
                     <span className="stats-pill">
-                        <Users size={12} style={{ display: 'inline', marginRight: 4 }} />
+                        <Users size={12} className="stats-pill__icon" />
                         {step1.pax} {step1.pax === 1 ? 'viajero' : 'viajeros'}
                     </span>
                 </div>
@@ -420,6 +420,18 @@ function TripSummaryContent({
                             </span>
                         </div>
 
+                        {/* Fianza Flex Supplement */}
+                        {breakdown.flexDepositSupplement > 0 && (
+                            <div className="summary-breakdown-row">
+                                <span className="summary-row-label">
+                                    Fianza Flex (+10 €/día · Depósito 1.000 € y 2º conductor)
+                                </span>
+                                <span className="summary-row-val">
+                                    +{formatPrice(breakdown.flexDepositSupplement)}
+                                </span>
+                            </div>
+                        )}
+
                         {/* Selected Extras */}
                         {breakdown.itemizedExtras.length > 0 && (
                             <div className="summary-extras-group">
@@ -478,7 +490,7 @@ function TripSummaryContent({
                 <ul className="summary-included-list">
                     {INCLUDED_SERVICES.map((item, i) => (
                         <li key={i} className="summary-included-item">
-                            <Check size={13} className="text-forest" style={{ flexShrink: 0, marginTop: 3 }} />
+                            <Check size={13} className="text-forest summary-included-icon" />
                             <span>{item}</span>
                         </li>
                     ))}
@@ -610,6 +622,14 @@ function TripSummaryContent({
                     padding: 2px 8px;
                     border-radius: var(--radius-sm);
                     border: 1px solid var(--gray-200);
+                    display: inline-flex;
+                    align-items: center;
+                    gap: 4px;
+                }
+
+                :global(.stats-pill__icon) {
+                    display: inline;
+                    margin-right: 2px;
                 }
 
                 /* Breakdown section */
@@ -821,6 +841,11 @@ function TripSummaryContent({
                     font-size: 11px;
                     color: var(--gray-600);
                     line-height: 1.35;
+                }
+
+                :global(.summary-included-icon) {
+                    flex-shrink: 0;
+                    margin-top: 3px;
                 }
 
                 /* Trust Footer */

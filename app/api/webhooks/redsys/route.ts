@@ -40,6 +40,11 @@ export async function POST(req: Request) {
             return new Response('Missing parameters', { status: 400 })
         }
 
+        if (signatureVersion && signatureVersion !== 'HMAC_SHA256_V1') {
+            console.error('Redsys Webhook: Versión de firma incompatible:', signatureVersion)
+            return new Response('Invalid signature version', { status: 400 })
+        }
+
         const config = getRedsysConfig()
         const isValid = verifyRedsysSignature(merchantParameters, signature, config.secretKey)
 
@@ -49,6 +54,12 @@ export async function POST(req: Request) {
         }
 
         const notificationData = decodeMerchantParameters<RedsysNotificationParams>(merchantParameters)
+        const dsMerchantCode = notificationData.Ds_MerchantCode || notificationData.DS_MERCHANTCODE
+
+        if (dsMerchantCode !== config.merchantCode) {
+            console.error('Redsys Webhook: MerchantCode mismatch')
+            return new Response('Invalid merchant code', { status: 400 })
+        }
 
         // Acceso con privilegios de administrador: la notificación no trae sesión de usuario
         const { httpStatus, body } = await processRedsysNotification(getSupabaseAdmin(), notificationData)
@@ -58,3 +69,4 @@ export async function POST(req: Request) {
         return new Response('Server Error', { status: 500 })
     }
 }
+

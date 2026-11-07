@@ -1,9 +1,9 @@
 {
   "HomePage": {
     "Hero": {
-      "title": "Tu Utopía te espera",
-      "subtitle": "Campers de alta gama en Mallorca. Diseño, confort y autonomía total para descubrir la isla a tu propio ritmo.",
-      "cta": "Ver campers",
+      "title": "Alquiler de Furgonetas Camper Premium en Mallorca",
+      "subtitle": "Descubre la isla sin límites con nuestras campers de alta gama. Diseño exclusivo, autonomía solar (Victron) y seguro a todo riesgo sin sorpresas.",
+      "cta": "Reserva tu aventura",
       "eyebrow": "MALLORCA · 39.6953° N",
       "tagline": "Dos formas de entrar en la aventura. El camino fuera. Tu refugio dentro.",
       "llegada": "Llegada",
@@ -19,12 +19,12 @@
       "eyebrow": "Por qué elegirnos",
       "title": "La experiencia Utopia",
       "subtitle": "Cada detalle ha sido cuidado para que tu único trabajo sea disfrutar.",
-      "reason1_title": "Libertad Total",
-      "reason1_desc": "Sin itinerarios fijos. Tú decides cuándo parar, cuándo avanzar. Mallorca a tu ritmo.",
+      "reason1_title": "Libertad Sin Límite de Kilómetros",
+      "reason1_desc": "Sin itinerarios fijos ni costes extra por kilometraje. Tú decides cuándo parar y cuándo avanzar. Mallorca, verdaderamente a tu ritmo.",
       "reason2_title": "Campers Premium",
       "reason2_desc": "Vehículos impecables, equipados con todo lo necesario para una experiencia de lujo sobre ruedas.",
-      "reason3_title": "Soporte 24/7",
-      "reason3_desc": "Nuestro equipo está disponible en todo momento para que tu aventura sea perfecta.",
+      "reason3_title": "Seguro Integral y Soporte 24/7",
+      "reason3_desc": "Asistencia en carretera en toda la isla. Viaja con total tranquilidad y una fianza transparente de 1.000 € gestionada con total seguridad.",
       "reason4_title": "Viaje Consciente",
       "reason4_desc": "Compensamos las emisiones de CO2 de cada alquiler. Disfruta sin culpa."
     },
@@ -36,7 +36,7 @@
     },
     "Experiences": {
       "eyebrow": "Lo que te espera",
-      "title": "Experiencias",
+      "title": "Experiencias Camper en Mallorca",
       "subtitle": "Vive Mallorca de forma diferente.",
       "exp1_title": "Calas Secretas",
       "exp1_desc": "Accede a calas vírgenes que solo se pueden alcanzar con tu camper. Sin aglomeraciones, solo tú y el Mediterráneo.",
@@ -44,8 +44,8 @@
       "exp2_desc": "Cap de Formentor, Serra de Tramuntana, los pueblos de interior. Cada curva es un nuevo descubrimiento.",
       "exp3_title": "Gastronomía Local",
       "exp3_desc": "Mercados, restaurantes de barrio, pa amb oli al atardecer. Mallorca se vive mejor con el estómago feliz.",
-      "exp4_title": "Noches de Estrella",
-      "exp4_desc": "Aparca donde la noche es más oscura y el cielo más brillante. Las mejores áreas de pernocta, seleccionadas."
+      "exp4_title": "Pernocta Libre y Segura",
+      "exp4_desc": "Aparca donde la noche es más oscura. Te asesoramos sobre la normativa (DGT 08/V-74) y te compartimos las mejores áreas de pernocta de la isla."
     },
     "FAQ": {
       "title": "Preguntas frecuentes",
@@ -59,7 +59,7 @@
       "q4_question": "¿Qué pasa si hay una avería?",
       "q4_answer": "Disponemos de asistencia en carretera 24/7. Contacta con nuestro número de emergencias y gestionamos todo.",
       "q5_question": "¿Cómo funciona la fianza y el seguro?",
-      "q5_answer": "Todas nuestras campers cuentan con seguro a todo riesgo con fianza de 1.000 €. La fianza se bloquea temporalmente en tu tarjeta al inicio del alquiler y se libera tras la devolución del vehículo en perfecto estado.",
+      "q5_answer": "Tu tranquilidad es lo primero: todas nuestras campers incluyen seguro a todo riesgo. Operamos con máxima transparencia: la fianza de 1.000 € se bloquea de forma segura en tu tarjeta al inicio del alquiler y se libera automáticamente al devolver el vehículo en perfecto estado. Sin letra pequeña, comisiones ni costes ocultos.",
       "q6_question": "¿Puedo cancelar mi reserva?",
       "q6_answer": "Sí. Las cancelaciones con más de 30 días de antelación reciben un reembolso del 100%. (De 29 a 15 días: 50%. Menos de 14 días: 0%)."
     }
@@ -116,7 +116,7 @@
   },
   "CampersPage": {
     "title": "Elige tu camper",
-    "subtitle": "Dos joyas sobre ruedas, diseñadas para la libertad. Cada una lista para convertirse en tu hogar en Mallorca.",
+    "subtitle": "Campers premium diseñadas para tu libertad. Totalmente equipadas, con baño interior y autonomía energética (Victron) para ser tu hogar en Mallorca.",
     "showingAvailability": "Mostrando disponibilidad: {from} → {to} · {pax} viajeros",
     "showingAvailabilitySingular": "Mostrando disponibilidad: {from} → {to} · {pax} viajero",
     "viewAll": "Ver todas",

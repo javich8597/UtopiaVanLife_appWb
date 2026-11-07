@@ -86,7 +86,7 @@ export default function CamperStickyBookingBar({
           -webkit-backdrop-filter: blur(20px);
           border-top: 1px solid rgba(255, 255, 255, 0.1);
           padding: 14px 24px;
-          padding-bottom: calc(14px + env(safe-area-inset-bottom, 0px));
+          padding-bottom: calc(14px + env(safe-area-inset-bottom, 16px));
           box-shadow: 0 -10px 30px rgba(0, 0, 0, 0.6);
         }
         .bar-container {
@@ -157,8 +157,10 @@ export default function CamperStickyBookingBar({
         .calc-trigger-btn {
           display: inline-flex;
           align-items: center;
+          justify-content: center;
           gap: 6px;
-          padding: 10px 16px;
+          min-height: 44px;
+          padding: 10px 18px;
           border-radius: 9999px;
           background: rgba(255, 255, 255, 0.06);
           border: 1px solid rgba(255, 255, 255, 0.12);
@@ -176,7 +178,9 @@ export default function CamperStickyBookingBar({
         :global(.reserve-primary-btn) {
           display: inline-flex;
           align-items: center;
+          justify-content: center;
           gap: 8px;
+          min-height: 44px;
           padding: 12px 24px;
           border-radius: 9999px;
           background: #e6ca65;
@@ -212,8 +216,8 @@ export default function CamperStickyBookingBar({
 
         @media (max-width: 640px) {
           .sticky-booking-bar {
-            padding: 10px 16px;
-            padding-bottom: calc(10px + env(safe-area-inset-bottom, 0px));
+            padding: 12px 16px;
+            padding-bottom: calc(12px + env(safe-area-inset-bottom, 16px));
           }
           .bar-container {
             flex-direction: column;
@@ -227,15 +231,19 @@ export default function CamperStickyBookingBar({
           }
           .cta-actions-group {
             width: 100%;
+            display: grid;
+            grid-template-columns: 1fr 1.6fr;
+            gap: 8px;
           }
           .calc-trigger-btn {
-            display: none;
+            width: 100%;
+            padding: 0 10px;
+            font-size: 12px;
           }
           :global(.reserve-primary-btn) {
             width: 100%;
-            justify-content: center;
-            min-height: 44px; /* Touch target 44px per AGENTS.md */
-            font-size: 13px;
+            font-size: 12px;
+            padding: 0 12px;
           }
         }
       `}</style>

@@ -7,6 +7,7 @@ export type DaySlot = 'morning' | 'afternoon'
 export type KmPackage = 'included_150' | 'unlimited'
 export type CancellationPolicy = 'standard' | 'flexible'
 export type ExtraPricingType = 'per_rental' | 'per_day' | 'fixed'
+export type DepositOption = 'standard_2000' | 'flex_1000'
 
 export interface CategorizedExtra {
     id?: string
@@ -104,10 +105,26 @@ export interface PricingBreakdown {
     extrasSubtotal: number
     extrasTotal: number
     itemizedExtras: ItemizedExtra[]
+
+    // Fianza y modalidades de depósito
+    depositOption: DepositOption
+    depositAmount: number // Fianza retenida (2.000 € estándar ó 1.000 € flex)
+    deposit: number       // Alias fianza retenida
+    flexDepositRatePerDay: number // 10 €/día si 'flex_1000', 0 si 'standard_2000'
+    flexDepositSupplement: number // Suplemento total fianza flex
+    includesSecondDriver: boolean // true si 'flex_1000', false si 'standard_2000'
+
+    // Desglose transparente de IVA (21%)
+    vatPct: number       // 21%
+    vatRate: number      // 0.21
+    netTotal: number     // Base imponible sin IVA (payableTotal / 1.21)
+    taxBase: number      // Alias de base imponible
+    vatAmount: number    // Cuota de IVA 21%
+    vatTotal: number     // Alias de cuota de IVA
+    ivaIncluded: boolean // true (precios al consumidor con IVA incluido)
+
     totalPrice: number
     payableTotal: number
-    depositAmount: number
-    deposit: number
     totalWithoutDeposit: number
     grandTotal: number
     grandTotalWithDeposit: number
@@ -132,5 +149,6 @@ export interface CalculatePriceV2Params {
     cancellationPolicy?: CancellationPolicy
     extrasSelected?: CategorizedExtra[] | Extra[]
     selectedExtras?: Extra[] | CategorizedExtra[]
+    depositOption?: DepositOption
     depositAmount?: number
 }

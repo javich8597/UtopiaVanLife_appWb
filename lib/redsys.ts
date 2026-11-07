@@ -53,7 +53,7 @@ export const REDSYS_URLS = {
 export const REDSYS_TEST_DEFAULTS = {
     merchantCode: '999008881',
     terminal: '1',
-    secretKey: 'sq7HjrUqKpOuKiGbKWwbqy6kh6xminic',
+    secretKey: 'sq7HjrUOBfKmC576ILgskD5srU870gJ7',
 }
 
 /**
@@ -63,20 +63,37 @@ export function getRedsysConfig(): RedsysConfig {
     const environment = (process.env.REDSYS_ENVIRONMENT === 'production' ? 'production' : 'test') as 'test' | 'production'
     
     // In production, require actual merchant code and secret key
-    const merchantCode = process.env.REDSYS_MERCHANT_CODE || (environment === 'production' ? '36935583' : REDSYS_TEST_DEFAULTS.merchantCode)
-    const terminal = process.env.REDSYS_TERMINAL || '1'
-    // La clave de pruebas es pública: en producción, usarla permitiría falsificar notificaciones de pago
     if (environment === 'production' && !process.env.REDSYS_SECRET_KEY) {
         throw new Error('REDSYS_SECRET_KEY es obligatoria con REDSYS_ENVIRONMENT=production')
     }
-    const secretKey = process.env.REDSYS_SECRET_KEY || REDSYS_TEST_DEFAULTS.secretKey
+
+    const terminal = process.env.REDSYS_TERMINAL || '1'
     const appUrl = (process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000').replace(/\/$/, '')
+
+    let merchantCode = process.env.REDSYS_MERCHANT_CODE
+    let secretKey = process.env.REDSYS_SECRET_KEY
+
+    if (environment === 'production') {
+        merchantCode = merchantCode || '369355383'
+    } else {
+        // En entorno test / sandbox:
+        // Si no se proporcionó REDSYS_SECRET_KEY o coincide con la clave oficial de test de 999008881,
+        // aseguramos que use el par coherente FUC 999008881 + secretKey oficial para evitar SIS0042
+        if (!secretKey || secretKey === REDSYS_TEST_DEFAULTS.secretKey) {
+            secretKey = REDSYS_TEST_DEFAULTS.secretKey
+            merchantCode = merchantCode && merchantCode !== '369355383' && merchantCode !== '36935583'
+                ? merchantCode 
+                : REDSYS_TEST_DEFAULTS.merchantCode
+        } else {
+            merchantCode = merchantCode || REDSYS_TEST_DEFAULTS.merchantCode
+        }
+    }
 
     return {
         environment,
-        merchantCode,
+        merchantCode: merchantCode || REDSYS_TEST_DEFAULTS.merchantCode,
         terminal,
-        secretKey,
+        secretKey: secretKey || REDSYS_TEST_DEFAULTS.secretKey,
         appUrl,
     }
 }
@@ -169,6 +186,15 @@ export function normalizeBase64(str: string): string {
 }
 
 /**
+ * Validates that an orderId conforms strictly to Redsys specifications:
+ * 4 to 12 alphanumeric characters, where the first 4 characters must be numeric digits.
+ */
+export function isValidRedsysOrderId(orderId?: string | null): boolean {
+    if (!orderId || typeof orderId !== 'string') return false
+    return /^\d{4}[0-9a-zA-Z]{0,8}$/.test(orderId) && orderId.length >= 4 && orderId.length <= 12
+}
+
+/**
  * Verifies if an incoming signature from Redsys matches the calculated signature
  */
 export function verifyRedsysSignature(
@@ -189,10 +215,14 @@ export function verifyRedsysSignature(
         const normReceived = normalizeBase64(receivedSignature).replace(/=+$/, '')
         const normExpected = normalizeBase64(expectedSignature).replace(/=+$/, '')
 
-        const received = Buffer.from(normReceived)
-        const expected = Buffer.from(normExpected)
+        const bufReceived = Buffer.from(normReceived, 'utf8')
+        const bufExpected = Buffer.from(normExpected, 'utf8')
 
-        return received.length === expected.length && crypto.timingSafeEqual(received, expected)
+        if (bufReceived.length !== bufExpected.length) {
+            return false
+        }
+
+        return crypto.timingSafeEqual(bufReceived, bufExpected)
     } catch (e) {
         console.error('Error verifying Redsys signature:', e)
         return false
@@ -217,8 +247,14 @@ export function createRedsysPaymentForm(
 ): RedsysFormData {
     const config = { ...getRedsysConfig(), ...customConfig }
 
+    if (!isValidRedsysOrderId(orderReq.orderId)) {
+        throw new Error(`Identificador de pedido Redsys inválido: "${orderReq.orderId}". Debe tener entre 4 y 12 caracteres alfanuméricos y comenzar por 4 dígitos numéricos.`)
+    }
+
     // Redsys requires amount in cents without commas/dots (e.g. 600.00 -> "60000")
     const amountInCents = Math.round(orderReq.amount * 100).toString()
+
+    const langPrefix = orderReq.locale ? `/${orderReq.locale}` : ''
 
     const merchantParametersObj: Record<string, any> = {
         DS_MERCHANT_AMOUNT: amountInCents,
@@ -228,8 +264,8 @@ export function createRedsysPaymentForm(
         DS_MERCHANT_TRANSACTIONTYPE: '0', // Autorización
         DS_MERCHANT_TERMINAL: config.terminal,
         DS_MERCHANT_MERCHANTURL: `${config.appUrl}/api/webhooks/redsys`,
-        DS_MERCHANT_URLOK: `${config.appUrl}/checkout/success?order=${orderReq.orderId}`,
-        DS_MERCHANT_URLKO: `${config.appUrl}/checkout/error?order=${orderReq.orderId}`,
+        DS_MERCHANT_URLOK: `${config.appUrl}${langPrefix}/checkout/success?order=${orderReq.orderId}`,
+        DS_MERCHANT_URLKO: `${config.appUrl}${langPrefix}/checkout/error?order=${orderReq.orderId}`,
     }
 
     if (orderReq.description) {

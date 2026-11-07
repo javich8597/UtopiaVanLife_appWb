@@ -823,7 +823,7 @@ export default function CamperManualClient() {
                       <span className="text-xs" style={{ color: 'var(--usr-text-2)' }}>
                         ¿Has completado el protocolo y la incidencia persiste?
                       </span>
-                      <a href="tel:+34611560916" className="btn btn-forest btn-sm" style={{ gap: 6, textDecoration: 'none' }}>
+                      <a href="tel:+34611560916" className="btn btn-forest btn-sm troubleshoot-call-btn">
                         <PhoneCall size={13} />
                         <span>Llamar a Soporte Utopia (+34 611 560 916)</span>
                       </a>
@@ -1397,6 +1397,7 @@ export default function CamperManualClient() {
           padding-top: 6px;
           border-top: 1px dashed var(--usr-border);
         }
+        .troubleshoot-call-btn { gap: 6px; text-decoration: none; }
         .empty-troubleshoot {
           background: var(--usr-surface);
           padding: var(--space-8);

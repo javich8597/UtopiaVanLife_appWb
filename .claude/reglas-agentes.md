@@ -28,6 +28,7 @@ Consecuencias:
 - Comprueba cada frontera: botón → ruta que existe → columna que existe → política que lo permite con **ese rol**.
 - Prohibido dar veredictos globales ("production-ready", "todo correcto"). Di qué comprobaste y cómo.
 - Los informes de `.agents/teamwork_preview_*` son históricos. No te fíes de sus conclusiones.
+- Antes de empezar, ejecuta `git fetch` y mira si `origin/master` trae trabajo nuevo. También se trabaja en este repositorio con otras herramientas (los agentes de `.agents/agents/` son de Antigravity).
 
 ## 3. Niveles de evidencia
 

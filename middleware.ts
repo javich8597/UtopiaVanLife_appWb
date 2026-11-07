@@ -41,6 +41,16 @@ export async function middleware(request: NextRequest) {
     return NextResponse.redirect(loginUrl);
   }
 
+  const adminMatch = request.nextUrl.pathname.match(/^\/(?:es|en|de|fr)?\/admin(?:\/.*)?$/) || request.nextUrl.pathname.match(/^\/admin(?:\/.*)?$/);
+  if (adminMatch && user) {
+    const isAdmin = user.app_metadata?.role === 'admin' || user.user_metadata?.role === 'admin' || (user as any).role === 'admin';
+    if (!isAdmin) {
+      const localeMatch = request.nextUrl.pathname.match(/^\/(es|en|de|fr)\//);
+      const locale = localeMatch ? localeMatch[1] : 'es';
+      return NextResponse.redirect(new URL(`/${locale}/auth/login`, request.url));
+    }
+  }
+
   return response;
 }
 

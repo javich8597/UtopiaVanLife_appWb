@@ -113,7 +113,13 @@ export function appendPaymentAlert(notes: string | null | undefined, alert: stri
     return notes.includes(line) ? notes : `${notes}\n${line}`
 }
 
-async function areDatesTaken(db: SupabaseClient, booking: RedsysBookingRow, sessionId: string, now: Date): Promise<boolean> {
+/** Bloqueos temporales que el checkout crea para este pedido mientras el cliente paga */
+function provisionalSessions(orderId: string): string[] {
+    return [`checkout_${orderId}`, `hold_${orderId}`]
+}
+
+async function areDatesTaken(db: SupabaseClient, booking: RedsysBookingRow, orderId: string, now: Date): Promise<boolean> {
+    const ownSessions = [`redsys_${orderId}`, ...provisionalSessions(orderId)]
     const [clashes, blocks] = await Promise.all([
         db.from('bookings')
             .select('id')
@@ -133,7 +139,7 @@ async function areDatesTaken(db: SupabaseClient, booking: RedsysBookingRow, sess
     if (blocks.error) throw new Error(blocks.error.message)
 
     const activeBlocks = (blocks.data || []).filter((b: { session_id?: string | null; expires_at?: string | null }) =>
-        b.session_id !== sessionId && (!b.expires_at || new Date(b.expires_at) > now)
+        !ownSessions.includes(b.session_id ?? '') && (!b.expires_at || new Date(b.expires_at) > now)
     )
     return (clashes.data || []).length > 0 || activeBlocks.length > 0
 }
@@ -198,7 +204,7 @@ export async function processRedsysNotification(
         && booking.status === 'pending'
         && booking.payment_status !== 'paid'
         && booking.payment_status !== 'refunded'
-    const datesTaken = needsDatesCheck ? await areDatesTaken(db, booking, sessionId, now) : false
+    const datesTaken = needsDatesCheck ? await areDatesTaken(db, booking, orderId, now) : false
 
     const decision = decideRedsysNotification({
         booking,
@@ -233,6 +239,17 @@ export async function processRedsysNotification(
     }
 
     if (decision.ensureBlock) await ensureBlock(db, booking, sessionId)
+
+    // Pago resuelto: el bloqueo definitivo ya está puesto o las fechas deben quedar libres.
+    // Si esto falla no es grave: el bloqueo provisional caduca solo.
+    if (decision.ensureBlock || !isRedsysSuccess(responseCode)) {
+        const { error: releaseErr } = await db
+            .from('blocked_dates')
+            .delete()
+            .eq('camper_id', booking.camper_id)
+            .in('session_id', provisionalSessions(orderId))
+        if (releaseErr) console.warn(`Redsys Webhook: no se pudo liberar el bloqueo provisional del pedido ${orderId}:`, releaseErr.message)
+    }
 
     // La cuenta se creó en el checkout con una contraseña que el cliente no conoce: enlace de acceso
     if (decision.paymentStatus === 'paid' && booking.customer_email) {

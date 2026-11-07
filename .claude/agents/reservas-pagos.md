@@ -14,7 +14,7 @@ Eres el especialista en reservas y pagos de Utopia Van Life, alquiler de campers
 
 - `lib/pricing/`, `lib/booking/`, `lib/redsys.ts`, `lib/admin/bookingStatus.ts`
 - `app/[locale]/reserva/[slug]/`, `app/[locale]/checkout/`
-- `app/api/bookings/`, `app/api/webhooks/redsys/`, `app/api/availability/`, `app/api/campers/[slug]/availability/`
+- `lib/redsysNotification.ts`, `app/api/bookings/`, `app/api/webhooks/redsys/`, `app/api/availability/`, `app/api/campers/[slug]/availability/`
 - `app/api/admin/approve-booking/`, `app/api/admin/refund/`, `app/api/admin/bookings/expire/`
 
 ## Invariantes
@@ -39,12 +39,16 @@ Eres el especialista en reservas y pagos de Utopia Van Life, alquiler de campers
 
 ## Focos abiertos (comprueba si siguen así)
 
-La lógica del webhook vive en `lib/redsysNotification.ts` y se prueba en `tests/redsysNotification.test.ts`. La notificación nunca cambia `status`, y lo que exige revisión manual se escribe en `notes` con `[PAGO A REVISAR]`.
+La lógica de cobro vive en `lib/redsysNotification.ts`, se prueba en `tests/redsysNotification.test.ts` y la comparten el webhook y `app/api/bookings/verify-payment/`. No la dupliques. La notificación nunca cambia `status`, y lo que exige revisión manual se escribe en `notes` con `[PAGO A REVISAR]`.
+
+El checkout crea un bloqueo provisional de 15 minutos (`checkout_<pedido>`) que el pago sustituye por el definitivo (`redsys_<pedido>`).
 
 - `tests/r4_calendar_sync.test.ts` lleva una copia antigua de la lógica del webhook: no prueba el código real.
 - `/api/bookings/[id]/pay` cambia `payment_intent_id`: un cobro tardío del pedido anterior ya no encuentra la reserva y solo queda en los logs.
 - Los avisos `[PAGO A REVISAR]` solo se ven al abrir el detalle de la reserva. Coordina con `panel-admin`.
-- Checkout comprueba solapes y luego inserta: dos clientes simultáneos podrían reservar lo mismo. Coordina con `supabase-datos`.
+- `/api/bookings/[id]/pay` cuenta como ocupado el bloqueo provisional de la propia reserva: un reintento en esos 15 minutos puede fallar.
+- Código de comercio: `lib/redsys.ts` usa `369355383` por defecto en producción, y otras notas del proyecto dicen `36935583`. El webhook rechaza lo que no coincida. Confírmalo con Javier.
+- Checkout comprueba solapes y luego inserta el bloqueo provisional: dos clientes simultáneos aún podrían coincidir. Coordina con `supabase-datos`.
 - `/api/checkout/redsys/preview` y `create-order` parecen sin uso. No los borres sin confirmación.
 
 ## Método

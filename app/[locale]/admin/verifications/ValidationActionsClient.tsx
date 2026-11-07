@@ -88,13 +88,12 @@ export default function ValidationActionsClient({ userId, userName, onStatusUpda
     <div className="actions-container">
       {error && <div className="text-xs error-msg">{error}</div>}
 
-      <div style={{ display: 'flex', gap: 'var(--space-3)' }}>
+      <div className="actions-row">
         <button
           type="button"
-          className="btn btn-forest"
+          className="btn btn-forest approve-btn"
           onClick={handleApprove}
           disabled={isProcessing}
-          style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-2)' }}
         >
           {isProcessing ? <Loader2 size={16} className="animate-spin" /> : <Check size={16} />}
           Aprobar
@@ -102,10 +101,9 @@ export default function ValidationActionsClient({ userId, userName, onStatusUpda
 
         <button
           type="button"
-          className="btn btn-outline"
+          className="btn btn-outline reject-btn"
           onClick={() => setIsRejectModalOpen(true)}
           disabled={isProcessing}
-          style={{ color: 'var(--adm-rose)', borderColor: 'var(--adm-rose-soft)', display: 'flex', alignItems: 'center', gap: 'var(--space-2)' }}
         >
           <X size={16} />
           Rechazar
@@ -117,16 +115,16 @@ export default function ValidationActionsClient({ userId, userName, onStatusUpda
         <div className="modal-backdrop" onClick={() => !isProcessing && setIsRejectModalOpen(false)}>
           <div className="modal-card" onClick={e => e.stopPropagation()}>
             <div className="modal-header">
-              <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+              <div className="modal-header-title-wrap">
                 <div className="modal-header-icon">
                   <AlertTriangle size={20} />
                 </div>
                 <div>
-                  <h4 style={{ margin: 0, color: 'var(--adm-rose)', fontSize: '1.05rem', fontWeight: 700 }}>
+                  <h4 className="modal-header-title">
                     Rechazar Documentación
                   </h4>
                   {userName && (
-                    <span style={{ fontSize: '0.78rem', color: 'var(--adm-text-2)' }}>Cliente: {userName}</span>
+                    <span className="modal-header-subtitle">Cliente: {userName}</span>
                   )}
                 </div>
               </div>
@@ -141,7 +139,7 @@ export default function ValidationActionsClient({ userId, userName, onStatusUpda
             </div>
 
             <form onSubmit={handleConfirmReject} className="modal-body">
-              <p style={{ fontSize: '0.85rem', color: 'var(--adm-text)', margin: 0 }}>
+              <p className="modal-instruction">
                 Selecciona la causa del rechazo de los documentos:
               </p>
 
@@ -161,7 +159,7 @@ export default function ValidationActionsClient({ userId, userName, onStatusUpda
               </div>
 
               <div className="form-group">
-                <label style={{ fontSize: '0.8rem', fontWeight: 600, color: 'var(--adm-text-2)' }}>
+                <label className="form-label">
                   {selectedReason === 'Otro' ? 'Motivo específico *' : 'Notas adicionales (opcional)'}
                 </label>
                 <textarea
@@ -173,13 +171,7 @@ export default function ValidationActionsClient({ userId, userName, onStatusUpda
                       ? 'Escribe el motivo detallado...'
                       : 'Observaciones para el cliente...'
                   }
-                  style={{
-                    width: '100%',
-                    padding: '8px 12px',
-                    borderRadius: '8px',
-                    border: '1px solid var(--adm-border-strong)',
-                    fontSize: '0.85rem',
-                  }}
+                  className="form-textarea"
                 />
               </div>
 
@@ -195,8 +187,7 @@ export default function ValidationActionsClient({ userId, userName, onStatusUpda
                 <button
                   type="submit"
                   disabled={isProcessing}
-                  className="btn"
-                  style={{ background: 'var(--adm-rose)', color: 'var(--adm-surface)', display: 'inline-flex', alignItems: 'center', gap: '6px' }}
+                  className="btn confirm-reject-btn"
                 >
                   {isProcessing ? <Loader2 size={16} className="animate-spin" /> : <XCircle size={16} />}
                   Confirmar Rechazo
@@ -298,6 +289,29 @@ export default function ValidationActionsClient({ userId, userName, onStatusUpda
           gap: 10px;
           padding-top: 12px;
           border-top: 1px solid var(--adm-border);
+        }
+        .actions-row { display: flex; gap: var(--space-3); }
+        .approve-btn { display: flex; align-items: center; gap: var(--space-2); }
+        .reject-btn { color: var(--adm-rose); border-color: var(--adm-rose-soft); display: flex; align-items: center; gap: var(--space-2); }
+        
+        .modal-header-title-wrap { display: flex; align-items: center; gap: 10px; }
+        .modal-header-title { margin: 0; color: var(--adm-rose); font-size: 1.05rem; font-weight: 700; }
+        .modal-header-subtitle { font-size: 0.78rem; color: var(--adm-text-2); }
+        .modal-instruction { font-size: 0.85rem; color: var(--adm-text); margin: 0; }
+        .form-label { font-size: 0.8rem; font-weight: 600; color: var(--adm-text-2); }
+        .form-textarea {
+          width: 100%;
+          padding: 8px 12px;
+          border-radius: 8px;
+          border: 1px solid var(--adm-border-strong);
+          font-size: 0.85rem;
+        }
+        .confirm-reject-btn {
+          background: var(--adm-rose);
+          color: var(--adm-surface);
+          display: inline-flex;
+          align-items: center;
+          gap: 6px;
         }
       `}</style>
     </div>

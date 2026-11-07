@@ -72,14 +72,32 @@ export default function DriverDataClient({ user, profile, rejectionReason }: Pro
   const [saveSuccess, setSaveSuccess] = useState(false)
   const [errorMessage, setErrorMessage] = useState('')
 
+  const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10MB
+  const ALLOWED_TYPES = ['image/jpeg', 'image/png', 'application/pdf', 'image/heic'];
+
   const handleFileSelect = (
     e: ChangeEvent<HTMLInputElement>, 
     setter: React.Dispatch<React.SetStateAction<UploadedFilePreview>>
   ) => {
+    setErrorMessage('');
     const file = e.target.files?.[0]
     if (!file) return
 
-    if (file.type.startsWith('image/')) {
+    if (file.size > MAX_FILE_SIZE) {
+      setErrorMessage(`El archivo ${file.name} supera el tamaño máximo permitido (10MB).`);
+      return;
+    }
+
+    if (!ALLOWED_TYPES.includes(file.type)) {
+      // For .heic, sometimes file.type is empty or different, but strictly checking standard types as requested
+      const ext = file.name.split('.').pop()?.toLowerCase();
+      if (!['jpg', 'jpeg', 'png', 'pdf', 'heic'].includes(ext || '')) {
+        setErrorMessage(`El formato del archivo ${file.name} no está permitido. Usa .jpg, .png, .pdf o .heic.`);
+        return;
+      }
+    }
+
+    if (file.type.startsWith('image/') || file.name.toLowerCase().endsWith('.heic')) {
       const previewUrl = URL.createObjectURL(file)
       setter({ file, previewUrl })
     } else {
@@ -493,7 +511,7 @@ export default function DriverDataClient({ user, profile, rejectionReason }: Pro
                         <FolderOpen size={14} /> Seleccionar archivo
                       </span>
                       <span className="dropzone-empty-hint">Haz clic o arrastra aquí (JPG, PNG, PDF)</span>
-                      <input id="dniFrontInput" name="dniFrontInput" aria-label="Subir DNI frontal" type="file" accept="image/*,application/pdf" onChange={e => handleFileSelect(e, setDniFront)} className="file-input-hidden" />
+                      <input id="dniFrontInput" name="dniFrontInput" aria-label="Subir DNI frontal" type="file" accept=".jpg,.jpeg,.png,.pdf,.heic" onChange={e => handleFileSelect(e, setDniFront)} className="file-input-hidden" />
                     </label>
                   )}
                 </div>
@@ -520,7 +538,7 @@ export default function DriverDataClient({ user, profile, rejectionReason }: Pro
                         <FolderOpen size={14} /> Seleccionar archivo
                       </span>
                       <span className="dropzone-empty-hint">Haz clic o arrastra aquí (JPG, PNG, PDF)</span>
-                      <input id="dniBackInput" name="dniBackInput" aria-label="Subir DNI reverso" type="file" accept="image/*,application/pdf" onChange={e => handleFileSelect(e, setDniBack)} className="file-input-hidden" />
+                      <input id="dniBackInput" name="dniBackInput" aria-label="Subir DNI reverso" type="file" accept=".jpg,.jpeg,.png,.pdf,.heic" onChange={e => handleFileSelect(e, setDniBack)} className="file-input-hidden" />
                     </label>
                   )}
                 </div>
@@ -553,7 +571,7 @@ export default function DriverDataClient({ user, profile, rejectionReason }: Pro
                         <FolderOpen size={14} /> Seleccionar archivo
                       </span>
                       <span className="dropzone-empty-hint">Haz clic o arrastra aquí (JPG, PNG, PDF)</span>
-                      <input id="licenseFrontInput" name="licenseFrontInput" aria-label="Subir carnet anverso" type="file" accept="image/*,application/pdf" onChange={e => handleFileSelect(e, setLicenseFront)} className="file-input-hidden" />
+                      <input id="licenseFrontInput" name="licenseFrontInput" aria-label="Subir carnet anverso" type="file" accept=".jpg,.jpeg,.png,.pdf,.heic" onChange={e => handleFileSelect(e, setLicenseFront)} className="file-input-hidden" />
                     </label>
                   )}
                 </div>
@@ -580,7 +598,7 @@ export default function DriverDataClient({ user, profile, rejectionReason }: Pro
                         <FolderOpen size={14} /> Seleccionar archivo
                       </span>
                       <span className="dropzone-empty-hint">Haz clic o arrastra aquí (JPG, PNG, PDF)</span>
-                      <input id="licenseBackInput" name="licenseBackInput" aria-label="Subir carnet reverso" type="file" accept="image/*,application/pdf" onChange={e => handleFileSelect(e, setLicenseBack)} className="file-input-hidden" />
+                      <input id="licenseBackInput" name="licenseBackInput" aria-label="Subir carnet reverso" type="file" accept=".jpg,.jpeg,.png,.pdf,.heic" onChange={e => handleFileSelect(e, setLicenseBack)} className="file-input-hidden" />
                     </label>
                   )}
                 </div>
@@ -678,7 +696,7 @@ export default function DriverDataClient({ user, profile, rejectionReason }: Pro
                       <label className="dropzone-empty" htmlFor="secondLicenseFrontInput">
                         <UploadCloud size={24} className="dropzone-empty-icon" />
                         <span className="dropzone-empty-cta"><FolderOpen size={14} /> Subir Frontal</span>
-                        <input id="secondLicenseFrontInput" name="secondLicenseFrontInput" aria-label="Subir anverso carnet conductor 2" type="file" accept="image/*,application/pdf" onChange={e => handleFileSelect(e, setSecondLicenseFront)} className="file-input-hidden" />
+                        <input id="secondLicenseFrontInput" name="secondLicenseFrontInput" aria-label="Subir anverso carnet conductor 2" type="file" accept=".jpg,.jpeg,.png,.pdf,.heic" onChange={e => handleFileSelect(e, setSecondLicenseFront)} className="file-input-hidden" />
                       </label>
                     )}
                   </div>
@@ -698,7 +716,7 @@ export default function DriverDataClient({ user, profile, rejectionReason }: Pro
                       <label className="dropzone-empty" htmlFor="secondLicenseBackInput">
                         <UploadCloud size={24} className="dropzone-empty-icon" />
                         <span className="dropzone-empty-cta"><FolderOpen size={14} /> Subir Reverso</span>
-                        <input id="secondLicenseBackInput" name="secondLicenseBackInput" aria-label="Subir reverso carnet conductor 2" type="file" accept="image/*,application/pdf" onChange={e => handleFileSelect(e, setSecondLicenseBack)} className="file-input-hidden" />
+                        <input id="secondLicenseBackInput" name="secondLicenseBackInput" aria-label="Subir reverso carnet conductor 2" type="file" accept=".jpg,.jpeg,.png,.pdf,.heic" onChange={e => handleFileSelect(e, setSecondLicenseBack)} className="file-input-hidden" />
                       </label>
                     )}
                   </div>

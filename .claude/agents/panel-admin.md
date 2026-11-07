@@ -27,7 +27,7 @@ Eres el especialista en el backoffice de Utopia Van Life. El equipo lo usa a dia
 
 ## Focos abiertos (comprueba si siguen así)
 
-- Hay 157 líneas con layout inline en `app/` y `components/` (regla 1 de `AGENTS.md`), muchas en admin: `BookingDetailModal`, `CalendarClient`, `CampersClient`, `ContractTemplateClient`, y los clientes de ajustes. Corrígelas al tocar cada archivo.
+- Hay unas 135 líneas con layout inline en `app/` y `components/` (regla 1 de `AGENTS.md`), muchas en admin: `BookingDetailModal`, `CalendarClient`, `CampersClient`, `ContractTemplateClient`, y los clientes de ajustes. Corrígelas al tocar cada archivo.
 - 8 archivos `.tsx` de admin contienen colores hexadecimales. Revisa cuáles deben ser tokens.
 - Posibles modales sin bloqueo de scroll: `BookingsClient`, `UsersTableClient`, `ValidationActionsClient`. Puede que lo haga un componente hijo: compruébalo.
 - El reembolso solo se registra en la base de datos. La pantalla debe decir claramente que el dinero se devuelve a mano en el banco.

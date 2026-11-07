@@ -17,6 +17,7 @@ import {
     KmPackage,
     CancellationPolicy,
     ExtraPricingType,
+    DepositOption,
     CategorizedExtra,
     ItemizedExtra,
     Season,
@@ -147,26 +148,34 @@ export function calculatePriceV2({
     cancellationPolicy = 'standard',
     extrasSelected,
     selectedExtras = [],
-    depositAmount = 1000
+    depositOption = 'standard_2000',
+    depositAmount,
 }: CalculatePriceV2Params): PricingBreakdown {
     const sDate = typeof rawStartDate === 'string' ? new Date(rawStartDate) : rawStartDate
     const eDate = typeof rawEndDate === 'string' ? new Date(rawEndDate) : rawEndDate
     const msPerDay = 1000 * 60 * 60 * 24
     const baseNights = Math.round((eDate.getTime() - sDate.getTime()) / msPerDay)
 
-    const finalDeposit = typeof depositAmount === 'number' ? depositAmount : 1000
+    const resolvedDepositOption: DepositOption = (depositOption === 'flex_1000' || (depositOption as any) === 'flex') ? 'flex_1000' : 'standard_2000'
+    const finalDeposit = typeof depositAmount === 'number'
+        ? depositAmount
+        : (resolvedDepositOption === 'flex_1000' ? 1000 : 2000)
 
     if (baseNights <= 0) {
-        return emptyBreakdown(finalDeposit, Number(camperBasePrice) || 0)
+        return emptyBreakdown(finalDeposit, Number(camperBasePrice) || 0, resolvedDepositOption)
     }
+
+    const baseCamper = (typeof camperBasePrice === 'number' && !isNaN(camperBasePrice))
+        ? camperBasePrice
+        : (Number(camperBasePrice) || 110)
 
     const sSlot: DaySlot = pickupSlot || startSlot || 'afternoon'
     const eSlot: DaySlot = dropoffSlot || endSlot || 'morning'
 
     const startSeason = resolveSeasonForDate(sDate, seasons, periods)
     const endSeason = resolveSeasonForDate(eDate, seasons, periods)
-    const startPrice = Number(camperBasePrice) + Number(startSeason.supplement_per_night)
-    const endPrice = Number(camperBasePrice) + Number(endSeason.supplement_per_night)
+    const startPrice = baseCamper + Number(startSeason.supplement_per_night || 0)
+    const endPrice = baseCamper + Number(endSeason.supplement_per_night || 0)
 
     let extraDays = 0
     let extraSlotCost = 0
@@ -191,7 +200,7 @@ export function calculatePriceV2({
         currentDate.setDate(currentDate.getDate() + i)
 
         const activeSeason = resolveSeasonForDate(currentDate, seasons, periods)
-        const pricePerNight = Number(camperBasePrice) + Number(activeSeason.supplement_per_night)
+        const pricePerNight = baseCamper + Number(activeSeason.supplement_per_night || 0)
         const seasonName = activeSeason.name
 
         if (!nightsPerSeason[seasonName]) {
@@ -217,7 +226,12 @@ export function calculatePriceV2({
     const cancellationRatePerDay = cancellationPolicy === 'flexible' ? 8 : 0
     const cancellationSupplement = Math.round(cancellationRatePerDay * totalDays * 100) / 100
 
-    // 5. Extras Categorizados
+    // 5. Suplemento Fianza Flex (Estándar 2.000 € fianza = 0 € | Flex 1.000 € fianza = 10.00 €/día * totalDays)
+    const flexDepositRatePerDay = resolvedDepositOption === 'flex_1000' ? 10 : 0
+    const flexDepositSupplement = Math.round(flexDepositRatePerDay * totalDays * 100) / 100
+    const includesSecondDriver = resolvedDepositOption === 'flex_1000'
+
+    // 6. Extras Categorizados
     const rawExtras = extrasSelected && extrasSelected.length > 0 ? extrasSelected : selectedExtras
     const itemizedExtras: ItemizedExtra[] = (rawExtras || []).map((e: any, index: number) => {
         const qty = typeof e.quantity === 'number' && e.quantity > 0 ? e.quantity : 1
@@ -239,9 +253,13 @@ export function calculatePriceV2({
 
     const extrasTotal = Math.round(itemizedExtras.reduce((sum, item) => sum + item.total, 0) * 100) / 100
 
-    // 6. Totales finales
-    const payableTotal = Math.round((discountedBaseTotal + kmSupplement + cancellationSupplement + extrasTotal) * 100) / 100
+    // 7. Totales finales
+    const payableTotal = Math.round((discountedBaseTotal + kmSupplement + cancellationSupplement + flexDepositSupplement + extrasTotal) * 100) / 100
     const grandTotalWithDeposit = Math.round((payableTotal + finalDeposit) * 100) / 100
+
+    // 8. Desglose transparente de IVA (21%)
+    const netTotal = Math.round((payableTotal / 1.21) * 100) / 100
+    const vatAmount = Math.round((payableTotal - netTotal) * 100) / 100
 
     return {
         basePrice: Number(camperBasePrice) || 0,
@@ -266,10 +284,21 @@ export function calculatePriceV2({
         extrasSubtotal: extrasTotal,
         extrasTotal,
         itemizedExtras,
-        totalPrice: payableTotal,
-        payableTotal,
+        depositOption: resolvedDepositOption,
         depositAmount: finalDeposit,
         deposit: finalDeposit,
+        flexDepositRatePerDay,
+        flexDepositSupplement,
+        includesSecondDriver,
+        vatPct: 21,
+        vatRate: 0.21,
+        netTotal,
+        taxBase: netTotal,
+        vatAmount,
+        vatTotal: vatAmount,
+        ivaIncluded: true,
+        totalPrice: payableTotal,
+        payableTotal,
         totalWithoutDeposit: payableTotal,
         grandTotal: grandTotalWithDeposit,
         grandTotalWithDeposit,
@@ -398,6 +427,10 @@ export function calculatePrice(
     }, 0)
     const numDeposit = Number(depositAmount) || 0
 
+    const payableTotal = discountedBase + extrasTotal
+    const netTotal = Math.round((payableTotal / 1.21) * 100) / 100
+    const vatAmount = Math.round((payableTotal - netTotal) * 100) / 100
+
     return {
         basePrice: baseNights > 0 ? Math.round(baseTotal / baseNights) : 120,
         nights: baseNights,
@@ -421,11 +454,22 @@ export function calculatePrice(
         extrasSubtotal: extrasTotal,
         extrasTotal,
         itemizedExtras: [],
-        totalPrice: discountedBase + extrasTotal,
-        payableTotal: discountedBase + extrasTotal,
+        depositOption: 'standard_2000',
         depositAmount: numDeposit,
         deposit: numDeposit,
-        totalWithoutDeposit: discountedBase + extrasTotal,
+        flexDepositRatePerDay: 0,
+        flexDepositSupplement: 0,
+        includesSecondDriver: false,
+        vatPct: 21,
+        vatRate: 0.21,
+        netTotal,
+        taxBase: netTotal,
+        vatAmount,
+        vatTotal: vatAmount,
+        ivaIncluded: true,
+        totalPrice: payableTotal,
+        payableTotal,
+        totalWithoutDeposit: payableTotal,
         grandTotal: discountedBase + extrasTotal + numDeposit,
         grandTotalWithDeposit: discountedBase + extrasTotal + numDeposit,
     }
@@ -436,8 +480,10 @@ function findSeason(date: Date, seasons: Season[]): Season | undefined {
     return seasons.find(s => s.start_date <= dateStr && s.end_date >= dateStr)
 }
 
-function emptyBreakdown(depositAmount: number, camperBasePrice: number = 0): PricingBreakdown {
-    const numDeposit = Number(depositAmount) || 0
+function emptyBreakdown(depositAmount: number, camperBasePrice: number = 0, depositOption: DepositOption = 'standard_2000'): PricingBreakdown {
+    const isFlex = depositOption === 'flex_1000' || (depositOption as any) === 'flex'
+    const resolvedOption: DepositOption = isFlex ? 'flex_1000' : 'standard_2000'
+    const numDeposit = Number(depositAmount) || (isFlex ? 1000 : 2000)
     return {
         basePrice: camperBasePrice,
         nights: 0,
@@ -461,10 +507,21 @@ function emptyBreakdown(depositAmount: number, camperBasePrice: number = 0): Pri
         extrasSubtotal: 0,
         extrasTotal: 0,
         itemizedExtras: [],
-        totalPrice: 0,
-        payableTotal: 0,
+        depositOption: resolvedOption,
         depositAmount: numDeposit,
         deposit: numDeposit,
+        flexDepositRatePerDay: isFlex ? 10 : 0,
+        flexDepositSupplement: 0,
+        includesSecondDriver: isFlex,
+        vatPct: 21,
+        vatRate: 0.21,
+        netTotal: 0,
+        taxBase: 0,
+        vatAmount: 0,
+        vatTotal: 0,
+        ivaIncluded: true,
+        totalPrice: 0,
+        payableTotal: 0,
         totalWithoutDeposit: 0,
         grandTotal: numDeposit,
         grandTotalWithDeposit: numDeposit,

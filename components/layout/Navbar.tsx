@@ -309,7 +309,7 @@ export default function Navbar() {
           display: flex;
           align-items: center;
           justify-content: center;
-          width: 42px; height: 42px;
+          width: 44px; height: 44px;
           border-radius: var(--radius-md);
           transition: background var(--transition-fast), transform 160ms cubic-bezier(0.23, 1, 0.32, 1);
           color: #ffffff;

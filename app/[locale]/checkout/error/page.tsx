@@ -1,6 +1,6 @@
 'use client'
 
-import { Suspense } from 'react'
+import { Suspense, useEffect } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import Link from 'next/link'
 import Navbar from '@/components/layout/Navbar'
@@ -11,6 +11,28 @@ function ErrorContent() {
     const router = useRouter()
     const searchParams = useSearchParams()
     const orderId = searchParams.get('order') || searchParams.get('orderId') || ''
+
+    // Liberar inmediatamente el hold temporal de 15 minutos si la operación fue denegada/cancelada
+    useEffect(() => {
+        if (!orderId) return
+        const releaseHold = async () => {
+            try {
+                const queryParams = new URLSearchParams()
+                queryParams.set('order', orderId)
+                const dsSigVer = searchParams.get('Ds_SignatureVersion')
+                const dsParams = searchParams.get('Ds_MerchantParameters')
+                const dsSig = searchParams.get('Ds_Signature')
+                if (dsSigVer) queryParams.set('Ds_SignatureVersion', dsSigVer)
+                if (dsParams) queryParams.set('Ds_MerchantParameters', dsParams)
+                if (dsSig) queryParams.set('Ds_Signature', dsSig)
+
+                await fetch(`/api/bookings/verify-payment?${queryParams.toString()}`)
+            } catch (e) {
+                console.warn('Error notificando cancelación/liberación de hold:', e)
+            }
+        }
+        releaseHold()
+    }, [orderId])
 
     const whatsappNumber = process.env.NEXT_PUBLIC_WHATSAPP_NUMBER || '34611560916'
     const whatsappText = encodeURIComponent(
@@ -206,14 +228,34 @@ export default function CheckoutErrorPage() {
     return (
         <>
             <Navbar />
-            <main style={{ paddingTop: 120, paddingBottom: 80, minHeight: '80vh', background: '#0B0C0E' }}>
+            <main className="checkout-error-main">
                 <div className="container">
-                    <Suspense fallback={<div className="skeleton" style={{ height: 400, background: '#131518', borderRadius: 24 }} />}>
+                    <Suspense fallback={<div className="checkout-error-skeleton" />}>
                         <ErrorContent />
                     </Suspense>
                 </div>
             </main>
             <Footer />
+
+            <style jsx>{`
+                .checkout-error-main {
+                    padding-top: 120px;
+                    padding-bottom: 80px;
+                    min-height: 80vh;
+                    background: #0B0C0E;
+                }
+                .checkout-error-skeleton {
+                    height: 400px;
+                    background: #131518;
+                    border-radius: 24px;
+                }
+                @media (max-width: 640px) {
+                    .checkout-error-main {
+                        padding-top: 90px;
+                        padding-bottom: 40px;
+                    }
+                }
+            `}</style>
         </>
     )
 }

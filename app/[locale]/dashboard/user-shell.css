@@ -636,7 +636,7 @@
   position: fixed;
   left: 12px;
   right: 12px;
-  bottom: calc(12px + env(safe-area-inset-bottom, 0px));
+  bottom: 12px;
   z-index: 980;
   max-width: 460px;
   margin: 0 auto;
@@ -644,6 +644,7 @@
   grid-template-columns: repeat(5, 1fr);
   gap: 2px;
   padding: 6px;
+  padding-bottom: calc(6px + env(safe-area-inset-bottom));
   border-radius: 22px;
   background: var(--usr-glass);
   backdrop-filter: saturate(1.4) blur(16px);
@@ -859,13 +860,13 @@
   width: 100%;
   max-width: 1240px;
   margin: 0 auto;
-  padding: 18px 16px calc(96px + env(safe-area-inset-bottom, 16px));
+  padding: 18px 16px calc(80px + env(safe-area-inset-bottom, 16px));
   box-sizing: border-box;
   overflow-x: hidden;
 }
 @media (min-width: 641px) and (max-width: 860px) {
   .usr-main__inner {
-    padding: 24px 24px calc(104px + env(safe-area-inset-bottom, 16px));
+    padding: 24px 24px calc(80px + env(safe-area-inset-bottom, 16px));
   }
 }
 @media (min-width: 861px) {

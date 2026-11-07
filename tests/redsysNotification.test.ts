@@ -31,7 +31,7 @@ function fakeDb(tables: { bookings: Row[]; blocked_dates?: Row[] }) {
 
     class Query implements PromiseLike<QueryResult> {
         private filters: Array<(row: Row) => boolean> = []
-        private op: 'select' | 'update' | 'insert' = 'select'
+        private op: 'select' | 'update' | 'insert' | 'delete' = 'select'
         private values: Row = {}
         private max = Infinity
 
@@ -40,6 +40,7 @@ function fakeDb(tables: { bookings: Row[]; blocked_dates?: Row[] }) {
         select() { return this }
         update(values: Row) { this.op = 'update'; this.values = values; return this }
         insert(values: Row) { this.op = 'insert'; this.values = values; return this }
+        delete() { this.op = 'delete'; return this }
         eq(col: string, value: unknown) { this.filters.push(r => r[col] === value); return this }
         neq(col: string, value: unknown) { this.filters.push(r => r[col] !== value); return this }
         is(col: string, value: unknown) { this.filters.push(r => (r[col] ?? null) === value); return this }
@@ -63,6 +64,7 @@ function fakeDb(tables: { bookings: Row[]; blocked_dates?: Row[] }) {
             }
             const rows = data[this.table].filter(r => this.filters.every(f => f(r))).slice(0, this.max)
             if (this.op === 'update') rows.forEach(r => Object.assign(r, this.values))
+            if (this.op === 'delete') data[this.table] = data[this.table].filter(r => !rows.includes(r))
             return { data: rows, error: null }
         }
 
@@ -355,6 +357,53 @@ describe('Notificación de Redsys: pagos tardíos', () => {
     it('appendPaymentAlert conserva las notas del cliente', () => {
         assert.equal(appendPaymentAlert('', 'Aviso'), '[PAGO A REVISAR] Aviso')
         assert.equal(appendPaymentAlert('Hola', 'Aviso'), 'Hola\n[PAGO A REVISAR] Aviso')
+    })
+})
+
+describe('Notificación de Redsys: bloqueo provisional del checkout', () => {
+    const hold = (sessionId: string) => ({
+        id: sessionId,
+        camper_id: 'c1',
+        start_date: '2026-12-01',
+        end_date: '2026-12-05',
+        reason: 'checkout_hold',
+        session_id: sessionId,
+        expires_at: '2026-11-07T10:10:00Z',
+    })
+    const sessions = (db: ReturnType<typeof fakeDb>) => db.data.blocked_dates.map(b => b.session_id)
+
+    it('un pago normal no toma su propio bloqueo por una fecha ocupada y lo sustituye', async () => {
+        const db = fakeDb({ bookings: [booking()], blocked_dates: [hold(`checkout_${ORDER}`)] })
+
+        await process(db, paid())
+
+        assert.equal(db.data.bookings[0].notes, null)
+        assert.deepEqual(sessions(db), [`redsys_${ORDER}`])
+    })
+
+    it('un pago denegado libera las fechas', async () => {
+        const db = fakeDb({ bookings: [booking()], blocked_dates: [hold(`checkout_${ORDER}`), hold(`hold_${ORDER}`)] })
+
+        await process(db, denied())
+
+        assert.deepEqual(sessions(db), [])
+    })
+
+    it('no toca el bloqueo provisional de otro cliente y lo considera ocupado', async () => {
+        const db = fakeDb({ bookings: [booking()], blocked_dates: [hold('checkout_9999otropedido')] })
+
+        await process(db, paid())
+
+        assert.match(db.data.bookings[0].notes, /fechas ya están ocupadas/)
+        assert.ok(sessions(db).includes('checkout_9999otropedido'))
+    })
+
+    it('con importe distinto mantiene el bloqueo hasta que caduque', async () => {
+        const db = fakeDb({ bookings: [booking()], blocked_dates: [hold(`checkout_${ORDER}`)] })
+
+        await process(db, paid({ Ds_Amount: '100' }))
+
+        assert.deepEqual(sessions(db), [`checkout_${ORDER}`])
     })
 })
 

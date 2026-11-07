@@ -45,7 +45,7 @@ Ignora las skills de otros estilos o plataformas (`industrial-brutalist-ui`, `wr
 
 ## Focos abiertos (comprueba si siguen así)
 
-- 157 líneas con layout inline en `app/` y `components/`. Prioriza pantallas públicas, autenticación y las que se vean en móvil. Hazlo por pantallas, no en un cambio masivo.
+- Unas 135 líneas con layout inline en `app/` y `components/`. Prioriza pantallas públicas, autenticación y las que se vean en móvil. Hazlo por pantallas, no en un cambio masivo.
 - Posibles modales sin bloqueo: `CamperDetailClient`, `CamperGalleryGrid`, `DocumentsClient`. Comprueba si lo hace un hijo.
 - Pendientes de `docs/critica-diseno-2026-10.md`: tres estilos de titular, botones verdes fuera de paleta y etiquetas del login.
 

@@ -1,12 +1,15 @@
 'use client'
 
 import FAQAccordionList from '@/components/faq/FAQAccordionList'
+import { useSiteTheme } from '@/lib/theme/siteThemeContext'
 
 export default function FAQClient() {
+  const { theme } = useSiteTheme()
+
   return (
     <main className="faq-page-main">
       <div className="container faq-container">
-        <FAQAccordionList variant="dark" headingLevel="h1" />
+        <FAQAccordionList variant={theme === 'light' ? 'light' : 'dark'} headingLevel="h1" />
       </div>
 
       <style jsx>{`

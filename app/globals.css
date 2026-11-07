@@ -94,6 +94,7 @@ body {
   line-height: 1.6;
   font-size: 16px;
   overflow-x: hidden;
+  transition: background-color 240ms var(--ease-out), color 240ms var(--ease-out);
 }
 
 img, video {
@@ -1862,5 +1863,11 @@ h1, h2, h3, h4, h5, h6 {
 
 .animate-utopia-shimmer {
   animation: utopia-shimmer 2s cubic-bezier(0.45, 0, 0.55, 1) infinite;
+}
+
+.venta-main {
+  padding-top: 72px;
+  background: #0B0C0E;
+  min-height: 100vh;
 }
 

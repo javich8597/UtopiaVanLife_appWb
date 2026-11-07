@@ -5,6 +5,7 @@ import { Link, usePathname } from '@/i18n/routing'
 import { Menu, X, ArrowRight } from 'lucide-react'
 import { useTranslations } from 'next-intl'
 import LanguageSwitcher from './LanguageSwitcher'
+import ThemeToggle from './ThemeToggle'
 
 export default function Navbar() {
   const t = useTranslations('Navigation')
@@ -122,6 +123,9 @@ export default function Navbar() {
 
           {/* CTA + Menu */}
           <div className="navbar__actions">
+            {/* Theme Toggle Pill (Dark / Light) */}
+            <ThemeToggle variant="full" />
+
             {/* Discreet Language Switcher */}
             <LanguageSwitcher isSolid={true} />
 
@@ -185,8 +189,11 @@ export default function Navbar() {
               )}
             </ul>
 
-            {/* Mobile language switcher */}
-            <LanguageSwitcher isMobile />
+            {/* Mobile controls (Theme Toggle + Language Switcher) */}
+            <div className="mobile-menu__controls">
+              <ThemeToggle variant="full" />
+              <LanguageSwitcher isMobile />
+            </div>
 
             <Link
               href={user ? "/dashboard" : "/auth/login"}
@@ -512,6 +519,14 @@ export default function Navbar() {
         .mobile-menu :global(.mobile-menu__link--login) {
           color: rgba(255, 255, 255, 0.75);
           font-weight: 600;
+        }
+        .mobile-menu__controls {
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          gap: 12px;
+          width: 100%;
+          margin: 4px 0;
         }
         .mobile-menu :global(.mobile-menu__adventure-btn) {
           width: 100%;

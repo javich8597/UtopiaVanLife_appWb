@@ -5,6 +5,7 @@ import CamperCard from '@/components/campers/CamperCard'
 import { ArrowRight } from 'lucide-react'
 import { Link } from '@/i18n/routing'
 import { useTranslations } from 'next-intl'
+import { useSiteTheme } from '@/lib/theme/siteThemeContext'
 
 const CAMPER_IMAGES = [
     '/images/campers/neo/neo-ext.png',
@@ -37,6 +38,7 @@ const demoCampers = [
 
 export default function FeaturedCampers() {
     const t = useTranslations('HomePage.FeaturedCampers')
+    const { theme } = useSiteTheme()
     const [campers, setCampers] = useState(demoCampers)
 
     useEffect(() => {
@@ -66,7 +68,7 @@ export default function FeaturedCampers() {
                 <div className="featured__grid-container">
                     <div className="featured__grid">
                         {campers.map(c => (
-                            <CamperCard key={c.id} {...c as any} variant="dark" />
+                            <CamperCard key={c.id} {...c as any} variant={theme === 'light' ? 'light' : 'dark'} />
                         ))}
                     </div>
                 </div>

@@ -8,6 +8,7 @@ import Footer from '@/components/layout/Footer'
 import CamperCard from '@/components/campers/CamperCard'
 import { Shield, BatteryCharging, Coffee, MapPin } from 'lucide-react'
 import { useTranslations } from 'next-intl'
+import { useSiteTheme } from '@/lib/theme/siteThemeContext'
 
 const SEASON_PRICES: Record<string, number> = {
     'Temporada Alta': 175,
@@ -16,6 +17,7 @@ const SEASON_PRICES: Record<string, number> = {
 }
 
 function CatalogContent() {
+    const { theme } = useSiteTheme()
     const tCatalog = useTranslations('CampersPage')
     const tCampers = useTranslations('Campers')
 
@@ -141,7 +143,7 @@ function CatalogContent() {
                                 pricePerNight={c.pricePerNight ?? SEASON_PRICES['Temporada Media']}
                                 seasonName={c.seasonName ?? 'Temporada Media'}
                                 searchParams={from && to ? `from=${from}&to=${to}&pax=${pax}` : ''}
-                                variant="dark"
+                                variant={theme === 'light' ? 'light' : 'dark'}
                             />
                         ))}
                     </div>

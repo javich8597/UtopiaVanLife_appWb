@@ -1,0 +1,2994 @@
+/* ============================================================
+   UTOPIA VAN LIFE — MODO CLARO (THEME-LIGHT)
+   Inspirado fielmente en la estética del Panel de Cliente (user-shell.css):
+   - Fondos: Arena y Marfil (#F2F0EC, #F7F5F1, #EAE5DD)
+   - Superficies / Tarjetas: Blanco puro (#FFFFFF)
+   - Textos: Carbón / Negro cálido (#1F1B17, #1A1714) y Secundario arena (#5A5248, #6A6157)
+   - Acentos: Dorado Cálido de Marca (#CCA053, #B8893A, #1A1714, #F7EEDC)
+   - Bordes: Arena Tostado (#EAE5DD, #D9D1C4)
+   
+   REGLA CRÍTICA DE DISEÑO:
+   Todos los textos que se sitúan sobre fondos beige/arena/marfil (#F7EEDC, #E8D6B2, #F2F0EC, #F7F5F1, #EAE5DD)
+   son rigurosamente NEGROS (#1A1714 / #1F1B17) con alto contraste.
+   
+   IMPORTANTE: Encapsulado estrictamente bajo html[data-theme="light"].
+   No modifica en absoluto el panel privado de usuarios (/dashboard/*).
+   El modo oscuro original no se ve alterado en absoluto.
+   ============================================================ */
+
+/* ── 1. VARIABLES RAÍZ DEL TEMA CLARO ── */
+html[data-theme="light"] {
+  /* Tokens de Superficie */
+  --site-bg: #F2F0EC;
+  --site-bg-soft: #F7F5F1;
+  --site-surface: #FFFFFF;
+  --site-surface-2: #F7F5F1;
+  --site-surface-3: #EFECE6;
+  --site-border: #EAE5DD;
+  --site-border-strong: #D9D1C4;
+
+  /* Tokens de Texto */
+  --site-text: #1F1B17;
+  --site-text-2: #5A5248;
+  --site-text-3: #857B6F;
+  --site-ink: #1A1714;
+
+  /* Acción principal */
+  --site-primary-bg: #1A1714;
+  --site-primary-hover: #2E2822;
+  --site-primary-text: #F6EBD3;
+
+  /* Dorado de marca y tonos arena */
+  --site-gold: #B8893A;
+  --site-gold-fill: #CCA053;
+  --site-gold-text: #1A1714; /* Texto negro en acentos arena/dorados para alto contraste */
+  --site-gold-soft: #F7EEDC;
+  --site-gold-line: #E8D6B2;
+
+  /* Estados */
+  --site-sage: #4F6E55;
+  --site-sage-soft: #E7EFE5;
+  --site-amber: #9A5F22;
+  --site-amber-soft: #F8EBDA;
+
+  /* Re-mapeo de variables públicas existentes */
+  --white-broken: #F2F0EC;
+  --cream: #F7F5F1;
+  --black-matte: #1F1B17;
+  --forest-green: #1A1714;
+  --forest-green-light: #2E2822;
+  --forest-green-accent: #B8893A;
+  --sand: #E8D6B2;
+  --sand-light: #F7EEDC;
+  --sand-dark: #1A1714; /* Negro para cualquier texto en partes beige */
+  --gray-50: #F7F5F1;
+  --gray-100: #F7F5F1;
+  --gray-200: #EAE5DD;
+  --gray-300: #D9D1C4;
+  --gray-400: #857B6F;
+  --gray-500: #857B6F;
+  --gray-600: #5A5248;
+  --gray-700: #5A5248;
+  --gray-800: #1F1B17;
+  --shadow-sm: 0 1px 2px rgba(40, 30, 15, 0.04), 0 10px 28px -14px rgba(40, 30, 15, 0.14);
+  --shadow-md: 0 4px 16px rgba(40, 30, 15, 0.06);
+  --shadow-card: 0 2px 8px rgba(40, 30, 15, 0.04), 0 14px 30px rgba(40, 30, 15, 0.07);
+
+  color-scheme: light;
+}
+
+/* ── 2. CUERPO GENERAL Y SELECCIÓN ── */
+html[data-theme="light"] body {
+  background-color: #F2F0EC !important;
+  color: #1F1B17 !important;
+  transition: background-color 240ms ease, color 240ms ease;
+}
+
+html[data-theme="light"] ::selection {
+  background: #E8D6B2 !important;
+  color: #1A1714 !important;
+}
+
+html[data-theme="light"] ::-webkit-scrollbar {
+  background: #F2F0EC;
+}
+
+html[data-theme="light"] ::-webkit-scrollbar-thumb {
+  background: #D9D1C4;
+  border-radius: 999px;
+}
+
+/* ── 3. BOTÓN SELECTOR DE TEMA (ESTILO PÍLDORA PANEL CLIENTE / ADMIN) ── */
+html[data-theme="light"] .site-theme-toggle {
+  background: #FFFFFF !important;
+  border: 1px solid #EAE5DD !important;
+  color: #1F1B17 !important;
+  box-shadow: 0 1px 3px rgba(40, 30, 15, 0.05);
+}
+
+html[data-theme="light"] .site-theme-toggle:hover {
+  background: #F7F5F1 !important;
+  border-color: #D9D1C4 !important;
+  color: #1A1714 !important;
+}
+
+html[data-theme="light"] .site-theme-toggle .site-theme-toggle__icon {
+  color: #B8893A !important;
+}
+
+/* ── 4. NAVBAR Y MENÚ MÓVIL ── */
+html[data-theme="light"] .navbar {
+  background: rgba(242, 240, 236, 0.94) !important;
+  border-bottom: 1px solid #EAE5DD !important;
+  backdrop-filter: blur(20px) !important;
+  -webkit-backdrop-filter: blur(20px) !important;
+}
+
+html[data-theme="light"] .navbar--scrolled {
+  background: rgba(247, 245, 241, 0.98) !important;
+  border-bottom: 1px solid #D9D1C4 !important;
+  box-shadow: 0 4px 20px rgba(40, 30, 15, 0.07) !important;
+}
+
+html[data-theme="light"] .navbar__logo-img {
+  filter: none !important;
+}
+
+html[data-theme="light"] .navbar .navbar__link {
+  color: #1F1B17 !important;
+}
+
+html[data-theme="light"] .navbar .navbar__link:hover {
+  color: #B8893A !important;
+}
+
+html[data-theme="light"] .navbar .navbar__link::after {
+  background: #B8893A !important;
+}
+
+html[data-theme="light"] .navbar .navbar__link--reservar {
+  color: #1A1714 !important;
+  font-weight: 700 !important;
+}
+
+html[data-theme="light"] .navbar .navbar__link--reservar:hover {
+  color: #B8893A !important;
+}
+
+html[data-theme="light"] .navbar .navbar__link--reservar::after {
+  background: #1A1714 !important;
+}
+
+html[data-theme="light"] .navbar .navbar__admin-btn {
+  border-color: #D9D1C4 !important;
+  color: #1A1714 !important;
+  background: #FFFFFF !important;
+  font-weight: 600 !important;
+}
+
+html[data-theme="light"] .navbar .navbar__admin-btn:hover {
+  background: #F7EEDC !important;
+  color: #1A1714 !important;
+}
+
+html[data-theme="light"] .navbar .navbar__cta-btn {
+  background: #1A1714 !important;
+  color: #F6EBD3 !important;
+  border: 1px solid #1A1714 !important;
+  box-shadow: 0 2px 8px rgba(26, 23, 20, 0.15) !important;
+}
+
+html[data-theme="light"] .navbar .navbar__cta-btn:hover {
+  background: #2E2822 !important;
+  box-shadow: 0 4px 14px rgba(26, 23, 20, 0.25) !important;
+}
+
+html[data-theme="light"] .navbar .navbar__cta-icon-circle {
+  background: rgba(255, 255, 255, 0.18) !important;
+  border-color: rgba(255, 255, 255, 0.25) !important;
+}
+
+html[data-theme="light"] .navbar__burger {
+  color: #1F1B17 !important;
+}
+
+html[data-theme="light"] .navbar__burger:hover {
+  background: rgba(0, 0, 0, 0.05) !important;
+}
+
+/* Selector de idioma */
+html[data-theme="light"] .lang-selector__button {
+  background: #FFFFFF !important;
+  border: 1px solid #EAE5DD !important;
+  color: #1F1B17 !important;
+}
+
+html[data-theme="light"] .lang-selector__button:hover {
+  background: #F7F5F1 !important;
+  border-color: #D9D1C4 !important;
+}
+
+html[data-theme="light"] .lang-selector__dropdown {
+  background: #FFFFFF !important;
+  border: 1px solid #EAE5DD !important;
+  box-shadow: 0 10px 28px rgba(40, 30, 15, 0.12) !important;
+}
+
+html[data-theme="light"] .lang-dropdown-btn {
+  color: #1F1B17 !important;
+}
+
+html[data-theme="light"] .lang-dropdown-btn:hover {
+  background: #F7F5F1 !important;
+  color: #1A1714 !important;
+}
+
+html[data-theme="light"] .lang-dropdown-btn--selected {
+  background: #F7EEDC !important;
+  color: #1A1714 !important; /* TEXTO NEGRO EN BEIGE */
+  font-weight: 700 !important;
+}
+
+html[data-theme="light"] .lang-dropdown-check {
+  color: #1A1714 !important;
+}
+
+/* Cajón móvil de navegación */
+html[data-theme="light"] .mobile-menu {
+  background: rgba(31, 27, 23, 0.45) !important;
+}
+
+html[data-theme="light"] .mobile-menu__nav {
+  background: #F7F5F1 !important;
+  border-left: 1px solid #EAE5DD !important;
+  box-shadow: -10px 0 30px rgba(40, 30, 15, 0.12) !important;
+}
+
+html[data-theme="light"] .mobile-menu__header {
+  border-bottom: 1px solid #EAE5DD !important;
+}
+
+html[data-theme="light"] .mobile-menu .mobile-menu__logo-img {
+  filter: none !important;
+}
+
+html[data-theme="light"] .mobile-menu__close-btn {
+  color: #1F1B17 !important;
+}
+
+html[data-theme="light"] .mobile-menu__close-btn:hover {
+  background: rgba(0, 0, 0, 0.05) !important;
+}
+
+html[data-theme="light"] .mobile-menu__links a {
+  color: #1F1B17 !important;
+  border-bottom: 1px solid #EAE5DD !important;
+}
+
+html[data-theme="light"] .mobile-menu__links a:hover {
+  color: #B8893A !important;
+}
+
+html[data-theme="light"] .mobile-menu__links .mobile-menu__link--reservar {
+  color: #1A1714 !important;
+  font-weight: 700 !important;
+}
+
+html[data-theme="light"] .mobile-menu__links .mobile-menu__link--admin {
+  background: #F7EEDC !important;
+  border-color: #E8D6B2 !important;
+  color: #1A1714 !important; /* TEXTO NEGRO EN BEIGE */
+  font-weight: 700 !important;
+}
+
+html[data-theme="light"] .mobile-menu .mobile-menu__adventure-btn {
+  background: #1A1714 !important;
+  color: #F6EBD3 !important;
+  border: 1px solid #1A1714 !important;
+}
+
+/* ── 5. HERO SECTION (HOME) ── */
+html[data-theme="light"] .hero__searchbar {
+  background: rgba(255, 255, 255, 0.96) !important;
+  border: 1px solid #EAE5DD !important;
+  box-shadow: 0 20px 48px -10px rgba(40, 30, 15, 0.18) !important;
+}
+
+html[data-theme="light"] .hero__searchbar:hover {
+  border-color: #D9D1C4 !important;
+  box-shadow: 0 24px 54px -10px rgba(40, 30, 15, 0.22) !important;
+}
+
+html[data-theme="light"] .hero__field:hover,
+html[data-theme="light"] .hero__field--active {
+  background: #F7F5F1 !important;
+}
+
+html[data-theme="light"] .hero__field-label {
+  color: #5A5248 !important;
+}
+
+html[data-theme="light"] .hero__field-icon {
+  color: #B8893A !important;
+}
+
+html[data-theme="light"] .hero__field-value {
+  color: #1F1B17 !important;
+}
+
+html[data-theme="light"] .hero__field-placeholder {
+  color: #8E8477 !important;
+}
+
+html[data-theme="light"] .hero__separator {
+  background: #EAE5DD !important;
+}
+
+html[data-theme="light"] .hero__pax-btn {
+  background: #F7F5F1 !important;
+  border-color: #D9D1C4 !important;
+  color: #1F1B17 !important;
+}
+
+html[data-theme="light"] .hero__pax-btn:hover:not(:disabled) {
+  background: #CCA053 !important;
+  border-color: #CCA053 !important;
+  color: #FFFFFF !important;
+}
+
+html[data-theme="light"] .hero__pax-num {
+  color: #1F1B17 !important;
+}
+
+html[data-theme="light"] .hero__search-btn {
+  background: #CCA053 !important;
+  color: #1A1714 !important;
+  box-shadow: 0 8px 24px rgba(204, 160, 83, 0.35) !important;
+}
+
+html[data-theme="light"] .hero__search-btn:hover {
+  background: #D9AE60 !important;
+  box-shadow: 0 12px 28px rgba(204, 160, 83, 0.45) !important;
+}
+
+html[data-theme="light"] .hero__calendar-popover {
+  background: transparent !important;
+  border: none !important;
+  box-shadow: none !important;
+}
+
+/* ── 6. CALENDARIO DE RESERVAS (BOOKING CALENDAR) ── */
+/* Fondo general del calendario: arena marfil integrado (#FAF8F5), nunca blanco puro duro */
+html[data-theme="light"] .booking-cal {
+  background: #FAF8F5 !important;
+  border: 1px solid #E2DBD3 !important;
+  box-shadow: 0 8px 24px rgba(40, 30, 15, 0.06) !important;
+  color: #1F1B17 !important;
+}
+
+/* En popovers flotantes (/reservar, hero home): integrado con borde suave y sombra de alta gama */
+html[data-theme="light"] .booking-cal--hero {
+  background: #FAF8F5 !important;
+  border: 1px solid #E2DBD3 !important;
+  box-shadow: 0 20px 48px rgba(40, 30, 15, 0.14) !important;
+}
+
+/* Cuando el calendario está incrustado en el wizard (Step1Dates) o PriceCalculator, fondo transparente */
+html[data-theme="light"] .calendar-embed-wrap .booking-cal,
+html[data-theme="light"] .price-calc__calendar-collapse .booking-cal {
+  background: transparent !important;
+  border: none !important;
+  box-shadow: none !important;
+  padding: 6px 0 !important;
+  max-width: 100% !important;
+}
+
+html[data-theme="light"] .reservar-search__calendar-popover {
+  background: transparent !important;
+  border: none !important;
+  box-shadow: none !important;
+}
+
+/* Cabecera y títulos de mes */
+html[data-theme="light"] .booking-cal__month-title {
+  color: #1A1714 !important;
+  font-weight: 800 !important;
+}
+
+/* Botones de navegación de mes */
+html[data-theme="light"] .booking-cal__nav-btn {
+  background: #F2EFE9 !important;
+  border: 1px solid #D9D1C4 !important;
+  color: #1A1714 !important;
+}
+
+html[data-theme="light"] .booking-cal__nav-btn:hover:not(:disabled) {
+  background: #CCA053 !important;
+  border-color: #CCA053 !important;
+  color: #1A1714 !important;
+}
+
+html[data-theme="light"] .booking-cal__nav-btn:disabled {
+  opacity: 0.25 !important;
+  cursor: not-allowed !important;
+}
+
+/* Días de la semana */
+html[data-theme="light"] .booking-cal__weekday {
+  color: #6E655A !important;
+  font-weight: 700 !important;
+}
+
+html[data-theme="light"] .booking-cal__months-divider {
+  background: #E2DBD3 !important;
+}
+
+/* Días interactivos del calendario: misma funcionalidad fluida y nítida que en modo oscuro */
+html[data-theme="light"] .booking-cal__day {
+  color: #1A1714 !important;
+}
+
+html[data-theme="light"] .booking-cal__day-number {
+  color: #1A1714 !important;
+  font-weight: 600 !important;
+  transition: all 120ms ease !important;
+}
+
+/* Hover en días válidos: respuesta inmediata interactiva idéntica a modo oscuro */
+html[data-theme="light"] .booking-cal__day:hover:not(.booking-cal__day--disabled):not(.booking-cal__day--start):not(.booking-cal__day--end) .booking-cal__day-number {
+  background: #CCA053 !important;
+  color: #1A1714 !important; /* TEXTO NEGRO EN BEIGE */
+  font-weight: 800 !important;
+  transform: scale(1.08) !important;
+}
+
+/* Rango de días seleccionado (y preview de hover): sombreado visible en tono arena tostado */
+html[data-theme="light"] .booking-cal__day--in-range {
+  background: #E8DCC8 !important;
+  border-radius: 0 !important;
+}
+
+html[data-theme="light"] .booking-cal__day--in-range .booking-cal__day-number {
+  color: #1A1714 !important;
+  font-weight: 800 !important;
+}
+
+/* Día de inicio de reserva */
+html[data-theme="light"] .booking-cal__day--start {
+  background: linear-gradient(to right, transparent 50%, #E8DCC8 50%) !important;
+}
+
+html[data-theme="light"] .booking-cal__day--start .booking-cal__day-number {
+  background: #1A1714 !important;
+  color: #F6EBD3 !important;
+  font-weight: 800 !important;
+  box-shadow: 0 3px 8px rgba(26, 23, 20, 0.35) !important;
+}
+
+/* Día de fin de reserva */
+html[data-theme="light"] .booking-cal__day--end {
+  background: linear-gradient(to left, transparent 50%, #E8DCC8 50%) !important;
+}
+
+html[data-theme="light"] .booking-cal__day--end .booking-cal__day-number {
+  background: #1A1714 !important;
+  color: #F6EBD3 !important;
+  font-weight: 800 !important;
+  box-shadow: 0 3px 8px rgba(26, 23, 20, 0.35) !important;
+}
+
+/* Si inicio y fin coinciden en el mismo día */
+html[data-theme="light"] .booking-cal__day--start.booking-cal__day--end {
+  background: transparent !important;
+}
+
+/* Días deshabilitados / pasados / bloqueados */
+html[data-theme="light"] .booking-cal__day--disabled {
+  color: #B5ADA3 !important;
+  cursor: not-allowed !important;
+  opacity: 0.5 !important;
+}
+
+html[data-theme="light"] .booking-cal__day--disabled .booking-cal__day-number {
+  color: #B5ADA3 !important;
+  text-decoration: line-through !important;
+  text-decoration-color: #A89F94 !important;
+}
+
+/* Cortes de franjas horarias ocupadas */
+html[data-theme="light"] .booking-cal__day--morning-blocked {
+  background: linear-gradient(135deg, rgba(184, 137, 58, 0.40) 50%, transparent 50%) !important;
+}
+
+html[data-theme="light"] .booking-cal__day--afternoon-blocked {
+  background: linear-gradient(135deg, transparent 50%, rgba(184, 137, 58, 0.40) 50%) !important;
+}
+
+/* Pastillas de franja horaria */
+html[data-theme="light"] .booking-cal__slots-container {
+  background: #F2EFE9 !important;
+  border: 1px solid #E2DBD3 !important;
+}
+
+html[data-theme="light"] .booking-cal__slot-pill {
+  background: #FAF8F5 !important;
+  border: 1px solid #D9D1C4 !important;
+  color: #1A1714 !important;
+}
+
+html[data-theme="light"] .booking-cal__slot-pill:hover:not(:disabled) {
+  border-color: #B8893A !important;
+  background: #E8DCC8 !important;
+  color: #1A1714 !important;
+}
+
+html[data-theme="light"] .booking-cal__slot-pill--active {
+  background: #1A1714 !important;
+  color: #F6EBD3 !important;
+  border-color: #1A1714 !important;
+  box-shadow: 0 2px 6px rgba(26, 23, 20, 0.25) !important;
+}
+
+html[data-theme="light"] .booking-cal__slot-pill--active .booking-cal__slot-text,
+html[data-theme="light"] .booking-cal__slot-pill--active .booking-cal__slot-badge {
+  color: #F6EBD3 !important;
+}
+
+html[data-theme="light"] .booking-cal__slot-pill--active .booking-cal__slot-badge {
+  background: rgba(255, 255, 255, 0.22) !important;
+}
+
+html[data-theme="light"] .booking-cal__slot-badge {
+  background: #E2DBD3 !important;
+  color: #1A1714 !important; /* TEXTO NEGRO EN BEIGE */
+  font-weight: 700 !important;
+}
+
+/* Banner de pasos informativos */
+html[data-theme="light"] .booking-cal__step-banner {
+  background: #F7EEDC !important;
+  color: #1A1714 !important; /* TEXTO NEGRO EN BEIGE */
+  border: 1px solid #E8D6B2 !important;
+  font-weight: 700 !important;
+}
+
+html[data-theme="light"] .booking-cal__step-banner--done {
+  background: #E7EFE5 !important;
+  color: #2D5233 !important;
+  border-color: #CFE2D2 !important;
+}
+
+html[data-theme="light"] .booking-cal__slots-info {
+  background: #FAF8F5 !important;
+  border: 1px dashed #D9D1C4 !important;
+  color: #5A5248 !important;
+}
+
+html[data-theme="light"] .booking-cal__alert {
+  background: #FEF7EE !important;
+  border: 1px solid #E8C99B !important;
+  border-left: 3px solid #B46914 !important;
+  color: #78350F !important;
+}
+
+html[data-theme="light"] .booking-cal__footer {
+  border-top: 1px solid #E2DBD3 !important;
+}
+
+html[data-theme="light"] .booking-cal__clear-btn {
+  background: #F2EFE9 !important;
+  border: 1px solid #D9D1C4 !important;
+  color: #1A1714 !important;
+}
+
+html[data-theme="light"] .booking-cal__clear-btn:hover:not(:disabled) {
+  background: #E8DCC8 !important;
+  border-color: #B8893A !important;
+  color: #1A1714 !important;
+}
+
+html[data-theme="light"] .booking-cal__clear-btn:disabled {
+  opacity: 0.3 !important;
+  cursor: not-allowed !important;
+  background: transparent !important;
+  border-color: transparent !important;
+}
+
+
+html[data-theme="light"] .booking-cal__done-btn {
+  background: #1A1714 !important;
+  color: #F6EBD3 !important;
+}
+
+html[data-theme="light"] .booking-cal__done-btn:hover {
+  background: #2E2822 !important;
+}
+
+html[data-theme="light"] .booking-cal__legend {
+  border-top: 1px solid #E2DBD3 !important;
+  color: #5A5248 !important;
+}
+
+/* ── 7. SECCIONES DE LA HOME (CAMPERS, 3D, WHY, EXPERIENCIAS, FAQ) ── */
+html[data-theme="light"] .featured {
+  background: #F2F0EC !important;
+}
+
+html[data-theme="light"] .featured__title {
+  color: #1F1B17 !important;
+}
+
+html[data-theme="light"] .featured__subtitle {
+  color: #5A5248 !important;
+}
+
+html[data-theme="light"] .featured__eyebrow-pill {
+  background: #F7EEDC !important;
+  border: 1px solid #E8D6B2 !important;
+  color: #1A1714 !important; /* TEXTO NEGRO EN BEIGE */
+  font-weight: 700 !important;
+}
+
+html[data-theme="light"] .featured .featured__view-all-btn {
+  background: #FFFFFF !important;
+  border: 1px solid #EAE5DD !important;
+  color: #1F1B17 !important;
+  box-shadow: 0 2px 8px rgba(40, 30, 15, 0.05) !important;
+}
+
+html[data-theme="light"] .featured .featured__view-all-btn:hover {
+  background: #1A1714 !important;
+  color: #F6EBD3 !important;
+  border-color: #1A1714 !important;
+}
+
+/* Tarjeta de Camper */
+html[data-theme="light"] .camper-card,
+html[data-theme="light"] .camper-card--light {
+  background: #FFFFFF !important;
+  border: 1px solid #EAE5DD !important;
+  box-shadow: 0 2px 8px rgba(40, 30, 15, 0.04), 0 12px 28px rgba(40, 30, 15, 0.06) !important;
+}
+
+html[data-theme="light"] .camper-card:hover,
+html[data-theme="light"] .camper-card--light:hover {
+  border-color: #D9D1C4 !important;
+  box-shadow: 0 4px 12px rgba(40, 30, 15, 0.06), 0 16px 36px rgba(40, 30, 15, 0.10) !important;
+}
+
+html[data-theme="light"] .camper-card__name {
+  color: #1F1B17 !important;
+}
+
+html[data-theme="light"] .camper-card__tagline {
+  color: #5A5248 !important;
+}
+
+html[data-theme="light"] .camper-card__spec-chip {
+  background: #F7F5F1 !important;
+  border: 1px solid #EAE5DD !important;
+  color: #1F1B17 !important;
+}
+
+html[data-theme="light"] .camper-card__spec-label {
+  color: #5A5248 !important;
+}
+
+html[data-theme="light"] .camper-card__footer {
+  border-top: 1px solid #EAE5DD !important;
+}
+
+html[data-theme="light"] .camper-card__price-value {
+  color: #1F1B17 !important;
+}
+
+html[data-theme="light"] .camper-card__cta {
+  background: #1A1714 !important;
+  color: #F6EBD3 !important;
+}
+
+html[data-theme="light"] .camper-card__cta:hover {
+  background: #2E2822 !important;
+}
+
+/* 3D Showcase */
+html[data-theme="light"] .showcase-section {
+  background: #EFECE6 !important;
+}
+
+html[data-theme="light"] .showcase-eyebrow {
+  background: #F7EEDC !important;
+  border: 1px solid #E8D6B2 !important;
+  color: #1A1714 !important; /* TEXTO NEGRO EN BEIGE */
+  font-weight: 700 !important;
+}
+
+html[data-theme="light"] .showcase-title,
+html[data-theme="light"] .showcase-section__title {
+  color: #1F1B17 !important;
+}
+
+html[data-theme="light"] .showcase-subtitle,
+html[data-theme="light"] .showcase-section__desc {
+  color: #5A5248 !important;
+}
+
+html[data-theme="light"] .showcase-drag-hint {
+  background: #FFFFFF !important;
+  border: 1px solid #D9D1C4 !important;
+  color: #5A5248 !important;
+}
+
+html[data-theme="light"] .showcase-card {
+  background: #FFFFFF !important;
+  border: 1px solid #EAE5DD !important;
+  box-shadow: 0 10px 28px rgba(40, 30, 15, 0.12) !important;
+}
+
+html[data-theme="light"] .showcase-mode-btn {
+  background: #FFFFFF !important;
+  border: 1px solid #D9D1C4 !important;
+  color: #1F1B17 !important;
+}
+
+html[data-theme="light"] .showcase-mode-btn:hover {
+  background: #F7F5F1 !important;
+}
+
+html[data-theme="light"] .showcase-mode-btn--active {
+  background: #1A1714 !important;
+  color: #F6EBD3 !important;
+  border-color: #1A1714 !important;
+}
+
+/* Why Utopia */
+html[data-theme="light"] .why,
+html[data-theme="light"] .why-section {
+  background: #F2F0EC !important;
+}
+
+html[data-theme="light"] .why__eyebrow-badge {
+  background: #F7EEDC !important;
+  border: 1px solid #E8D6B2 !important;
+  color: #1A1714 !important; /* TEXTO NEGRO EN BEIGE */
+  font-weight: 700 !important;
+}
+
+html[data-theme="light"] .why__title {
+  color: #1F1B17 !important;
+}
+
+html[data-theme="light"] .why__intro {
+  color: #5A5248 !important;
+}
+
+html[data-theme="light"] .why-card {
+  background: #FFFFFF !important;
+  border: 1px solid #EAE5DD !important;
+  box-shadow: 0 4px 16px rgba(40, 30, 15, 0.05) !important;
+}
+
+html[data-theme="light"] .why-card__title {
+  color: #1F1B17 !important;
+}
+
+html[data-theme="light"] .why-card__desc {
+  color: #5A5248 !important;
+}
+
+html[data-theme="light"] .why-card__tag {
+  background: #F7EEDC !important;
+  border: 1px solid #E8D6B2 !important;
+  color: #1A1714 !important; /* TEXTO NEGRO EN BEIGE */
+  font-weight: 700 !important;
+}
+
+html[data-theme="light"] .why-card__icon-box {
+  background: #F7EEDC !important;
+  color: #1A1714 !important;
+}
+
+/* Experiencias y Reseñas */
+html[data-theme="light"] .experiences,
+html[data-theme="light"] .experiences-section {
+  background: #F7F5F1 !important;
+}
+
+html[data-theme="light"] .experiences__eyebrow-badge {
+  background: #F7EEDC !important;
+  border: 1px solid #E8D6B2 !important;
+  color: #1A1714 !important; /* TEXTO NEGRO EN BEIGE */
+  font-weight: 700 !important;
+}
+
+html[data-theme="light"] .experiences__title {
+  color: #1F1B17 !important;
+}
+
+html[data-theme="light"] .experiences__subtitle {
+  color: #5A5248 !important;
+}
+
+html[data-theme="light"] .experience-card {
+  background: #FFFFFF !important;
+  border: 1px solid #EAE5DD !important;
+  box-shadow: 0 4px 16px rgba(40, 30, 15, 0.05) !important;
+}
+
+html[data-theme="light"] .experience-card__author {
+  color: #1F1B17 !important;
+}
+
+html[data-theme="light"] .experience-card__quote {
+  color: #3E3730 !important;
+}
+
+html[data-theme="light"] .experience-card__tag {
+  background: #F7EEDC !important;
+  border: 1px solid #E8D6B2 !important;
+  color: #1A1714 !important; /* TEXTO NEGRO EN BEIGE */
+  font-weight: 700 !important;
+}
+
+html[data-theme="light"] .experience-card__title {
+  color: #1F1B17 !important;
+}
+
+html[data-theme="light"] .experience-card__desc {
+  color: #5A5248 !important;
+}
+
+/* FAQ */
+html[data-theme="light"] .faq-section,
+html[data-theme="light"] .faq-page-main {
+  background: #F2F0EC !important;
+}
+
+html[data-theme="light"] .faq-experience--dark .faq-card {
+  background: #FFFFFF !important;
+  border: 1px solid #EAE5DD !important;
+  box-shadow: 0 2px 8px rgba(40, 30, 15, 0.04) !important;
+}
+
+html[data-theme="light"] .faq-experience--dark .faq-card:hover {
+  border-color: #D9D1C4 !important;
+}
+
+html[data-theme="light"] .faq-experience--dark .faq-card__question {
+  color: #1F1B17 !important;
+}
+
+html[data-theme="light"] .faq-experience--dark .faq-card__chevron {
+  color: #1A1714 !important;
+  background: #F7F5F1 !important;
+}
+
+html[data-theme="light"] .faq-experience--dark .faq-card__body {
+  color: #5A5248 !important;
+  border-top: 1px solid #EAE5DD !important;
+}
+
+html[data-theme="light"] .faq-experience--dark .faq-strong-highlight {
+  color: #1A1714 !important;
+}
+
+html[data-theme="light"] .faq-experience--dark .faq-card__category-chip {
+  background: #F7EEDC !important;
+  border: 1px solid #E8D6B2 !important;
+  color: #1A1714 !important; /* TEXTO NEGRO EN BEIGE */
+  font-weight: 700 !important;
+}
+
+/* ── 8. FOOTER ── */
+html[data-theme="light"] .footer {
+  background: #EFECE6 !important;
+  color: #1F1B17 !important;
+  border-top: 1px solid #EAE5DD !important;
+}
+
+html[data-theme="light"] .footer__grid {
+  border-bottom: 1px solid #EAE5DD !important;
+}
+
+html[data-theme="light"] .footer__brand-desc {
+  color: #5A5248 !important;
+}
+
+html[data-theme="light"] .footer__logo-img {
+  filter: invert(1) !important;
+}
+
+html[data-theme="light"] .footer__col-title {
+  color: #1A1714 !important;
+  font-weight: 800 !important;
+}
+
+html[data-theme="light"] .footer .footer__link {
+  color: #5A5248 !important;
+}
+
+html[data-theme="light"] .footer .footer__link:hover {
+  color: #1F1B17 !important;
+}
+
+html[data-theme="light"] .footer .footer__contact-link {
+  color: #5A5248 !important;
+}
+
+html[data-theme="light"] .footer .footer__contact-link:hover {
+  color: #1F1B17 !important;
+}
+
+html[data-theme="light"] .footer .footer__contact-address {
+  color: #857B6F !important;
+}
+
+html[data-theme="light"] .footer .footer__social-btn {
+  background: #FFFFFF !important;
+  border: 1px solid #EAE5DD !important;
+  color: #1F1B17 !important;
+}
+
+html[data-theme="light"] .footer .footer__social-btn:hover {
+  border-color: #D9D1C4 !important;
+  background: #F7EEDC !important;
+  color: #1A1714 !important; /* TEXTO NEGRO EN BEIGE */
+}
+
+html[data-theme="light"] .footer .footer__instagram {
+  background: #FFFFFF !important;
+  border: 1px solid #EAE5DD !important;
+}
+
+html[data-theme="light"] .footer .footer__instagram-brand {
+  color: #1F1B17 !important;
+}
+
+html[data-theme="light"] .footer .footer__instagram-btn {
+  background: #1A1714 !important;
+  color: #F6EBD3 !important;
+}
+
+html[data-theme="light"] .footer .footer__instagram-text {
+  color: #857B6F !important;
+}
+
+html[data-theme="light"] .footer__bottom {
+  border-top: 1px solid #EAE5DD !important;
+  color: #857B6F !important;
+}
+
+html[data-theme="light"] .footer .footer__legal-link {
+  color: #857B6F !important;
+}
+
+html[data-theme="light"] .footer .footer__legal-link:hover {
+  color: #1F1B17 !important;
+}
+
+/* ── 9. CATÁLOGO / PÁGINA CAMPERS (/campers) ── */
+html[data-theme="light"] .catalog-page {
+  background: #F2F0EC !important;
+}
+
+html[data-theme="light"] .catalog-hero {
+  background: #F7F5F1 !important;
+  border-bottom: 1px solid #EAE5DD !important;
+  color: #1F1B17 !important;
+}
+
+html[data-theme="light"] .catalog-hero__title {
+  color: #1F1B17 !important;
+}
+
+html[data-theme="light"] .catalog-hero__subtitle {
+  color: #5A5248 !important;
+}
+
+html[data-theme="light"] .catalog-hero__eyebrow {
+  background: #F7EEDC !important;
+  border: 1px solid #E8D6B2 !important;
+  color: #1A1714 !important; /* TEXTO NEGRO EN BEIGE */
+  font-weight: 700 !important;
+}
+
+/* ── 10. DETALLE DE CAMPER (/campers/[slug]) ── */
+html[data-theme="light"] .camper-detail-page {
+  background: #F2F0EC !important;
+  color: #1F1B17 !important;
+}
+
+html[data-theme="light"] .camper-hero-section {
+  background: #F2F0EC !important;
+}
+
+html[data-theme="light"] .camper-header {
+  border-bottom: 1px solid #EAE5DD !important;
+}
+
+html[data-theme="light"] .camper-title {
+  color: #1F1B17 !important;
+}
+
+html[data-theme="light"] .camper-subtitle,
+html[data-theme="light"] .camper-tagline {
+  color: #5A5248 !important;
+}
+
+html[data-theme="light"] .header-hero-block {
+  border-bottom: 1px solid #EAE5DD !important;
+}
+
+html[data-theme="light"] .hero-eyebrow {
+  color: #1A1714 !important;
+  font-weight: 800 !important;
+}
+
+html[data-theme="light"] .back-link {
+  color: #5A5248 !important;
+}
+
+html[data-theme="light"] .back-link:hover {
+  color: #1F1B17 !important;
+}
+
+html[data-theme="light"] .camper-model-switcher {
+  background: #FFFFFF !important;
+  border: 1px solid #EAE5DD !important;
+  box-shadow: 0 4px 14px rgba(40, 30, 15, 0.08) !important;
+}
+
+html[data-theme="light"] .model-pill {
+  color: #5A5248 !important;
+}
+
+html[data-theme="light"] .model-pill:hover {
+  color: #1F1B17 !important;
+}
+
+html[data-theme="light"] .model-pill--active {
+  background: #1A1714 !important;
+  color: #F6EBD3 !important;
+}
+
+html[data-theme="light"] .feature-pill {
+  background: #FFFFFF !important;
+  border: 1px solid #EAE5DD !important;
+  color: #1F1B17 !important;
+}
+
+html[data-theme="light"] .feature-card {
+  background: #FFFFFF !important;
+  border: 1px solid #EAE5DD !important;
+  box-shadow: 0 2px 10px rgba(40, 30, 15, 0.05) !important;
+}
+
+html[data-theme="light"] .feature-icon-box {
+  background: #F7EEDC !important;
+  color: #1A1714 !important;
+}
+
+html[data-theme="light"] .feature-label,
+html[data-theme="light"] .feature-card__title {
+  color: #1F1B17 !important;
+}
+
+html[data-theme="light"] .feature-value,
+html[data-theme="light"] .feature-card__desc {
+  color: #5A5248 !important;
+}
+
+html[data-theme="light"] .description-paragraph {
+  color: #3E3730 !important;
+}
+
+html[data-theme="light"] .expand-toggle-btn {
+  background: #FFFFFF !important;
+  border: 1px solid #D9D1C4 !important;
+  color: #1F1B17 !important;
+}
+
+html[data-theme="light"] .section-divider-title {
+  color: #1A1714 !important;
+  font-weight: 800 !important;
+}
+
+html[data-theme="light"] .section-divider-line {
+  background: #EAE5DD !important;
+}
+
+html[data-theme="light"] .floorplan-card {
+  background: #FFFFFF !important;
+  border: 1px solid #EAE5DD !important;
+}
+
+html[data-theme="light"] .floorplan-label {
+  background: #F7EEDC !important;
+  border: 1px solid #E8D6B2 !important;
+  color: #1A1714 !important; /* TEXTO NEGRO EN BEIGE */
+  font-weight: 700 !important;
+}
+
+html[data-theme="light"] .included-item {
+  background: #FFFFFF !important;
+  border: 1px solid #EAE5DD !important;
+  color: #1F1B17 !important;
+}
+
+html[data-theme="light"] .included-check {
+  background: #F7EEDC !important;
+  color: #1A1714 !important;
+}
+
+html[data-theme="light"] .sidebar-card,
+html[data-theme="light"] .booking-sidebar-card {
+  background: #FFFFFF !important;
+  border: 1px solid #EAE5DD !important;
+  box-shadow: 0 8px 30px rgba(40, 30, 15, 0.08) !important;
+}
+
+html[data-theme="light"] .sidebar-camper-name {
+  color: #1F1B17 !important;
+}
+
+html[data-theme="light"] .sidebar-price-amount {
+  color: #1F1B17 !important;
+}
+
+html[data-theme="light"] .sidebar-price-label,
+html[data-theme="light"] .sidebar-price-unit,
+html[data-theme="light"] .sidebar-trust-row {
+  color: #5A5248 !important;
+}
+
+html[data-theme="light"] .sidebar-cta-btn {
+  background: #1A1714 !important;
+  color: #F6EBD3 !important;
+}
+
+html[data-theme="light"] .sticky-booking-bar,
+html[data-theme="light"] .camper-sticky-bar {
+  background: rgba(247, 245, 241, 0.98) !important;
+  border-top: 1px solid #EAE5DD !important;
+  box-shadow: 0 -10px 30px rgba(40, 30, 15, 0.08) !important;
+}
+
+html[data-theme="light"] .price-number {
+  color: #1A1714 !important;
+}
+
+html[data-theme="light"] .price-from,
+html[data-theme="light"] .price-unit {
+  color: #5A5248 !important;
+}
+
+html[data-theme="light"] .cancellation-badge {
+  background: #F7EEDC !important;
+  border: 1px solid #E8D6B2 !important;
+  color: #1A1714 !important; /* TEXTO NEGRO EN BEIGE */
+  font-weight: 700 !important;
+}
+
+html[data-theme="light"] .guarantee-item {
+  color: #5A5248 !important;
+}
+
+html[data-theme="light"] .guarantees-list {
+  border-left: 1px solid #EAE5DD !important;
+}
+
+html[data-theme="light"] .calc-trigger-btn {
+  background: #FFFFFF !important;
+  border: 1px solid #EAE5DD !important;
+  color: #1F1B17 !important;
+}
+
+html[data-theme="light"] .reserve-primary-btn {
+  background: #1A1714 !important;
+  color: #F6EBD3 !important;
+}
+
+/* Calculadora incrustada */
+html[data-theme="light"] .price-calc {
+  background: #FFFFFF !important;
+  border: 1px solid #EAE5DD !important;
+  box-shadow: 0 4px 20px rgba(40, 30, 15, 0.06) !important;
+}
+
+html[data-theme="light"] .price-calc__header h3 {
+  color: #1F1B17 !important;
+}
+
+html[data-theme="light"] .price-calc__dates-card {
+  background: #F7F5F1 !important;
+  border: 1px solid #EAE5DD !important;
+}
+
+html[data-theme="light"] .price-calc__dates-card:hover,
+html[data-theme="light"] .price-calc__dates-card--open {
+  border-color: #CCA053 !important;
+  background: #FFFFFF !important;
+}
+
+html[data-theme="light"] .price-calc__date-label {
+  color: #5A5248 !important;
+}
+
+html[data-theme="light"] .price-calc__date-val {
+  color: #1F1B17 !important;
+}
+
+html[data-theme="light"] .price-calc__date-val--placeholder {
+  color: #8E8477 !important;
+}
+
+html[data-theme="light"] .price-calc__schedule-badge {
+  background: #F7EEDC !important;
+  color: #1A1714 !important; /* TEXTO NEGRO EN BEIGE */
+  border: 1px solid #E8D6B2 !important;
+  font-weight: 700 !important;
+}
+
+/* ── 11. BÚSQUEDA Y DISPONIBILIDAD (/reservar) ── */
+html[data-theme="light"] .reservar-page {
+  background: #F2F0EC !important;
+}
+
+html[data-theme="light"] .reservar-hero {
+  background: #F7F5F1 !important;
+  border-bottom: 1px solid #EAE5DD !important;
+}
+
+html[data-theme="light"] .reservar-hero__eyebrow {
+  background: #F7EEDC !important;
+  border: 1px solid #E8D6B2 !important;
+  color: #1A1714 !important; /* TEXTO NEGRO EN BEIGE */
+  font-weight: 700 !important;
+}
+
+html[data-theme="light"] .reservar-hero__title {
+  color: #1F1B17 !important;
+}
+
+html[data-theme="light"] .reservar-hero__subtitle {
+  color: #5A5248 !important;
+}
+
+html[data-theme="light"] .reservar-search__bar {
+  background: rgba(255, 255, 255, 0.96) !important;
+  border: 1px solid #EAE5DD !important;
+  box-shadow: 0 20px 48px -10px rgba(40, 30, 15, 0.16) !important;
+}
+
+html[data-theme="light"] .reservar-search__field-label {
+  color: #5A5248 !important;
+}
+
+html[data-theme="light"] .reservar-search__field-value {
+  color: #1F1B17 !important;
+}
+
+html[data-theme="light"] .reservar-search__field-placeholder {
+  color: #8E8477 !important;
+}
+
+html[data-theme="light"] .reservar-search__separator {
+  background: #EAE5DD !important;
+}
+
+html[data-theme="light"] .reservar-search__pax-btn {
+  background: #F7F5F1 !important;
+  border: 1px solid #D9D1C4 !important;
+  color: #1F1B17 !important;
+}
+
+html[data-theme="light"] .reservar-search__pax-num {
+  color: #1F1B17 !important;
+}
+
+html[data-theme="light"] .reservar-search__btn {
+  background: #CCA053 !important;
+  color: #1A1714 !important;
+  box-shadow: 0 8px 24px rgba(204, 160, 83, 0.35) !important;
+}
+
+html[data-theme="light"] .reservar-search__guarantees {
+  color: #5A5248 !important;
+}
+
+html[data-theme="light"] .reservar-status-banner {
+  background: #FFFFFF !important;
+  border: 1px solid #EAE5DD !important;
+  color: #1F1B17 !important;
+  box-shadow: 0 8px 24px rgba(40, 30, 15, 0.06) !important;
+}
+
+html[data-theme="light"] .reservar-status-banner__info {
+  color: #1F1B17 !important;
+}
+
+html[data-theme="light"] .reservar-status-banner__reset-btn {
+  background: #F7F5F1 !important;
+  border: 1px solid #D9D1C4 !important;
+  color: #1F1B17 !important;
+}
+
+html[data-theme="light"] .reservar-prompt-banner {
+  background: #F7EEDC !important;
+  border: 1px solid #E8D6B2 !important;
+  color: #1A1714 !important; /* TEXTO NEGRO EN BEIGE */
+  font-weight: 600 !important;
+}
+
+html[data-theme="light"] .reservar__filter-btn {
+  background: #FFFFFF !important;
+  border: 1px solid #EAE5DD !important;
+  color: #5A5248 !important;
+}
+
+html[data-theme="light"] .reservar__filter-btn:hover {
+  background: #F7F5F1 !important;
+  color: #1F1B17 !important;
+}
+
+html[data-theme="light"] .reservar__filter-btn--active {
+  background: #1A1714 !important;
+  border-color: #1A1714 !important;
+  color: #F6EBD3 !important;
+}
+
+/* ── 12. WIZARD DE RESERVA COMPLETO (/reserva/[slug]) ── */
+html[data-theme="light"] .booking-wizard-root,
+html[data-theme="light"] .wizard-page {
+  background: #F2F0EC !important;
+}
+
+/* Wizard Header */
+html[data-theme="light"] .wizard-header {
+  background: #FFFFFF !important;
+  border-bottom: 1px solid #EAE5DD !important;
+}
+
+html[data-theme="light"] .wizard-header__top {
+  background: #F7F5F1 !important;
+  border-bottom: 1px solid #EAE5DD !important;
+}
+
+html[data-theme="light"] .wizard-header__back-btn {
+  background: #FFFFFF !important;
+  border: 1px solid #EAE5DD !important;
+  color: #5A5248 !important;
+}
+
+html[data-theme="light"] .wizard-header__back-btn:hover {
+  background: #F7F5F1 !important;
+  color: #1F1B17 !important;
+}
+
+html[data-theme="light"] .wizard-header__brand-tag {
+  color: #1A1714 !important;
+  font-weight: 800 !important;
+}
+
+html[data-theme="light"] .wizard-header__badge-model {
+  color: #1F1B17 !important;
+}
+
+html[data-theme="light"] .wizard-header__camper-sub {
+  color: #5A5248 !important;
+}
+
+html[data-theme="light"] .wizard-header__trust-pill {
+  background: #F7EEDC !important;
+  border: 1px solid #E8D6B2 !important;
+  color: #1A1714 !important; /* TEXTO NEGRO EN BEIGE */
+  font-weight: 700 !important;
+}
+
+html[data-theme="light"] .wizard-stepper__track-bg {
+  background: #EAE5DD !important;
+}
+
+html[data-theme="light"] .wizard-stepper__track-fill {
+  background: #1A1714 !important;
+}
+
+html[data-theme="light"] .wizard-step-node__circle {
+  background: #FFFFFF !important;
+  border: 2px solid #D9D1C4 !important;
+  color: #5A5248 !important;
+}
+
+html[data-theme="light"] .wizard-step-node--current .wizard-step-node__circle {
+  background: #1A1714 !important;
+  border-color: #1A1714 !important;
+  color: #FFFFFF !important;
+}
+
+html[data-theme="light"] .wizard-step-node--completed .wizard-step-node__circle {
+  background: #4F6E55 !important;
+  border-color: #4F6E55 !important;
+  color: #FFFFFF !important;
+}
+
+html[data-theme="light"] .wizard-step-node__number-sub {
+  color: #857B6F !important;
+}
+
+html[data-theme="light"] .wizard-step-node__title {
+  color: #1F1B17 !important;
+}
+
+/* Wizard Pasos Headers Comunes */
+html[data-theme="light"] .step-header__tag {
+  background: #F7EEDC !important;
+  border: 1px solid #E8D6B2 !important;
+  color: #1A1714 !important; /* TEXTO NEGRO EN BEIGE */
+  font-weight: 700 !important;
+}
+
+html[data-theme="light"] .step-header__title {
+  color: #1F1B17 !important;
+}
+
+html[data-theme="light"] .step-header__desc {
+  color: #5A5248 !important;
+}
+
+/* Paso 1: Fechas y Viajeros */
+html[data-theme="light"] .pax-card {
+  background: #FAF8F5 !important;
+  border: 1px solid #E2DBD3 !important;
+  box-shadow: 0 2px 8px rgba(40, 30, 15, 0.04) !important;
+}
+
+html[data-theme="light"] .pax-card__title {
+  color: #1A1714 !important;
+}
+
+html[data-theme="light"] .pax-card__desc {
+  color: #5A5248 !important;
+}
+
+html[data-theme="light"] .pax-card__icon-box {
+  background: #F7EEDC !important;
+  border: 1px solid #E8D6B2 !important;
+  color: #1A1714 !important; /* TEXTO / ICONO NEGRO EN BEIGE */
+}
+
+html[data-theme="light"] .pax-btn {
+  background: #F2EFE9 !important;
+  border: 1px solid #D9D1C4 !important;
+  color: #1A1714 !important;
+}
+
+html[data-theme="light"] .pax-btn:hover:not(:disabled) {
+  background: #CCA053 !important;
+  border-color: #CCA053 !important;
+  color: #1A1714 !important;
+}
+
+html[data-theme="light"] .pax-value {
+  color: #1A1714 !important;
+  font-weight: 700 !important;
+}
+
+html[data-theme="light"] .calendar-section {
+  background: #FAF8F5 !important; /* Arena marfil suave, nunca blanco plano */
+  border: 1px solid #E2DBD3 !important;
+  box-shadow: 0 4px 16px rgba(40, 30, 15, 0.04) !important;
+}
+
+html[data-theme="light"] .calendar-section__header {
+  border-bottom: 1px solid #E2DBD3 !important;
+}
+
+html[data-theme="light"] .calendar-section__dates-badge {
+  color: #1A1714 !important;
+  font-weight: 700 !important;
+}
+
+html[data-theme="light"] .calendar-section__nights-pill {
+  background: #F7EEDC !important;
+  border: 1px solid #E8D6B2 !important;
+  color: #1A1714 !important; /* TEXTO NEGRO EN BEIGE */
+  font-weight: 800 !important;
+}
+
+html[data-theme="light"] .calendar-section__min-stay-note {
+  background: #F2EFE9 !important;
+  border: 1px solid #E2DBD3 !important;
+  color: #5A5248 !important;
+}
+
+/* Slots de recogida y devolución (Paso 1) */
+html[data-theme="light"] .slot-box {
+  background: #FAF8F5 !important;
+  border: 1px solid #E2DBD3 !important;
+}
+
+html[data-theme="light"] .slot-box__title {
+  color: #1A1714 !important;
+  font-weight: 800 !important;
+}
+
+html[data-theme="light"] .slot-box__subtitle {
+  color: #5A5248 !important;
+}
+
+html[data-theme="light"] .slot-option-btn {
+  background: #F2EFE9 !important;
+  border: 1.5px solid #D9D1C4 !important;
+  color: #1A1714 !important;
+}
+
+html[data-theme="light"] .slot-option-btn:hover {
+  border-color: #CCA053 !important;
+  background: #FAF8F5 !important;
+}
+
+html[data-theme="light"] .slot-option-btn--active {
+  background: #F7EEDC !important;
+  border-color: #1A1714 !important;
+  box-shadow: 0 0 0 2px rgba(26, 23, 20, 0.12) !important;
+}
+
+html[data-theme="light"] .slot-option-btn__time {
+  color: #1A1714 !important;
+  font-weight: 700 !important;
+}
+
+html[data-theme="light"] .slot-option-btn__tag {
+  background: #E2DBD3 !important;
+  color: #1A1714 !important; /* TEXTO NEGRO EN BEIGE */
+  font-weight: 700 !important;
+}
+
+html[data-theme="light"] .slot-option-btn__name {
+  color: #1A1714 !important;
+  font-weight: 700 !important;
+}
+
+html[data-theme="light"] .slot-option-btn__detail {
+  color: #5A5248 !important;
+}
+
+/* Tarjeta sticky de resumen de viaje */
+html[data-theme="light"] .sticky-summary-card {
+  background: #FAF8F5 !important;
+  border: 1px solid #E2DBD3 !important;
+  box-shadow: 0 8px 24px rgba(40, 30, 15, 0.05) !important;
+}
+
+html[data-theme="light"] .summary-heading {
+  color: #1A1714 !important;
+}
+
+html[data-theme="light"] .summary-camper-card,
+html[data-theme="light"] .summary-dates-card,
+html[data-theme="light"] .summary-included-box {
+  background: #F2EFE9 !important;
+  border: 1px solid #D9D1C4 !important;
+}
+
+html[data-theme="light"] .summary-camper-name,
+html[data-theme="light"] .summary-total-title,
+html[data-theme="light"] .summary-included-title {
+  color: #1A1714 !important;
+}
+
+html[data-theme="light"] .summary-total-amount {
+  color: #1A1714 !important;
+}
+
+/* Paso 2: Kilometraje (Step2Mileage) */
+html[data-theme="light"] .km-card {
+  background: #FFFFFF !important;
+  border: 2px solid #EAE5DD !important;
+  box-shadow: 0 4px 16px rgba(40, 30, 15, 0.04) !important;
+}
+
+html[data-theme="light"] .km-card:hover {
+  border-color: #D9D1C4 !important;
+}
+
+html[data-theme="light"] .km-card--active {
+  border-color: #1A1714 !important;
+  background: #FFFFFF !important;
+  box-shadow: 0 0 0 2px rgba(26, 23, 20, 0.12), 0 8px 24px rgba(40, 30, 15, 0.06) !important;
+}
+
+html[data-theme="light"] .km-card__radio {
+  border: 2px solid #D9D1C4 !important;
+}
+
+html[data-theme="light"] .km-card--active .km-card__radio {
+  border-color: #1A1714 !important;
+}
+
+html[data-theme="light"] .km-card__radio-inner {
+  background: #1A1714 !important;
+}
+
+html[data-theme="light"] .km-card__badge--standard,
+html[data-theme="light"] .km-card__badge--highlight,
+html[data-theme="light"] .km-card__badge {
+  background: #F7EEDC !important;
+  border: 1px solid #E8D6B2 !important;
+  color: #1A1714 !important; /* TEXTO NEGRO EN BEIGE */
+  font-weight: 700 !important;
+}
+
+html[data-theme="light"] .km-card__title {
+  color: #1F1B17 !important;
+}
+
+html[data-theme="light"] .km-card__price-amount {
+  color: #1A1714 !important;
+  font-weight: 800 !important;
+}
+
+html[data-theme="light"] .km-card__price-daily,
+html[data-theme="light"] .km-card__price-sub {
+  color: #5A5248 !important;
+}
+
+html[data-theme="light"] .km-card__description {
+  color: #3E3730 !important;
+}
+
+html[data-theme="light"] .km-feature {
+  color: #2E2822 !important;
+}
+
+/* Paso 3: Cancelación (Step3Cancellation) */
+html[data-theme="light"] .policy-card {
+  background: #FFFFFF !important;
+  border: 2px solid #EAE5DD !important;
+  box-shadow: 0 4px 16px rgba(40, 30, 15, 0.04) !important;
+}
+
+html[data-theme="light"] .policy-card:hover {
+  border-color: #D9D1C4 !important;
+}
+
+html[data-theme="light"] .policy-card--active {
+  border-color: #1A1714 !important;
+  background: #FFFFFF !important;
+  box-shadow: 0 0 0 2px rgba(26, 23, 20, 0.12), 0 8px 24px rgba(40, 30, 15, 0.06) !important;
+}
+
+html[data-theme="light"] .policy-card__radio {
+  border: 2px solid #D9D1C4 !important;
+}
+
+html[data-theme="light"] .policy-card--active .policy-card__radio {
+  border-color: #1A1714 !important;
+}
+
+html[data-theme="light"] .policy-card__radio-inner {
+  background: #1A1714 !important;
+}
+
+html[data-theme="light"] .policy-card__badge--standard,
+html[data-theme="light"] .policy-card__badge--highlight,
+html[data-theme="light"] .policy-card__badge {
+  background: #F7EEDC !important;
+  border: 1px solid #E8D6B2 !important;
+  color: #1A1714 !important; /* TEXTO NEGRO EN BEIGE */
+  font-weight: 700 !important;
+}
+
+html[data-theme="light"] .policy-card__title {
+  color: #1F1B17 !important;
+}
+
+html[data-theme="light"] .policy-card__price-amount {
+  color: #1A1714 !important;
+  font-weight: 800 !important;
+}
+
+html[data-theme="light"] .policy-card__price-daily,
+html[data-theme="light"] .policy-card__price-sub {
+  color: #5A5248 !important;
+}
+
+html[data-theme="light"] .policy-card__description {
+  color: #3E3730 !important;
+}
+
+html[data-theme="light"] .timeline-item__badge--highlight {
+  background: #F7EEDC !important;
+  border: 1px solid #E8D6B2 !important;
+  color: #1A1714 !important; /* TEXTO NEGRO EN BEIGE */
+  font-weight: 700 !important;
+}
+
+html[data-theme="light"] .timeline-item__badge--green {
+  background: #E7EFE5 !important;
+  color: #2D5233 !important;
+}
+
+html[data-theme="light"] .timeline-item__badge--gray {
+  background: #EAE5DD !important;
+  color: #1A1714 !important; /* TEXTO NEGRO EN BEIGE */
+  font-weight: 700 !important;
+}
+
+html[data-theme="light"] .timeline-item__title {
+  color: #1F1B17 !important;
+}
+
+html[data-theme="light"] .timeline-item__desc {
+  color: #5A5248 !important;
+}
+
+/* Paso 4: Extras (Step4Extras) */
+html[data-theme="light"] .cat-pill {
+  background: #FFFFFF !important;
+  border: 1px solid #EAE5DD !important;
+  color: #5A5248 !important;
+}
+
+html[data-theme="light"] .cat-pill:hover {
+  border-color: #1A1714 !important;
+  color: #1F1B17 !important;
+}
+
+html[data-theme="light"] .cat-pill--active {
+  background: #1A1714 !important;
+  border-color: #1A1714 !important;
+  color: #F6EBD3 !important;
+}
+
+html[data-theme="light"] .extra-card {
+  background: #FFFFFF !important;
+  border: 1.5px solid #EAE5DD !important;
+  box-shadow: 0 2px 10px rgba(40, 30, 15, 0.03) !important;
+}
+
+html[data-theme="light"] .extra-card:hover {
+  border-color: #D9D1C4 !important;
+}
+
+html[data-theme="light"] .extra-card--active {
+  border-color: #1A1714 !important;
+  background: #FFFFFF !important;
+  box-shadow: 0 4px 18px rgba(26, 23, 20, 0.08) !important;
+}
+
+html[data-theme="light"] .extra-card__badge {
+  background: #F7EEDC !important;
+  border: 1px solid #E8D6B2 !important;
+  color: #1A1714 !important; /* TEXTO NEGRO EN BEIGE */
+  font-weight: 700 !important;
+}
+
+html[data-theme="light"] .extra-card__title {
+  color: #1F1B17 !important;
+}
+
+html[data-theme="light"] .extra-card__desc {
+  color: #5A5248 !important;
+}
+
+html[data-theme="light"] .extra-card__price-amount {
+  color: #1A1714 !important;
+  font-weight: 800 !important;
+}
+
+html[data-theme="light"] .extra-card__price-sub {
+  color: #6A6157 !important;
+}
+
+html[data-theme="light"] .qty-btn {
+  background: #F7F5F1 !important;
+  border: 1px solid #D9D1C4 !important;
+  color: #1F1B17 !important;
+}
+
+html[data-theme="light"] .qty-val {
+  color: #1F1B17 !important;
+}
+
+html[data-theme="light"] .btn-add-extra {
+  background: #F7EEDC !important;
+  border: 1px solid #E8D6B2 !important;
+  color: #1A1714 !important; /* TEXTO NEGRO EN BEIGE */
+  font-weight: 700 !important;
+}
+
+html[data-theme="light"] .btn-add-extra:hover {
+  background: #1A1714 !important;
+  color: #F6EBD3 !important;
+  border-color: #1A1714 !important;
+}
+
+html[data-theme="light"] .btn-remove-extra {
+  color: #C53030 !important;
+}
+
+/* Paso 5: Checkout (Step5Checkout) */
+html[data-theme="light"] .form-group-card {
+  background: #FFFFFF !important;
+  border: 1px solid #EAE5DD !important;
+  box-shadow: 0 2px 10px rgba(40, 30, 15, 0.03) !important;
+}
+
+html[data-theme="light"] .form-group-card__header {
+  border-bottom: 1px solid #EAE5DD !important;
+}
+
+html[data-theme="light"] .form-group-card__title {
+  color: #1F1B17 !important;
+}
+
+html[data-theme="light"] .form-label {
+  color: #1F1B17 !important;
+}
+
+html[data-theme="light"] .form-input,
+html[data-theme="light"] .form-textarea,
+html[data-theme="light"] .form-select {
+  background: #F7F5F1 !important;
+  border: 1px solid #D9D1C4 !important;
+  color: #1F1B17 !important;
+}
+
+html[data-theme="light"] .field-hint {
+  color: #6A6157 !important;
+}
+
+html[data-theme="light"] .legal-consent-card {
+  background: #F7F5F1 !important;
+  border: 1px solid #EAE5DD !important;
+}
+
+html[data-theme="light"] .checkbox-label {
+  color: #2E2822 !important;
+}
+
+html[data-theme="light"] .legal-link {
+  color: #1A1714 !important;
+  font-weight: 700 !important;
+  text-decoration: underline !important;
+}
+
+html[data-theme="light"] .btn-pay-redsys {
+  background: #1A1714 !important;
+  color: #F6EBD3 !important;
+}
+
+html[data-theme="light"] .btn-pay-redsys:hover {
+  background: #2E2822 !important;
+}
+
+html[data-theme="light"] .security-badge {
+  background: #F7EEDC !important;
+  border: 1px solid #E8D6B2 !important;
+  color: #1A1714 !important; /* TEXTO NEGRO EN BEIGE */
+  font-weight: 700 !important;
+}
+
+/* Resumen Lateral Persistente (StickyTripSummary) */
+html[data-theme="light"] .trip-summary-panel {
+  background: #FFFFFF !important;
+  border: 1px solid #EAE5DD !important;
+  box-shadow: 0 8px 28px rgba(40, 30, 15, 0.07) !important;
+}
+
+html[data-theme="light"] .summary-heading {
+  color: #1F1B17 !important;
+}
+
+html[data-theme="light"] .summary-live-indicator {
+  background: #F7EEDC !important;
+  border: 1px solid #E8D6B2 !important;
+  color: #1A1714 !important; /* TEXTO NEGRO EN BEIGE */
+  font-weight: 700 !important;
+}
+
+html[data-theme="light"] .summary-camper-card,
+html[data-theme="light"] .summary-dates-card {
+  background: #F7F5F1 !important;
+  border: 1px solid #EAE5DD !important;
+}
+
+html[data-theme="light"] .summary-camper-name {
+  color: #1F1B17 !important;
+}
+
+html[data-theme="light"] .summary-brand-tag {
+  color: #1A1714 !important; /* TEXTO NEGRO EN BEIGE */
+  font-weight: 800 !important;
+}
+
+html[data-theme="light"] .stats-pill {
+  background: #F7EEDC !important;
+  border: 1px solid #E8D6B2 !important;
+  color: #1A1714 !important; /* TEXTO NEGRO EN BEIGE */
+  font-weight: 700 !important;
+}
+
+html[data-theme="light"] .summary-breakdown-title {
+  color: #1F1B17 !important;
+}
+
+html[data-theme="light"] .summary-row-label {
+  color: #5A5248 !important;
+}
+
+html[data-theme="light"] .summary-row-val {
+  color: #1F1B17 !important;
+}
+
+html[data-theme="light"] .discount-tag {
+  background: #E7EFE5 !important;
+  color: #2D5233 !important;
+}
+
+html[data-theme="light"] .summary-extras-header {
+  color: #1F1B17 !important;
+}
+
+html[data-theme="light"] .summary-extra-subrow {
+  color: #5A5248 !important;
+}
+
+html[data-theme="light"] .summary-divider {
+  background: #EAE5DD !important;
+}
+
+html[data-theme="light"] .summary-total-title {
+  color: #1F1B17 !important;
+}
+
+html[data-theme="light"] .summary-total-amount,
+html[data-theme="light"] .summary-price-total {
+  color: #1A1714 !important;
+  font-weight: 800 !important;
+}
+
+html[data-theme="light"] .summary-deposit-box {
+  background: #F7EEDC !important;
+  border: 1px solid #E8D6B2 !important;
+  color: #1A1714 !important; /* TEXTO NEGRO EN BEIGE */
+}
+
+html[data-theme="light"] .deposit-box__title {
+  color: #1A1714 !important; /* TEXTO NEGRO EN BEIGE */
+  font-weight: 700 !important;
+}
+
+html[data-theme="light"] .deposit-box__amount {
+  color: #1A1714 !important; /* TEXTO NEGRO EN BEIGE */
+  font-weight: 800 !important;
+}
+
+html[data-theme="light"] .deposit-box__text {
+  color: #1A1714 !important; /* TEXTO NEGRO EN BEIGE */
+}
+
+html[data-theme="light"] .deposit-box__text strong {
+  color: #000000 !important;
+  font-weight: 800 !important;
+}
+
+html[data-theme="light"] .summary-included-box {
+  background: #F7F5F1 !important;
+  border: 1px solid #EAE5DD !important;
+}
+
+html[data-theme="light"] .summary-included-title {
+  color: #1F1B17 !important;
+}
+
+html[data-theme="light"] .summary-included-item {
+  color: #3E3730 !important;
+}
+
+html[data-theme="light"] .trust-badge {
+  background: #F7EEDC !important;
+  border: 1px solid #E8D6B2 !important;
+  color: #1A1714 !important; /* TEXTO NEGRO EN BEIGE */
+  font-weight: 700 !important;
+}
+
+html[data-theme="light"] .mobile-summary-sheet {
+  background: #FFFFFF !important;
+  color: #1F1B17 !important;
+}
+
+/* Barra Inferior del Wizard (WizardBottomBar) */
+html[data-theme="light"] .wizard-bottom-bar {
+  background: rgba(247, 245, 241, 0.98) !important;
+  border-top: 1px solid #EAE5DD !important;
+  box-shadow: 0 -8px 24px rgba(40, 30, 15, 0.08) !important;
+}
+
+html[data-theme="light"] .wizard-bar-btn--back,
+html[data-theme="light"] .wizard-nav-btn--prev {
+  background: #FFFFFF !important;
+  border: 1px solid #D9D1C4 !important;
+  color: #1F1B17 !important;
+}
+
+html[data-theme="light"] .wizard-bar-btn--next,
+html[data-theme="light"] .wizard-bar-btn--pay,
+html[data-theme="light"] .wizard-nav-btn--next {
+  background: #1A1714 !important;
+  color: #F6EBD3 !important;
+}
+
+html[data-theme="light"] .mobile-price-label {
+  color: #5A5248 !important;
+}
+
+html[data-theme="light"] .mobile-price-amount {
+  color: #1A1714 !important;
+  font-weight: 800 !important;
+}
+
+html[data-theme="light"] .mobile-price-sub {
+  color: #1A1714 !important;
+  font-weight: 700 !important;
+}
+
+/* ── 13. CONÓCENOS / ABOUT (/conocenos) ── */
+html[data-theme="light"] .about-page {
+  background: #F2F0EC !important;
+}
+
+html[data-theme="light"] .about-who-section {
+  background: #F2F0EC !important;
+}
+
+html[data-theme="light"] .about-pill-label {
+  background: #F7EEDC !important;
+  border: 1px solid #E8D6B2 !important;
+  color: #1A1714 !important; /* TEXTO NEGRO EN BEIGE */
+  font-weight: 700 !important;
+}
+
+html[data-theme="light"] .about-pill-icon {
+  color: #1A1714 !important;
+}
+
+html[data-theme="light"] .about-eyebrow {
+  color: #1A1714 !important;
+  font-weight: 800 !important;
+}
+
+html[data-theme="light"] .about-section-title {
+  color: #1F1B17 !important;
+}
+
+html[data-theme="light"] .about-lead-text {
+  color: #2E2822 !important;
+}
+
+html[data-theme="light"] .about-body-text {
+  color: #4A433B !important;
+}
+
+html[data-theme="light"] .about-manifesto-box {
+  background: #F7EEDC !important;
+  border: 1px solid #E8D6B2 !important;
+  box-shadow: 0 4px 16px rgba(40, 30, 15, 0.05) !important;
+}
+
+html[data-theme="light"] .about-manifesto-item {
+  color: #1A1714 !important; /* TEXTO NEGRO EN BEIGE */
+  font-weight: 600 !important;
+}
+
+html[data-theme="light"] .about-dot {
+  background: #1A1714 !important;
+}
+
+html[data-theme="light"] .about-image-card {
+  background: #FFFFFF !important;
+  border: 1px solid #EAE5DD !important;
+  box-shadow: 0 16px 40px rgba(40, 30, 15, 0.10) !important;
+}
+
+html[data-theme="light"] .about-img-glass-badge {
+  background: rgba(247, 245, 241, 0.94) !important;
+  border: 1px solid #E8D6B2 !important;
+  color: #1A1714 !important; /* TEXTO NEGRO EN BEIGE */
+  font-weight: 700 !important;
+}
+
+html[data-theme="light"] .about-gallery-strip {
+  background: #EFECE6 !important;
+  border-top: 1px solid #EAE5DD !important;
+  border-bottom: 1px solid #EAE5DD !important;
+}
+
+html[data-theme="light"] .about-gallery-tagline {
+  color: #1A1714 !important;
+  font-weight: 800 !important;
+}
+
+html[data-theme="light"] .about-gallery-title {
+  color: #1F1B17 !important;
+}
+
+html[data-theme="light"] .about-gallery-item {
+  background: #FFFFFF !important;
+  border: 1px solid #EAE5DD !important;
+  box-shadow: 0 12px 30px rgba(40, 30, 15, 0.08) !important;
+}
+
+html[data-theme="light"] .about-gallery-badge {
+  background: #F7EEDC !important;
+  border: 1px solid #E8D6B2 !important;
+  color: #1A1714 !important; /* TEXTO NEGRO EN BEIGE */
+  font-weight: 700 !important;
+}
+
+html[data-theme="light"] .about-method-section {
+  background: #F7F5F1 !important;
+}
+
+html[data-theme="light"] .about-method-title {
+  color: #1F1B17 !important;
+}
+
+html[data-theme="light"] .about-quote-text {
+  color: #1A1714 !important;
+  font-weight: 500 !important;
+}
+
+html[data-theme="light"] .about-method-body {
+  color: #4A433B !important;
+}
+
+html[data-theme="light"] .about-pillar-card {
+  background: #FFFFFF !important;
+  border: 1px solid #EAE5DD !important;
+  box-shadow: 0 8px 24px rgba(40, 30, 15, 0.05) !important;
+}
+
+html[data-theme="light"] .about-pillar-icon-wrap {
+  background: #F7EEDC !important;
+  color: #1A1714 !important;
+}
+
+html[data-theme="light"] .about-pillar-title {
+  color: #1F1B17 !important;
+}
+
+html[data-theme="light"] .about-pillar-desc {
+  color: #5A5248 !important;
+}
+
+html[data-theme="light"] .about-philosophy-section {
+  background: #F2F0EC !important;
+}
+
+html[data-theme="light"] .about-step-content p {
+  color: #1F1B17 !important;
+}
+
+html[data-theme="light"] .about-philosophy-conclusion {
+  border-top: 1px solid #EAE5DD !important;
+}
+
+html[data-theme="light"] .about-philosophy-conclusion p {
+  color: #1A1714 !important;
+  font-weight: 600 !important;
+}
+
+html[data-theme="light"] .about-cta-section {
+  background: #EFECE6 !important;
+}
+
+html[data-theme="light"] .about-cta-card {
+  background: #FFFFFF !important;
+  border: 1px solid #EAE5DD !important;
+  box-shadow: 0 16px 40px rgba(40, 30, 15, 0.08) !important;
+}
+
+html[data-theme="light"] .about-cta-badge {
+  background: #F7EEDC !important;
+  border: 1px solid #E8D6B2 !important;
+  color: #1A1714 !important; /* TEXTO NEGRO EN BEIGE */
+  font-weight: 700 !important;
+}
+
+html[data-theme="light"] .about-cta-title {
+  color: #1F1B17 !important;
+}
+
+html[data-theme="light"] .about-cta-subtitle {
+  color: #5A5248 !important;
+}
+
+html[data-theme="light"] .about-cta-btn {
+  background: #1A1714 !important;
+  color: #F6EBD3 !important;
+}
+
+/* ── 14. CONTACTO (/contacto) ── */
+html[data-theme="light"] .contact-page,
+html[data-theme="light"] .contact-main {
+  background: #F2F0EC !important;
+}
+
+html[data-theme="light"] .contact-hero {
+  background: #F7F5F1 !important;
+  border-bottom: 1px solid #EAE5DD !important;
+}
+
+html[data-theme="light"] .hero-kicker-wrap,
+html[data-theme="light"] .hero-kicker {
+  background: #F7EEDC !important;
+  border: 1px solid #E8D6B2 !important;
+  color: #1A1714 !important; /* TEXTO NEGRO EN BEIGE */
+  font-weight: 700 !important;
+}
+
+html[data-theme="light"] .contact-hero .hero-title {
+  color: #1F1B17 !important;
+}
+
+html[data-theme="light"] .contact-hero .hero-subtitle {
+  color: #5A5248 !important;
+}
+
+html[data-theme="light"] .info-card {
+  background: #FFFFFF !important;
+  border: 1px solid #EAE5DD !important;
+  box-shadow: 0 12px 32px rgba(40, 30, 15, 0.06) !important;
+}
+
+html[data-theme="light"] .info-card-title {
+  color: #1F1B17 !important;
+}
+
+html[data-theme="light"] .info-card-sub {
+  color: #5A5248 !important;
+}
+
+html[data-theme="light"] .info-icon-box {
+  background: #F7EEDC !important;
+  color: #1A1714 !important; /* ICONO NEGRO EN BEIGE */
+}
+
+html[data-theme="light"] .info-item-label {
+  color: #1A1714 !important;
+  font-weight: 800 !important;
+}
+
+html[data-theme="light"] .info-item-value {
+  color: #1F1B17 !important;
+}
+
+html[data-theme="light"] .info-item-sublink {
+  color: #5A5248 !important;
+}
+
+html[data-theme="light"] .info-item-tag {
+  background: #F7EEDC !important;
+  border: 1px solid #E8D6B2 !important;
+  color: #1A1714 !important; /* TEXTO NEGRO EN BEIGE */
+  font-weight: 700 !important;
+}
+
+html[data-theme="light"] .socials-divider {
+  background: #EAE5DD !important;
+}
+
+html[data-theme="light"] .socials-label {
+  color: #5A5248 !important;
+}
+
+html[data-theme="light"] .social-pill {
+  background: #F7F5F1 !important;
+  border: 1px solid #EAE5DD !important;
+  color: #1F1B17 !important;
+}
+
+html[data-theme="light"] .social-pill:hover {
+  background: #F7EEDC !important;
+  border-color: #E8D6B2 !important;
+  color: #1A1714 !important;
+}
+
+html[data-theme="light"] .form-card {
+  background: #FFFFFF !important;
+  border: 1px solid #EAE5DD !important;
+  box-shadow: 0 12px 32px rgba(40, 30, 15, 0.06) !important;
+}
+
+html[data-theme="light"] .form-title {
+  color: #1F1B17 !important;
+}
+
+html[data-theme="light"] .form-sub {
+  color: #5A5248 !important;
+}
+
+html[data-theme="light"] .field-label {
+  color: #1F1B17 !important;
+}
+
+html[data-theme="light"] .field-input,
+html[data-theme="light"] .field-textarea {
+  background: #F7F5F1 !important;
+  border: 1px solid #D9D1C4 !important;
+  color: #1F1B17 !important;
+}
+
+html[data-theme="light"] .field-input::placeholder,
+html[data-theme="light"] .field-textarea::placeholder {
+  color: #8E8477 !important;
+}
+
+html[data-theme="light"] .field-input:focus,
+html[data-theme="light"] .field-textarea:focus {
+  background: #FFFFFF !important;
+  border-color: #1A1714 !important;
+  box-shadow: 0 0 0 3px rgba(26, 23, 20, 0.12) !important;
+}
+
+html[data-theme="light"] .btn-submit {
+  background: #1A1714 !important;
+  color: #F6EBD3 !important;
+  box-shadow: 0 4px 14px rgba(26, 23, 20, 0.18) !important;
+}
+
+html[data-theme="light"] .btn-submit:hover:not(:disabled) {
+  background: #2E2822 !important;
+}
+
+html[data-theme="light"] .success-banner {
+  background: #FFFFFF !important;
+}
+
+html[data-theme="light"] .success-icon-circle {
+  background: #F7EEDC !important;
+  color: #1A1714 !important;
+}
+
+html[data-theme="light"] .success-title {
+  color: #1F1B17 !important;
+}
+
+html[data-theme="light"] .success-text {
+  color: #4A433B !important;
+}
+
+html[data-theme="light"] .map-badge {
+  color: #1F1B17 !important;
+}
+
+html[data-theme="light"] .map-subtitle {
+  color: #5A5248 !important;
+}
+
+html[data-theme="light"] .map-frame-wrapper {
+  border: 1px solid #EAE5DD !important;
+  box-shadow: 0 12px 32px rgba(40, 30, 15, 0.08) !important;
+}
+
+html[data-theme="light"] .map-iframe {
+  filter: none !important; /* Mapa Google Maps nítido en modo claro */
+}
+
+html[data-theme="light"] .newsletter-card {
+  background: #FFFFFF !important;
+  border: 1px solid #EAE5DD !important;
+  box-shadow: 0 12px 32px rgba(40, 30, 15, 0.06) !important;
+}
+
+html[data-theme="light"] .newsletter-title {
+  color: #1F1B17 !important;
+}
+
+html[data-theme="light"] .newsletter-sub {
+  color: #5A5248 !important;
+}
+
+html[data-theme="light"] .newsletter-field {
+  background: #F7F5F1 !important;
+  border: 1px solid #D9D1C4 !important;
+  color: #1F1B17 !important;
+}
+
+html[data-theme="light"] .newsletter-btn {
+  background: #1A1714 !important;
+  color: #F6EBD3 !important;
+}
+
+/* ── 15. PÁGINA VENTA (/venta) ── */
+html[data-theme="light"] .venta-page,
+html[data-theme="light"] .venta-main {
+  background: #F2F0EC !important;
+  color: #1F1B17 !important;
+}
+
+html[data-theme="light"] .venta-hero {
+  background: #F7F5F1 !important;
+  border-bottom: 1px solid #EAE5DD !important;
+}
+
+html[data-theme="light"] .venta-hero__badge {
+  background: #F7EEDC !important;
+  border: 1px solid #E8D6B2 !important;
+  color: #1A1714 !important; /* TEXTO NEGRO EN BEIGE */
+  font-weight: 700 !important;
+  box-shadow: 0 2px 8px rgba(40, 30, 15, 0.06) !important;
+}
+
+html[data-theme="light"] .venta-hero__badge-icon {
+  background: #1A1714 !important;
+  color: #F6EBD3 !important;
+}
+
+html[data-theme="light"] .venta-hero__title {
+  color: #1F1B17 !important;
+}
+
+html[data-theme="light"] .venta-hero__title-accent {
+  background: none !important;
+  -webkit-background-clip: unset !important;
+  -webkit-text-fill-color: #1A1714 !important;
+  color: #1A1714 !important;
+}
+
+html[data-theme="light"] .venta-hero__desc {
+  color: #4A433B !important;
+}
+
+html[data-theme="light"] .venta-hero__desc strong {
+  color: #1A1714 !important;
+}
+
+html[data-theme="light"] .venta-logos-card {
+  background: #FFFFFF !important;
+  border: 1px solid #EAE5DD !important;
+  box-shadow: 0 10px 28px rgba(40, 30, 15, 0.08) !important;
+}
+
+html[data-theme="light"] .venta-logos-card__img {
+  filter: none !important;
+}
+
+html[data-theme="light"] .venta-card,
+html[data-theme="light"] .spec-card,
+html[data-theme="light"] .price-card {
+  background: #FFFFFF !important;
+  border: 1px solid #EAE5DD !important;
+  box-shadow: 0 4px 18px rgba(40, 30, 15, 0.05) !important;
+}
+
+html[data-theme="light"] .venta-card__title {
+  color: #1F1B17 !important;
+}
+
+html[data-theme="light"] .venta-card__desc {
+  color: #5A5248 !important;
+}
+
+html[data-theme="light"] .venta-price-tag {
+  color: #1A1714 !important;
+  font-weight: 800 !important;
+}
+
+html[data-theme="light"] .venta-btn-gold,
+html[data-theme="light"] .venta-btn-primary {
+  background: #1A1714 !important;
+  color: #F6EBD3 !important;
+}
+
+html[data-theme="light"] .venta-btn-gold-outline {
+  background: #FFFFFF !important;
+  border: 1px solid #D9D1C4 !important;
+  color: #1A1714 !important;
+}
+
+html[data-theme="light"] .custom-dropdown__label {
+  color: #1F1B17 !important;
+}
+
+html[data-theme="light"] .custom-dropdown__trigger {
+  background: #FFFFFF !important;
+  border: 1px solid #D9D1C4 !important;
+  color: #1F1B17 !important;
+}
+
+html[data-theme="light"] .custom-dropdown__menu {
+  background: #FFFFFF !important;
+  border: 1px solid #EAE5DD !important;
+  box-shadow: 0 10px 28px rgba(40, 30, 15, 0.12) !important;
+}
+
+html[data-theme="light"] .custom-dropdown__option {
+  color: #1F1B17 !important;
+}
+
+html[data-theme="light"] .custom-dropdown__option:hover {
+  background: #F7EEDC !important;
+  color: #1A1714 !important;
+}
+
+html[data-theme="light"] .venta-reviews__title {
+  color: #1F1B17 !important;
+}
+
+html[data-theme="light"] .venta-reviews__desc {
+  color: #5A5248 !important;
+}
+
+/* ── 16. CHECKOUT Y PASARELA REDSYS (/checkout, /checkout/success, /checkout/error) ── */
+html[data-theme="light"] .checkout-page {
+  background: #F2F0EC !important;
+}
+
+html[data-theme="light"] .summary-card,
+html[data-theme="light"] .payment-card {
+  background: #FFFFFF !important;
+  border: 1px solid #EAE5DD !important;
+  box-shadow: 0 12px 32px rgba(40, 30, 15, 0.06) !important;
+}
+
+html[data-theme="light"] .summary-badge {
+  background: #F7EEDC !important;
+  border: 1px solid #E8D6B2 !important;
+  color: #1A1714 !important; /* TEXTO NEGRO EN BEIGE */
+  font-weight: 700 !important;
+}
+
+html[data-theme="light"] .summary-camper-title,
+html[data-theme="light"] .payment-title {
+  color: #1F1B17 !important;
+}
+
+html[data-theme="light"] .summary-dates,
+html[data-theme="light"] .summary-pax {
+  color: #5A5248 !important;
+}
+
+html[data-theme="light"] .summary-row {
+  color: #5A5248 !important;
+}
+
+html[data-theme="light"] .summary-row--bold {
+  color: #1F1B17 !important;
+}
+
+html[data-theme="light"] .summary-total {
+  border-top: 1px solid #EAE5DD !important;
+  color: #1F1B17 !important;
+}
+
+html[data-theme="light"] .summary-total__amount {
+  color: #1A1714 !important;
+  font-weight: 800 !important;
+}
+
+html[data-theme="light"] .summary-safety-notice {
+  background: #F7EEDC !important;
+  border: 1px solid #E8D6B2 !important;
+  color: #1A1714 !important; /* TEXTO NEGRO EN BEIGE */
+}
+
+html[data-theme="light"] .summary-safety-title {
+  color: #1A1714 !important; /* TEXTO NEGRO EN BEIGE */
+  font-weight: 700 !important;
+}
+
+html[data-theme="light"] .payment-method-item {
+  background: #F7F5F1 !important;
+  border: 1px solid #EAE5DD !important;
+}
+
+html[data-theme="light"] .payment-method-item--selected {
+  border-color: #1A1714 !important;
+  background: #FFFFFF !important;
+}
+
+html[data-theme="light"] .payment-method-label {
+  color: #1F1B17 !important;
+}
+
+html[data-theme="light"] .payment-method-desc {
+  color: #5A5248 !important;
+}
+
+html[data-theme="light"] .checkout-submit-btn {
+  background: #1A1714 !important;
+  color: #F6EBD3 !important;
+}
+
+/* Success */
+html[data-theme="light"] .success-container {
+  color: #1F1B17 !important;
+}
+
+html[data-theme="light"] .success-title {
+  color: #1F1B17 !important;
+}
+
+html[data-theme="light"] .success-badge {
+  background: #F7EEDC !important;
+  border: 1px solid #E8D6B2 !important;
+  color: #1A1714 !important; /* TEXTO NEGRO EN BEIGE */
+  font-weight: 700 !important;
+}
+
+html[data-theme="light"] .success-ref {
+  color: #5A5248 !important;
+}
+
+html[data-theme="light"] .success-ref strong {
+  color: #1F1B17 !important;
+}
+
+html[data-theme="light"] .success-desc {
+  color: #4A433B !important;
+}
+
+html[data-theme="light"] .docs-card,
+html[data-theme="light"] .success-completed-card {
+  background: #FFFFFF !important;
+  border: 1px solid #EAE5DD !important;
+  box-shadow: 0 16px 40px rgba(40, 30, 15, 0.08) !important;
+}
+
+html[data-theme="light"] .docs-title,
+html[data-theme="light"] .success-completed-title {
+  color: #1F1B17 !important;
+}
+
+html[data-theme="light"] .docs-sub,
+html[data-theme="light"] .success-completed-desc {
+  color: #5A5248 !important;
+}
+
+html[data-theme="light"] .field-group label {
+  color: #1F1B17 !important;
+}
+
+html[data-theme="light"] .field-group input {
+  background: #F7F5F1 !important;
+  border: 1px solid #D9D1C4 !important;
+  color: #1F1B17 !important;
+}
+
+html[data-theme="light"] .doc-upload-box {
+  background: #F7F5F1 !important;
+  border: 2px dashed #D9D1C4 !important;
+  color: #1F1B17 !important;
+}
+
+html[data-theme="light"] .btn-gold {
+  background: #1A1714 !important;
+  color: #F6EBD3 !important;
+}
+
+html[data-theme="light"] .btn-dark-outline {
+  background: #FFFFFF !important;
+  border: 1px solid #D9D1C4 !important;
+  color: #1F1B17 !important;
+}
+
+/* Error */
+html[data-theme="light"] .checkout-error-card {
+  background: #FFFFFF !important;
+  border: 1px solid #EAE5DD !important;
+  box-shadow: 0 16px 40px rgba(40, 30, 15, 0.08) !important;
+}
+
+html[data-theme="light"] .checkout-error-title {
+  color: #1F1B17 !important;
+}
+
+html[data-theme="light"] .checkout-error-ref {
+  color: #5A5248 !important;
+}
+
+html[data-theme="light"] .checkout-error-msg {
+  color: #4A433B !important;
+}
+
+html[data-theme="light"] .checkout-btn-gold {
+  background: #1A1714 !important;
+  color: #F6EBD3 !important;
+}
+
+html[data-theme="light"] .checkout-error-link {
+  color: #5A5248 !important;
+}
+
+html[data-theme="light"] .checkout-error-link:hover {
+  color: #1F1B17 !important;
+}
+
+/* ── 17. AUTENTICACIÓN (/auth/login, /auth/register) ── */
+html[data-theme="light"] .auth-page {
+  background: #F2F0EC !important;
+}
+
+html[data-theme="light"] .auth-page__card {
+  background: #FFFFFF !important;
+  border: 1px solid #EAE5DD !important;
+  box-shadow: 0 20px 50px rgba(40, 30, 15, 0.10) !important;
+}
+
+html[data-theme="light"] .auth-page__back-link {
+  background: #F7F5F1 !important;
+  border: 1px solid #EAE5DD !important;
+  color: #1F1B17 !important;
+}
+
+html[data-theme="light"] .auth-page__logo-img {
+  filter: none !important;
+}
+
+html[data-theme="light"] .auth-page__title {
+  color: #1F1B17 !important;
+}
+
+html[data-theme="light"] .auth-page__subtitle {
+  color: #5A5248 !important;
+}
+
+html[data-theme="light"] .auth-form-label {
+  color: #1F1B17 !important;
+}
+
+html[data-theme="light"] .auth-form-input {
+  background: #F7F5F1 !important;
+  border: 1px solid #D9D1C4 !important;
+  color: #1F1B17 !important;
+}
+
+html[data-theme="light"] .auth-form-input:focus {
+  background: #FFFFFF !important;
+  border-color: #1A1714 !important;
+}
+
+html[data-theme="light"] .auth-submit-btn,
+html[data-theme="light"] .auth-page .auth-btn-primary {
+  background: #1A1714 !important;
+  color: #F6EBD3 !important;
+}
+
+html[data-theme="light"] .auth-footer-text {
+  color: #5A5248 !important;
+}
+
+html[data-theme="light"] .auth-footer-link {
+  color: #1A1714 !important;
+  font-weight: 700 !important;
+}
+
+/* ── 18. PÁGINAS LEGALES (/legal/terminos, /legal/privacidad, /legal/cookies) ── */
+html[data-theme="light"] .legal-page {
+  background: #F2F0EC !important;
+  color: #1F1B17 !important;
+}
+
+html[data-theme="light"] .legal-card {
+  background: #FFFFFF !important;
+  border: 1px solid #EAE5DD !important;
+  box-shadow: 0 16px 40px rgba(40, 30, 15, 0.06) !important;
+}
+
+html[data-theme="light"] .legal-back-btn {
+  background: #F7F5F1 !important;
+  border: 1px solid #EAE5DD !important;
+  color: #1F1B17 !important;
+}
+
+html[data-theme="light"] .legal-card__icon-wrap {
+  background: #F7EEDC !important;
+  border: 1px solid #E8D6B2 !important;
+  color: #1A1714 !important; /* ICONO NEGRO EN BEIGE */
+}
+
+html[data-theme="light"] .legal-card__title,
+html[data-theme="light"] .legal-card h1 {
+  color: #1F1B17 !important;
+}
+
+html[data-theme="light"] .legal-card__subtitle {
+  color: #5A5248 !important;
+}
+
+html[data-theme="light"] .legal-card__divider {
+  background: #EAE5DD !important;
+}
+
+html[data-theme="light"] .legal-card__body,
+html[data-theme="light"] .legal-card p,
+html[data-theme="light"] .legal-text {
+  color: #3E3730 !important;
+}
+
+html[data-theme="light"] .legal-heading,
+html[data-theme="light"] .legal-card h2,
+html[data-theme="light"] .legal-card h3 {
+  color: #1F1B17 !important;
+}
+
+html[data-theme="light"] .legal-heading::before {
+  background: #1A1714 !important;
+}
+
+html[data-theme="light"] .legal-list li {
+  color: #3E3730 !important;
+}
+
+html[data-theme="light"] .legal-list li strong {
+  color: #1F1B17 !important;
+}
+
+html[data-theme="light"] .legal-link {
+  color: #1A1714 !important;
+  font-weight: 700 !important;
+  text-decoration: underline !important;
+}
+
+/* ── 19. PÁGINA PÚBLICA DE RESERVA (/reservar) ── */
+html[data-theme="light"] .reservar-page {
+  background: #F2F0EC !important;
+}
+
+html[data-theme="light"] .reservar-hero {
+  background: radial-gradient(ellipse 80% 60% at 50% -20%, rgba(204, 160, 83, 0.15), transparent 70%), #F2F0EC !important;
+  border-bottom: 1px solid #E2DBD3 !important;
+  color: #1A1714 !important;
+}
+
+html[data-theme="light"] .reservar-hero__eyebrow span {
+  color: #857B6F !important;
+  font-weight: 700 !important;
+}
+
+html[data-theme="light"] .reservar-hero__title {
+  color: #1A1714 !important;
+}
+
+html[data-theme="light"] .reservar-hero__subtitle {
+  color: #5A5248 !important;
+}
+
+/* Buscador flotante en /reservar */
+html[data-theme="light"] .reservar-searchbar {
+  background: #FAF8F5 !important;
+  border: 1px solid #D9D1C4 !important;
+  box-shadow: 0 16px 40px rgba(40, 30, 15, 0.08), inset 0 1px 0 rgba(255, 255, 255, 0.6) !important;
+}
+
+html[data-theme="light"] .reservar-searchbar:hover {
+  border-color: #CCA053 !important;
+  box-shadow: 0 20px 48px rgba(40, 30, 15, 0.12) !important;
+}
+
+html[data-theme="light"] .reservar-search__field--clickable:hover {
+  background: rgba(204, 160, 83, 0.10) !important;
+}
+
+html[data-theme="light"] .reservar-search__field--active {
+  background: #F7EEDC !important;
+}
+
+html[data-theme="light"] .reservar-search__field-label {
+  color: #6E655A !important;
+  font-weight: 700 !important;
+}
+
+html[data-theme="light"] .reservar-search__field-value {
+  color: #1A1714 !important;
+  font-weight: 700 !important;
+}
+
+html[data-theme="light"] .reservar-search__field-placeholder {
+  color: #857B6F !important;
+}
+
+html[data-theme="light"] .reservar-search__separator {
+  background: #D9D1C4 !important;
+}
+
+html[data-theme="light"] .reservar-search__pax-btn {
+  border: 1px solid #D9D1C4 !important;
+  color: #1A1714 !important;
+  background: #F2EFE9 !important;
+}
+
+html[data-theme="light"] .reservar-search__pax-btn:hover:not(:disabled) {
+  border-color: #CCA053 !important;
+  background: #CCA053 !important;
+  color: #1A1714 !important;
+}
+
+html[data-theme="light"] .reservar-search__pax-num {
+  color: #1A1714 !important;
+  font-weight: 700 !important;
+}
+
+html[data-theme="light"] .reservar-search__guarantees {
+  color: #6E655A !important;
+}
+
+/* Banner de estado de disponibilidad tras seleccionar fechas */
+html[data-theme="light"] .reservar-status-banner {
+  background: #FAF8F5 !important;
+  border: 1px solid #E2DBD3 !important;
+  box-shadow: 0 8px 24px rgba(40, 30, 15, 0.06) !important;
+}
+
+html[data-theme="light"] .reservar-status-banner__info {
+  color: #1A1714 !important;
+}
+
+html[data-theme="light"] .reservar-status-banner__reset-btn {
+  background: #F2EFE9 !important;
+  border: 1px solid #D9D1C4 !important;
+  color: #1A1714 !important;
+}
+
+html[data-theme="light"] .reservar-status-banner__reset-btn:hover {
+  background: #CCA053 !important;
+  border-color: #CCA053 !important;
+  color: #1A1714 !important;
+}
+
+html[data-theme="light"] .reservar-prompt-banner {
+  background: #F7EEDC !important;
+  border: 1px solid #E8D6B2 !important;
+  color: #1A1714 !important; /* TEXTO NEGRO EN BEIGE */
+}
+
+/* Filtros de modelo en /reservar */
+html[data-theme="light"] .reservar__filter-btn {
+  background: #FAF8F5 !important;
+  border: 1px solid #D9D1C4 !important;
+  color: #1A1714 !important;
+}
+
+html[data-theme="light"] .reservar__filter-btn:hover {
+  border-color: #CCA053 !important;
+  background: #F2EFE9 !important;
+  color: #1A1714 !important;
+}
+
+html[data-theme="light"] .reservar__filter-btn--active {
+  background: #1A1714 !important;
+  border-color: #1A1714 !important;
+  color: #F6EBD3 !important;
+  box-shadow: 0 4px 16px rgba(26, 23, 20, 0.22) !important;
+}
+
+/* Pilares de servicio en /reservar */
+html[data-theme="light"] .reservar__pillars {
+  border-top: 1px solid #E2DBD3 !important;
+}
+
+html[data-theme="light"] .reservar__pillar-item {
+  background: #FAF8F5 !important;
+  border: 1px solid #E2DBD3 !important;
+}
+
+html[data-theme="light"] .reservar__pillar-item:hover {
+  border-color: #CCA053 !important;
+}
+
+html[data-theme="light"] .reservar__pillar-icon {
+  background: #F7EEDC !important;
+  color: #B8893A !important;
+}
+
+html[data-theme="light"] .reservar__pillar-text h4 {
+  color: #1A1714 !important;
+}
+
+html[data-theme="light"] .reservar__pillar-text p {
+  color: #5A5248 !important;
+}
+

@@ -13,7 +13,7 @@ export default function VentaPage() {
   return (
     <>
       <Navbar />
-      <main style={{ paddingTop: 72, background: '#0B0C0E', minHeight: '100vh' }}>
+      <main className="venta-main">
         <VentaClient />
       </main>
       <Footer />

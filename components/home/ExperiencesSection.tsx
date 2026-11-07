@@ -1,6 +1,6 @@
 'use client'
 
-import { Coffee, Compass, Utensils, Moon, Sparkles } from 'lucide-react'
+import { Coffee, Compass, Utensils, Moon, Heart } from 'lucide-react'
 import { useTranslations } from 'next-intl'
 
 export default function ExperiencesSection() {
@@ -57,7 +57,7 @@ export default function ExperiencesSection() {
         {/* Header Editorial */}
         <div className="experiences__header">
           <div className="experiences__eyebrow-badge">
-            <Sparkles size={12} className="experiences__eyebrow-icon" />
+            <Heart size={12} className="experiences__eyebrow-icon" />
             <span>Mallorca en Pareja</span>
           </div>
           <h2 className="experiences__title text-display">

@@ -11,7 +11,6 @@ import {
   AlertCircle,
   HelpCircle,
   Clock,
-  Sparkles,
   Info,
   CalendarRange,
   ArrowRight,

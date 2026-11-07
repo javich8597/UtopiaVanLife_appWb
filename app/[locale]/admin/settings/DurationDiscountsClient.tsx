@@ -11,7 +11,6 @@ import {
   Loader2,
   AlertCircle,
   Clock,
-  Sparkles,
   X
 } from 'lucide-react'
 import { DurationDiscount } from '@/lib/pricing/engine'

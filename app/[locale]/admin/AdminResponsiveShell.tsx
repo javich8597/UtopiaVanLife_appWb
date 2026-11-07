@@ -3,7 +3,7 @@
 import React, { useState, useEffect, useRef } from 'react'
 import { Link, usePathname, useRouter } from '@/i18n/routing'
 import {
-  Menu, X, Globe, Home, Search, Plus, CalendarX2, Truck, ShieldCheck, Sparkles, Clock, LogOut,
+  Menu, X, Globe, Home, Search, Plus, CalendarX2, Truck, ShieldCheck, Package, Clock, LogOut,
 } from 'lucide-react'
 import AdminNavClient, { AdminNavCounts, currentSectionLabel, isNavItemActive, navItems } from './AdminNavClient'
 import AdminSidebarFooterClient, { signOutAdmin } from './AdminSidebarFooterClient'
@@ -29,7 +29,7 @@ const QUICK_ACTIONS = [
   { label: 'Cobros pendientes', hint: 'Reservas sin pagar', href: '/admin/bookings?status=pending', icon: Clock },
   { label: 'Validar carnets', hint: 'Documentación por revisar', href: '/admin/verifications', icon: ShieldCheck },
   { label: 'Añadir camper', hint: 'Nueva ficha de vehículo', href: '/admin/campers', icon: Truck },
-  { label: 'Añadir extra', hint: 'Catálogo del checkout', href: '/admin/settings#extras', icon: Sparkles },
+  { label: 'Añadir extra', hint: 'Catálogo del checkout', href: '/admin/settings#extras', icon: Package },
 ]
 
 function Brand({ onClick }: { onClick?: () => void }) {

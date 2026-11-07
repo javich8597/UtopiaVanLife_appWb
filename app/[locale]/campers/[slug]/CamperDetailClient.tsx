@@ -4,7 +4,6 @@ import { useState, useRef } from 'react'
 import Link from 'next/link'
 import {
   ChevronRight,
-  Sparkles,
   Heart,
   Clock,
   ShieldCheck
@@ -297,7 +296,7 @@ export default function CamperDetailClient({
             </div>
 
             <div className="sidebar-price-block">
-              <span className="sidebar-price-label">Desde</span>
+              <span className="sidebar-price-label">desde</span>
               <span className="sidebar-price-amount">{basePrice}€</span>
               <span className="sidebar-price-unit">/ noche</span>
             </div>
@@ -306,7 +305,6 @@ export default function CamperDetailClient({
               href={`/${locale}/reserva/${slug}${initialFrom && initialTo ? `?from=${initialFrom}&to=${initialTo}` : ''}`}
               className="sidebar-cta-btn"
             >
-              <Sparkles size={16} />
               <span>Reservar esta Camper</span>
               <ChevronRight size={16} />
             </Link>
@@ -524,12 +522,14 @@ export default function CamperDetailClient({
         .sidebar-price-block {
           display: flex;
           align-items: baseline;
-          gap: 4px;
           margin-bottom: 20px;
         }
         .sidebar-price-label {
-          font-size: 14px;
-          color: rgba(255, 255, 255, 0.5);
+          font-size: 11px;
+          color: rgba(255, 255, 255, 0.45);
+          font-weight: 500;
+          text-transform: lowercase;
+          margin-right: 9px;
         }
         .sidebar-price-amount {
           font-size: 32px;
@@ -539,6 +539,7 @@ export default function CamperDetailClient({
         .sidebar-price-unit {
           font-size: 14px;
           color: rgba(255, 255, 255, 0.5);
+          margin-left: 2.5px;
         }
         :global(.sidebar-cta-btn) {
           display: flex;

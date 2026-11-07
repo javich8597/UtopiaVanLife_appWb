@@ -3,7 +3,7 @@
 import React, { useState } from 'react'
 import { useBodyScrollLock } from '@/lib/ui/useBodyScrollLock'
 import {
-  Sparkles,
+  Package,
   Plus,
   Edit3,
   Trash2,
@@ -43,7 +43,7 @@ interface Props {
 }
 
 const AVAILABLE_ICONS = [
-  { id: 'sparkles', label: 'Brillo / Limpieza', Icon: Sparkles },
+  { id: 'package', label: 'Pack / Equipamiento', Icon: Package },
   { id: 'waves', label: 'Snorkel / Olas', Icon: Waves },
   { id: 'armchair', label: 'Silla / Asiento', Icon: Armchair },
   { id: 'table', label: 'Mesa', Icon: TableIcon },
@@ -72,7 +72,7 @@ export default function ExtrasTableClient({ initialExtras }: Props) {
     description_es: '',
     price: 25,
     price_type: 'per_rental' as 'per_rental' | 'per_day',
-    icon: 'sparkles',
+    icon: 'package',
     is_active: true,
   })
   const [formError, setFormError] = useState('')
@@ -94,7 +94,7 @@ export default function ExtrasTableClient({ initialExtras }: Props) {
       description_es: '',
       price: 20,
       price_type: 'per_rental',
-      icon: 'sparkles',
+      icon: 'package',
       is_active: true,
     })
     setFormError('')
@@ -111,7 +111,7 @@ export default function ExtrasTableClient({ initialExtras }: Props) {
       description_es: extra.description_es || '',
       price: Number(extra.price) || 0,
       price_type: extra.price_type === 'per_day' ? 'per_day' : 'per_rental',
-      icon: extra.icon || 'sparkles',
+      icon: extra.icon || 'package',
       is_active: extra.is_active ?? true,
     })
     setFormError('')
@@ -247,7 +247,7 @@ export default function ExtrasTableClient({ initialExtras }: Props) {
 
   const renderIcon = (iconName?: string) => {
     const found = AVAILABLE_ICONS.find(i => i.id === iconName)
-    const IconComponent = found ? found.Icon : Sparkles
+    const IconComponent = found ? found.Icon : Package
     return <IconComponent size={16} />
   }
 
@@ -256,7 +256,7 @@ export default function ExtrasTableClient({ initialExtras }: Props) {
       <div className="settings-section__head">
         <div>
           <h2 className="adm-card-title">
-            <span className="adm-icon-square"><Sparkles size={22} /></span>
+            <span className="adm-icon-square"><Package size={22} /></span>
             Extras del checkout
           </h2>
           <p className="settings-section__desc">Equipamiento que el viajero puede añadir al reservar.</p>
@@ -402,7 +402,7 @@ export default function ExtrasTableClient({ initialExtras }: Props) {
             {extras.length === 0 && (
               <tr>
                 <td colSpan={6} style={{ textAlign: 'center', padding: 'var(--space-10)', color: 'var(--adm-text-2)' }}>
-                  <Sparkles size={32} style={{ color: 'var(--adm-border-strong)', margin: '0 auto 8px' }} />
+                  <Package size={32} style={{ color: 'var(--adm-border-strong)', margin: '0 auto 8px' }} />
                   <p style={{ fontWeight: 600, margin: '4px 0' }}>No hay extras configurados</p>
                   <p className="text-xs" style={{ color: 'var(--adm-text-3)' }}>
                     Haz clic en "Nuevo Extra" para añadir equipamiento adicional al catálogo.
@@ -512,7 +512,7 @@ export default function ExtrasTableClient({ initialExtras }: Props) {
                     justifyContent: 'center',
                   }}
                 >
-                  <Sparkles size={18} />
+                  <Package size={18} />
                 </div>
                 <div>
                   <h3 className="text-h4" style={{ margin: 0, fontSize: '1.05rem', fontWeight: 700 }}>

@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useRef, useCallback } from 'react'
 import Image from 'next/image'
-import { Sparkles, Eye, Compass, MoveHorizontal } from 'lucide-react'
+import { Eye, Compass, MoveHorizontal } from 'lucide-react'
 import { Link } from '@/i18n/routing'
 import { useTranslations, useLocale } from 'next-intl'
 
@@ -165,7 +165,7 @@ export default function Rotating3DShowcase() {
     <section className="showcase-section" aria-label="Galería interactiva en 3D de Utopia Van Life">
       <div className="container showcase-header">
         <div className="showcase-eyebrow">
-          <Sparkles size={13} className="text-forest" />
+          <Eye size={13} className="text-forest" />
           <span>{isEs ? 'EXPERIENCIA VISUAL 360°' : '360° VISUAL EXPERIENCE'}</span>
         </div>
         <h2 className="showcase-title">

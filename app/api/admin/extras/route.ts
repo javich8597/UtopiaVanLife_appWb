@@ -92,7 +92,7 @@ export async function POST(request: Request) {
       description_en: description_en?.trim() || null,
       price: parsedPrice,
       price_type: validPriceType,
-      icon: icon?.trim() || 'sparkles',
+      icon: icon?.trim() || 'package',
       is_active: is_active !== undefined ? Boolean(is_active) : true,
     }
 

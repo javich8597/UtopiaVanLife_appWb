@@ -1,7 +1,7 @@
 'use client'
 
 import React, { useState, useEffect } from 'react'
-import { Calendar as CalendarIcon, Clock, Users, Plus, Minus, AlertCircle, Sparkles, CheckCircle2, Info } from 'lucide-react'
+import { Calendar as CalendarIcon, Clock, Users, Plus, Minus, AlertCircle, CheckCircle2, Info } from 'lucide-react'
 import BookingCalendar, { BlockedRange } from '@/components/booking/BookingCalendar'
 import { BlockedSlot } from '@/lib/booking/availability'
 import { DaySlot, Step1Data, WizardCamper } from './types'

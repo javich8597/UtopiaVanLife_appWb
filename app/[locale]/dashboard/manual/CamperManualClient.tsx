@@ -14,7 +14,7 @@ import {
   ChevronDown,
   ChevronUp,
   AlertTriangle,
-  Sparkles,
+  Lightbulb,
   Play,
   Video,
   Phone,
@@ -646,7 +646,7 @@ export default function CamperManualClient() {
 
                   {guide.proTip && (
                     <div className="tip-box">
-                      <Sparkles size={16} style={{ color: 'var(--usr-text)', flexShrink: 0, marginTop: 2 }} />
+                      <Lightbulb size={16} style={{ color: 'var(--usr-text)', flexShrink: 0, marginTop: 2 }} />
                       <div>
                         <strong style={{ display: 'block', fontSize: '0.8rem', color: 'var(--usr-text)', marginBottom: 2 }}>Consejo Utopia</strong>
                         <span className="text-small" style={{ color: 'var(--usr-text-2)' }}>{guide.proTip}</span>
@@ -811,7 +811,7 @@ export default function CamperManualClient() {
 
                     {item.note && (
                       <div className="troubleshoot-tip-box">
-                        <Sparkles size={16} style={{ color: 'var(--usr-gold-text)', flexShrink: 0, marginTop: 2 }} />
+                        <HelpCircle size={16} style={{ color: 'var(--usr-gold-text)', flexShrink: 0, marginTop: 2 }} />
                         <div>
                           <strong style={{ display: 'block', fontSize: '0.8rem', color: 'var(--usr-gold-text)', marginBottom: 2 }}>Nota del equipo Utopia:</strong>
                           <span className="text-small" style={{ color: 'var(--usr-text-2)' }}>{item.note}</span>

@@ -28,6 +28,7 @@ export default function CamperStickyBookingBar({
         {/* Left: Price and flexible cancellation */}
         <div className="price-meta-block">
           <div className="price-tag-row">
+            <span className="price-from">desde</span>
             <span className="price-number">{pricePerNight}€</span>
             <span className="price-unit">/ noche</span>
           </div>
@@ -104,7 +105,14 @@ export default function CamperStickyBookingBar({
         .price-tag-row {
           display: flex;
           align-items: baseline;
-          gap: 6px;
+        }
+        .price-from {
+          font-size: 9.5px;
+          color: rgba(255, 255, 255, 0.45);
+          font-weight: 500;
+          text-transform: lowercase;
+          letter-spacing: 0.02em;
+          margin-right: 9px;
         }
         .price-number {
           font-size: 24px;
@@ -116,6 +124,7 @@ export default function CamperStickyBookingBar({
           font-size: 12px;
           color: rgba(255, 255, 255, 0.5);
           font-weight: 400;
+          margin-left: 3px;
         }
         .cancellation-badge {
           display: flex;

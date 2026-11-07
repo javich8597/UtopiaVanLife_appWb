@@ -6,7 +6,7 @@ import { Link } from '@/i18n/routing'
 import Navbar from '@/components/layout/Navbar'
 import Footer from '@/components/layout/Footer'
 import CamperCard from '@/components/campers/CamperCard'
-import { Sparkles, Shield, BatteryCharging, Coffee, MapPin } from 'lucide-react'
+import { Shield, BatteryCharging, Coffee, MapPin } from 'lucide-react'
 import { useTranslations } from 'next-intl'
 
 const SEASON_PRICES: Record<string, number> = {
@@ -398,7 +398,6 @@ export default function CampersPage() {
                 <section className="catalog-hero">
                     <div className="container catalog-hero__container">
                         <div className="catalog-hero__eyebrow">
-                            <Sparkles size={13} className="catalog-hero__sparkle" />
                             <span>{t('flota')} · BOUTIQUE CAMPERS MALLORCA</span>
                         </div>
                         <h1 className="catalog-hero__title">
@@ -459,9 +458,6 @@ export default function CampersPage() {
                     border: 1px solid rgba(204, 160, 83, 0.28);
                     padding: 5px 16px;
                     border-radius: 999px;
-                }
-                :global(.catalog-hero__sparkle) {
-                    color: #CCA053;
                 }
 
                 .catalog-hero__title {

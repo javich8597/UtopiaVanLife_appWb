@@ -1,6 +1,6 @@
 'use client'
 
-import { Zap, Bed, Flame, Compass, Sparkles } from 'lucide-react'
+import { Zap, Bed, Flame, Compass } from 'lucide-react'
 import { useTranslations } from 'next-intl'
 
 export default function WhyUtopia() {
@@ -40,7 +40,6 @@ export default function WhyUtopia() {
         <div className="why__header">
           <div className="why__header-left">
             <div className="why__eyebrow-badge">
-              <Sparkles size={12} className="why__eyebrow-icon" />
               <span>Quiet Luxury Sobre Ruedas</span>
             </div>
             <h2 className="why__title text-display">

@@ -2,7 +2,7 @@
 
 import React, { useState } from 'react'
 import {
-    Sparkles,
+    Package,
     Waves,
     Wifi,
     Bike,
@@ -45,7 +45,7 @@ function getExtraIcon(name: string, category: string) {
     if (lower.includes('cine') || lower.includes('proyector')) return <Tv size={20} />
     if (lower.includes('sombrilla') || lower.includes('toldo')) return <Umbrella size={20} />
     if (category === 'Deporte') return <Compass size={20} />
-    return <Sparkles size={20} />
+    return <Package size={20} />
 }
 
 export default function Step4Extras({

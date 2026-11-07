@@ -4,7 +4,7 @@ import Image from 'next/image'
 import { Link } from '@/i18n/routing'
 import { motion } from 'framer-motion'
 import { useTranslations } from 'next-intl'
-import { Compass, CheckCircle2, ArrowRight, Heart, Sparkles, MapPin, Feather, Layers, ShieldCheck } from 'lucide-react'
+import { Compass, CheckCircle2, ArrowRight, Heart, MapPin, Feather, Layers, ShieldCheck } from 'lucide-react'
 
 export default function AboutContent() {
   const t = useTranslations('AboutPage')
@@ -221,7 +221,7 @@ export default function AboutContent() {
                 transition={{ duration: 0.45, delay: 0.12, ease: [0.23, 1, 0.32, 1] }}
               >
                 <div className="about-pillar-icon-wrap">
-                  <Sparkles size={18} />
+                  <Layers size={18} />
                 </div>
                 <h3 className="about-pillar-title">{t('pillar2Title')}</h3>
                 <p className="about-pillar-desc">{t('pillar2Desc')}</p>
@@ -331,7 +331,6 @@ export default function AboutContent() {
             transition={{ duration: 0.6, ease: [0.23, 1, 0.32, 1] }}
           >
             <div className="about-cta-badge">
-              <Sparkles size={13} className="about-cta-badge-icon" />
               <span>{t('ctaBadge')}</span>
             </div>
 

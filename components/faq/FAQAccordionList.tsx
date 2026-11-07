@@ -14,7 +14,6 @@ import {
   AlertCircle,
   HeartHandshake,
   HelpCircle,
-  Sparkles,
   MessageCircle,
   ArrowRight,
   Check,
@@ -198,7 +197,7 @@ export default function FAQAccordionList({
       {/* Header */}
       <div className="faq-header">
         <div className="faq-eyebrow-pill">
-          <Sparkles size={13} className="text-forest" />
+          <HelpCircle size={13} className="text-forest" />
           <span>{isEs ? 'PREGUNTAS FRECUENTES · TRANSPARENCIA' : 'FREQUENTLY ASKED QUESTIONS'}</span>
         </div>
         <Heading className="faq-title text-display">

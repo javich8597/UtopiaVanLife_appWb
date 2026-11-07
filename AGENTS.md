@@ -23,3 +23,26 @@
 5. **Firma Digital y Modales Táctiles:**
    - Todo elemento `<canvas>` interactivo para firmas en móviles DEBE tener `touch-action: none; user-select: none; -webkit-user-select: none;` para impedir que el gesto de firma provoque scroll vertical de la página.
    - Todo modal, visor en pantalla completa o bottom sheet en móvil debe bloquear el scroll del cuerpo (`document.body.style.overflow = 'hidden'`) mientras permanezca montado para evitar desplazamiento fantasma del fondo.
+
+## Agentes especialistas
+
+Los especialistas están en `.claude/agents/` y comparten las reglas de `.claude/reglas-agentes.md`. La sesión principal coordina: reparte el trabajo y revisa los informes.
+
+| Tema | Agente |
+|---|---|
+| Precios, disponibilidad, asistente, Redsys, webhook, reembolsos | `reservas-pagos` |
+| Esquema, migraciones, RLS, Storage | `supabase-datos` |
+| Backoffice `/admin`, entregas y verificaciones | `panel-admin` |
+| Área de cliente `/dashboard`, manual y guía | `panel-cliente` |
+| Contrato, PDF, firma y textos legales | `contratos-legal` |
+| Web pública, SEO, contenido y conversión | `web-seo-contenido` |
+| Traducciones y `next-intl` | `i18n-traductor` |
+| Diseño, responsive, accesibilidad y animación | `ui-responsive` |
+| Auditoría de seguridad y privacidad (solo lectura) | `seguridad-auditor` |
+| Verificación independiente (solo escribe tests) | `qa-verificador` |
+
+Al cerrar un cambio:
+
+- Pagos, autenticación, roles, subidas o RLS: pasa `seguridad-auditor` y `qa-verificador`.
+- Cualquier otro cambio relevante: pasa `qa-verificador`.
+- Quien implementa no verifica su propio trabajo.

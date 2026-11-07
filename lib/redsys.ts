@@ -189,7 +189,10 @@ export function verifyRedsysSignature(
         const normReceived = normalizeBase64(receivedSignature).replace(/=+$/, '')
         const normExpected = normalizeBase64(expectedSignature).replace(/=+$/, '')
 
-        return normReceived === normExpected
+        const received = Buffer.from(normReceived)
+        const expected = Buffer.from(normExpected)
+
+        return received.length === expected.length && crypto.timingSafeEqual(received, expected)
     } catch (e) {
         console.error('Error verifying Redsys signature:', e)
         return false

@@ -1,12 +1,11 @@
-import { NextResponse } from 'next/server'
 import { getSupabaseAdmin } from '@/lib/supabase/admin'
 import {
     getRedsysConfig,
     verifyRedsysSignature,
     decodeMerchantParameters,
-    isRedsysSuccess,
     RedsysNotificationParams,
 } from '@/lib/redsys'
+import { processRedsysNotification } from '@/lib/redsysNotification'
 
 export async function POST(req: Request) {
     try {
@@ -50,90 +49,10 @@ export async function POST(req: Request) {
         }
 
         const notificationData = decodeMerchantParameters<RedsysNotificationParams>(merchantParameters)
-        const orderId = notificationData.Ds_Order || notificationData.DS_ORDER
-        const responseCode = notificationData.Ds_Response !== undefined ? notificationData.Ds_Response : (notificationData as any).DS_RESPONSE
 
-        if (!orderId) {
-            console.error('Redsys Webhook: Número de pedido no encontrado en notificación')
-            return new Response('Missing order ID', { status: 400 })
-        }
-
-        const isSuccess = isRedsysSuccess(responseCode)
-        console.log(`Redsys Webhook: Pedido ${orderId}, Respuesta ${responseCode}, Éxito: ${isSuccess}`)
-
-        // Acceso directo con privilegios de Administrador (bypassing RLS)
-        const supabase = getSupabaseAdmin()
-
-        // Buscar la reserva asociada por el código de pedido de Redsys
-        const { data: booking, error: findError } = await supabase
-            .from('bookings')
-            .select('*')
-            .eq('payment_intent_id', orderId)
-            .maybeSingle()
-
-        if (findError || !booking) {
-            console.warn(`Redsys Webhook: Reserva con pedido ${orderId} no encontrada en Supabase`)
-            return new Response('Booking not found', { status: 200 })
-        }
-
-        if (isSuccess) {
-            // 1. Marcar reserva como pagada, asociar payment_intent_id y mantener en 'pending' a la espera de confirmación del admin
-            await supabase
-                .from('bookings')
-                .update({
-                    payment_status: 'paid',
-                    payment_intent_id: orderId,
-                    status: 'pending',
-                })
-                .eq('id', booking.id)
-
-            // 2. Bloquear fechas en el calendario para asegurar que nadie más pueda reservar este rango
-            // Comprobamos si ya existe el bloqueo para evitar duplicados (idempotencia)
-            const sessionId = `redsys_${orderId}`
-            const { data: existingHold } = await supabase
-                .from('blocked_dates')
-                .select('id')
-                .eq('camper_id', booking.camper_id)
-                .eq('session_id', sessionId)
-                .maybeSingle()
-
-            if (!existingHold) {
-                await supabase
-                    .from('blocked_dates')
-                    .insert({
-                        camper_id: booking.camper_id,
-                        start_date: booking.start_date,
-                        end_date: booking.end_date,
-                        session_id: sessionId,
-                        reason: 'Auto-Bloqueo Redsys',
-                        expires_at: null,
-                    })
-            }
-
-            // 3. Email con enlace de acceso directo a "Mi reserva" (la cuenta se creó en el checkout
-            //    con una contraseña que el cliente no conoce). Solo la primera vez que se confirma el pago.
-            if (booking.payment_status !== 'paid' && booking.customer_email) {
-                const { error: otpErr } = await supabase.auth.signInWithOtp({
-                    email: booking.customer_email,
-                    options: { shouldCreateUser: false },
-                })
-                if (otpErr) console.warn(`Redsys Webhook: no se pudo enviar el enlace de acceso a la reserva ${booking.id}:`, otpErr.message)
-            }
-
-            console.log(`Redsys Webhook: Reserva ${booking.id} pagada y fechas auto-bloqueadas con éxito`)
-        } else {
-            // Pago fallido o denegado por la pasarela
-            await supabase
-                .from('bookings')
-                .update({
-                    payment_status: 'failed',
-                })
-                .eq('id', booking.id)
-
-            console.log(`Redsys Webhook: Reserva ${booking.id} marcada como pago fallido`)
-        }
-
-        return new Response('OK', { status: 200 })
+        // Acceso con privilegios de administrador: la notificación no trae sesión de usuario
+        const { httpStatus, body } = await processRedsysNotification(getSupabaseAdmin(), notificationData)
+        return new Response(body, { status: httpStatus })
     } catch (err: any) {
         console.error('Redsys Webhook Unhandled Exception:', err)
         return new Response('Server Error', { status: 500 })

@@ -708,7 +708,7 @@ export default function HeroSection() {
         }
 
         /* Calendario popover */
-        .hero__calendar-popover {
+        :global(.hero__calendar-popover) {
           position: absolute;
           top: calc(100% + 10px);
           left: 50%;
@@ -747,7 +747,7 @@ export default function HeroSection() {
           font-size: 0.7rem;
         }
 
-        /* Responsive */
+        /* Responsive (Mobile <= 860px as per project standards) */
         @media (max-width: 860px) {
           .hero {
             padding: 95px var(--space-4) 40px;
@@ -758,9 +758,7 @@ export default function HeroSection() {
           .hero__subtitle {
             font-size: 0.98rem;
           }
-        }
 
-        @media (max-width: 768px) {
           /* En móvil solo mostrar el vídeo de fondo a pantalla completa */
           .hero__split-col--left {
             width: 100% !important;
@@ -814,18 +812,21 @@ export default function HeroSection() {
             border-radius: var(--radius-full);
             padding: 14px;
           }
-          .hero__calendar-popover {
-            position: absolute;
-            top: 74px;
-            left: 50%;
-            right: auto;
-            bottom: auto;
-            translate: -50% 0;
-            max-width: 330px;
-            width: 100%;
-            max-height: none;
-            overflow: visible;
-            z-index: 100;
+          .hero__dates-group .hero__field {
+            min-height: 52px;
+          }
+          :global(.hero__calendar-popover) {
+            position: absolute !important;
+            top: 78px !important;
+            bottom: auto !important;
+            left: 50% !important;
+            right: auto !important;
+            translate: -50% 0 !important;
+            max-width: min(340px, calc(100vw - 32px)) !important;
+            width: 100% !important;
+            max-height: none !important;
+            overflow: visible !important;
+            z-index: 100 !important;
           }
           .hero__guarantees {
             flex-direction: column;

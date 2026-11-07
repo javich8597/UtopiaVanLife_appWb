@@ -944,12 +944,13 @@ export default function FAQAccordionList({
         /* Concierge Contact Card */
         .faq-contact-card {
           position: relative;
-          background: linear-gradient(135deg, #1b261e 0%, #111a13 100%);
-          color: white;
+          background: #FFFFFF;
+          color: #1F1B17;
           border-radius: var(--radius-xl);
           padding: var(--space-8);
           overflow: hidden;
-          border: 1px solid rgba(255, 255, 255, 0.08);
+          border: 1px solid #EAE5DD;
+          box-shadow: 0 2px 8px rgba(40, 30, 15, 0.04), 0 12px 28px rgba(40, 30, 15, 0.06);
           margin-top: var(--space-4);
         }
 
@@ -959,7 +960,7 @@ export default function FAQAccordionList({
           right: -40px;
           width: 200px;
           height: 200px;
-          background: radial-gradient(circle, rgba(156, 209, 166, 0.25) 0%, transparent 70%);
+          background: radial-gradient(circle, rgba(204, 160, 83, 0.14) 0%, transparent 70%);
           pointer-events: none;
         }
 
@@ -979,20 +980,24 @@ export default function FAQAccordionList({
           font-size: 0.72rem;
           font-weight: 700;
           letter-spacing: 0.08em;
-          color: #9cd1a6;
+          color: #1A1714;
+          background: #F7EEDC;
+          border: 1px solid #E8D6B2;
+          padding: 5px 12px;
+          border-radius: 999px;
           text-transform: uppercase;
         }
 
         .faq-contact-title {
-          font-family: var(--font-serif, serif);
+          font-family: var(--font-display, inherit);
           font-size: 1.45rem;
-          font-weight: 400;
-          color: white;
+          font-weight: 700;
+          color: #1F1B17;
           margin: 0;
         }
 
         .faq-contact-desc {
-          color: rgba(255, 255, 255, 0.75);
+          color: #5A5248;
           font-size: 0.92rem;
           line-height: 1.55;
           max-width: 600px;
@@ -1160,6 +1165,29 @@ export default function FAQAccordionList({
         .faq-experience--dark .faq-view-all-btn:hover {
           background: #d8ad5e;
           box-shadow: 0 6px 20px rgba(204, 160, 83, 0.35);
+        }
+        .faq-experience--dark .faq-contact-card {
+          background: linear-gradient(135deg, #1b261e 0%, #111a13 100%);
+          color: #FFFFFF;
+          border-color: rgba(255, 255, 255, 0.08);
+          box-shadow: 0 16px 40px rgba(0, 0, 0, 0.5);
+        }
+        .faq-experience--dark .faq-contact-card__glow {
+          background: radial-gradient(circle, rgba(156, 209, 166, 0.25) 0%, transparent 70%);
+        }
+        .faq-experience--dark .faq-contact-badge {
+          background: transparent;
+          border: none;
+          padding: 0;
+          color: #9cd1a6;
+        }
+        .faq-experience--dark .faq-contact-title {
+          font-family: var(--font-serif, serif);
+          font-weight: 400;
+          color: #FFFFFF;
+        }
+        .faq-experience--dark .faq-contact-desc {
+          color: rgba(255, 255, 255, 0.75);
         }
       `}</style>
     </div>

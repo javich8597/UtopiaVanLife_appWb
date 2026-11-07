@@ -694,7 +694,7 @@ function ReservarContent() {
                 }
 
                 /* Calendar Popover */
-                .reservar-search__calendar-popover {
+                :global(.reservar-search__calendar-popover) {
                     position: absolute;
                     top: calc(100% + 10px);
                     left: 50%;
@@ -1010,7 +1010,7 @@ function ReservarContent() {
                     }
                 }
 
-                @media (max-width: 768px) {
+                @media (max-width: 860px) {
                     /* Fechas de salida y llegada en 1 fila 2 columnas fijas y simétricas */
                     .reservar-search__dates-group {
                         display: grid;
@@ -1050,18 +1050,21 @@ function ReservarContent() {
                         border-radius: var(--radius-full);
                         padding: 14px;
                     }
-                    .reservar-search__calendar-popover {
-                        position: absolute;
-                        top: 74px;
-                        left: 50%;
-                        right: auto;
-                        bottom: auto;
-                        translate: -50% 0;
-                        max-width: 330px;
-                        width: 100%;
-                        max-height: none;
-                        overflow: visible;
-                        z-index: 100;
+                    .reservar-search__dates-group .reservar-search__field {
+                        min-height: 52px;
+                    }
+                    :global(.reservar-search__calendar-popover) {
+                        position: absolute !important;
+                        top: 78px !important;
+                        left: 50% !important;
+                        right: auto !important;
+                        bottom: auto !important;
+                        translate: -50% 0 !important;
+                        max-width: min(340px, calc(100vw - 32px)) !important;
+                        width: 100% !important;
+                        max-height: none !important;
+                        overflow: visible !important;
+                        z-index: 100 !important;
                     }
                     .reservar-search__guarantees {
                         flex-direction: column;

@@ -66,7 +66,7 @@ export default function BookingCalendar({
 
     useEffect(() => {
         const checkMobile = () => {
-            setIsMobileScreen(window.innerWidth <= 768)
+            setIsMobileScreen(window.innerWidth <= 860)
         }
         checkMobile()
         window.addEventListener('resize', checkMobile)

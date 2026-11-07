@@ -1,52 +1,32 @@
 import crypto from "crypto";
-import { NextResponse } from 'next/server'
+import { NextRequest, NextResponse } from 'next/server'
 import { getAdminClientOrSession } from '@/lib/admin/auth'
 import { createClient as createServerClient } from '@/lib/supabase/server'
 import { getSupabaseAdmin } from '@/lib/supabase/admin'
 import { validateDriverLicense } from '@/lib/contracts/licenseValidator'
+import { CHECKOUT_ACCESS_COOKIE, resolveCheckoutUploadOwner } from '@/lib/checkoutAccess'
 
-export async function POST(request: Request) {
+export async function POST(request: NextRequest) {
   try {
     const supabase = await createServerClient()
     const { data: { user: sessionUser } } = await supabase.auth.getUser()
     const formData = await request.formData()
 
-    // El checkout no exige sesión previa: tras pagar en Redsys el cliente llega a /checkout/success sin
-    // haber iniciado sesión. En ese caso se identifica por el pedido de Redsys, solo si es una
-    // reserva reciente y el cliente aún no tiene el carnet validado.
+    // Tras pagar en Redsys el cliente llega a /checkout/success sin sesión. El número de pedido viaja
+    // en la URL y no demuestra nada: solo vale el navegador que hizo la reserva.
     let targetUserId: string | null = sessionUser?.id || null
 
     if (!targetUserId) {
       const orderId = (formData.get('orderId') as string) || (formData.get('order') as string) || ''
-      if (orderId) {
-        const adminClient = getSupabaseAdmin()
-        const { data: booking } = await adminClient
-          .from('bookings')
-          .select('id, user_id, payment_status, status, created_at')
-          .eq('payment_intent_id', orderId)
-          .maybeSingle()
-
-        if (booking?.user_id) {
-          const bookingAgeHours = (Date.now() - new Date(booking.created_at).getTime()) / (1000 * 60 * 60)
-          const isRecentOrPaid = bookingAgeHours <= 48 || booking.payment_status === 'paid'
-
-          if (isRecentOrPaid) {
-            const { data: usr } = await adminClient
-              .from('users')
-              .select('verification_status')
-              .eq('id', booking.user_id)
-              .maybeSingle()
-
-            if (usr?.verification_status !== 'verified') {
-              targetUserId = booking.user_id
-            }
-          }
-        }
-      }
+      targetUserId = await resolveCheckoutUploadOwner(
+        getSupabaseAdmin(),
+        orderId,
+        request.cookies.get(CHECKOUT_ACCESS_COOKIE)?.value
+      )
     }
 
     if (!targetUserId) {
-      return NextResponse.json({ error: 'Inicia sesión o indica una referencia de reserva válida para subir tu documentación.' }, { status: 401 })
+      return NextResponse.json({ error: 'Para subir tu documentación, entra con el enlace de acceso que te hemos enviado por email.' }, { status: 401 })
     }
     const user = { id: targetUserId }
 

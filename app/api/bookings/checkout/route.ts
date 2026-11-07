@@ -1,4 +1,5 @@
 import crypto from "crypto";
+import { createCheckoutAccessCookie } from '@/lib/checkoutAccess'
 import { NextResponse } from 'next/server'
 import { getSupabaseAdmin } from '@/lib/supabase/admin'
 import { createClient as createServerClient } from '@/lib/supabase/server'
@@ -773,7 +774,7 @@ export async function POST(req: Request) {
             locale: requestedLocale,
         })
 
-        return NextResponse.json({
+        const response = NextResponse.json({
             success: true,
             bookingId: booking.id,
             orderId,
@@ -788,6 +789,12 @@ export async function POST(req: Request) {
             breakdown,
             passengers: validatedPassengers,
         })
+
+        // Permite recuperar los datos de la reserva a la vuelta de Redsys, que llega sin sesión
+        const access = createCheckoutAccessCookie(orderId)
+        if (access) response.cookies.set(access.name, access.value, access.options)
+
+        return response
     } catch (error: any) {
         console.error('Checkout API error:', error)
         return NextResponse.json({ error: error.message || 'Error interno del servidor' }, { status: 500 })

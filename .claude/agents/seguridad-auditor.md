@@ -29,9 +29,9 @@ Piensa como: visitante anónimo, cliente que edita peticiones desde el navegador
 
 ## Focos abiertos (comprueba si siguen así)
 
-- `app/api/bookings/verify-payment/route.ts` devuelve DNI, dirección, teléfono y email sin sesión a quien conozca el número de pedido, que viaja en la URL de vuelta.
+Tras pagar, el cliente vuelve sin sesión. `verify-payment` y `upload-driver-docs` exigen la cookie firmada de `lib/checkoutAccess.ts`: el número de pedido viaja en la URL y nunca debe dar acceso por sí solo.
+
 - La CSP de `next.config.ts` permite `unsafe-inline` y `unsafe-eval`.
-- `app/api/upload-driver-docs/route.ts` acepta sin sesión a quien aporte un `orderId` reciente y permite escribir datos del titular. ¿Puede filtrarse ese ID por URL, logs o referer?
 - `app/api/bookings/checkout/route.ts` crea o vincula cuentas por email sin sesión: revisa suplantación, enumeración de cuentas y abuso.
 - `app/api/upload-document/route.ts` toma la extensión del nombre del archivo y crea su propio cliente con privilegios.
 - Devolver `error.message` al cliente puede filtrar detalles internos.

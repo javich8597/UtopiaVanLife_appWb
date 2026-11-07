@@ -1,5 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getSupabaseAdmin } from '@/lib/supabase/admin'
+import { createClient } from '@/lib/supabase/server'
+import { buildVerifiedBooking, CHECKOUT_ACCESS_COOKIE, hasCheckoutAccess } from '@/lib/checkoutAccess'
 import {
     getRedsysConfig,
     verifyRedsysSignature,
@@ -11,24 +13,18 @@ import { processRedsysNotification } from '@/lib/redsysNotification'
 interface VerifyPaymentResult {
     success: boolean
     isPaid: boolean
-    booking: {
-        id: string
-        orderId: string
-        camperId: string
-        startDate: string
-        endDate: string
-        totalPrice: number
-        paymentStatus: string
-        status: string
-        customerName: string
-        customerEmail: string
-        customerPhone: string
-        customerDni: string
-        customerAddress: string
-        driverLicenseIssueDate: string | null
-        birthDate: string | null
-    } | null
+    booking: ReturnType<typeof buildVerifiedBooking> | null
     error?: string
+}
+
+/** Conocer el número de pedido no basta: viaja en la URL de vuelta de Redsys */
+async function canReadBookingDetails(ownerId: string | null, orderId: string, accessCookie?: string | null): Promise<boolean> {
+    if (hasCheckoutAccess(orderId, accessCookie)) return true
+    if (!ownerId) return false
+
+    const session = await createClient()
+    const { data: { user } } = await session.auth.getUser()
+    return user?.id === ownerId
 }
 
 async function processPaymentVerification(params: {
@@ -36,9 +32,10 @@ async function processPaymentVerification(params: {
     signatureVersion?: string | null
     merchantParameters?: string | null
     signature?: string | null
+    accessCookie?: string | null
 }): Promise<NextResponse<VerifyPaymentResult>> {
     try {
-        const { signatureVersion, merchantParameters, signature } = params
+        const { signatureVersion, merchantParameters, signature, accessCookie } = params
         let orderId = params.orderId || null
 
         const config = getRedsysConfig()
@@ -102,21 +99,17 @@ async function processPaymentVerification(params: {
             )
         }
 
-        // Obtener datos complementarios de usuario si están disponibles
-        let driverLicenseIssueDate: string | null = null
-        let birthDate: string | null = null
+        let details: Parameters<typeof buildVerifiedBooking>[2] = null
 
-        if (booking.user_id) {
-            const { data: userProfile } = await supabase
-                .from('users')
-                .select('driver_license_issue_date, birth_date')
-                .eq('id', booking.user_id)
-                .maybeSingle()
-
-            if (userProfile) {
-                driverLicenseIssueDate = userProfile.driver_license_issue_date || null
-                birthDate = userProfile.birth_date || null
-            }
+        if (await canReadBookingDetails(booking.user_id ?? null, orderId, accessCookie)) {
+            const { data: profile } = booking.user_id
+                ? await supabase
+                    .from('users')
+                    .select('driver_license_issue_date, birth_date')
+                    .eq('id', booking.user_id)
+                    .maybeSingle()
+                : { data: null }
+            details = { profile }
         }
 
         const isPaid = booking.payment_status === 'paid'
@@ -124,28 +117,12 @@ async function processPaymentVerification(params: {
         return NextResponse.json({
             success: true,
             isPaid,
-            booking: {
-                id: booking.id,
-                orderId: booking.payment_intent_id || orderId,
-                camperId: booking.camper_id,
-                startDate: booking.start_date,
-                endDate: booking.end_date,
-                totalPrice: Number(booking.total_price),
-                paymentStatus: booking.payment_status,
-                status: booking.status,
-                customerName: booking.customer_name || '',
-                customerEmail: booking.customer_email || '',
-                customerPhone: booking.customer_phone || '',
-                customerDni: booking.customer_dni || '',
-                customerAddress: booking.customer_address || '',
-                driverLicenseIssueDate,
-                birthDate,
-            },
+            booking: buildVerifiedBooking(booking, orderId, details),
         })
-    } catch (err: any) {
+    } catch (err) {
         console.error('verify-payment exception:', err)
         return NextResponse.json(
-            { success: false, isPaid: false, booking: null, error: err.message || 'Error interno del servidor' },
+            { success: false, isPaid: false, booking: null, error: 'Error interno del servidor' },
             { status: 500 }
         )
     }
@@ -163,6 +140,7 @@ export async function GET(req: NextRequest) {
         signatureVersion,
         merchantParameters,
         signature,
+        accessCookie: req.cookies.get(CHECKOUT_ACCESS_COOKIE)?.value,
     })
 }
 
@@ -205,5 +183,6 @@ export async function POST(req: NextRequest) {
         signatureVersion,
         merchantParameters,
         signature,
+        accessCookie: req.cookies.get(CHECKOUT_ACCESS_COOKIE)?.value,
     })
 }

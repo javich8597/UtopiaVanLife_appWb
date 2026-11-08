@@ -24,15 +24,20 @@ import {
   CreditCard,
   Package,
   Waves,
-  Check
+  Check,
+  AlertTriangle,
+  Loader2
 } from 'lucide-react'
 import { formatPrice } from '@/lib/pricing/engine'
+import { activePaymentAlerts } from '@/lib/admin/bookingStatus'
 import ApproveActionClient from './ApproveActionClient'
 import RefundActionClient from './RefundActionClient'
 
 interface Props {
   booking: any
   onClose: () => void
+  /** Se llama con las notas nuevas cuando el admin marca los avisos de pago como revisados */
+  onAlertsReviewed?: (notes: string) => void
 }
 
 interface NormalizedExtra {
@@ -45,11 +50,39 @@ interface NormalizedExtra {
   price_type?: string
 }
 
-export default function BookingDetailModal({ booking, onClose }: Props) {
+export default function BookingDetailModal({ booking, onClose, onAlertsReviewed }: Props) {
   useBodyScrollLock()
   const [showContractPreview, setShowContractPreview] = useState(false)
+  const [reviewing, setReviewing] = useState(false)
+  const [reviewError, setReviewError] = useState<string | null>(null)
 
   if (!booking) return null
+
+  const paymentAlerts = activePaymentAlerts(booking.notes)
+
+  const markAlertsReviewed = async () => {
+    const ok = window.confirm(
+      'Confirma que ya has revisado este cobro en el panel del banco (y devuelto el dinero si hacía falta).\n\n' +
+      'La reserva dejará de señalarse como "Pago a revisar". No cambia el estado de la reserva ni mueve dinero. ¿Continuar?'
+    )
+    if (!ok) return
+    setReviewing(true)
+    setReviewError(null)
+    try {
+      const res = await fetch('/api/admin/bookings/resolve-payment-alert', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ bookingId: booking.id }),
+      })
+      const data = await res.json().catch(() => ({}))
+      if (!res.ok) throw new Error(data.error || 'No se pudo marcar como revisado')
+      onAlertsReviewed?.(data.notes)
+    } catch (err: any) {
+      setReviewError(err.message || 'No se pudo marcar como revisado')
+    } finally {
+      setReviewing(false)
+    }
+  }
 
   const clientName = booking.customer_name || booking.users?.full_name || 'Viajero Utopia'
   const clientEmail = booking.customer_email || booking.users?.email || '-'
@@ -256,6 +289,26 @@ export default function BookingDetailModal({ booking, onClose }: Props) {
 
         {/* Content Body */}
         <div className="bm-body">
+          {paymentAlerts.length > 0 && (
+            <div className="adm-note adm-note--alert bm-alert" role="alert">
+              <AlertTriangle size={18} aria-hidden="true" />
+              <div className="adm-note__text">
+                <strong>Pago a revisar</strong>
+                <ul className="bm-alert__list">
+                  {paymentAlerts.map(text => <li key={text}>{text}</li>)}
+                </ul>
+                <p className="bm-alert__hint">
+                  Este panel no devuelve dinero: si hay que devolver el cobro, hazlo a mano en el panel del banco.
+                </p>
+                {reviewError && <p className="bm-alert__error">{reviewError}</p>}
+              </div>
+              <button type="button" className="adm-btn adm-btn--sm" onClick={markAlertsReviewed} disabled={reviewing}>
+                {reviewing ? <Loader2 size={14} className="bm-alert__spin" /> : <Check size={14} />}
+                Marcar como revisado
+              </button>
+            </div>
+          )}
+
           {/* Main Grid: Dates & Locations + Options */}
           <div className="bm-grid">
             {/* Periodo & Horarios + Packages */}
@@ -667,6 +720,37 @@ export default function BookingDetailModal({ booking, onClose }: Props) {
           display: flex;
           flex-direction: column;
           gap: 18px;
+        }
+
+        .bm-alert__list {
+          margin: 6px 0 0;
+          padding-left: 18px;
+          color: var(--adm-text);
+        }
+        .bm-alert__hint {
+          margin: 6px 0 0;
+          color: var(--adm-text-2);
+        }
+        .bm-alert__error {
+          margin: 6px 0 0;
+          font-weight: 600;
+          color: var(--adm-rose);
+        }
+        :global(.bm-alert__spin) {
+          animation: bm-alert-spin 1s linear infinite;
+        }
+        @keyframes bm-alert-spin {
+          to { transform: rotate(360deg); }
+        }
+        @media (max-width: 640px) {
+          .bm-alert {
+            flex-wrap: wrap;
+          }
+          .bm-alert :global(.adm-btn) {
+            width: 100%;
+            min-height: 44px;
+            justify-content: center;
+          }
         }
 
         .bm-grid {

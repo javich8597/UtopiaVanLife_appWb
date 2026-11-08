@@ -1,6 +1,7 @@
 import { notFound } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
 import { getAdminClientOrSession } from '@/lib/admin/auth'
+import { DOCUMENT_LIST_OPTIONS, latestLicensePhotoNames } from '@/lib/admin/documents'
 import { signHandoverMedia } from '@/lib/handover/signedMedia'
 import HandoverClient from './HandoverClient'
 
@@ -38,15 +39,11 @@ export default async function HandoverPage({
   // Fotos del carnet subidas por el cliente, para comprobarlas con el carnet físico
   const licensePhotos: string[] = []
   if (booking.user_id) {
-    const { data: files } = await db.storage.from('documents').list(booking.user_id)
-    const latest = (prefix: string) =>
-      (files || []).filter((f: any) => f.name.startsWith(prefix)).sort((a: any, b: any) => b.name.localeCompare(a.name))[0]
-    for (const prefix of ['front_', 'back_', 'license_front', 'license_back']) {
-      const f = latest(prefix)
-      if (f) {
-        const { data } = await db.storage.from('documents').createSignedUrl(`${booking.user_id}/${f.name}`, 3600)
-        if (data?.signedUrl) licensePhotos.push(data.signedUrl)
-      }
+    const { data: files } = await db.storage.from('documents').list(booking.user_id, DOCUMENT_LIST_OPTIONS)
+    // Anverso y reverso más recientes (por created_at de Storage), con el nombre real de la subida
+    for (const name of latestLicensePhotoNames(files || [])) {
+      const { data } = await db.storage.from('documents').createSignedUrl(`${booking.user_id}/${name}`, 3600)
+      if (data?.signedUrl) licensePhotos.push(data.signedUrl)
     }
   }
 

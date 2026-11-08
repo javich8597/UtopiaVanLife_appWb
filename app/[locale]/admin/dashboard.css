@@ -14,6 +14,12 @@
   font-family: var(--font-sans);
 }
 
+/* ---------- Aviso de cobros a revisar (enlace a la lista filtrada) ---------- */
+.dsh-alert {
+  text-decoration: none;
+  font-size: 0.9rem;
+}
+
 /* ---------- Cabecera ---------- */
 .dsh-head {
   padding: 4px 2px 0;

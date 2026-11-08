@@ -131,6 +131,6 @@ export async function POST(request: Request) {
     })
   } catch (err: any) {
     console.error('Contract Sign API Error:', err)
-    return NextResponse.json({ error: err.message || 'Error interno al firmar el contrato' }, { status: 500 })
+    return NextResponse.json({ error: 'Error interno al firmar el contrato' }, { status: 500 })
   }
 }

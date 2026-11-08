@@ -194,9 +194,9 @@ export const FAQ_ITEMS: FAQItem[] = [
     "categoryName_es": "Seguro y Tranquilidad",
     "categoryName_en": "Insurance & Coverage",
     "question_es": "¿El seguro está incluido?",
-    "answer_es": "Sí. Todas nuestras campers cuentan con seguro a todo riesgo con fianza de 1.000 €.\n\nEn condiciones normales de uso, estarás cubierto ante la mayoría de imprevistos.",
+    "answer_es": "Sí. Todas nuestras campers cuentan con seguro a todo riesgo con fianza desde 1.000 €.\n\nEn condiciones normales de uso, estarás cubierto ante la mayoría de imprevistos.",
     "question_en": "Is insurance included?",
-    "answer_en": "Yes. All our rentals include comprehensive insurance with a refundable security deposit of €1,000.\n\nUnder normal driving conditions, you are covered against the majority of incidents."
+    "answer_en": "Yes. All our rentals include comprehensive insurance with a refundable security deposit from €1,000.\n\nUnder normal driving conditions, you are covered against the majority of incidents."
   },
   {
     "id": "faq-18",
@@ -274,9 +274,9 @@ export const FAQ_ITEMS: FAQItem[] = [
     "categoryName_es": "Fianza y Devolución",
     "categoryName_en": "Deposit & Return",
     "question_es": "¿Cómo funciona la fianza?",
-    "answer_es": "Se realiza una retención de 1.000 € en tarjeta.\n\nSe desbloquea tras la devolución y positiva revisión del vehículo.",
+    "answer_es": "Se realiza una retención en tarjeta de 2.000 €, o de 1.000 € con la opción Flex.\n\nSe desbloquea tras la devolución y positiva revisión del vehículo.",
     "question_en": "How does the security deposit work?",
-    "answer_en": "A temporary pre-authorization hold of €1,000 is placed on your credit card at vehicle pickup. It is released promptly following positive post-rental inspection."
+    "answer_en": "A temporary pre-authorization hold of €2,000, or €1,000 with the Flex option, is placed on your credit card at vehicle pickup. It is released promptly following positive post-rental inspection."
   },
   {
     "id": "faq-26",

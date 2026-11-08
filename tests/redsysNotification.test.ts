@@ -26,7 +26,7 @@ type QueryResult = { data: Row[] | null; error: { message: string } | null }
 function fakeDb(tables: { bookings: Row[]; blocked_dates?: Row[] }) {
     const data: Record<string, Row[]> = { blocked_dates: [], ...tables }
     const emails: string[] = []
-    const failures: { table?: string; op?: string } = {}
+    const failures: { table?: string; op?: string; otp?: boolean } = {}
     let beforeUpdate: (() => void) | null = null
 
     class Query implements PromiseLike<QueryResult> {
@@ -47,6 +47,11 @@ function fakeDb(tables: { bookings: Row[]; blocked_dates?: Row[] }) {
         in(col: string, values: unknown[]) { this.filters.push(r => values.includes(r[col])); return this }
         lte(col: string, value: string) { this.filters.push(r => r[col] <= value); return this }
         gte(col: string, value: string) { this.filters.push(r => r[col] >= value); return this }
+        like(col: string, pattern: string) {
+            const text = pattern.replace(/^%|%$/g, '')
+            this.filters.push(r => String(r[col] ?? '').includes(text))
+            return this
+        }
         limit(n: number) { this.max = n; return this }
 
         private run(): QueryResult {
@@ -86,6 +91,7 @@ function fakeDb(tables: { bookings: Row[]; blocked_dates?: Row[] }) {
         from: (table: string) => new Query(table),
         auth: {
             signInWithOtp: async ({ email }: { email: string }) => {
+                if (failures.otp) return { error: { message: 'fallo de envío simulado' } }
                 emails.push(email)
                 return { error: null }
             },
@@ -343,6 +349,30 @@ describe('Notificación de Redsys: pagos tardíos', () => {
         assert.match(decision.alert || '', /reembolsada/)
     })
 
+    it('la repetición de un cobro ya reembolsado no genera un aviso falso', async () => {
+        const db = fakeDb({ bookings: [booking()] })
+        const charge = paid({ Ds_AuthorisationCode: '123456' })
+
+        await process(db, charge)
+        const recorded = db.data.bookings[0].notes
+        assert.match(recorded, /\[COBRO REDSYS\] Pedido 1234abcd5678, autorización 123456\./)
+
+        Object.assign(db.data.bookings[0], { status: 'cancelled', payment_status: 'refunded' })
+        await process(db, charge)
+
+        assert.equal(db.data.bookings[0].notes, recorded)
+    })
+
+    it('un cobro con otra autorización en una reserva reembolsada sí avisa', async () => {
+        const db = fakeDb({ bookings: [booking()] })
+
+        await process(db, paid({ Ds_AuthorisationCode: '123456' }))
+        Object.assign(db.data.bookings[0], { status: 'cancelled', payment_status: 'refunded' })
+        await process(db, paid({ Ds_AuthorisationCode: '654321' }))
+
+        assert.match(db.data.bookings[0].notes, /Cobro recibido en una reserva ya reembolsada/)
+    })
+
     it('no repite el aviso si Redsys reenvía la notificación', async () => {
         const db = fakeDb({ bookings: [booking({ status: 'cancelled', notes: 'Llegamos tarde' })] })
 
@@ -412,16 +442,47 @@ describe('Notificación de Redsys: errores', () => {
 
     beforeEach(() => { warnings = console.error })
 
-    it('pide reintento si la reserva cambió mientras se procesaba', async () => {
-        const db = fakeDb({ bookings: [booking()] })
-        db.onBeforeUpdate(() => { db.data.bookings[0].status = 'cancelled' })
+    it('si la reserva cambió mientras se procesaba, la relee y decide con el estado actual', async () => {
+        const warn = console.warn
+        console.warn = () => {}
+        try {
+            const db = fakeDb({ bookings: [booking()] })
+            db.onBeforeUpdate(() => { db.data.bookings[0].status = 'cancelled' })
 
-        const res = await process(db, paid())
+            const res = await process(db, paid())
 
-        assert.equal(res.httpStatus, 500)
-        assert.equal(db.data.bookings[0].payment_status, 'pending')
-        assert.equal(db.data.blocked_dates.length, 0)
-        assert.equal(db.emails.length, 0)
+            assert.equal(res.httpStatus, 200)
+            assert.equal(db.data.bookings[0].payment_status, 'pending')
+            assert.match(db.data.bookings[0].notes, /devolverlo desde el banco/)
+            assert.equal(db.data.blocked_dates.length, 0)
+            assert.equal(db.emails.length, 0)
+        } finally {
+            console.warn = warn
+        }
+    })
+
+    it('pide reintento si la reserva sigue cambiando en cada intento', async () => {
+        const warn = console.warn
+        console.warn = () => {}
+        try {
+            const db = fakeDb({ bookings: [booking()] })
+            let changes = 0
+            const keepChanging = () => {
+                db.data.bookings[0].notes = `Nota ${++changes}`
+                db.onBeforeUpdate(keepChanging)
+            }
+            db.onBeforeUpdate(keepChanging)
+
+            const res = await process(db, paid())
+
+            assert.equal(res.httpStatus, 500)
+            assert.equal(changes, 3, 'tres intentos y no más')
+            assert.equal(db.data.bookings[0].payment_status, 'pending')
+            assert.equal(db.data.blocked_dates.length, 0)
+            assert.equal(db.emails.length, 0)
+        } finally {
+            console.warn = warn
+        }
     })
 
     it('lanza el error si no puede guardar el pago, para que la ruta responda 500', async () => {
@@ -432,18 +493,93 @@ describe('Notificación de Redsys: errores', () => {
         await assert.rejects(process(db, paid()), /fallo simulado/)
     })
 
-    it('tras fallar el bloqueo, el reenvío lo repone sin repetir el email', async () => {
+    it('tras fallar el bloqueo, el reenvío lo repone y el enlace de acceso no se pierde ni se repite', async () => {
         const db = fakeDb({ bookings: [booking()] })
         db.failures.table = 'blocked_dates'
         db.failures.op = 'insert'
 
         await assert.rejects(process(db, paid()), /fallo simulado/)
         assert.equal(db.data.bookings[0].payment_status, 'paid')
+        assert.deepEqual(db.emails, ['cliente@example.com'])
 
         db.failures.table = undefined
         await process(db, paid())
 
         assert.equal(db.data.blocked_dates.length, 1)
+        assert.deepEqual(db.emails, ['cliente@example.com'])
+    })
+
+    it('si el enlace de acceso falla, avisa, pide reenvío y lo reintenta en la repetición', async () => {
+        const warn = console.warn
+        console.warn = () => {}
+        try {
+            const db = fakeDb({ bookings: [booking({ notes: 'Llegamos tarde' })] })
+            db.failures.otp = true
+
+            const first = await process(db, paid())
+
+            assert.equal(first.httpStatus, 500)
+            assert.equal(db.data.bookings[0].payment_status, 'paid')
+            assert.equal(db.data.blocked_dates.length, 1)
+            assert.match(db.data.bookings[0].notes, /\[PAGO A REVISAR\] No se pudo enviar el enlace de acceso/)
+
+            const stillFailing = await process(db, paid())
+            assert.equal(stillFailing.httpStatus, 500)
+            assert.equal(db.data.bookings[0].notes.match(/PAGO A REVISAR/g).length, 1)
+
+            db.failures.otp = false
+            const retried = await process(db, paid())
+
+            assert.equal(retried.httpStatus, 200)
+            assert.deepEqual(db.emails, ['cliente@example.com'])
+            assert.equal(db.data.bookings[0].notes, 'Llegamos tarde')
+
+            await process(db, paid())
+            assert.equal(db.emails.length, 1)
+        } finally {
+            console.warn = warn
+        }
+    })
+
+    it('una repetición normal no vuelve a enviar el enlace ni toca las notas', async () => {
+        const db = fakeDb({ bookings: [booking()] })
+
+        await process(db, paid())
+        await process(db, paid())
+
+        assert.equal(db.emails.length, 1)
+        assert.equal(db.data.bookings[0].notes, null)
+    })
+
+    it('un cobro del pedido que sustituyó un reintento avisa en la reserva sin marcarla como pagada', async () => {
+        console.error = () => {}
+        try {
+            const db = fakeDb({ bookings: [booking({ payment_intent_id: '2222nuevoped', notes: `[PEDIDO ANTERIOR] ${ORDER}` })] })
+
+            const res = await process(db, paid())
+            await process(db, paid())
+
+            assert.equal(res.httpStatus, 200)
+            assert.equal(db.data.bookings[0].payment_status, 'pending')
+            assert.equal(db.data.bookings[0].notes.match(/PAGO A REVISAR/g).length, 1)
+            assert.match(db.data.bookings[0].notes, new RegExp(`Cobro del pedido anterior ${ORDER} \\(70050 céntimos\\)`))
+            assert.equal(db.emails.length, 0)
+        } finally {
+            console.error = warnings
+        }
+    })
+
+    it('la denegación de un pedido anterior no genera aviso', async () => {
+        const db = fakeDb({ bookings: [booking({ payment_intent_id: '2222nuevoped', notes: `[PEDIDO ANTERIOR] ${ORDER}` })] })
+        const warn = console.warn
+        console.warn = () => {}
+        try {
+            await process(db, paid({ Ds_Response: '0190' }))
+        } finally {
+            console.warn = warn
+        }
+
+        assert.equal(db.data.bookings[0].notes, `[PEDIDO ANTERIOR] ${ORDER}`)
     })
 
     it('responde 200 si el pedido no existe y 400 si no trae número', async () => {

@@ -2,10 +2,10 @@
 
 import { useState, useMemo, useEffect } from 'react'
 import { useSearchParams, useRouter } from 'next/navigation'
-import { Search, Eye, Archive, Loader2, X, BookOpen, CheckCircle2, Navigation, Clock, Calendar, BadgeCheck, KeyRound } from 'lucide-react'
+import { Search, Eye, Archive, Loader2, X, BookOpen, CheckCircle2, Navigation, Clock, Calendar, BadgeCheck, KeyRound, AlertTriangle } from 'lucide-react'
 import { Link } from '@/i18n/routing'
 import { formatPrice } from '@/lib/pricing/engine'
-import { ADMIN_STATUS_LABELS, AdminBookingStatus, getAdminBookingStatus } from '@/lib/admin/bookingStatus'
+import { ADMIN_STATUS_LABELS, AdminBookingStatus, activePaymentAlerts, getAdminBookingStatus } from '@/lib/admin/bookingStatus'
 import AdminPageHeader from '../AdminPageHeader'
 import RefundActionClient from './RefundActionClient'
 import ApproveActionClient from './ApproveActionClient'
@@ -15,10 +15,12 @@ interface Props {
   initialBookings: any[]
 }
 
-type Filter = 'all' | AdminBookingStatus
+// 'alert' no es un estado: son las reservas con un cobro de Redsys sin conciliar, sea cual sea su estado
+type Filter = 'all' | 'alert' | AdminBookingStatus
 
 const TABS: { id: Filter; label: string }[] = [
   { id: 'all', label: 'Todas' },
+  { id: 'alert', label: 'Pago a revisar' },
   { id: 'review', label: 'Por confirmar' },
   { id: 'confirmed', label: 'Confirmadas' },
   { id: 'active', label: 'En viaje' },
@@ -62,8 +64,16 @@ export default function BookingsClient({ initialBookings }: Props) {
   // Estado "de negocio": las pendientes abandonadas pasan a 'expired'
   const bookings = useMemo(() => {
     const now = new Date()
-    return initialBookings.map(b => ({ ...b, adminStatus: getAdminBookingStatus(b, now) }))
+    return initialBookings.map(b => ({
+      ...b,
+      adminStatus: getAdminBookingStatus(b, now),
+      paymentAlerts: activePaymentAlerts(b.notes),
+    }))
   }, [initialBookings])
+
+  const matchesFilter = (b: any, filter: Filter) =>
+    filter === 'all' || (filter === 'alert' ? b.paymentAlerts.length > 0 : b.adminStatus === filter)
+  const alertCount = bookings.filter(b => b.paymentAlerts.length > 0).length
 
   // Sincroniza con los parámetros de la URL (?search=...&status=...)
   useEffect(() => {
@@ -88,7 +98,7 @@ export default function BookingsClient({ initialBookings }: Props) {
 
   const filteredBookings = useMemo(() => {
     return bookings.filter(b => {
-      if (statusFilter !== 'all' && b.adminStatus !== statusFilter) return false
+      if (!matchesFilter(b, statusFilter)) return false
 
       if (!searchTerm.trim()) return true
       const query = searchTerm.toLowerCase().trim()
@@ -214,7 +224,7 @@ export default function BookingsClient({ initialBookings }: Props) {
       <div className="bk-card__tabs">
       <div className="adm-tabs" role="tablist" aria-label="Filtrar por estado">
         {TABS.map(tab => {
-          const count = tab.id === 'all' ? bookings.length : bookings.filter(b => b.adminStatus === tab.id).length
+          const count = bookings.filter(b => matchesFilter(b, tab.id)).length
           const isActive = statusFilter === tab.id
           return (
             <button
@@ -232,6 +242,28 @@ export default function BookingsClient({ initialBookings }: Props) {
         })}
       </div>
       </div>
+
+      {alertCount > 0 && statusFilter !== 'alert' && (
+        <div className="adm-note adm-note--alert bk-card__note" role="alert">
+          <AlertTriangle size={18} aria-hidden="true" />
+          <span className="adm-note__text">
+            {alertCount === 1 ? '1 reserva tiene un cobro de Redsys' : `${alertCount} reservas tienen un cobro de Redsys`} que no cuadra y hay que revisar.
+          </span>
+          <button type="button" className="adm-btn adm-btn--sm" onClick={() => { setStatusFilter('alert'); setSelectedIds(new Set()) }}>
+            Ver
+          </button>
+        </div>
+      )}
+
+      {statusFilter === 'alert' && alertCount > 0 && (
+        <div className="adm-note adm-note--alert bk-card__note">
+          <AlertTriangle size={18} aria-hidden="true" />
+          <span className="adm-note__text">
+            Redsys ha cobrado algo que no cuadra con la reserva: importe distinto, o la reserva ya estaba cancelada o reembolsada.
+            El dinero no se devuelve solo. Revísalo en el panel del banco y, cuando esté resuelto, abre la reserva y pulsa «Marcar como revisado».
+          </span>
+        </div>
+      )}
 
       {statusFilter === 'expired' && expiredVisible.length > 0 && (
         <div className="adm-note bk-card__note">
@@ -333,7 +365,20 @@ export default function BookingsClient({ initialBookings }: Props) {
                       {b.payment_status === 'paid' && <span className="adm-table__muted">Pagado con Redsys</span>}
                     </td>
                     <td data-label="Estado">
-                      <span className={`adm-chip adm-chip--${STATUS_TONE[status]}`}>{ADMIN_STATUS_LABELS[status]}</span>
+                      <span className="bk-status">
+                        <span className={`adm-chip adm-chip--${STATUS_TONE[status]}`}>{ADMIN_STATUS_LABELS[status]}</span>
+                        {b.paymentAlerts.length > 0 && (
+                          <>
+                            <span className="adm-chip adm-chip--rose">
+                              <AlertTriangle size={12} aria-hidden="true" /> Pago a revisar
+                            </span>
+                            <span className="adm-table__muted bk-status__alert">
+                              {b.paymentAlerts[0]}
+                              {b.paymentAlerts.length > 1 && ` (+${b.paymentAlerts.length - 1} más)`}
+                            </span>
+                          </>
+                        )}
+                      </span>
                     </td>
                     <td className="adm-table__actions">
                       <div className="bk-actions">
@@ -375,7 +420,14 @@ export default function BookingsClient({ initialBookings }: Props) {
       </section>
 
       {selectedBooking && (
-        <BookingDetailModal booking={selectedBooking} onClose={() => setSelectedBooking(null)} />
+        <BookingDetailModal
+          booking={selectedBooking}
+          onClose={() => setSelectedBooking(null)}
+          onAlertsReviewed={notes => {
+            setSelectedBooking((prev: any) => (prev ? { ...prev, notes } : prev))
+            router.refresh()
+          }}
+        />
       )}
 
       <style jsx>{`
@@ -437,6 +489,20 @@ export default function BookingsClient({ initialBookings }: Props) {
         }
         .bk-dates {
           white-space: nowrap;
+        }
+        .bk-status {
+          display: flex;
+          flex-direction: column;
+          align-items: flex-start;
+          gap: 6px;
+        }
+        .bk-status__alert {
+          max-width: 280px;
+          display: -webkit-box;
+          -webkit-box-orient: vertical;
+          -webkit-line-clamp: 3;
+          overflow: hidden;
+          white-space: normal;
         }
         @media (max-width: 640px) {
           .bk-card__head {

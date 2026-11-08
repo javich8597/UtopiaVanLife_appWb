@@ -1,0 +1,2 @@
+- [Validación de textos de clientes](validacion-textos-clientes.md) — valores a probar; comparar paso 5 con la ruta sobre el valor guardado; email sin unificar
+- [Árbol en movimiento](verificar-arbol-en-movimiento.md) — otros agentes editan durante QA; sellos de hora, rerun final, mutaciones en copia con unión

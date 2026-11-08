@@ -2,6 +2,7 @@ import createMiddleware from 'next-intl/middleware';
 import { routing } from './i18n/routing';
 import { NextRequest, NextResponse } from 'next/server';
 import { createServerClient } from '@supabase/ssr';
+import { isAdminSession } from './lib/admin/auth';
 
 const handleI18nRouting = createMiddleware(routing);
 
@@ -43,7 +44,12 @@ export async function middleware(request: NextRequest) {
 
   const adminMatch = request.nextUrl.pathname.match(/^\/(?:es|en|de|fr)?\/admin(?:\/.*)?$/) || request.nextUrl.pathname.match(/^\/admin(?:\/.*)?$/);
   if (adminMatch && user) {
-    const isAdmin = user.app_metadata?.role === 'admin' || user.user_metadata?.role === 'admin' || (user as any).role === 'admin';
+    // Mismo criterio que el layout y las API de /admin: el rol de public.users o app_metadata.
+    // Los metadatos que el propio usuario puede editar no cuentan.
+    const isAdmin = await isAdminSession(user, async () => {
+      const { data } = await supabase.from('users').select('role').eq('id', user.id).maybeSingle();
+      return data?.role;
+    });
     if (!isAdmin) {
       const localeMatch = request.nextUrl.pathname.match(/^\/(es|en|de|fr)\//);
       const locale = localeMatch ? localeMatch[1] : 'es';

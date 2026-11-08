@@ -2,7 +2,8 @@
  * UTOPIA VAN LIFE — Lógica de Validación de Calendario y Slots (Holo-Van Style)
  */
 
-import { BlockedSlot } from './availability'
+import { BlockedSlot, parseBlockedSlots, RawBlockedDate, RawBookingAvailability } from './availability'
+import { MAX_BOOKING_NIGHTS } from './checkoutRules'
 import { DaySlot } from '../pricing/engine'
 
 export type SlotAvailabilityStatus = 'free' | 'morning_blocked' | 'afternoon_blocked' | 'full_blocked'
@@ -81,8 +82,9 @@ export function validateBookingRange(
     end: string,
     endSlot: DaySlot,
     blockedSlots: BlockedSlot[] = [],
-    minNights: number = 3
-): { isValid: boolean; reason?: 'min_nights' | 'blocked_dates' | 'invalid_dates' } {
+    minNights: number = 3,
+    maxNights: number = MAX_BOOKING_NIGHTS
+): { isValid: boolean; reason?: 'min_nights' | 'max_nights' | 'blocked_dates' | 'invalid_dates' } {
     if (!start || !end || end <= start) {
         return { isValid: false, reason: 'invalid_dates' }
     }
@@ -94,6 +96,10 @@ export function validateBookingRange(
 
     if (nights < minNights) {
         return { isValid: false, reason: 'min_nights' }
+    }
+
+    if (nights > maxNights) {
+        return { isValid: false, reason: 'max_nights' }
     }
 
     // Comprobar inicio
@@ -108,15 +114,39 @@ export function validateBookingRange(
 
     // Comprobar días intermedios (deben estar completamente libres)
     const current = new Date(startDate)
-    current.setDate(current.getDate() + 1)
+    current.setUTCDate(current.getUTCDate() + 1)
     while (current < endDate) {
         const dateStr = current.toISOString().split('T')[0]
         const status = getSlotAvailability(dateStr, blockedSlots)
         if (status !== 'free') {
             return { isValid: false, reason: 'blocked_dates' }
         }
-        current.setDate(current.getDate() + 1)
+        current.setUTCDate(current.getUTCDate() + 1)
     }
 
     return { isValid: true }
+}
+
+const pickupSlotOf = (time?: string | null): DaySlot => parseInt(time || '15:00', 10) < 14 ? 'morning' : 'afternoon'
+const dropoffSlotOf = (time?: string | null): DaySlot => parseInt(time || '12:00', 10) > 14 ? 'afternoon' : 'morning'
+
+/**
+ * ¿Cabe esta reserva entre las demás? Es la misma regla que aplica el calendario, medios días
+ * incluidos, para que el servidor no rechace lo que el cliente pudo elegir ni al revés.
+ * Solo mira ocupación: las noches mínimas y máximas se comprueban aparte.
+ */
+export function isBookingRangeFree(
+    booking: RawBookingAvailability,
+    otherBookings: RawBookingAvailability[],
+    blocks: RawBlockedDate[]
+): boolean {
+    return validateBookingRange(
+        booking.start_date.split('T')[0],
+        pickupSlotOf(booking.pickup_time),
+        booking.end_date.split('T')[0],
+        dropoffSlotOf(booking.dropoff_time),
+        parseBlockedSlots(otherBookings, blocks),
+        1,
+        Infinity
+    ).isValid
 }

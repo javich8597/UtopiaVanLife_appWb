@@ -67,7 +67,7 @@ export default function WizardHeader({
                 {/* Trust Pill */}
                 <div className="wizard-header__trust-pill">
                     <ShieldCheck size={14} className="text-forest" />
-                    <span>Fianza 1.000 € reembolsable</span>
+                    <span>Fianza desde 1.000 € reembolsable</span>
                 </div>
             </div>
 

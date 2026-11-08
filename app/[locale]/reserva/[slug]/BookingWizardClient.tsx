@@ -343,7 +343,7 @@ export default function BookingWizardClient({
                 category: e.category,
             })),
             depositOption: activeDepositOption,
-            depositAmount: activeDepositOption === 'flex_1000' ? 1000 : Number(camper.deposit_amount) || 2000,
+            depositAmount: activeDepositOption === 'flex_1000' ? 1000 : 2000,
         })
     }, [camper, step1, step2, step3, step4, step5.depositOption, seasonsV2, seasonPeriods, durationDiscounts])
 

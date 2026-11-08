@@ -1,6 +1,18 @@
-import { createClient } from '@supabase/supabase-js'
 import { NextResponse } from 'next/server'
 import { createClient as createServerClient } from '@/lib/supabase/server'
+import { getSupabaseAdmin } from '@/lib/supabase/admin'
+import { detectDocumentType, DocumentType } from '@/lib/driverDocuments'
+
+const MAX_DOCUMENT_BYTES = 10 * 1024 * 1024
+// Dos documentos, más margen para el resto del formulario
+const MAX_REQUEST_BYTES = 2 * MAX_DOCUMENT_BYTES + 1024 * 1024
+
+async function readDocument(file: File): Promise<{ content: Buffer; type: DocumentType } | null> {
+    if (file.size > MAX_DOCUMENT_BYTES) return null
+    const content = Buffer.from(await file.arrayBuffer())
+    const type = detectDocumentType(content)
+    return type && { content, type }
+}
 
 export async function POST(request: Request) {
     try {
@@ -11,46 +23,49 @@ export async function POST(request: Request) {
             return NextResponse.json({ error: 'No autorizado' }, { status: 401 })
         }
 
-        const formData = await request.formData()
-        const front = formData.get('front') as File
-        const back = formData.get('back') as File
+        // El tamaño se comprueba antes de leer el cuerpo
+        const declaredBytes = Number(request.headers.get('content-length'))
+        if (!Number.isSafeInteger(declaredBytes) || declaredBytes <= 0) {
+            return NextResponse.json({ error: 'Falta el tamaño de la petición.' }, { status: 411 })
+        }
+        if (declaredBytes > MAX_REQUEST_BYTES) {
+            return NextResponse.json({ error: 'Cada archivo puede pesar como máximo 10 MB.' }, { status: 413 })
+        }
 
-        if (!front || !back) {
+        const formData = await request.formData()
+        const front = formData.get('front')
+        const back = formData.get('back')
+
+        if (!(front instanceof File) || !(back instanceof File)) {
             return NextResponse.json({ error: 'Faltan archivos (frontal o trasero)' }, { status: 400 })
         }
 
-        // Usamos el Service Role para bypass RLS de Storage
-        const supabaseAdmin = createClient(
-            process.env.NEXT_PUBLIC_SUPABASE_URL!,
-            process.env.SUPABASE_SERVICE_ROLE_KEY!
-        )
+        // Extensión y tipo salen del contenido. Se sube un Buffer: con un File, storage-js usa el tipo del navegador
+        const [frontDoc, backDoc] = await Promise.all([readDocument(front), readDocument(back)])
+        if (!frontDoc || !backDoc) {
+            return NextResponse.json({ error: 'Solo se aceptan fotos reales (JPG, PNG, HEIC) o PDF de hasta 10 MB.' }, { status: 400 })
+        }
+
+        // Service Role para bypass RLS de Storage
+        const supabaseAdmin = getSupabaseAdmin()
 
         // Intentamos crear el bucket si no existe (puede fallar si ya existe o no hay permisos, lo ignoramos)
         try {
             await supabaseAdmin.storage.createBucket('documents', { public: false })
-        } catch (e) {
+        } catch {
             // Ignorar
         }
 
         const timestamp = Date.now()
-        const frontExt = front.name.split('.').pop() || 'jpg'
-        const backExt = back.name.split('.').pop() || 'jpg'
+        const upload = (name: string, { content, type }: { content: Buffer; type: DocumentType }) =>
+            supabaseAdmin.storage
+                .from('documents')
+                .upload(`${user.id}/${name}_${timestamp}.${type.extension}`, content, { contentType: type.contentType, upsert: true })
 
-        const frontPath = `${user.id}/front_${timestamp}.${frontExt}`
-        const backPath = `${user.id}/back_${timestamp}.${backExt}`
-
-        // Subir frontal
-        const { error: frontErr } = await supabaseAdmin.storage
-            .from('documents')
-            .upload(frontPath, front, { upsert: true })
-
+        const { error: frontErr } = await upload('front', frontDoc)
         if (frontErr) throw new Error(`Error subiendo frontal: ${frontErr.message}`)
 
-        // Subir trasero
-        const { error: backErr } = await supabaseAdmin.storage
-            .from('documents')
-            .upload(backPath, back, { upsert: true })
-
+        const { error: backErr } = await upload('back', backDoc)
         if (backErr) throw new Error(`Error subiendo trasero: ${backErr.message}`)
 
         // Actualizar estado del usuario
@@ -65,8 +80,8 @@ export async function POST(request: Request) {
 
         return NextResponse.json({ success: true })
 
-    } catch (error: any) {
+    } catch (error) {
         console.error('Upload Error:', error)
-        return NextResponse.json({ error: error.message }, { status: 500 })
+        return NextResponse.json({ error: 'No hemos podido subir la documentación. Inténtalo de nuevo.' }, { status: 500 })
     }
 }

@@ -1,6 +1,7 @@
 'use client'
 
 import React, { useState } from 'react'
+import { useLocale } from 'next-intl'
 import {
     Lock,
     ShieldCheck,
@@ -21,6 +22,7 @@ import {
 } from 'lucide-react'
 import { Step5Customer, WizardCamper, Step1Data, Step2Data, Step3Data, Step4Data, BookingPassenger, DepositOption } from './types'
 import { validateStep5, validateDriverAge, validateDrivingLicense } from './types'
+import { formatPhoneWithPrefix } from '@/lib/driverDocuments'
 import { formatPrice } from '@/lib/pricing/engine'
 
 interface Step5CheckoutProps {
@@ -64,6 +66,7 @@ export default function Step5Checkout({
     totalPayable,
     onSuccessfulSubmit,
 }: Step5CheckoutProps) {
+    const locale = useLocale()
     const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({})
     const [submitError, setSubmitError] = useState<string | null>(null)
     const [isSubmitting, setIsSubmitting] = useState(false)
@@ -72,6 +75,8 @@ export default function Step5Checkout({
     const currentTravelersCount = customer.travelersCount || step1.pax || 1
     const additionalPaxCount = Math.max(0, currentTravelersCount - 1)
     const currentDeposit: DepositOption = customer.depositOption || step3.depositOption || 'standard_2000'
+    /** El bloque del 2º conductor "solo" (y su validación en validateStep5) solo existe con 1 viajero y Flex */
+    const soloSecondDriverVisible = currentTravelersCount === 1 && currentDeposit === 'flex_1000'
 
     // Helpers reactivos para cálculo de edad y antigüedad
     const calculateAge = (birthDate?: string | null): number | null => {
@@ -245,11 +250,11 @@ export default function Step5Checkout({
         setIsSubmitting(true)
 
         try {
-            const formattedPhone = customer.phone.startsWith('+')
-                ? customer.phone.trim()
-                : `${customer.phoneCountryCode || '+34'} ${customer.phone.trim()}`
+            // Normaliza antes de mirar el +: es lo mismo que valida validateStep5
+            const formattedPhone = formatPhoneWithPrefix(customer.phone, customer.phoneCountryCode)
 
             const payload = {
+                locale,
                 camperSlug: camper.slug,
                 startDate: step1.startDate,
                 startSlot: step1.startSlot,
@@ -280,9 +285,13 @@ export default function Step5Checkout({
                     postalCode: customer.postalCode.trim(),
                     country: customer.country.trim(),
                     travelersCount: currentTravelersCount,
-                    passengers: customer.passengers,
-                    secondDriverSoloEnabled: customer.secondDriverSoloEnabled,
-                    secondDriverSolo: customer.secondDriverSolo,
+                    // Solo las fichas que se ven: un borrador antiguo puede guardar más.
+                    // Con fianza Estándar no hay 2º conductor (su casilla no se ve ni se valida)
+                    passengers: (customer.passengers || []).slice(0, Math.max(0, currentTravelersCount - 1)).map((p) => (currentDeposit === 'flex_1000' ? p : { ...p, isSecondDriver: false })),
+                    // El 2º conductor "solo" se envía únicamente si su bloque está visible (y por tanto validado):
+                    // el borrador de sessionStorage lo conserva aunque se cambie de viajeros o de fianza
+                    secondDriverSoloEnabled: soloSecondDriverVisible && Boolean(customer.secondDriverSoloEnabled),
+                    secondDriverSolo: soloSecondDriverVisible && customer.secondDriverSoloEnabled ? customer.secondDriverSolo : undefined,
                     notes: customer.specialNotes || '',
                 },
             }
@@ -813,7 +822,7 @@ export default function Step5Checkout({
                 )}
 
                 {/* ── Si viaja 1 solo pasajero pero tiene Fianza Flex: Opción de 2º conductor ── */}
-                {currentTravelersCount === 1 && currentDeposit === 'flex_1000' && (
+                {soloSecondDriverVisible && (
                     <div className="form-group-card form-group-card--solo-second-driver">
                         <div className="form-group-card__header">
                             <UserCheck size={18} className="text-forest" />

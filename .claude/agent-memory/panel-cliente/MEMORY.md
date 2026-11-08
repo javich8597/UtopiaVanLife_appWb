@@ -1,0 +1,1 @@
+- [Subida de documentos y Vercel](project_subida-documentos-vercel.md) — una petición, fotos reducidas en navegador, límite 4,5 MB

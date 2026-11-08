@@ -68,7 +68,7 @@ export default function StickyTripSummary({
     const totalPayable = breakdown ? breakdown.payableTotal : 0
     const totalDays = breakdown ? breakdown.totalDays : 0
     const numNights = breakdown ? breakdown.numNights : 0
-    const depositAmount = breakdown ? breakdown.depositAmount : (step3.depositOption === 'flex_1000' ? 1000 : (Number(camper.deposit_amount) || 2000))
+    const depositAmount = breakdown ? breakdown.depositAmount : (step3.depositOption === 'flex_1000' ? 1000 : 2000)
 
     const contentProps: TripSummaryContentProps = {
         camper,

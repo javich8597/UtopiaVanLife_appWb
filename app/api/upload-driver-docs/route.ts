@@ -4,24 +4,39 @@ import { getAdminClientOrSession } from '@/lib/admin/auth'
 import { createClient as createServerClient } from '@/lib/supabase/server'
 import { getSupabaseAdmin } from '@/lib/supabase/admin'
 import { validateDriverLicense } from '@/lib/contracts/licenseValidator'
-import { CHECKOUT_ACCESS_COOKIE, resolveCheckoutUploadOwner } from '@/lib/checkoutAccess'
+import { CHECKOUT_ACCESS_COOKIE, expiredCheckoutAccessCookie, resolveCheckoutUploadOwner } from '@/lib/checkoutAccess'
+import { detectDocumentType, driverFieldError, DocumentType, normalizeDriverText } from '@/lib/driverDocuments'
+import { normalizeVerificationStatus } from '@/lib/admin/auth'
+import { MAX_REQUEST_BYTES } from '@/lib/documentUploadBudget'
+
+// Vercel corta en torno a 4,5 MB por petición a una función: el navegador reduce las fotos para que
+// todas quepan en una sola petición (lib/compressDocumentImage.ts). Ningún archivo suelto supera este límite.
+const TOO_LARGE_MESSAGE = 'Los archivos pesan demasiado para enviarlos juntos. Haz otra foto de los documentos o súbelos en formato JPG.'
 
 export async function POST(request: NextRequest) {
   try {
+    // Nada de esto lee el cuerpo: el tamaño y el acceso se comprueban antes
+    const declaredBytes = Number(request.headers.get('content-length'))
+    if (!Number.isSafeInteger(declaredBytes) || declaredBytes <= 0) {
+      return NextResponse.json({ error: 'Falta el tamaño de la petición.' }, { status: 411 })
+    }
+    if (declaredBytes > MAX_REQUEST_BYTES) {
+      return NextResponse.json({ error: TOO_LARGE_MESSAGE }, { status: 413 })
+    }
+
     const supabase = await createServerClient()
     const { data: { user: sessionUser } } = await supabase.auth.getUser()
-    const formData = await request.formData()
 
     // Tras pagar en Redsys el cliente llega a /checkout/success sin sesión. El número de pedido viaja
-    // en la URL y no demuestra nada: solo vale el navegador que hizo la reserva.
+    // en la URL y no demuestra nada: hace falta la cookie que recibe quien creó su cuenta en ese checkout.
     let targetUserId: string | null = sessionUser?.id || null
+    const accessCookie = request.cookies.get(CHECKOUT_ACCESS_COOKIE)?.value
 
     if (!targetUserId) {
-      const orderId = (formData.get('orderId') as string) || (formData.get('order') as string) || ''
       targetUserId = await resolveCheckoutUploadOwner(
         getSupabaseAdmin(),
-        orderId,
-        request.cookies.get(CHECKOUT_ACCESS_COOKIE)?.value
+        request.nextUrl.searchParams.get('order') || '',
+        accessCookie
       )
     }
 
@@ -29,14 +44,22 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Para subir tu documentación, entra con el enlace de acceso que te hemos enviado por email.' }, { status: 401 })
     }
     const user = { id: targetUserId }
+    const formData = await request.formData()
 
-    const fullName = formData.get('fullName') as string || ''
+    const fieldError = driverFieldError(formData)
+    if (fieldError) {
+      return NextResponse.json({ error: fieldError }, { status: 400 })
+    }
+
+    // Se guarda y se compara lo normalizado (marcas invisibles, guiones y comillas tipográficas, NFC)
+    const normalizedField = (name: string) => normalizeDriverText(formData.get(name) as string || '') || ''
+    const fullName = normalizedField('fullName')
     const dniNie = formData.get('dniNie') as string || ''
     const driverLicenseId = formData.get('driverLicenseId') as string || ''
     const driverLicenseIssueDate = formData.get('driverLicenseIssueDate') as string || ''
     const driverLicenseExpiryDate = formData.get('driverLicenseExpiryDate') as string || ''
-    const address = formData.get('address') as string || ''
-    const phone = formData.get('phone') as string || ''
+    const address = normalizedField('address')
+    const phone = normalizedField('phone')
 
     const dniFront = formData.get('dni_front') as File | null
     const dniBack = formData.get('dni_back') as File | null
@@ -44,7 +67,7 @@ export async function POST(request: NextRequest) {
     const licenseBack = formData.get('license_back') as File | null
 
     const hasSecondDriver = formData.get('hasSecondDriver') === 'true'
-    const secondDriverFullName = formData.get('secondDriverFullName') as string || ''
+    const secondDriverFullName = normalizedField('secondDriverFullName')
     const secondDriverDni = formData.get('secondDriverDni') as string || ''
     const secondDriverLicense = formData.get('secondDriverLicense') as string || ''
     const secondDriverDniFront = formData.get('second_dni_front') as File | null
@@ -68,67 +91,69 @@ export async function POST(request: NextRequest) {
       // Ignorar si ya existe
     }
 
-    const timestamp = Date.now()
-    const validateMagicBytes = async (f: File) => {
-        const buffer = await f.arrayBuffer()
-        const view = new Uint8Array(buffer)
-        if (view.length < 4) return false;
-        if (view[0] === 0xFF && view[1] === 0xD8 && view[2] === 0xFF) return true; // JPEG
-        if (view[0] === 0x89 && view[1] === 0x50 && view[2] === 0x4E && view[3] === 0x47) return true; // PNG
-        if (view[0] === 0x25 && view[1] === 0x50 && view[2] === 0x44 && view[3] === 0x46) return true; // PDF
-        if (view.length > 12) {
-            const type = String.fromCharCode(view[8], view[9], view[10], view[11])
-            if (['heic', 'heix', 'mif1', 'msf1'].includes(type)) return true; // HEIC
-        }
-        return false;
-    }
-    const uploadFile = async (file: File | null, prefix: string) => {
-      if (!file || typeof file === 'string' || (file instanceof File && file.size === 0)) return null
-      const ext = file.name ? (file.name.split('.').pop() || 'jpg') : 'jpg'
-      const filePath = `${user.id}/${prefix}_${crypto.randomUUID()}.${ext}`
-      const { error } = await supabaseAdmin.storage
-        .from('documents')
-        .upload(filePath, file, { upsert: true })
-      if (error) {
-        console.error(`Error subiendo ${prefix}:`, error)
-        throw new Error('No hemos podido subir una de las fotos. Revisa el archivo e inténtalo de nuevo.')
-      }
-      return filePath
-    }
-
-    // Solo imágenes o PDF de hasta 10 MB
-    const files = [dniFront, dniBack, licenseFront, licenseBack, secondDriverDniFront, secondDriverDniBack, secondDriverLicenseFront, secondDriverLicenseBack]
-    for (const f of files) {
-      if (!f || typeof f === 'string' || f.size === 0) continue
-      const isValidMagic = await validateMagicBytes(f)
-      if (!isValidMagic) {
+    // Solo imágenes o PDF. Extensión y tipo salen del contenido, nunca del navegador.
+    // Se sube un Buffer y no el File: con un File, storage-js ignora contentType y usa el del navegador.
+    const documents: Array<[File | null, string]> = [
+      [dniFront, 'dni_front'],
+      [dniBack, 'dni_back'],
+      [licenseFront, 'front'], // 'front' is also compatible with existing verification view
+      [licenseBack, 'back'],
+      [secondDriverDniFront, 'second_dni_front'],
+      [secondDriverDniBack, 'second_dni_back'],
+      [secondDriverLicenseFront, 'second_license_front'],
+      [secondDriverLicenseBack, 'second_license_back'],
+    ]
+    const toUpload: Array<{ prefix: string; content: Buffer; type: DocumentType }> = []
+    for (const [file, prefix] of documents) {
+      if (!file || typeof file === 'string' || file.size === 0) continue
+      const content = Buffer.from(await file.arrayBuffer())
+      const type = detectDocumentType(content)
+      if (!type) {
         return NextResponse.json({ error: 'Solo se aceptan fotos reales (JPG, PNG, HEIC) o PDF.' }, { status: 400 })
       }
-      if (f.size > 10 * 1024 * 1024) {
-        return NextResponse.json({ error: 'Cada archivo puede pesar como máximo 10 MB.' }, { status: 400 })
-      }
+      toUpload.push({ prefix, content, type })
     }
 
-    const uploaded = await Promise.all([
-      uploadFile(dniFront, 'dni_front'),
-      uploadFile(dniBack, 'dni_back'),
-      uploadFile(licenseFront, 'front'), // 'front' is also compatible with existing verification view
-      uploadFile(licenseBack, 'back'),
-      uploadFile(secondDriverDniFront, 'second_dni_front'),
-      uploadFile(secondDriverDniBack, 'second_dni_back'),
-      uploadFile(secondDriverLicenseFront, 'second_license_front'),
-      uploadFile(secondDriverLicenseBack, 'second_license_back')
-    ])
+    const { data: current, error: currentErr } = await supabaseAdmin
+      .from('users')
+      .select('verification_status, full_name, dni_nie, driver_license_id, driver_license_issue_date, driver_license_expiry_date, has_second_driver, second_driver_name, second_driver_dni, second_driver_license')
+      .eq('id', user.id)
+      .maybeSingle()
+    if (currentErr) throw new Error(currentErr.message)
+
+    // Antes de subir: una foto nueva nunca debe quedar en un perfil que sigue constando como verificado
+    if (toUpload.length > 0 && normalizeVerificationStatus(current?.verification_status) === 'verified') {
+      const { error: reviewErr } = await supabaseAdmin
+        .from('users')
+        .update({ verification_status: 'pending_validation' })
+        .eq('id', user.id)
+      if (reviewErr) throw new Error(reviewErr.message)
+    }
+
+    const uploaded = await Promise.all(toUpload.map(async ({ prefix, content, type }) => {
+      const filePath = `${user.id}/${prefix}_${crypto.randomUUID()}.${type.extension}`
+      const { error } = await supabaseAdmin.storage
+        .from('documents')
+        .upload(filePath, content, { contentType: type.contentType })
+      if (error) console.error(`Error subiendo ${prefix}:`, error)
+      return !error
+    }))
+    if (uploaded.includes(false)) {
+      return NextResponse.json({ error: 'No hemos podido subir una de las fotos. Revisa el archivo e inténtalo de nuevo.' }, { status: 500 })
+    }
 
     // Solo vuelve a revisión si hay fotos nuevas o cambian los datos del carnet/DNI.
     // Cambiar el teléfono o la dirección no debe quitarle a un cliente la validación.
-    const { data: current } = await supabaseAdmin
-      .from('users')
-      .select('verification_status, dni_nie, driver_license_id, driver_license_issue_date, driver_license_expiry_date')
-      .eq('id', user.id)
-      .maybeSingle()
-    const hasNewFiles = uploaded.some(Boolean)
+    const hasNewFiles = uploaded.length > 0
+    const secondDriverChanged = !!current && (hasSecondDriver
+      ? !current.has_second_driver ||
+        secondDriverFullName !== (current.second_driver_name || '') ||
+        secondDriverDni !== (current.second_driver_dni || '') ||
+        secondDriverLicense !== (current.second_driver_license || '')
+      : formData.get('hasSecondDriver') === 'false' && !!current.has_second_driver)
     const identityChanged = !!current && (
+      secondDriverChanged ||
+      (fullName && fullName !== (current.full_name || '')) ||
       (dniNie && dniNie !== (current.dni_nie || '')) ||
       (driverLicenseId && driverLicenseId !== (current.driver_license_id || '')) ||
       (driverLicenseIssueDate && driverLicenseIssueDate !== (current.driver_license_issue_date || '')) ||
@@ -170,15 +195,22 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'No hemos podido guardar tus datos. Inténtalo de nuevo.' }, { status: 500 })
     }
 
-    return NextResponse.json({
+    const response = NextResponse.json({
       success: true,
       validation,
       verificationStatus: needsReview ? 'pending_validation' : (current?.verification_status || 'not_submitted'),
       message: 'Documentación y datos de conductor guardados con éxito.'
     })
-  } catch (error: any) {
+
+    // La documentación ya está enviada: desde aquí se entra con el enlace del email o con sesión
+    if (accessCookie) {
+      const expired = expiredCheckoutAccessCookie()
+      response.cookies.set(expired.name, expired.value, expired.options)
+    }
+    return response
+  } catch (error) {
     console.error('Upload Driver Docs Error:', error)
-    return NextResponse.json({ error: error.message || 'Error interno del servidor' }, { status: 500 })
+    return NextResponse.json({ error: 'Error interno del servidor' }, { status: 500 })
   }
 }
 

@@ -1,29 +1,37 @@
 import crypto from "crypto";
-import { createCheckoutAccessCookie } from '@/lib/checkoutAccess'
+import { createCheckoutAccessCookie, createCheckoutNoAccessCookie } from '@/lib/checkoutAccess'
 import { NextResponse } from 'next/server'
 import { getSupabaseAdmin } from '@/lib/supabase/admin'
 import { createClient as createServerClient } from '@/lib/supabase/server'
 import { calculatePriceV2 } from '@/lib/pricing/engine'
-import { CategorizedExtra, DaySlot, KmPackage, CancellationPolicy, DepositOption } from '@/lib/pricing/types'
-import { generateRedsysOrderId, createRedsysPaymentForm } from '@/lib/redsys'
+import { CategorizedExtra, KmPackage, CancellationPolicy, DepositOption } from '@/lib/pricing/types'
+import { generateRedsysOrderId, createRedsysPaymentForm, getRedsysConfig, isRedsysLocale } from '@/lib/redsys'
+import {
+    calculateAge,
+    calculateLicenseSeniorityYears,
+    camperSeats,
+    MAX_CAMPER_SEATS,
+    isValidDateString,
+    isValidEmail,
+    normalizeEmail,
+    resolveBookingSlots,
+    sanitizeCustomerNotes,
+    validateBookingDates,
+} from '@/lib/booking/checkoutRules'
+import { hasTooManyOpenBookings, isSessionOf, resolveCheckoutCustomer, retireAccount } from '@/lib/booking/checkoutCustomer'
+import { isBookingRangeFree } from '@/lib/booking/calendarLogic'
+import { clientIp, registerCheckoutAttempt } from '@/lib/booking/checkoutRateLimit'
+import {
+    isValidDocumentIdText,
+    isValidPersonName,
+    isValidPhoneText,
+    isValidTypedAddress,
+    joinAddressParts,
+    MAX_ADDRESS_LENGTH,
+    normalizeDriverText,
+} from '@/lib/driverDocuments'
 
-export function calculateAge(birthDate: Date, referenceDate: Date = new Date()): number {
-    let age = referenceDate.getFullYear() - birthDate.getFullYear()
-    const m = referenceDate.getMonth() - birthDate.getMonth()
-    if (m < 0 || (m === 0 && referenceDate.getDate() < birthDate.getDate())) {
-        age--
-    }
-    return age
-}
-
-export function calculateLicenseSeniorityYears(issueDate: Date, referenceDate: Date = new Date()): number {
-    let years = referenceDate.getFullYear() - issueDate.getFullYear()
-    const m = referenceDate.getMonth() - issueDate.getMonth()
-    if (m < 0 || (m === 0 && referenceDate.getDate() < issueDate.getDate())) {
-        years--
-    }
-    return Math.max(0, years)
-}
+export { calculateAge, calculateLicenseSeniorityYears }
 
 const DNI_LETTERS = 'TRWAGMYFPDXBNJZSQVHLCKE'
 
@@ -85,11 +93,17 @@ export function validateBookingPassengers(
         return { isValid: true, passengers: [] }
     }
 
+    // Antes de recorrer nada: ninguna camper lleva más de MAX_CAMPER_SEATS plazas (carnet B)
+    if (Array.isArray(rawPassengers) && rawPassengers.length > MAX_CAMPER_SEATS - 1) {
+        return { isValid: false, error: `No puede haber más de ${MAX_CAMPER_SEATS - 1} acompañantes.`, passengers: [] }
+    }
+
+    const text = (value: unknown) => typeof value === 'string' ? value : ''
     const items: any[] = Array.isArray(rawPassengers) ? [...rawPassengers] : []
     if (separateSecondDriver && typeof separateSecondDriver === 'object') {
-        const sDoc = (separateSecondDriver.dniNie || separateSecondDriver.dni || separateSecondDriver.passport || '').trim().toUpperCase()
+        const sDoc = text(separateSecondDriver.dniNie || separateSecondDriver.dni || separateSecondDriver.passport).trim().toUpperCase()
         const exists = items.some(p => {
-            const pDoc = (p.dniNie || p.dni || p.passport || '').trim().toUpperCase()
+            const pDoc = text(p?.dniNie || p?.dni || p?.passport).trim().toUpperCase()
             return pDoc && sDoc && pDoc === sDoc
         })
         if (!exists) {
@@ -102,14 +116,27 @@ export function validateBookingPassengers(
     for (let i = 0; i < items.length; i++) {
         const p = items[i]
         const passengerNum = i + 2 // Pasajero 1 es el conductor principal / cliente
-        const fullName = (p.fullName || p.name || p.customer_name || '').trim()
-        const doc = (p.dniNie || p.dni || p.passport || p.documentNumber || p.document_number || p.dni_nie || '').trim().toUpperCase()
+        if (!p || typeof p !== 'object') {
+            return { isValid: false, error: `Los datos del Pasajero ${passengerNum} no son válidos.`, passengers: [] }
+        }
+        const rawName = text(p.fullName || p.name || p.customer_name)
+        // Se guarda normalizado, como el nombre del cliente: es lo que imprime el contrato
+        const fullName = normalizeDriverText(rawName) ?? ''
+        const doc = text(p.dniNie || p.dni || p.passport || p.documentNumber || p.document_number || p.dni_nie).trim().toUpperCase()
         const isSecondDriver = Boolean(p.isSecondDriver || p.is_second_driver || p.secondDriver || p.isDriver)
 
         if (!fullName) {
             return {
                 isValid: false,
                 error: `El nombre y apellidos del acompañante (Pasajero ${passengerNum}) son obligatorios.`,
+                passengers: []
+            }
+        }
+
+        if (!isValidPersonName(rawName)) {
+            return {
+                isValid: false,
+                error: `El nombre del acompañante (Pasajero ${passengerNum}) solo puede contener letras, espacios y los signos . , · ' -`,
                 passengers: []
             }
         }
@@ -142,14 +169,15 @@ export function validateBookingPassengers(
 
             // 1. Validar edad mínima obligatoria (>= 25 años)
             if (rawBirthDate) {
-                const bDate = new Date(rawBirthDate)
-                if (isNaN(bDate.getTime())) {
+                // YYYY-MM-DD, como la del titular: new Date() admitía "2000/01/01 (texto…)" y se guardaba tal cual
+                if (!isValidDateString(rawBirthDate)) {
                     return {
                         isValid: false,
                         error: `La fecha de nacimiento del segundo conductor ("${fullName}") no es válida.`,
                         passengers: []
                     }
                 }
+                const bDate = new Date(rawBirthDate)
                 const age = calculateAge(bDate, rentalStartDate)
                 if (age < 25) {
                     return {
@@ -178,14 +206,14 @@ export function validateBookingPassengers(
 
             // 2. Validar antigüedad carnet B obligatoria (>= 2 años)
             if (rawLicenseDate) {
-                const lDate = new Date(rawLicenseDate)
-                if (isNaN(lDate.getTime())) {
+                if (!isValidDateString(rawLicenseDate)) {
                     return {
                         isValid: false,
                         error: `La fecha de expedición del carnet de conducir del segundo conductor ("${fullName}") no es válida.`,
                         passengers: []
                     }
                 }
+                const lDate = new Date(rawLicenseDate)
                 const seniority = calculateLicenseSeniorityYears(lDate, rentalStartDate)
                 if (seniority < 2) {
                     return {
@@ -239,17 +267,25 @@ export function validateBookingPassengers(
 
 export async function POST(req: Request) {
     try {
+        // Antes de crear nada: sin configuración válida de Redsys no se puede cobrar
+        try {
+            getRedsysConfig()
+        } catch (configErr) {
+            console.error('Checkout: configuración de Redsys no válida:', configErr)
+            return NextResponse.json({ error: 'El pago no está disponible en este momento. Inténtalo más tarde.' }, { status: 503 })
+        }
+
         const body = await req.json()
 
         const camperSlug = body.camperSlug || body.camper_slug || body.camper || body.camperId
         const startDateStr = body.startDate || body.from
         const endDateStr = body.endDate || body.to
 
-        const pickupSlot: DaySlot = body.pickupSlot || body.startSlot || (body.pickupTime === '09:00' ? 'morning' : 'afternoon')
-        const dropoffSlot: DaySlot = body.dropoffSlot || body.endSlot || (body.dropoffTime === '19:00' || body.dropoffTime === '18:00' ? 'afternoon' : 'morning')
-
-        const pickupTime = body.pickupTime || body.pickup_time || (pickupSlot === 'morning' ? '09:00' : '15:00')
-        const dropoffTime = body.dropoffTime || body.dropoff_time || (dropoffSlot === 'afternoon' ? '19:00' : '12:00')
+        const slots = resolveBookingSlots(body)
+        if (!slots) {
+            return NextResponse.json({ error: 'Tramo horario de recogida o devolución no válido' }, { status: 400 })
+        }
+        const { pickupSlot, dropoffSlot, pickupTime, dropoffTime } = slots
 
         const kmPackage: KmPackage = body.kmPackage === 'unlimited' ? 'unlimited' : 'included_150'
         const cancellationPolicy: CancellationPolicy = body.cancellationPolicy === 'flexible' ? 'flexible' : 'standard'
@@ -266,21 +302,46 @@ export async function POST(req: Request) {
 
         const rawExtras = body.extrasSelected || body.extras || body.selectedExtras || []
 
-        const customerName = (cust.fullName || cust.name || body.customerName || body.fullName || body.name || '').trim()
-        const customerEmail = (cust.email || body.customerEmail || body.email || '').trim().toLowerCase()
-        const customerPhone = (cust.phone || body.customerPhone || body.phone || '').trim()
-        const customerDni = (cust.dniNie || cust.dni || body.customerDni || body.dniNie || body.dni || '').trim()
+        const rawName = String(cust.fullName || cust.name || body.customerName || body.fullName || body.name || '')
+        const customerEmail = normalizeEmail(cust.email || body.customerEmail || body.email)
+        const rawPhone = String(cust.phone || body.customerPhone || body.phone || '')
+        const rawDni: unknown = cust.dniNie || cust.dni || body.customerDni || body.dniNie || body.dni || ''
 
-        const addressParts = [
+        const rawAddress = joinAddressParts([
             cust.address || body.customerAddress || body.address,
             cust.city || body.city,
             cust.postalCode || body.postalCode,
             cust.country || body.country
-        ].filter(Boolean)
-        const customerAddress = addressParts.length > 0 ? addressParts.join(', ') : (cust.address || body.customerAddress || '')
+        ])
 
-        const travelersCount = Number(cust.travelersCount || cust.pax || body.travelersCount || body.pax || body.num_pax || 2)
-        const notes = cust.notes || body.notes || ''
+        // Las mismas reglas que el paso 5 y la subida de documentos: lo que se acepta aquí pasa después.
+        // Vacíos se admiten como hasta ahora (la reserva usa 'Cliente Utopia' y sin teléfono ni dirección)
+        if (rawName.trim() && !isValidPersonName(rawName)) {
+            return NextResponse.json({ error: "El nombre solo puede contener letras, espacios y los signos . , · ' -" }, { status: 400 })
+        }
+        if (rawPhone.trim() && !isValidPhoneText(rawPhone)) {
+            return NextResponse.json({ error: 'El teléfono solo puede contener números, espacios y los signos + ( ) . / -, hasta 30 caracteres con el prefijo' }, { status: 400 })
+        }
+        if (rawAddress && !isValidTypedAddress(rawAddress)) {
+            return NextResponse.json({ error: `La dirección completa (dirección, ciudad, código postal y país) no puede superar ${MAX_ADDRESS_LENGTH} caracteres ni contener caracteres de control` }, { status: 400 })
+        }
+        // Mismo patrón que la subida de documentos. Antes, un valor que no era texto daba 500
+        if (typeof rawDni !== 'string' || (rawDni.trim() && !isValidDocumentIdText(rawDni))) {
+            return NextResponse.json({ error: 'El documento de identidad solo puede contener letras, números, espacios y guiones (5 a 20 caracteres)' }, { status: 400 })
+        }
+        // Se guarda lo normalizado: es lo que la subida de documentos y el contrato esperan
+        const customerName = normalizeDriverText(rawName) || ''
+        const customerPhone = normalizeDriverText(rawPhone) || ''
+        const customerAddress = normalizeDriverText(rawAddress) || ''
+        const customerDni = normalizeDriverText(rawDni) || ''
+
+        // Entero entre 1 y el máximo de plazas; las de esta camper se comprueban al leerla
+        const rawTravelers = cust.travelersCount ?? cust.pax ?? body.travelersCount ?? body.pax ?? body.num_pax
+        const travelersCount = rawTravelers === undefined || rawTravelers === null || rawTravelers === '' ? 2 : Number(rawTravelers)
+        if (!Number.isInteger(travelersCount) || travelersCount < 1 || travelersCount > MAX_CAMPER_SEATS) {
+            return NextResponse.json({ error: `El número de viajeros debe ser un número entero entre 1 y ${MAX_CAMPER_SEATS}` }, { status: 400 })
+        }
+        const notes = sanitizeCustomerNotes(cust.notes || body.notes)
 
         // 1. Validaciones básicas de entrada
         if (!camperSlug || !startDateStr || !endDateStr) {
@@ -302,15 +363,15 @@ export async function POST(req: Request) {
             )
         }
 
-        const startDate = new Date(startDateStr)
-        const endDate = new Date(endDateStr)
-
-        if (isNaN(startDate.getTime()) || isNaN(endDate.getTime()) || endDate <= startDate) {
-            return NextResponse.json(
-                { error: 'Rango de fechas de reserva inválido' },
-                { status: 400 }
-            )
+        if (!isValidEmail(customerEmail)) {
+            return NextResponse.json({ error: 'El correo electrónico no es válido' }, { status: 400 })
         }
+
+        const bookingDates = validateBookingDates(startDateStr, endDateStr)
+        if (bookingDates.error !== undefined) {
+            return NextResponse.json({ error: bookingDates.error }, { status: 400 })
+        }
+        const { startDate, endDate } = bookingDates
 
         // 2. Validaciones de conductor server-side (Edad mínima >= 25 años y antigüedad carnet B >= 2 años)
         const rawBirthDate =
@@ -342,6 +403,7 @@ export async function POST(req: Request) {
             cust.licenseIssueDate ||
             cust.driver_license_issue_date ||
             cust.license_issue_date ||
+            cust.licenseDate ||
             driverData.licenseIssueDate ||
             driverData.issueDate ||
             driverData.license_issue_date
@@ -362,13 +424,13 @@ export async function POST(req: Request) {
 
         // Validación de edad mínima (>= 25 años)
         if (rawBirthDate) {
-            const birthDate = new Date(rawBirthDate)
-            if (isNaN(birthDate.getTime())) {
+            if (!isValidDateString(rawBirthDate)) {
                 return NextResponse.json(
                     { error: 'Fecha de nacimiento del conductor no válida' },
                     { status: 400 }
                 )
             }
+            const birthDate = new Date(rawBirthDate)
             const age = calculateAge(birthDate, startDate)
             if (age < 25) {
                 return NextResponse.json(
@@ -384,17 +446,20 @@ export async function POST(req: Request) {
                     { status: 400 }
                 )
             }
+        } else {
+            // Sin sesión del titular no se mira su perfil: la comprobación depende de este dato
+            return NextResponse.json({ error: 'La fecha de nacimiento del conductor es obligatoria' }, { status: 400 })
         }
 
         // Validación de antigüedad mínima del permiso de conducir B (>= 2 años)
         if (rawLicenseIssueDate) {
-            const issueDate = new Date(rawLicenseIssueDate)
-            if (isNaN(issueDate.getTime())) {
+            if (!isValidDateString(rawLicenseIssueDate)) {
                 return NextResponse.json(
                     { error: 'Fecha de expedición del carnet de conducir no válida' },
                     { status: 400 }
                 )
             }
+            const issueDate = new Date(rawLicenseIssueDate)
             const seniority = calculateLicenseSeniorityYears(issueDate, startDate)
             if (seniority < 2) {
                 return NextResponse.json(
@@ -410,6 +475,8 @@ export async function POST(req: Request) {
                     { status: 400 }
                 )
             }
+        } else {
+            return NextResponse.json({ error: 'La fecha de expedición del carnet de conducir es obligatoria' }, { status: 400 })
         }
 
         if (driverRequirementsConfirmed === false) {
@@ -420,14 +487,36 @@ export async function POST(req: Request) {
         }
 
         // 2b. Validaciones de acompañantes y segundo conductor server-side
-        const rawPassengers = body.passengers || cust.passengers || body.companions || cust.companions || []
-        const separateSecondDriver = 
-            body.secondDriver || 
-            cust.secondDriver || 
-            ((cust.secondDriverSoloEnabled || body.secondDriverSoloEnabled) 
-                ? (body.secondDriverSolo || cust.secondDriverSolo) 
-                : null) || 
+        const rawPassengersInput = body.passengers || cust.passengers || body.companions || cust.companions || []
+        // El 2º conductor solo se incluye con fianza Flex: si el cliente vuelve a Estándar, una ficha de acompañante
+        // puede conservar isSecondDriver: true en el borrador aunque la casilla ya no se vea ni se valide en el paso 5
+        const secondDriverAllowed = depositOption === 'flex_1000'
+        const rawPassengers = Array.isArray(rawPassengersInput)
+            ? rawPassengersInput.map((p: unknown) =>
+                p && typeof p === 'object' && !secondDriverAllowed
+                    ? { ...(p as Record<string, unknown>), isSecondDriver: false, is_second_driver: false, secondDriver: false, isDriver: false }
+                    : p
+            )
+            : rawPassengersInput
+        // El 2º conductor "solo" existe únicamente con 1 viajero y fianza Flex (el bloque del paso 5 solo
+        // se ve así). Fuera de ese caso se ignora: una pestaña antigua o un borrador lo pueden seguir enviando
+        const soloSecondDriverAllowed = travelersCount === 1 && secondDriverAllowed
+        const separateSecondDriver =
+            body.secondDriver ||
+            cust.secondDriver ||
+            (soloSecondDriverAllowed && (cust.secondDriverSoloEnabled || body.secondDriverSoloEnabled)
+                ? (body.secondDriverSolo || cust.secondDriverSolo)
+                : null) ||
             null
+
+        // Cada acompañante es un viajero más que el titular (el 2º conductor "solo" no viaja como acompañante)
+        const companionsCount = Array.isArray(rawPassengers) ? rawPassengers.length : 0
+        if (travelersCount < companionsCount + 1) {
+            return NextResponse.json(
+                { error: `Has indicado ${travelersCount} ${travelersCount === 1 ? 'viajero' : 'viajeros'} y ${companionsCount} ${companionsCount === 1 ? 'acompañante' : 'acompañantes'}: revisa el número de viajeros.` },
+                { status: 400 }
+            )
+        }
 
         const passengerValidation = validateBookingPassengers(rawPassengers, startDate, separateSecondDriver)
         if (!passengerValidation.isValid) {
@@ -439,6 +528,17 @@ export async function POST(req: Request) {
         const validatedPassengers = passengerValidation.passengers
 
         const supabase = getSupabaseAdmin()
+
+        const session = await createServerClient()
+        const { data: { user: sessionUser } } = await session.auth.getUser()
+
+        // El límite cuenta por email, que escribe cualquiera: al titular con sesión no le afecta
+        if (!isSessionOf(sessionUser, customerEmail) && await hasTooManyOpenBookings(supabase, customerEmail)) {
+            return NextResponse.json(
+                { error: 'Hay varias reservas sin pagar con este email. Inicia sesión para continuar, espera unos minutos o escríbenos.' },
+                { status: 429 }
+            )
+        }
 
         // 3. Comprobar existencia de la camper
         const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(camperSlug)
@@ -454,6 +554,15 @@ export async function POST(req: Request) {
             return NextResponse.json({ error: 'Camper no encontrada' }, { status: 404 })
         }
 
+        // Plazas de esta camper: viajeros y acompañantes (segundo conductor incluido) no pueden superarlas
+        const seats = camperSeats(camper)
+        if (travelersCount > seats || validatedPassengers.length > seats - 1) {
+            return NextResponse.json(
+                { error: `La camper ${camper.name || ''} tiene ${seats} plazas: revisa el número de viajeros y acompañantes.` },
+                { status: 400 }
+            )
+        }
+
         // 4. Comprobar disponibilidad frente a reservas activas y bloqueos de calendario
         const now = new Date()
 
@@ -465,37 +574,34 @@ export async function POST(req: Request) {
             .lt('expires_at', now.toISOString())
 
         // 4b. Comprobar reservas confirmadas o activas
-        const { data: activeBookings } = await supabase
+        const { data: activeBookings, error: activeErr } = await supabase
             .from('bookings')
-            .select('id, start_date, end_date')
+            .select('id, start_date, end_date, pickup_time, dropoff_time')
             .eq('camper_id', camper.id)
             .in('status', ['confirmed', 'active'])
             .lte('start_date', endDateStr)
             .gte('end_date', startDateStr)
-
-        if (activeBookings && activeBookings.length > 0) {
-            return NextResponse.json(
-                { error: 'La camper no está disponible en las fechas seleccionadas (reserva confirmada existente)' },
-                { status: 409 }
-            )
-        }
+        if (activeErr) throw new Error(activeErr.message)
 
         // 4c. Comprobar bloqueos de calendario vigentes (permanentes o no expirados)
-        const { data: blockedDates } = await supabase
+        const { data: blockedDates, error: blockedErr } = await supabase
             .from('blocked_dates')
             .select('id, start_date, end_date, expires_at, reason')
             .eq('camper_id', camper.id)
             .lte('start_date', endDateStr)
             .gte('end_date', startDateStr)
+        if (blockedErr) throw new Error(blockedErr.message)
 
         const effectiveHolds = (blockedDates || []).filter(b => {
             if (!b.expires_at) return true // Permanente (Redsys o admin)
             return new Date(b.expires_at) > now // Hold temporal vigente
         })
 
-        if (effectiveHolds.length > 0) {
+        // Misma regla que el calendario: un medio día libre se puede reservar
+        const requestedRange = { start_date: startDateStr, end_date: endDateStr, pickup_time: pickupTime, dropoff_time: dropoffTime }
+        if (!isBookingRangeFree(requestedRange, activeBookings || [], effectiveHolds)) {
             return NextResponse.json(
-                { error: 'La camper no está disponible en las fechas seleccionadas (fechas bloqueadas o en proceso de reserva)' },
+                { error: 'La camper no está disponible en las fechas seleccionadas' },
                 { status: 409 }
             )
         }
@@ -553,153 +659,49 @@ export async function POST(req: Request) {
             return NextResponse.json({ error: 'Rango de fechas de reserva inválido' }, { status: 400 })
         }
 
-        // 7. Gestión de Usuario (Creación transparente o vinculación por email)
-        let userId: string | null = null
-
-        // Comprobar si el usuario ya existe en public.users
-        const { data: existingUser } = await supabase
-            .from('users')
-            .select('id, email, phone, dni_nie, address, full_name, birth_date, driver_license_issue_date')
-            .ilike('email', customerEmail)
-            .maybeSingle()
-
-        if (existingUser) {
-            // Validar requisitos de conductor también contra el perfil ya guardado si existe
-            if (existingUser.birth_date) {
-                const uBirth = new Date(existingUser.birth_date)
-                if (!isNaN(uBirth.getTime()) && calculateAge(uBirth, startDate) < 25) {
-                    return NextResponse.json(
-                        { error: 'El perfil de usuario registrado indica una edad inferior a 25 años cumplidos' },
-                        { status: 400 }
-                    )
-                }
-            }
-            if (existingUser.driver_license_issue_date) {
-                const uLicense = new Date(existingUser.driver_license_issue_date)
-                if (!isNaN(uLicense.getTime()) && calculateLicenseSeniorityYears(uLicense, startDate) < 2) {
-                    return NextResponse.json(
-                        { error: 'El perfil de usuario registrado indica una antigüedad de carnet B inferior a 2 años' },
-                        { status: 400 }
-                    )
-                }
-            }
-
-            userId = existingUser.id
-
-            // Completar datos vacíos en public.users con los datos del checkout actual
-            const updates: Record<string, any> = {}
-            if (customerPhone && !existingUser.phone) updates.phone = customerPhone
-            if (customerDni && !existingUser.dni_nie) updates.dni_nie = customerDni
-            if (customerAddress && !existingUser.address) updates.address = customerAddress
-            if (customerName && !existingUser.full_name) updates.full_name = customerName
-            if (rawBirthDate && !existingUser.birth_date) updates.birth_date = rawBirthDate
-            if (rawLicenseIssueDate && !existingUser.driver_license_issue_date) updates.driver_license_issue_date = rawLicenseIssueDate
-
-            if (Object.keys(updates).length > 0) {
-                await supabase.from('users').update(updates).eq('id', userId)
-            }
-        } else {
-            // Usuario no encontrado en public.users:
-            // 1. Intentar crear en Supabase Auth
-            const secureRandomPassword = `Utopia_${crypto.randomBytes(12).toString("hex")}_2026!`
-            try {
-                const { data: authCreated, error: authCreateErr } = await supabase.auth.admin.createUser({
-                    email: customerEmail,
-                    password: secureRandomPassword,
-                    email_confirm: true,
-                    user_metadata: {
-                        full_name: customerName,
-                        phone: customerPhone,
-                        dni_nie: customerDni,
-                        address: customerAddress,
-                        birth_date: rawBirthDate || null,
-                        driver_license_issue_date: rawLicenseIssueDate || null,
-                    },
-                })
-                if (authCreated?.user) {
-                    userId = authCreated.user.id
-                } else if (authCreateErr) {
-                    console.warn('createUser admin error:', authCreateErr.message)
-                }
-            } catch (authErr) {
-                console.warn('createUser admin exception:', authErr)
-            }
-
-            // 2. Si no se creó porque ya existía en Auth, recuperarlo de auth.admin.listUsers()
-            if (!userId) {
-                try {
-                    const { data: userList } = await supabase.auth.admin.listUsers({ page: 1, perPage: 1000 })
-                    const match = userList?.users?.find(u => u.email?.toLowerCase() === customerEmail.toLowerCase().trim())
-                    if (match) {
-                        userId = match.id
-                    }
-                } catch (listErr) {
-                    console.warn('Error al buscar usuario en auth.admin.listUsers:', listErr)
-                }
-            }
-
-            // 3. Fallback adicional con auth.signUp si aún no tenemos userId
-            if (!userId) {
-                const { data: signUpData } = await supabase.auth.signUp({
-                    email: customerEmail,
-                    password: secureRandomPassword,
-                    options: {
-                        data: {
-                            full_name: customerName,
-                            phone: customerPhone,
-                            dni_nie: customerDni,
-                            address: customerAddress,
-                            birth_date: rawBirthDate || null,
-                            driver_license_issue_date: rawLicenseIssueDate || null,
-                        },
-                    },
-                })
-                userId = signUpData?.user?.id || null
-            }
-
-            // 4. Asegurar sincronización en public.users con upsert y update
-            if (userId) {
-                const userFields: Record<string, any> = {
-                    id: userId,
-                    full_name: customerName || 'Cliente Utopia',
-                    email: customerEmail,
-                    role: 'customer',
-                }
-                if (customerPhone) userFields.phone = customerPhone
-                if (customerDni) userFields.dni_nie = customerDni
-                if (customerAddress) userFields.address = customerAddress
-                if (rawBirthDate) userFields.birth_date = rawBirthDate
-                if (rawLicenseIssueDate) userFields.driver_license_issue_date = rawLicenseIssueDate
-
-                const { error: upsertErr } = await supabase
-                    .from('users')
-                    .upsert(userFields, { onConflict: 'id' })
-
-                if (upsertErr) {
-                    console.warn('Upsert fallback warning:', upsertErr.message)
-                    // Si el trigger handle_new_user ya insertó la fila, aseguramos los datos con update
-                    const { error: updateErr } = await supabase
-                        .from('users')
-                        .update(userFields)
-                        .eq('id', userId)
-                    if (updateErr) {
-                        console.error('Error actualizando usuario en public.users:', updateErr)
-                    }
-                }
-            }
+        // A partir de aquí se crean cuentas y bloqueos: se cuenta solo lo que llega a hacerlo
+        if (!registerCheckoutAttempt(clientIp(req.headers))) {
+            return NextResponse.json({ error: 'Demasiados intentos de reserva. Espera unos minutos.' }, { status: 429 })
         }
 
-        if (!userId) {
-            console.error('No se pudo resolver o crear el usuario para email:', customerEmail)
-            return NextResponse.json({ error: 'Error al asociar cuenta de usuario' }, { status: 500 })
+        // 7. Cuenta del cliente: se crea o se enlaza. Solo la sesión del titular, o haberla creado
+        // aquí, permite tocar el perfil y da acceso a los datos tras el pago
+        const customer = await resolveCheckoutCustomer(supabase, {
+            email: customerEmail,
+            startDate,
+            sessionUser,
+            profile: {
+                fullName: customerName,
+                phone: customerPhone,
+                dniNie: customerDni,
+                address: customerAddress,
+                birthDate: rawBirthDate || null,
+                licenseIssueDate: rawLicenseIssueDate || null,
+            },
+        }, `Utopia_${crypto.randomBytes(12).toString("hex")}_2026!`)
+
+        if (customer.rejection !== undefined) {
+            return NextResponse.json({ error: customer.rejection }, { status: 400 })
+        }
+        const { userId, grantAccess, accountCreated } = customer
+        const retireNewAccount = async () => {
+            if (accountCreated) await retireAccount(supabase, userId)
         }
 
-        // 8. Generar identificador de pedido único de Redsys (12 caracteres)
+        // 8. Generar identificador de pedido único de Redsys (12 caracteres) y su formulario de pago,
+        // que ya no depende de nada más: a partir de aquí la reserva está validada
         const orderId = generateRedsysOrderId()
+        const redsysFormData = createRedsysPaymentForm({
+            amount: breakdown.payableTotal,
+            orderId,
+            description: `1x Camper ${camper.name || camperSlug.toUpperCase()} - Utopia Van Life`,
+            customerName: customerName || 'Cliente Utopia',
+            locale: isRedsysLocale(body.locale) ? body.locale : 'es',
+        })
 
         // 9. Insertar bloqueo provisional de 15 minutos en blocked_dates
         const holdExpiresAt = new Date(Date.now() + 15 * 60 * 1000).toISOString()
-        const { data: holdRecord } = await supabase
+        const { data: holdRecord, error: holdErr } = await supabase
             .from('blocked_dates')
             .insert({
                 camper_id: camper.id,
@@ -711,6 +713,11 @@ export async function POST(req: Request) {
             })
             .select('id')
             .maybeSingle()
+
+        if (holdErr || !holdRecord) {
+            await retireNewAccount()
+            throw new Error(`No se pudo crear el bloqueo provisional: ${holdErr?.message}`)
+        }
 
         // 10. Persistir reserva con estado 'pending' y payment_status 'pending'
         const { data: booking, error: bookingErr } = await supabase
@@ -755,24 +762,10 @@ export async function POST(req: Request) {
         if (bookingErr || !booking) {
             console.error('Error insertando reserva en bookings:', bookingErr)
             // Liberar el hold temporal si la reserva falló
-            if (holdRecord?.id) {
-                await supabase.from('blocked_dates').delete().eq('id', holdRecord.id)
-            }
-            return NextResponse.json({ 
-                error: 'Error al registrar la reserva',
-                details: bookingErr?.message || undefined 
-            }, { status: 500 })
+            await supabase.from('blocked_dates').delete().eq('id', holdRecord.id)
+            await retireNewAccount()
+            return NextResponse.json({ error: 'Error al registrar la reserva' }, { status: 500 })
         }
-
-        // 11. Generar parámetros firmados de Redsys basados en el cálculo server-side inmutable
-        const requestedLocale = body.locale || 'es'
-        const redsysFormData = createRedsysPaymentForm({
-            amount: breakdown.payableTotal,
-            orderId,
-            description: `1x Camper ${camper.name || camperSlug.toUpperCase()} - Utopia Van Life`,
-            customerName: customerName || 'Cliente Utopia',
-            locale: requestedLocale,
-        })
 
         const response = NextResponse.json({
             success: true,
@@ -790,13 +783,14 @@ export async function POST(req: Request) {
             passengers: validatedPassengers,
         })
 
-        // Permite recuperar los datos de la reserva a la vuelta de Redsys, que llega sin sesión
-        const access = createCheckoutAccessCookie(orderId)
+        // Permite recuperar los datos de la reserva a la vuelta de Redsys, que llega sin sesión.
+        // Quien no tiene acceso recibe una cookie igual pero inútil: la respuesta no dice si el email tenía cuenta
+        const access = grantAccess ? createCheckoutAccessCookie(orderId) : createCheckoutNoAccessCookie()
         if (access) response.cookies.set(access.name, access.value, access.options)
 
         return response
-    } catch (error: any) {
+    } catch (error) {
         console.error('Checkout API error:', error)
-        return NextResponse.json({ error: error.message || 'Error interno del servidor' }, { status: 500 })
+        return NextResponse.json({ error: 'No hemos podido procesar la reserva. Inténtalo de nuevo.' }, { status: 500 })
     }
 }

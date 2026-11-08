@@ -1,0 +1,2 @@
+- [Convención de avisos de pago](project_payment_alert_convention.md) — `[PAGO A REVISAR]` en notes, cómo se apaga y de dónde sale el rol admin
+- [Editar archivos CRLF](feedback_edit_crlf_files.md) — evitar heredocs/node -e con cadenas multilínea; usar scripts con Write

@@ -41,10 +41,10 @@ describe('Redsys Payment Gateway Unit Tests', () => {
     it('should generate accurate 3DES and HMAC-SHA256 signature for test gateway', () => {
         const orderId = '00001258z582'
         const merchantParameters = encodeMerchantParameters({
-            DS_MERCHANT_AMOUNT: '60000',
-            DS_MERCHANT_ORDER: orderId,
-            DS_MERCHANT_MERCHANTCODE: REDSYS_TEST_DEFAULTS.merchantCode,
-            DS_MERCHANT_CURRENCY: '978',
+            Ds_Amount: '60000',
+            Ds_Order: orderId,
+            Ds_MerchantCode: REDSYS_TEST_DEFAULTS.merchantCode,
+            Ds_Currency: '978',
         })
 
         const signature = calculateSignature(merchantParameters, orderId, REDSYS_TEST_DEFAULTS.secretKey)
@@ -53,6 +53,18 @@ describe('Redsys Payment Gateway Unit Tests', () => {
         // Verify that the signature verifies successfully
         const isValid = verifyRedsysSignature(merchantParameters, signature, REDSYS_TEST_DEFAULTS.secretKey)
         assert.equal(isValid, true)
+    })
+
+    it('la firma del formulario de pago, que ve el cliente, no vale como notificación', () => {
+        const orderId = '00001258z582'
+        const merchantParameters = encodeMerchantParameters({
+            DS_MERCHANT_AMOUNT: '60000',
+            DS_MERCHANT_ORDER: orderId,
+            DS_MERCHANT_MERCHANTCODE: REDSYS_TEST_DEFAULTS.merchantCode,
+        })
+        const signature = calculateSignature(merchantParameters, orderId, REDSYS_TEST_DEFAULTS.secretKey)
+
+        assert.equal(verifyRedsysSignature(merchantParameters, signature, REDSYS_TEST_DEFAULTS.secretKey), false)
     })
 
     it('should verify signature with URL-safe replacement (- and _)', () => {

@@ -24,7 +24,7 @@
       "reason2_title": "Campers Premium",
       "reason2_desc": "Vehículos impecables, equipados con todo lo necesario para una experiencia de lujo sobre ruedas.",
       "reason3_title": "Seguro Integral y Soporte 24/7",
-      "reason3_desc": "Asistencia en carretera en toda la isla. Viaja con total tranquilidad y una fianza transparente de 1.000 € gestionada con total seguridad.",
+      "reason3_desc": "Asistencia en carretera en toda la isla. Viaja con total tranquilidad y una fianza transparente desde 1.000 € gestionada con total seguridad.",
       "reason4_title": "Viaje Consciente",
       "reason4_desc": "Compensamos las emisiones de CO2 de cada alquiler. Disfruta sin culpa."
     },
@@ -59,7 +59,7 @@
       "q4_question": "¿Qué pasa si hay una avería?",
       "q4_answer": "Disponemos de asistencia en carretera 24/7. Contacta con nuestro número de emergencias y gestionamos todo.",
       "q5_question": "¿Cómo funciona la fianza y el seguro?",
-      "q5_answer": "Tu tranquilidad es lo primero: todas nuestras campers incluyen seguro a todo riesgo. Operamos con máxima transparencia: la fianza de 1.000 € se bloquea de forma segura en tu tarjeta al inicio del alquiler y se libera automáticamente al devolver el vehículo en perfecto estado. Sin letra pequeña, comisiones ni costes ocultos.",
+      "q5_answer": "Tu tranquilidad es lo primero: todas nuestras campers incluyen seguro a todo riesgo. Operamos con máxima transparencia: la fianza, desde 1.000 €, se bloquea de forma segura en tu tarjeta al inicio del alquiler y se libera automáticamente al devolver el vehículo en perfecto estado. Sin letra pequeña, comisiones ni costes ocultos.",
       "q6_question": "¿Puedo cancelar mi reserva?",
       "q6_answer": "Sí. Las cancelaciones con más de 30 días de antelación reciben un reembolso del 100%. (De 29 a 15 días: 50%. Menos de 14 días: 0%)."
     }
@@ -178,5 +178,23 @@
     "newsletterSubtitle": "Recibe ideas de rutas, nuevos destinos y todo lo que necesitas para viajar en camper por Mallorca sin complicaciones.",
     "newsletterPlaceholder": "Tu correo electrónico",
     "newsletterSubmit": "Quiero unirme"
+  },
+  "CheckoutSuccess": {
+    "emailAccessTitle": "Completa tus datos desde tu email",
+    "emailAccessBody": "Te hemos enviado un email a la dirección de la reserva con un enlace de acceso. Entra con ese enlace para completar tus datos y subir tu documentación.",
+    "emailAccessHelp": "Si no lo ves en unos minutos, revisa la carpeta de spam. Si sigue sin llegar, pide un enlace nuevo con el mismo email o escríbenos por WhatsApp.",
+    "emailAccessRecover": "Pedir un enlace nuevo",
+    "confirmingTitle": "Confirmando tu pago...",
+    "confirmingBody": "Estamos esperando la confirmación del banco. Suele tardar unos segundos. No cierres esta página ni vuelvas a pagar.",
+    "delayedTitle": "Tu pago aún no está confirmado",
+    "delayedBody": "El banco todavía no nos ha confirmado el pago. Si se ha cargado en tu tarjeta, no vuelvas a pagar: en cuanto lo recibamos te enviaremos un email a la dirección de la reserva. Si tienes dudas, escríbenos.",
+    "reviewTitle": "Estamos revisando tu pago",
+    "reviewBody": "Hemos recibido un cobro de este pedido y el equipo lo está comprobando. No vuelvas a pagar. Te escribiremos al email de la reserva.",
+    "contactWhatsapp": "Escríbenos por WhatsApp",
+    "preparingPhotos": "Preparando las fotos...",
+    "preparingPhotosNote": "Estamos reduciendo el peso de las fotos para enviarlas. No cierres esta página.",
+    "filesTooLarge": "Tus archivos pesan demasiado para enviarlos juntos (unos 4 MB en total). Haz otra foto de los documentos o súbelos en formato JPG: los PDF y algunas fotos HEIC no se pueden reducir. Lo que has escrito sigue aquí.",
+    "uploadConnectionError": "No hemos podido enviar la documentación. Revisa tu conexión e inténtalo de nuevo: no has perdido nada de lo que has escrito.",
+    "uploadUnreadable": "No hemos podido confirmar que la documentación se haya guardado. Inténtalo de nuevo en unos segundos."
   }
 }

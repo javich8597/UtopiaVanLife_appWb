@@ -5,6 +5,8 @@ import {
     buildVerifiedBooking,
     CHECKOUT_ACCESS_COOKIE,
     createCheckoutAccessCookie,
+    createCheckoutNoAccessCookie,
+    expiredCheckoutAccessCookie,
     hasCheckoutAccess,
     resolveCheckoutUploadOwner,
 } from '../lib/checkoutAccess'
@@ -86,6 +88,26 @@ describe('Acceso tras el pago', () => {
         }
     })
 
+    it('la cookie de quien no tiene acceso es indistinguible de la real, pero no sirve para nada', () => {
+        const real = createCheckoutAccessCookie(ORDER, NOW)!
+        const noAccess = createCheckoutNoAccessCookie(NOW)!
+
+        assert.equal(noAccess.name, real.name)
+        assert.deepEqual(noAccess.options, real.options)
+        assert.equal(noAccess.value.length, real.value.length)
+        assert.equal(noAccess.value.split('.')[0], real.value.split('.')[0])
+        assert.equal(hasCheckoutAccess(ORDER, noAccess.value, minutesLater(5)), false)
+    })
+
+    it('la cookie se puede borrar del navegador', () => {
+        const expired = expiredCheckoutAccessCookie()
+
+        assert.equal(expired.name, CHECKOUT_ACCESS_COOKIE)
+        assert.equal(expired.value, '')
+        assert.equal(expired.options.maxAge, 0)
+        assert.equal(expired.options.path, '/api')
+    })
+
     it('sin clave de servidor no concede acceso', () => {
         const value = token()
         delete process.env.SUPABASE_SERVICE_ROLE_KEY
@@ -126,14 +148,37 @@ describe('Subida de documentación sin sesión', () => {
     const cookie = (order = ORDER) => createCheckoutAccessCookie(order, NOW)!.value
     const later = minutesLater(5)
 
-    it('asocia los documentos al titular desde el navegador que hizo la reserva', async () => {
-        const { db } = fakeDb({ bookings: { user_id: 'u1' }, users: { verification_status: 'not_submitted' } })
+    const paidBooking = { user_id: 'u1', payment_status: 'paid' }
+
+    it('con la cookie de una cuenta creada en el checkout y la reserva pagada, asocia los documentos', async () => {
+        const { db } = fakeDb({ bookings: paidBooking, users: { verification_status: 'not_submitted' } })
 
         assert.equal(await resolveCheckoutUploadOwner(db, ORDER, cookie(), later), 'u1')
     })
 
+    it('una cuenta existente sin sesión no recibe cookie válida: no se le asocia nada', async () => {
+        const { db, queries } = fakeDb({ bookings: paidBooking, users: { verification_status: 'not_submitted' } })
+
+        assert.equal(await resolveCheckoutUploadOwner(db, ORDER, createCheckoutNoAccessCookie(NOW)!.value, later), null)
+        assert.deepEqual(queries, [])
+    })
+
+    it('sin pagar la cookie no sirve: crear pedidos no permite averiguar si un email tiene cuenta', async () => {
+        for (const payment_status of ['pending', 'failed', 'refunded', null]) {
+            const { db } = fakeDb({ bookings: { user_id: 'u1', payment_status }, users: { verification_status: 'not_submitted' } })
+
+            assert.equal(await resolveCheckoutUploadOwner(db, ORDER, cookie(), later), null)
+        }
+    })
+
+    it('tras enviar la documentación la cookie deja de valer', async () => {
+        const { db } = fakeDb({ bookings: paidBooking, users: { verification_status: 'pending_validation' } })
+
+        assert.equal(await resolveCheckoutUploadOwner(db, ORDER, cookie(), later), null)
+    })
+
     it('conocer el número de pedido no basta, y ni siquiera se consulta la base de datos', async () => {
-        const { db, queries } = fakeDb({ bookings: { user_id: 'u1' }, users: { verification_status: 'not_submitted' } })
+        const { db, queries } = fakeDb({ bookings: paidBooking, users: { verification_status: 'not_submitted' } })
 
         assert.equal(await resolveCheckoutUploadOwner(db, ORDER, undefined, later), null)
         assert.equal(await resolveCheckoutUploadOwner(db, ORDER, '9999999999999.falsa', later), null)
@@ -143,20 +188,22 @@ describe('Subida de documentación sin sesión', () => {
     })
 
     it('el acceso caduca aunque la reserva esté pagada', async () => {
-        const { db } = fakeDb({ bookings: { user_id: 'u1' }, users: { verification_status: 'not_submitted' } })
+        const { db } = fakeDb({ bookings: paidBooking, users: { verification_status: 'not_submitted' } })
 
         assert.equal(await resolveCheckoutUploadOwner(db, ORDER, cookie(), minutesLater(120)), null)
     })
 
     it('un cliente verificado debe iniciar sesión para cambiar sus datos', async () => {
-        const { db } = fakeDb({ bookings: { user_id: 'u1' }, users: { verification_status: 'verified' } })
+        for (const verification_status of ['verified', 'approved', ' Approved ']) {
+            const { db } = fakeDb({ bookings: paidBooking, users: { verification_status } })
 
-        assert.equal(await resolveCheckoutUploadOwner(db, ORDER, cookie(), later), null)
+            assert.equal(await resolveCheckoutUploadOwner(db, ORDER, cookie(), later), null)
+        }
     })
 
     it('no asocia nada si la reserva no existe o no tiene titular', async () => {
         assert.equal(await resolveCheckoutUploadOwner(fakeDb({}).db, ORDER, cookie(), later), null)
-        assert.equal(await resolveCheckoutUploadOwner(fakeDb({ bookings: { user_id: null } }).db, ORDER, cookie(), later), null)
+        assert.equal(await resolveCheckoutUploadOwner(fakeDb({ bookings: { user_id: null, payment_status: 'paid' } }).db, ORDER, cookie(), later), null)
     })
 })
 

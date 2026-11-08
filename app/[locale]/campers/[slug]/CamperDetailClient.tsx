@@ -270,7 +270,7 @@ export default function CamperDetailClient({
             <div className="calculator-card">
               <PriceCalculator
                 camperSlug={slug}
-                depositAmount={camper.deposit_amount || 1000}
+                depositAmount={2000}
                 seasons={effectiveSeasons}
                 availableExtras={effectiveExtras}
                 initialFrom={initialFrom}
@@ -331,7 +331,7 @@ export default function CamperDetailClient({
             <div className="sidebar-calculator-wrap" ref={bookingSectionRef}>
               <PriceCalculator
                 camperSlug={slug}
-                depositAmount={camper.deposit_amount || 1000}
+                depositAmount={2000}
                 seasons={effectiveSeasons}
                 availableExtras={effectiveExtras}
                 initialFrom={initialFrom}

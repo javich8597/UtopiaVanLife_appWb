@@ -102,7 +102,7 @@ export default function Step3Cancellation({
                             <ul className="policy-card__features">
                                 <li className="feature-item">
                                     <Check size={14} className="feature-item__icon" />
-                                    <span>Seguro a todo riesgo con franquicia de 2.000 €</span>
+                                    <span>Seguro a todo riesgo con franquicia de 1.000 €</span>
                                 </li>
                                 <li className="feature-item">
                                     <Check size={14} className="feature-item__icon" />
@@ -171,7 +171,7 @@ export default function Step3Cancellation({
                                 </li>
                                 <li className="feature-item">
                                     <Check size={14} className="feature-item__icon" />
-                                    <span>Seguro a todo riesgo con franquicia reducida a 1.000 €</span>
+                                    <span>Seguro a todo riesgo con franquicia de 1.000 €</span>
                                 </li>
                                 <li className="feature-item">
                                     <Check size={14} className="feature-item__icon" />

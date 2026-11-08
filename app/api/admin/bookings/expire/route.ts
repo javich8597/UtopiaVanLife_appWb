@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server'
 import { createClient as createServerClient } from '@/lib/supabase/server'
 import { isAdminUser, getAdminClientOrSession } from '@/lib/admin/auth'
-import { isAbandonedPending } from '@/lib/admin/bookingStatus'
+import { BOOKING_STATUS_COLUMNS, isAbandonedPending } from '@/lib/admin/bookingStatus'
 
 async function checkAdminAuth() {
   const supabase = await createServerClient()
@@ -35,6 +35,7 @@ async function checkAdminAuth() {
 /**
  * Archiva reservas abandonadas: 'pending' sin pago y fuera del plazo de Redsys.
  * Body: { ids: string[] }. El servidor vuelve a comprobar cada una antes de cancelarla.
+ * Una reserva con un aviso de pago a revisar (notes) nunca se archiva: hay un cobro sin conciliar.
  */
 export async function POST(request: Request) {
   try {
@@ -49,7 +50,7 @@ export async function POST(request: Request) {
 
     const { data: candidates, error: fetchErr } = await db
       .from('bookings')
-      .select('id, status, payment_status, created_at, payment_intent_id')
+      .select(`${BOOKING_STATUS_COLUMNS}, payment_intent_id`)
       .in('id', ids)
 
     if (fetchErr) throw new Error(fetchErr.message)

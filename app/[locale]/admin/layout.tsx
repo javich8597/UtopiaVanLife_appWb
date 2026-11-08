@@ -4,7 +4,7 @@ import { createClient } from '@/lib/supabase/server'
 import AdminResponsiveShell from './AdminResponsiveShell'
 import './admin.css'
 import { isAdminUser } from '@/lib/admin/auth'
-import { actionablePendingFilter } from '@/lib/admin/bookingStatus'
+import { BOOKING_STATUS_COLUMNS, PAYMENT_ALERT_MARKER, actionablePendingFilter, hasPaymentAlert, isActionablePending } from '@/lib/admin/bookingStatus'
 import { ADMIN_THEME_COOKIE } from '@/lib/admin/theme'
 
 export const metadata = {
@@ -56,12 +56,18 @@ export default async function AdminLayout({
     }
 
     // Contadores para los avisos de la navegación
-    const [{ count: pendingBookings }, { count: pendingVerifications }] = await Promise.all([
+    const [{ count: pendingBookings }, { count: pendingVerifications }, { data: alertRows }] = await Promise.all([
         // Pendientes que requieren atención: pagadas por confirmar o aún vivas
         // (las abandonadas en Redsys se consideran caducadas)
         supabase.from('bookings').select('*', { count: 'exact', head: true }).eq('status', 'pending').or(actionablePendingFilter()),
         supabase.from('users').select('*', { count: 'exact', head: true }).eq('verification_status', 'pending_validation'),
+        // Reservas con un cobro de Redsys sin conciliar (el texto exacto se afina abajo, en memoria)
+        supabase.from('bookings').select(BOOKING_STATUS_COLUMNS).ilike('notes', `%${PAYMENT_ALERT_MARKER}%`),
     ])
+
+    // Las que ya cuenta la consulta de pendientes no se suman dos veces
+    const now = new Date()
+    const alertsOutsidePending = (alertRows || []).filter(b => hasPaymentAlert(b) && !isActionablePending(b, now)).length
 
     const initialTheme = (await cookies()).get(ADMIN_THEME_COOKIE)?.value === 'dark' ? 'dark' : 'light'
 
@@ -69,7 +75,7 @@ export default async function AdminLayout({
         <AdminResponsiveShell
             userEmail={user.email}
             initialTheme={initialTheme}
-            counts={{ pendingBookings: pendingBookings || 0, pendingVerifications: pendingVerifications || 0 }}
+            counts={{ pendingBookings: (pendingBookings || 0) + alertsOutsidePending, pendingVerifications: pendingVerifications || 0 }}
         >
             {children}
         </AdminResponsiveShell>

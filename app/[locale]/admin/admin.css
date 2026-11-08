@@ -204,6 +204,9 @@
 .adm-linklist__icon {
   color: var(--adm-text-2);
 }
+.adm-linklist__icon--rose {
+  color: var(--adm-rose);
+}
 .adm-linklist__label {
   flex: 1;
 }
@@ -466,6 +469,21 @@
   border: 1px solid var(--adm-border);
   font-size: 0.82rem;
   color: var(--adm-text-2);
+}
+.adm-note__text {
+  flex: 1;
+  min-width: 0;
+}
+/* Aviso que pide actuar (p. ej. un cobro de Redsys sin conciliar) */
+.adm-note--alert {
+  align-items: center;
+  background: var(--adm-rose-soft);
+  border-color: var(--adm-rose);
+  color: var(--adm-text);
+}
+.adm-note--alert > svg {
+  flex-shrink: 0;
+  color: var(--adm-rose);
 }
 
 /* Interruptor (toggle) en dorado */

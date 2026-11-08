@@ -59,7 +59,7 @@
       "q4_question": "What happens if there is a breakdown?",
       "q4_answer": "We have 24/7 roadside assistance. Contact our emergency number and we will handle everything.",
       "q5_question": "How does the deposit and insurance work?",
-      "q5_answer": "All our campers feature comprehensive insurance with a €1,000 security deposit. The deposit is temporarily held on your card and released after returning the vehicle in perfect condition.",
+      "q5_answer": "All our campers feature comprehensive insurance with a security deposit from €1,000. The deposit is temporarily held on your card and released after returning the vehicle in perfect condition.",
       "q6_question": "Can I cancel my reservation?",
       "q6_answer": "Yes. Cancellations more than 30 days in advance receive a 100% refund. (From 29 to 15 days: 50%. Less than 14 days: 0%)."
     }
@@ -178,5 +178,23 @@
     "newsletterSubtitle": "Receive route ideas, new destinations and everything you need to travel by camper in Mallorca without complications.",
     "newsletterPlaceholder": "Your email address",
     "newsletterSubmit": "I want to join"
+  },
+  "CheckoutSuccess": {
+    "emailAccessTitle": "Complete your details from your email",
+    "emailAccessBody": "We have sent an access link to the email address on your booking. Use that link to complete your details and upload your documents.",
+    "emailAccessHelp": "If you cannot see it within a few minutes, check your spam folder. If it still has not arrived, request a new link with the same email or message us on WhatsApp.",
+    "emailAccessRecover": "Request a new link",
+    "confirmingTitle": "Confirming your payment...",
+    "confirmingBody": "We are waiting for confirmation from the bank. This usually takes a few seconds. Do not close this page or pay again.",
+    "delayedTitle": "Your payment is not confirmed yet",
+    "delayedBody": "The bank has not confirmed the payment yet. If it has been charged to your card, do not pay again: we will email the address on your booking as soon as we receive it. If you have any questions, message us.",
+    "reviewTitle": "We are reviewing your payment",
+    "reviewBody": "We have received a charge for this order and our team is checking it. Do not pay again. We will write to the email address on your booking.",
+    "contactWhatsapp": "Message us on WhatsApp",
+    "preparingPhotos": "Preparing your photos...",
+    "preparingPhotosNote": "We are reducing the file size of your photos so they can be sent. Please keep this page open.",
+    "filesTooLarge": "Your files are too large to send together (about 4 MB in total). Take the photos again or upload them as JPG: PDFs and some HEIC photos cannot be reduced. What you typed is still here.",
+    "uploadConnectionError": "We could not send your documents. Check your connection and try again: nothing you typed has been lost.",
+    "uploadUnreadable": "We could not confirm that your documents were saved. Please try again in a few seconds."
   }
 }

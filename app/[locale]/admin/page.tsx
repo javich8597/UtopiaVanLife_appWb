@@ -22,6 +22,7 @@ import {
     Truck,
     Archive,
     BadgeCheck,
+    AlertTriangle,
 } from 'lucide-react'
 import { Link } from '@/i18n/routing'
 import RevenueChart from './RevenueChart'
@@ -32,7 +33,7 @@ import {
     calculateFleetLiveStatus,
     calculateDelta
 } from '@/lib/admin/dashboardMetrics'
-import { ADMIN_STATUS_LABELS, getAdminBookingStatus } from '@/lib/admin/bookingStatus'
+import { ADMIN_STATUS_LABELS, getAdminBookingStatus, hasPaymentAlert } from '@/lib/admin/bookingStatus'
 import './dashboard.css'
 
 const TZ = 'Europe/Madrid'
@@ -76,11 +77,11 @@ export default async function AdminDashboardPage() {
             .order('name'),
         supabase
             .from('bookings')
-            .select('id, camper_id, start_date, end_date, total_price, status, payment_status, created_at, customer_name'),
+            .select('id, camper_id, start_date, end_date, total_price, status, payment_status, created_at, customer_name, notes'),
         supabase
             .from('bookings')
             .select(`
-                id, start_date, end_date, total_price, status, payment_status, created_at, customer_name, customer_email,
+                id, start_date, end_date, total_price, status, payment_status, created_at, customer_name, customer_email, notes,
                 campers (name, slug),
                 users (id, full_name, email, verification_status)
             `)
@@ -109,6 +110,8 @@ export default async function AdminDashboardPage() {
     const expiredBookings = bookings.filter(b => getAdminBookingStatus(b, now) === 'expired')
     // Pagadas en Redsys a la espera de que el admin las confirme
     const reviewBookings = bookings.filter(b => getAdminBookingStatus(b, now) === 'review')
+    // Cobros de Redsys que no cuadran (importe distinto, reserva cancelada o reembolsada), en cualquier estado
+    const paymentAlertBookings = bookings.filter(b => hasPaymentAlert(b))
     const pendingRevenue = pendingBookings.reduce((sum, b) => sum + (Number(b.total_price) || 0), 0)
     const paidRevenue = paidBookings.reduce((sum, b) => sum + (Number(b.total_price) || 0), 0)
     const averageTicket = paidBookings.length > 0 ? Math.round(paidRevenue / paidBookings.length) : 0
@@ -153,10 +156,11 @@ export default async function AdminDashboardPage() {
         { key: 'pay', value: pendingBookings.length, label: 'Por cobrar', hint: pendingRevenue > 0 ? formatPrice(pendingRevenue) : 'al día', href: '/admin/bookings?status=pending', icon: Clock, tone: 'amber' },
         { key: 'docs', value: pendingVerificationsCount || 0, label: 'Carnets', hint: 'por validar', href: '/admin/verifications', icon: ShieldCheck, tone: 'rose' },
     ]
-    const tasksCount = tiles.reduce((s, t) => s + t.value, 0) + reviewBookings.length
+    const tasksCount = tiles.reduce((s, t) => s + t.value, 0) + reviewBookings.length + paymentAlertBookings.length
 
     // Avisos (lista con contador)
     const notices = [
+        { key: 'alert', label: 'Cobros de Redsys a revisar', count: paymentAlertBookings.length, href: '/admin/bookings?status=alert', icon: AlertTriangle, tone: 'rose' },
         { key: 'review', label: 'Reservas pagadas por confirmar', count: reviewBookings.length, href: '/admin/bookings?status=review', icon: BadgeCheck },
         { key: 'pay', label: 'Cobros pendientes', count: pendingBookings.length, href: '/admin/bookings?status=pending', icon: Clock },
         { key: 'docs', label: 'Carnets por validar', count: pendingVerificationsCount || 0, href: '/admin/verifications', icon: ShieldCheck },
@@ -186,6 +190,20 @@ export default async function AdminDashboardPage() {
                 <p className="dsh-head__date">{todayLabel}</p>
                 <h1 className="dsh-head__title">{greeting}</h1>
             </header>
+
+            {/* Cobros de Redsys sin conciliar: arriba del todo para que en móvil no queden bajo la lista */}
+            {paymentAlertBookings.length > 0 && (
+                <Link href={'/admin/bookings?status=alert' as any} className="adm-note adm-note--alert dsh-alert">
+                    <AlertTriangle size={18} aria-hidden="true" />
+                    <span className="adm-note__text">
+                        {paymentAlertBookings.length === 1
+                            ? '1 reserva tiene un cobro de Redsys que no cuadra'
+                            : `${paymentAlertBookings.length} reservas tienen un cobro de Redsys que no cuadra`}
+                        . Revísalo en el banco.
+                    </span>
+                    <ChevronRight size={18} aria-hidden="true" />
+                </Link>
+            )}
 
             <div className="dsh-layout">
                 {/* ===== Columna principal ===== */}
@@ -282,6 +300,7 @@ export default async function AdminDashboardPage() {
                                 const adminStatus = getAdminBookingStatus(b)
                                 const nights = nightsBetween(b.start_date, b.end_date)
                                 const docPending = b.users?.verification_status === 'pending_validation'
+                                const payAlert = hasPaymentAlert(b)
                                 return (
                                     <li key={b.id} className="dsh-row">
                                         <span className="dsh-row__avatar" aria-hidden="true">
@@ -300,7 +319,7 @@ export default async function AdminDashboardPage() {
                                             <span>
                                                 {ADMIN_STATUS_LABELS[adminStatus]}
                                                 <span className="dsh-row__sub">
-                                                    {docPending ? 'Carnet por validar' : formatPrice(Number(b.total_price) || 0)}
+                                                    {payAlert ? 'Pago a revisar' : docPending ? 'Carnet por validar' : formatPrice(Number(b.total_price) || 0)}
                                                 </span>
                                             </span>
                                         </span>
@@ -336,7 +355,7 @@ export default async function AdminDashboardPage() {
                                     return (
                                         <li key={n.key}>
                                             <Link href={n.href as any} className="adm-linklist__item">
-                                                <Icon size={20} className="adm-linklist__icon" />
+                                                <Icon size={20} className={`adm-linklist__icon ${n.tone ? `adm-linklist__icon--${n.tone}` : ''}`} />
                                                 <span className="adm-linklist__label">{n.label}</span>
                                                 <span className="adm-linklist__badge">{n.count}</span>
                                                 <ChevronRight size={18} className="adm-linklist__chevron" />

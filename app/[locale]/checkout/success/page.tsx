@@ -3,6 +3,7 @@
 import { useEffect, useState, Suspense } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import Link from 'next/link'
+import { useTranslations } from 'next-intl'
 import Navbar from '@/components/layout/Navbar'
 import Footer from '@/components/layout/Footer'
 import {
@@ -15,11 +16,21 @@ import {
   AlertCircle,
   ShieldCheck,
   Clock,
+  Mail,
   MessageCircle
 } from 'lucide-react'
 import { validateDriverLicense } from '@/lib/contracts/licenseValidator'
+import { prepareDocumentsForUpload } from '@/lib/compressDocumentImage'
+import { interpretUploadResponse, type PrepareResult } from '@/lib/documentUploadBudget'
+
+// Redsys avisa por su lado y el cliente puede volver antes: un pago sin confirmar no es un pago fallido
+const CONFIRM_RETRY_MS = 3000
+const CONFIRM_MAX_ATTEMPTS = 20
+
+type PaymentPhase = 'verifying' | 'confirming' | 'paid' | 'review' | 'delayed' | 'failed'
 
 function SuccessContent() {
+  const t = useTranslations('CheckoutSuccess')
   const router = useRouter()
   const searchParams = useSearchParams()
   const orderId = searchParams.get('order') || searchParams.get('orderId') || searchParams.get('payment_intent') || ''
@@ -34,12 +45,14 @@ function SuccessContent() {
   // Steps: 1 (Personal & License Data), 2 (Upload 4 Document Photos), 3 (Completed)
   const [step, setStep] = useState<1 | 2 | 3>(1)
   const [isSubmitting, setIsSubmitting] = useState(false)
+  // Reduciendo las fotos en el navegador antes de enviarlas
+  const [isPreparing, setIsPreparing] = useState(false)
+  const isBusy = isSubmitting || isPreparing
   const [errorMessage, setErrorMessage] = useState<string | null>(null)
   const [warningMessage, setWarningMessage] = useState<string | null>(null)
 
   // Payment Verification State
-  const [isVerifyingPayment, setIsVerifyingPayment] = useState(true)
-  const [paymentVerified, setPaymentVerified] = useState<boolean | null>(null)
+  const [paymentPhase, setPaymentPhase] = useState<PaymentPhase>('verifying')
   const [bookingDetails, setBookingDetails] = useState<any | null>(null)
 
   // Step 1: Form Fields
@@ -54,7 +67,9 @@ function SuccessContent() {
   // Verify payment status with server / Redsys HMAC
   useEffect(() => {
     let isMounted = true
-    const verify = async () => {
+    let retryTimer: ReturnType<typeof setTimeout> | undefined
+
+    const verify = async (attempt: number) => {
       try {
         const queryParams = new URLSearchParams()
         if (orderId) queryParams.set('order', orderId)
@@ -73,7 +88,7 @@ function SuccessContent() {
         if (!isMounted) return
 
         if (res.ok && json.success && json.isPaid) {
-          setPaymentVerified(true)
+          setPaymentPhase('paid')
           setBookingDetails(json.booking)
           if (json.booking) {
             if (json.booking.customerName) setFullName(json.booking.customerName)
@@ -82,28 +97,46 @@ function SuccessContent() {
             if (json.booking.customerAddress) setAddress(json.booking.customerAddress)
             if (json.booking.driverLicenseIssueDate) setDriverLicenseIssueDate(json.booking.driverLicenseIssueDate)
           }
-        } else {
-          setPaymentVerified(false)
-          if (json.booking?.paymentStatus === 'failed') {
-            setErrorMessage('El pago no ha sido autorizado por la pasarela de Redsys.')
-          }
+          return
+        }
+
+        if (json.booking?.paymentStatus === 'failed') {
+          setErrorMessage('El pago no ha sido autorizado por la pasarela de Redsys.')
+          setPaymentPhase('failed')
+          return
+        }
+        if (json.booking?.paymentStatus === 'review') {
+          setPaymentPhase('review')
+          return
+        }
+        if (res.status === 404) {
+          setPaymentPhase('failed')
+          return
         }
       } catch (e) {
         console.error('Error verificando pago en checkout success:', e)
-        if (isMounted) setPaymentVerified(false)
-      } finally {
-        if (isMounted) setIsVerifyingPayment(false)
+        if (!isMounted) return
       }
+
+      // Sigue en 'pending' o no hubo respuesta: quien ha pagado no debe ver un pago fallido
+      if (attempt >= CONFIRM_MAX_ATTEMPTS) {
+        setPaymentPhase('delayed')
+        return
+      }
+      setPaymentPhase('confirming')
+      retryTimer = setTimeout(() => verify(attempt + 1), CONFIRM_RETRY_MS)
     }
 
     if (orderId) {
-      verify()
+      verify(1)
     } else {
-      setIsVerifyingPayment(false)
-      setPaymentVerified(false)
+      setPaymentPhase('failed')
     }
 
-    return () => { isMounted = false }
+    return () => {
+      isMounted = false
+      clearTimeout(retryTimer)
+    }
   }, [orderId])
 
   // Step 2: Files
@@ -174,12 +207,29 @@ function SuccessContent() {
       return
     }
 
-    setIsSubmitting(true)
+    if (isBusy) return
     setErrorMessage(null)
+
+    // Todo viaja en UNA petición y Vercel admite unos 4,5 MB: se reducen las fotos aquí, no se sube una a una
+    setIsPreparing(true)
+    let prepared: PrepareResult
+    try {
+      prepared = await prepareDocumentsForUpload([dniFront, dniBack, licenseFront, licenseBack])
+    } catch {
+      prepared = { ok: false, totalBytes: 0 }
+    } finally {
+      setIsPreparing(false)
+    }
+    if (!prepared.ok) {
+      setErrorMessage(t('filesTooLarge'))
+      return
+    }
+    const [preparedDniFront, preparedDniBack, preparedLicenseFront, preparedLicenseBack] = prepared.files
+
+    setIsSubmitting(true)
 
     try {
       const formData = new FormData()
-      formData.append('orderId', orderId)
       formData.append('fullName', fullName)
       formData.append('dniNie', dniNie)
       formData.append('driverLicenseId', driverLicenseId)
@@ -189,37 +239,51 @@ function SuccessContent() {
       formData.append('phone', phone)
 
       // Mismos nombres que espera /api/upload-driver-docs (antes 'dniFront'… y las fotos se perdían)
-      formData.append('dni_front', dniFront)
-      formData.append('dni_back', dniBack)
-      formData.append('license_front', licenseFront)
-      formData.append('license_back', licenseBack)
+      formData.append('dni_front', preparedDniFront)
+      formData.append('dni_back', preparedDniBack)
+      formData.append('license_front', preparedLicenseFront)
+      formData.append('license_back', preparedLicenseBack)
 
-      const response = await fetch('/api/upload-driver-docs', {
-        method: 'POST',
-        body: formData
-      })
+      // El pedido va en la URL: el servidor comprueba el acceso antes de leer las fotos
+      let response: Response
+      try {
+        response = await fetch(`/api/upload-driver-docs?order=${encodeURIComponent(orderId)}`, {
+          method: 'POST',
+          body: formData
+        })
+      } catch {
+        setErrorMessage(t('uploadConnectionError'))
+        return
+      }
 
-      const data = await response.json()
-
-      if (!response.ok || data.error) {
-        throw new Error(data.error || 'Error al guardar la documentación.')
+      // Un 413 de Vercel no es JSON: se interpreta sin fallar al parsear
+      const outcome = interpretUploadResponse(response.status, await response.text().catch(() => ''))
+      if (outcome.kind === 'tooLarge') {
+        setErrorMessage(t('filesTooLarge'))
+        return
+      }
+      if (outcome.kind === 'error') {
+        setErrorMessage(outcome.message || t('uploadUnreadable'))
+        return
       }
 
       setStep(3)
     } catch (err: any) {
-      setErrorMessage(err.message || 'Error de conexión al enviar la documentación.')
+      setErrorMessage(err.message || t('uploadConnectionError'))
     } finally {
       setIsSubmitting(false)
     }
   }
 
-  if (isVerifyingPayment) {
+  if (paymentPhase === 'verifying' || paymentPhase === 'confirming') {
     return (
       <div className="success-loading-wrap">
         <div className="success-spinner" />
-        <h2 className="success-loading-title">Verificando autorización de pago...</h2>
+        <h2 className="success-loading-title">
+          {paymentPhase === 'confirming' ? t('confirmingTitle') : 'Verificando autorización de pago...'}
+        </h2>
         <p className="success-loading-desc">
-          Conectando con la pasarela bancaria de Redsys para confirmar tu reserva.
+          {paymentPhase === 'confirming' ? t('confirmingBody') : 'Conectando con la pasarela bancaria de Redsys para confirmar tu reserva.'}
         </p>
         <style jsx>{`
           .success-loading-wrap {
@@ -255,7 +319,68 @@ function SuccessContent() {
     )
   }
 
-  const isFailed = redirectStatus === 'failed' || redirectStatus === 'canceled' || paymentVerified === false
+  if (paymentPhase === 'delayed' || paymentPhase === 'review') {
+    return (
+      <div className="success-pending-wrap">
+        <div className="success-pending-icon">
+          <Clock size={44} />
+        </div>
+        <h1 className="success-pending-title">{t(paymentPhase === 'review' ? 'reviewTitle' : 'delayedTitle')}</h1>
+        <p className="success-pending-desc">{t(paymentPhase === 'review' ? 'reviewBody' : 'delayedBody')}</p>
+        <a href={whatsappUrl} target="_blank" rel="noopener noreferrer" className="success-pending-btn">
+          <MessageCircle size={18} />
+          <span>{t('contactWhatsapp')}</span>
+        </a>
+
+        <style jsx>{`
+          .success-pending-wrap {
+            text-align: center;
+            padding: 80px 20px;
+            max-width: 520px;
+            margin: 0 auto;
+          }
+          .success-pending-icon {
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            background: rgba(204, 160, 83, 0.12);
+            border: 1px solid rgba(204, 160, 83, 0.3);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 20px;
+            color: #CCA053;
+          }
+          .success-pending-title {
+            color: #FFFFFF;
+            font-size: 1.8rem;
+            font-weight: 800;
+            margin-bottom: 12px;
+          }
+          .success-pending-desc {
+            color: #94A3B8;
+            margin-bottom: 28px;
+            line-height: 1.6;
+          }
+          .success-pending-btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            min-height: 44px;
+            background: linear-gradient(135deg, #CCA053 0%, #B2883B 100%);
+            color: #0B0C0E;
+            padding: 12px 28px;
+            border-radius: 999px;
+            font-weight: 700;
+            text-decoration: none;
+          }
+        `}</style>
+      </div>
+    )
+  }
+
+  const isFailed = redirectStatus === 'failed' || redirectStatus === 'canceled' || paymentPhase === 'failed'
 
   if (isFailed) {
     return (
@@ -375,6 +500,19 @@ function SuccessContent() {
             </Link>
             <Link href="/dashboard" className="btn-dark-outline">
               <Ticket size={18} /> Ver Mi Aventura
+            </Link>
+          </div>
+        </div>
+      ) : !bookingDetails?.id ? (
+        // verify-payment solo da el estado del pago: sin sesión ni cookie no hay datos que completar aquí
+        <div className="success-completed-card">
+          <Mail size={52} className="success-completed-icon" />
+          <h2 className="success-completed-title">{t('emailAccessTitle')}</h2>
+          <p className="success-completed-desc">{t('emailAccessBody')}</p>
+          <p className="success-completed-desc">{t('emailAccessHelp')}</p>
+          <div className="success-completed-actions">
+            <Link href="/auth/recuperar" className="btn-dark-outline">
+              {t('emailAccessRecover')}
             </Link>
           </div>
         </div>
@@ -612,6 +750,7 @@ function SuccessContent() {
                 <button
                   type="button"
                   onClick={() => setStep(1)}
+                  disabled={isBusy}
                   className="btn-dark-outline"
                 >
                   ← Volver a Datos
@@ -624,13 +763,17 @@ function SuccessContent() {
 
                   <button
                     type="submit"
-                    disabled={isSubmitting}
+                    disabled={isBusy}
+                    aria-busy={isBusy}
                     className="btn-gold"
                   >
-                    {isSubmitting ? 'Guardando...' : 'Guardar y Enviar'}
+                    {isPreparing ? t('preparingPhotos') : isSubmitting ? 'Guardando...' : 'Guardar y Enviar'}
                   </button>
                 </div>
               </div>
+              {isPreparing && (
+                <p className="docs-preparing" role="status" aria-live="polite">{t('preparingPhotosNote')}</p>
+              )}
             </form>
           )}
         </div>
@@ -980,6 +1123,21 @@ function SuccessContent() {
           color: #CCA053;
         }
 
+        .btn-gold:disabled,
+        .btn-dark-outline:disabled {
+          opacity: 0.6;
+          cursor: not-allowed;
+          transform: none;
+          box-shadow: none;
+        }
+
+        .docs-preparing {
+          margin: 12px 0 0;
+          text-align: right;
+          color: #E8CA7C;
+          font-size: 0.86rem;
+        }
+
         /* UPLOAD GRID */
         .upload-grid {
           display: grid;
@@ -1058,6 +1216,16 @@ function SuccessContent() {
           .btn-dark-outline {
             width: 100%;
             justify-content: center;
+            min-height: 44px;
+          }
+
+          .docs-form-footer-right {
+            flex-direction: column;
+            align-items: stretch;
+          }
+
+          .docs-preparing {
+            text-align: center;
           }
         }
       `}</style>

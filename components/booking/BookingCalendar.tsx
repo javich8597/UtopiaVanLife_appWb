@@ -18,6 +18,7 @@ import {
 import { es } from 'date-fns/locale'
 import { ChevronLeft, ChevronRight, Info } from 'lucide-react'
 import { BlockedSlot } from '@/lib/booking/availability'
+import { MAX_BOOKING_NIGHTS } from '@/lib/booking/checkoutRules'
 import { DaySlot } from '@/lib/pricing/engine'
 import {
     getSlotAvailability,
@@ -152,6 +153,10 @@ export default function BookingCalendar({
             if (!validation.isValid) {
                 if (validation.reason === 'min_nights') {
                     setValidationError(`Estancia mínima: ${minNights} noches para estas fechas.`)
+                    return
+                }
+                if (validation.reason === 'max_nights') {
+                    setValidationError(`La reserva no puede superar las ${MAX_BOOKING_NIGHTS} noches. Escríbenos para estancias más largas.`)
                     return
                 }
                 if (validation.reason === 'blocked_dates') {

@@ -1,0 +1,1 @@
+- [Comprobaciones del entorno](project_entorno_comprobaciones.md) — lint por archivos, sin build contra la base real, mutar en copia aislada

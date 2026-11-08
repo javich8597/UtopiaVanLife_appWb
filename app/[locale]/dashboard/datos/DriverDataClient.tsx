@@ -24,6 +24,13 @@ import {
   FolderOpen 
 } from 'lucide-react'
 import { validateDriverLicense } from '@/lib/contracts/licenseValidator'
+import { prepareDocumentsForUpload } from '@/lib/compressDocumentImage'
+import { interpretUploadResponse, MAX_SOURCE_FILE_BYTES } from '@/lib/documentUploadBudget'
+
+// Esta pantalla está en español: mismos textos que CheckoutSuccess en messages/es.json
+const FILES_TOO_LARGE_MESSAGE = 'Tus archivos pesan demasiado para enviarlos juntos (unos 4 MB en total). Haz otra foto de los documentos o súbelos en formato JPG: los PDF y algunas fotos HEIC no se pueden reducir. Lo que has escrito sigue aquí.'
+const CONNECTION_ERROR_MESSAGE = 'No hemos podido enviar la documentación. Revisa tu conexión e inténtalo de nuevo: no has perdido nada de lo que has escrito.'
+const UNREADABLE_RESPONSE_MESSAGE = 'No hemos podido confirmar que la documentación se haya guardado. Inténtalo de nuevo en unos segundos.'
 
 interface Props {
   user: any
@@ -69,10 +76,13 @@ export default function DriverDataClient({ user, profile, rejectionReason }: Pro
   // Estado del formulario
   const [status, setStatus] = useState<string>(profile?.verification_status || 'not_submitted')
   const [isSaving, setIsSaving] = useState(false)
+  // Reduciendo las fotos en el navegador antes de enviarlas
+  const [isPreparing, setIsPreparing] = useState(false)
   const [saveSuccess, setSaveSuccess] = useState(false)
   const [errorMessage, setErrorMessage] = useState('')
 
-  const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10MB
+  // Tamaño de la foto original: se reduce en el navegador antes de enviarla (límite de Vercel por petición)
+  const MAX_FILE_SIZE = MAX_SOURCE_FILE_BYTES;
   const ALLOWED_TYPES = ['image/jpeg', 'image/png', 'application/pdf', 'image/heic'];
 
   const handleFileSelect = (
@@ -84,7 +94,7 @@ export default function DriverDataClient({ user, profile, rejectionReason }: Pro
     if (!file) return
 
     if (file.size > MAX_FILE_SIZE) {
-      setErrorMessage(`El archivo ${file.name} supera el tamaño máximo permitido (10MB).`);
+      setErrorMessage(`El archivo ${file.name} pesa demasiado (máximo 25 MB). Haz otra foto o súbela en formato JPG.`);
       return;
     }
 
@@ -113,9 +123,40 @@ export default function DriverDataClient({ user, profile, rejectionReason }: Pro
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    setIsSaving(true)
+    if (isSaving || isPreparing) return
     setErrorMessage('')
     setSaveSuccess(false)
+
+    // Todo viaja en UNA petición y Vercel admite unos 4,5 MB: se reducen las fotos aquí, no se sube una a una
+    const selected: Array<[string, File]> = []
+    const addFile = (field: string, file: File | null) => { if (file) selected.push([field, file]) }
+    addFile('dni_front', dniFront.file)
+    addFile('dni_back', dniBack.file)
+    addFile('license_front', licenseFront.file)
+    addFile('license_back', licenseBack.file)
+    if (hasSecondDriver) {
+      addFile('second_license_front', secondLicenseFront.file)
+      addFile('second_license_back', secondLicenseBack.file)
+    }
+
+    let prepared: Awaited<ReturnType<typeof prepareDocumentsForUpload>> = { ok: true, files: [], totalBytes: 0 }
+    if (selected.length > 0) {
+      setIsPreparing(true)
+      try {
+        prepared = await prepareDocumentsForUpload(selected.map(([, file]) => file))
+      } catch {
+        prepared = { ok: false, totalBytes: 0 }
+      } finally {
+        setIsPreparing(false)
+      }
+      if (!prepared.ok) {
+        setErrorMessage(FILES_TOO_LARGE_MESSAGE)
+        return
+      }
+    }
+    const preparedFiles = prepared.ok ? prepared.files : []
+
+    setIsSaving(true)
 
     try {
       const formData = new FormData()
@@ -127,10 +168,9 @@ export default function DriverDataClient({ user, profile, rejectionReason }: Pro
       formData.append('address', address)
       formData.append('phone', phone)
 
-      if (dniFront.file) formData.append('dni_front', dniFront.file)
-      if (dniBack.file) formData.append('dni_back', dniBack.file)
-      if (licenseFront.file) formData.append('license_front', licenseFront.file)
-      if (licenseBack.file) formData.append('license_back', licenseBack.file)
+      selected.forEach(([field], index) => {
+        if (!field.startsWith('second_')) formData.append(field, preparedFiles[index])
+      })
 
       formData.append('hasSecondDriver', hasSecondDriver ? 'true' : 'false')
       if (hasSecondDriver) {
@@ -138,19 +178,33 @@ export default function DriverDataClient({ user, profile, rejectionReason }: Pro
         formData.append('secondDriverDni', secondDriverDni)
         formData.append('secondDriverLicense', secondDriverLicense)
 
-        if (secondLicenseFront.file) formData.append('second_license_front', secondLicenseFront.file)
-        if (secondLicenseBack.file) formData.append('second_license_back', secondLicenseBack.file)
+        selected.forEach(([field], index) => {
+          if (field.startsWith('second_')) formData.append(field, preparedFiles[index])
+        })
       }
 
-      const res = await fetch('/api/upload-driver-docs', {
-        method: 'POST',
-        body: formData,
-      })
-
-      const data = await res.json()
-      if (!res.ok) {
-        throw new Error(data.error || 'Error al guardar los datos.')
+      let res: Response
+      try {
+        res = await fetch('/api/upload-driver-docs', {
+          method: 'POST',
+          body: formData,
+        })
+      } catch {
+        setErrorMessage(CONNECTION_ERROR_MESSAGE)
+        return
       }
+
+      // Un 413 de Vercel no es JSON: se interpreta sin fallar al parsear
+      const outcome = interpretUploadResponse<{ verificationStatus?: string }>(res.status, await res.text().catch(() => ''))
+      if (outcome.kind === 'tooLarge') {
+        setErrorMessage(FILES_TOO_LARGE_MESSAGE)
+        return
+      }
+      if (outcome.kind === 'error') {
+        setErrorMessage(outcome.message || UNREADABLE_RESPONSE_MESSAGE)
+        return
+      }
+      const data = outcome.data
 
       setStatus(data.verificationStatus || 'pending_validation')
       setSaveSuccess(true)
@@ -740,10 +794,16 @@ export default function DriverDataClient({ user, profile, rejectionReason }: Pro
         <div className="action-bar">
           <button 
             type="submit" 
-            disabled={isSaving || licenseValidation.isExpired}
+            disabled={isSaving || isPreparing || licenseValidation.isExpired}
+            aria-busy={isSaving || isPreparing}
             className="btn-save"
           >
-            {isSaving ? (
+            {isPreparing ? (
+              <>
+                <span className="btn-spinner" />
+                <span role="status">Preparando las fotos...</span>
+              </>
+            ) : isSaving ? (
               <>
                 <span className="btn-spinner" />
                 <span>Guardando y subiendo archivos...</span>

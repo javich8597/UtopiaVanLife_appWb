@@ -59,10 +59,10 @@ describe('Redsys Full Hardening & Sandbox Verification Test Suite', () => {
     it('performs constant-time timingSafeEqual comparison and rejects length/content tampering', () => {
         const orderId = '0001test5678'
         const merchantParameters = encodeMerchantParameters({
-            DS_MERCHANT_AMOUNT: '75000',
-            DS_MERCHANT_ORDER: orderId,
-            DS_MERCHANT_MERCHANTCODE: '999008881',
-            DS_MERCHANT_CURRENCY: '978',
+            Ds_Amount: '75000',
+            Ds_Order: orderId,
+            Ds_MerchantCode: '999008881',
+            Ds_Currency: '978',
         })
 
         const genuineSignature = calculateSignature(merchantParameters, orderId, REDSYS_TEST_DEFAULTS.secretKey)

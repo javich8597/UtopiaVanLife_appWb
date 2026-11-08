@@ -27,6 +27,16 @@ interface Props {
   contractTemplate?: any
 }
 
+// Importe de la fianza con formato español ("2.000,00 €"). useGrouping 'always' porque en es-ES
+// los números de 4 cifras no llevan punto por defecto.
+export function formatDepositEur(amount: number): string {
+  return `${new Intl.NumberFormat('es-ES', {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+    useGrouping: 'always' as any,
+  }).format(Number(amount) || 0)} €`
+}
+
 export default function ContractSignModal({ booking, profile, onClose, onSigned, contractTemplate }: Props) {
   const [activeTab, setActiveTab] = useState<'read' | 'sign'>('read')
   const [hasDrawn, setHasDrawn] = useState(false)
@@ -296,14 +306,14 @@ export default function ContractSignModal({ booking, profile, onClose, onSigned,
                     <span><strong>Periodo:</strong> {contractData.booking.startDate} al {contractData.booking.endDate}</span>
                   </div>
                   <div className="csm-v-item">
-                    <span><strong>Fianza:</strong> 1.000,00 €</span>
+                    <span><strong>Fianza:</strong> {formatDepositEur(contractData.pricing.depositAmount)}</span>
                   </div>
                 </div>
               </div>
 
               {/* Lista Completa de Artículos Legales */}
               <div className="csm-articles-list">
-                <h4 className="csm-articles-heading">Condiciones Generales del Contrato (17 Artículos)</h4>
+                <h4 className="csm-articles-heading">Condiciones Generales del Contrato ({contractData.articles.length} Artículos)</h4>
 
                 {contractData.articles.map(art => (
                   <div key={art.number} className="csm-article-item">

@@ -198,7 +198,7 @@ export async function generateOfficialContractPdfBlob(
     },
     {
       label: 'Póliza de Seguro & Franquicia:',
-      value: `Seguro a todo riesgo con franquicia de ${data.pricing.depositAmount.toFixed(2)} € por siniestro y asistencia 24h en Mallorca`
+      value: `Seguro a todo riesgo con franquicia de 1000.00 € por siniestro y asistencia 24h en Mallorca`
     },
     {
       label: 'Kilometraje & Territorio:',

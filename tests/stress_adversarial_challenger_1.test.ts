@@ -357,11 +357,8 @@ describe('Adversarial Stress Test: Domain 4 — Redsys Parameters & Cryptography
         const orderId = '1234abcde567'
         const secretKey = REDSYS_TEST_DEFAULTS.secretKey
 
-        const form = createRedsysPaymentForm({
-            amount: 250.00,
-            orderId,
-            description: 'Reserva Camper Utopia Van Life'
-        }, { secretKey })
+        const merchantParameters = encodeMerchantParameters({ Ds_Order: orderId, Ds_Amount: '25000', Ds_Response: '0000' })
+        const form = { merchantParameters, signature: calculateSignature(merchantParameters, orderId, secretKey) }
 
         // Genuine signature verification
         const isGenuine = verifyRedsysSignature(form.merchantParameters, form.signature, secretKey)
@@ -369,7 +366,7 @@ describe('Adversarial Stress Test: Domain 4 — Redsys Parameters & Cryptography
 
         // Tamper test: modify 1 byte in merchant parameters
         const decoded = decodeMerchantParameters(form.merchantParameters)
-        decoded.DS_MERCHANT_AMOUNT = '999900' // Changed price to 9999 €
+        decoded.Ds_Amount = '999900' // Changed price to 9999 €
         const tamperedParams = encodeMerchantParameters(decoded)
         const isTamperedDetected = verifyRedsysSignature(tamperedParams, form.signature, secretKey)
         assert.equal(isTamperedDetected, false, 'Tampered parameters must fail verification')
@@ -421,6 +418,8 @@ describe('Adversarial Stress Test: Domain 5 — Advanced Step 5 & Season Overlap
             email: 'carlos@example.com',
             phone: '+34 600 123 456',
             dniNie: '12345678Z',
+            birthDate: '1985-02-02',
+            licenseDate: '2015-01-01',
             address: 'Calle Mayor 12',
             city: 'Palma',
             postalCode: '07001',

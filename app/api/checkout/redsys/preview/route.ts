@@ -40,6 +40,6 @@ export async function POST(req: Request) {
         })
     } catch (error: any) {
         console.error('Redsys Preview Error:', error)
-        return NextResponse.json({ error: error.message || 'Error al calcular precio' }, { status: 500 })
+        return NextResponse.json({ error: 'Error al calcular precio' }, { status: 500 })
     }
 }

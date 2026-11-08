@@ -2,7 +2,7 @@
  * Estado del viaje tal y como lo ve el cliente en "Mi reserva".
  * Decide qué reserva mostrar y cuál es el único siguiente paso que tiene que dar.
  */
-import { isAbandonedPending } from '@/lib/admin/bookingStatus'
+import { hasPaymentAlert, isAbandonedPending } from '@/lib/admin/bookingStatus'
 
 export type LicenseState = 'missing' | 'review' | 'verified' | 'rejected'
 
@@ -24,6 +24,7 @@ export interface TripBookingLike {
   start_date: string
   end_date: string
   contract_signed_at?: string | null
+  notes?: string | null
 }
 
 export interface TripProfileLike {
@@ -97,7 +98,8 @@ export function getTripState(booking: TripBookingLike, profile?: TripProfileLike
   const nights = Math.max(1, Math.round((new Date(booking.end_date).getTime() - new Date(booking.start_date).getTime()) / DAY))
 
   let step: NextStep
-  if (!isPaid) step = 'pay'
+  // Con un cobro a revisar puede haber dinero recibido: ofrecer pagar otra vez arriesga un doble cobro
+  if (!isPaid) step = hasPaymentAlert(booking) ? 'waiting' : 'pay'
   else if (daysToEnd < 0) step = 'returned'
   else if (daysToStart <= 0) step = 'on-trip'
   else if (license === 'rejected') step = 'license-fix'

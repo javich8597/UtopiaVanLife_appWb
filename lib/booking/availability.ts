@@ -11,9 +11,9 @@ export interface BlockedSlot {
 
 export interface RawBookingAvailability {
     start_date: string
-    pickup_time?: string
+    pickup_time?: string | null
     end_date: string
-    dropoff_time?: string
+    dropoff_time?: string | null
 }
 
 export interface RawBlockedDate {
@@ -46,7 +46,7 @@ export function parseBlockedSlots(
         while (current <= end) {
             const dateStr = current.toISOString().split('T')[0]
             slotMap.set(dateStr, 'full')
-            current.setDate(current.getDate() + 1)
+            current.setUTCDate(current.getUTCDate() + 1)
         }
     }
 
@@ -80,11 +80,11 @@ export function parseBlockedSlots(
 
         // Días intermedios: siempre bloqueados completos
         const current = new Date(startStr)
-        current.setDate(current.getDate() + 1)
+        current.setUTCDate(current.getUTCDate() + 1)
         const endDate = new Date(endStr)
         while (current < endDate) {
             slotMap.set(current.toISOString().split('T')[0], 'full')
-            current.setDate(current.getDate() + 1)
+            current.setUTCDate(current.getUTCDate() + 1)
         }
 
         // Día de fin

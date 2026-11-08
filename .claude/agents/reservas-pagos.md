@@ -47,9 +47,9 @@ El checkout crea un bloqueo provisional de 15 minutos (`checkout_<pedido>`) que 
 - `/api/bookings/[id]/pay` cambia `payment_intent_id`: un cobro tardío del pedido anterior ya no encuentra la reserva y solo queda en los logs.
 - Los avisos `[PAGO A REVISAR]` solo se ven al abrir el detalle de la reserva. Coordina con `panel-admin`.
 - `/api/bookings/[id]/pay` cuenta como ocupado el bloqueo provisional de la propia reserva: un reintento en esos 15 minutos puede fallar.
-- Código de comercio: `lib/redsys.ts` usa `369355383` por defecto en producción, y otras notas del proyecto dicen `36935583`. El webhook rechaza lo que no coincida. Confírmalo con Javier.
+- Código de comercio confirmado por Javier: `369355383`.
 - Checkout comprueba solapes y luego inserta el bloqueo provisional: dos clientes simultáneos aún podrían coincidir. Coordina con `supabase-datos`.
-- `/api/checkout/redsys/preview` y `create-order` parecen sin uso. No los borres sin confirmación.
+- `/api/checkout/redsys/preview` parece sin uso. No lo borres sin confirmación. `create-order` se eliminó por decisión de Javier.
 
 ## Método
 

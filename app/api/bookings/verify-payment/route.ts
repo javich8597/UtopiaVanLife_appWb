@@ -1,14 +1,15 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getSupabaseAdmin } from '@/lib/supabase/admin'
 import { createClient } from '@/lib/supabase/server'
-import { buildVerifiedBooking, CHECKOUT_ACCESS_COOKIE, hasCheckoutAccess } from '@/lib/checkoutAccess'
+import { buildVerifiedBooking, CHECKOUT_ACCESS_COOKIE, checkoutCookieOwner } from '@/lib/checkoutAccess'
 import {
     getRedsysConfig,
     verifyRedsysSignature,
     decodeMerchantParameters,
     RedsysNotificationParams,
 } from '@/lib/redsys'
-import { processRedsysNotification } from '@/lib/redsysNotification'
+import { findBookingByPreviousOrder, hasPreviousOrderCharge, processRedsysNotification } from '@/lib/redsysNotification'
+import { hasPaymentAlert } from '@/lib/admin/bookingStatus'
 
 interface VerifyPaymentResult {
     success: boolean
@@ -17,11 +18,8 @@ interface VerifyPaymentResult {
     error?: string
 }
 
-/** Conocer el número de pedido no basta: viaja en la URL de vuelta de Redsys */
-async function canReadBookingDetails(ownerId: string | null, orderId: string, accessCookie?: string | null): Promise<boolean> {
-    if (hasCheckoutAccess(orderId, accessCookie)) return true
+async function isBookingOwnerSession(ownerId: string | null | undefined): Promise<boolean> {
     if (!ownerId) return false
-
     const session = await createClient()
     const { data: { user } } = await session.auth.getUser()
     return user?.id === ownerId
@@ -92,32 +90,48 @@ async function processPaymentVerification(params: {
             .eq('payment_intent_id', orderId)
             .maybeSingle()
 
-        if (findError || !booking) {
-            return NextResponse.json(
-                { success: false, isPaid: false, booking: null, error: 'Reserva no encontrada' },
-                { status: 404 }
-            )
+        if (findError) throw new Error(findError.message)
+
+        if (!booking) {
+            // Un reintento de pago sustituyó este pedido: si se cobró, lo revisa el admin
+            const replaced = await findBookingByPreviousOrder(supabase, orderId)
+            if (!replaced) {
+                return NextResponse.json(
+                    { success: false, isPaid: false, booking: null, error: 'Reserva no encontrada' },
+                    { status: 404 }
+                )
+            }
+            const paymentStatus = hasPreviousOrderCharge(replaced.notes, orderId) ? 'review' : 'pending'
+            return NextResponse.json({
+                success: true,
+                isPaid: false,
+                booking: { orderId, paymentStatus, status: replaced.status },
+            })
         }
 
+        // Conocer el número de pedido no basta: viaja en la URL de vuelta de Redsys
         let details: Parameters<typeof buildVerifiedBooking>[2] = null
 
-        if (await canReadBookingDetails(booking.user_id ?? null, orderId, accessCookie)) {
-            const { data: profile } = booking.user_id
-                ? await supabase
-                    .from('users')
-                    .select('driver_license_issue_date, birth_date')
-                    .eq('id', booking.user_id)
-                    .maybeSingle()
-                : { data: null }
+        if (await isBookingOwnerSession(booking.user_id)) {
+            const { data: profile } = await supabase
+                .from('users')
+                .select('driver_license_issue_date, birth_date')
+                .eq('id', booking.user_id)
+                .maybeSingle()
             details = { profile }
+        } else if (await checkoutCookieOwner(supabase, booking, orderId, accessCookie)) {
+            details = { profile: null }
         }
 
         const isPaid = booking.payment_status === 'paid'
+        // Cobro con incidencia (reserva cancelada, importe distinto...): el dinero ha llegado y lo
+        // revisa el admin. El cliente solo sabe que está en revisión, nunca el texto del aviso
+        const paymentStatus = !isPaid && hasPaymentAlert(booking) ? 'review' : booking.payment_status
 
         return NextResponse.json({
             success: true,
             isPaid,
-            booking: buildVerifiedBooking(booking, orderId, details),
+            booking: buildVerifiedBooking({ ...booking, payment_status: paymentStatus }, orderId, details),
         })
     } catch (err) {
         console.error('verify-payment exception:', err)

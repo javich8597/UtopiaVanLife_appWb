@@ -52,7 +52,8 @@ export default function PriceCalculator({
     const [selectedExtras, setSelectedExtras] = useState<Extra[]>([])
     const [breakdown, setBreakdown] = useState<ReturnType<typeof calculatePrice> | null>(null)
 
-    const safeDeposit = Number(depositAmount) || 1000
+    // Fianza estándar (2.000 €): no se cobra al reservar, solo se informa
+    const safeDeposit = Number(depositAmount) || 2000
     const dateTriggerRef = useRef<HTMLDivElement>(null)
     const calendarCollapseRef = useRef<HTMLDivElement>(null)
 
@@ -434,20 +435,10 @@ export default function PriceCalculator({
                         </div>
                     )}
                     <div className="price-calc__divider" />
-                    <div className="price-calc__row price-calc__row--subtotal">
-                        <span>Alquiler camper ({breakdown.totalDays} días)</span>
-                        <span>{formatPrice(breakdown.totalWithoutDeposit)}</span>
-                    </div>
-                    <div className="price-calc__row price-calc__row--deposit">
-                        <div>
-                            <span>Fianza (100% reembolsable)</span>
-                            <span className="price-calc__deposit-subtext">Retención temporal al recoger el vehículo</span>
-                        </div>
-                        <span className="price-calc__deposit-val">{formatPrice(breakdown.deposit)}</span>
-                    </div>
+                    {/* La fianza no se cobra al reservar: el total es lo que se paga en Redsys */}
                     <div className="price-calc__row price-calc__row--total">
-                        <span>Total reserva</span>
-                        <span>{formatPrice(breakdown.grandTotal)}</span>
+                        <span>Total a pagar ({breakdown.totalDays} días)</span>
+                        <span>{formatPrice(breakdown.payableTotal)}</span>
                     </div>
                 </div>
             )}
@@ -495,14 +486,14 @@ export default function PriceCalculator({
                 {isBelowMinNights
                     ? `Mínimo ${activeMinNights} noches requeridas`
                     : breakdown && breakdown.numNights > 0
-                    ? `Reservar — ${formatPrice(breakdown.grandTotal)}`
+                    ? `Reservar — ${formatPrice(breakdown.payableTotal)}`
                     : 'Selecciona fechas para reservar'}
             </button>
 
             {breakdown && breakdown.numNights > 0 && !isBelowMinNights && (
                 <p className="price-calc__subtext-fianza">
-                    <Check size={13} className="text-forest" style={{ display: 'inline', marginRight: 4, verticalAlign: -1 }} />
-                    Incluye {formatPrice(breakdown.deposit)} de fianza 100% reembolsable
+                    <Info size={13} className="text-forest" aria-hidden="true" />
+                    <span>Fianza aparte, no se cobra: retención de 2.000 € en tarjeta al recoger la camper. 1.000 € con la opción Flex (+10 €/día).</span>
                 </p>
             )}
 
@@ -514,9 +505,15 @@ export default function PriceCalculator({
           margin-top: calc(-1 * var(--space-2));
           margin-bottom: 0;
           display: flex;
-          align-items: center;
+          align-items: flex-start;
           justify-content: center;
-          gap: 4px;
+          gap: 6px;
+          line-height: 1.4;
+        }
+
+        .price-calc__subtext-fianza :global(svg) {
+          flex-shrink: 0;
+          margin-top: 2px;
         }
 
         .price-calc {
@@ -908,28 +905,6 @@ export default function PriceCalculator({
           font-size: 0.88rem;
           font-weight: 700;
           color: #15803D;
-        }
-
-        .price-calc__row--subtotal {
-          font-weight: 600;
-          color: var(--black-matte);
-        }
-
-        .price-calc__row--deposit {
-          color: var(--gray-700);
-          padding-top: 2px;
-        }
-
-        .price-calc__deposit-subtext {
-          display: block;
-          font-size: 0.68rem;
-          color: var(--gray-500);
-          font-weight: 400;
-        }
-
-        .price-calc__deposit-val {
-          font-weight: 600;
-          color: var(--black-matte);
         }
 
         .price-calc__row--total {

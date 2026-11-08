@@ -63,5 +63,23 @@
     "ctaSubtitle": "Zwei einzigartige Modelle, NEO und SPACE, entwickelt für absolute Freiheit mit maximalem Komfort.",
     "ctaFleetBtn": "Unsere Flotte entdecken",
     "ctaContactBtn": "Kontakt aufnehmen"
+  },
+  "CheckoutSuccess": {
+    "emailAccessTitle": "Vervollständige deine Daten über deine E-Mail",
+    "emailAccessBody": "Wir haben einen Zugangslink an die E-Mail-Adresse deiner Buchung geschickt. Öffne diesen Link, um deine Daten zu vervollständigen und deine Dokumente hochzuladen.",
+    "emailAccessHelp": "Wenn du sie nach einigen Minuten nicht siehst, prüfe deinen Spam-Ordner. Ist sie immer noch nicht angekommen, fordere mit derselben E-Mail-Adresse einen neuen Link an oder schreib uns per WhatsApp.",
+    "emailAccessRecover": "Neuen Link anfordern",
+    "confirmingTitle": "Deine Zahlung wird bestätigt...",
+    "confirmingBody": "Wir warten auf die Bestätigung der Bank. Das dauert meist nur wenige Sekunden. Schließe diese Seite nicht und zahle nicht erneut.",
+    "delayedTitle": "Deine Zahlung ist noch nicht bestätigt",
+    "delayedBody": "Die Bank hat die Zahlung noch nicht bestätigt. Wenn deine Karte belastet wurde, zahle nicht erneut: Sobald wir die Zahlung erhalten, schicken wir eine E-Mail an die Adresse deiner Buchung. Bei Fragen schreib uns.",
+    "reviewTitle": "Wir prüfen deine Zahlung",
+    "reviewBody": "Wir haben eine Zahlung für diese Bestellung erhalten und unser Team prüft sie. Zahle nicht erneut. Wir schreiben dir an die E-Mail-Adresse deiner Buchung.",
+    "contactWhatsapp": "Schreib uns per WhatsApp",
+    "preparingPhotos": "Fotos werden vorbereitet...",
+    "preparingPhotosNote": "Wir verkleinern deine Fotos, damit sie gesendet werden können. Bitte lass diese Seite geöffnet.",
+    "filesTooLarge": "Deine Dateien sind zu groß, um sie gemeinsam zu senden (insgesamt etwa 4 MB). Mach die Fotos noch einmal oder lade sie als JPG hoch: PDFs und manche HEIC-Fotos lassen sich nicht verkleinern. Deine Eingaben bleiben erhalten.",
+    "uploadConnectionError": "Wir konnten deine Unterlagen nicht senden. Prüfe deine Verbindung und versuche es erneut: Deine Eingaben sind nicht verloren gegangen.",
+    "uploadUnreadable": "Wir konnten nicht bestätigen, dass deine Unterlagen gespeichert wurden. Bitte versuche es in ein paar Sekunden erneut."
   }
 }

@@ -16,8 +16,8 @@ export async function generateMetadata({
       ? 'Preguntas Frecuentes | Utopia Van Life Mallorca'
       : 'Frequently Asked Questions | Utopia Van Life Mallorca',
     description: isEs
-      ? 'Resolvemos todas tus dudas sobre el alquiler de campers en Mallorca: sistema eléctrico Victron 540Ah, fianza de 1.000 €, seguro a todo riesgo, entrega y equipamiento.'
-      : 'Everything you need to know about campervan rental in Mallorca: Victron 540Ah off-grid power, €1,000 security deposit, full insurance, pickup and equipment.',
+      ? 'Resolvemos todas tus dudas sobre el alquiler de campers en Mallorca: sistema eléctrico Victron 540Ah, fianza desde 1.000 €, seguro a todo riesgo, entrega y equipamiento.'
+      : 'Everything you need to know about campervan rental in Mallorca: Victron 540Ah off-grid power, security deposit from €1,000, full insurance, pickup and equipment.',
     openGraph: {
       title: isEs
         ? 'Preguntas Frecuentes | Utopia Van Life Mallorca'

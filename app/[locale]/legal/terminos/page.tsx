@@ -30,7 +30,7 @@ export default function TermsPage() {
           <section className="legal-section">
             <h2 className="legal-heading">2. Fianza y Cobertura de Seguro</h2>
             <p className="legal-text">
-              Todas nuestras furgonetas camper disponen de seguro a todo riesgo. En el momento del check-in se retendrá una fianza reembolsable de 1.000€ mediante tarjeta bancaria para responder de posibles contingencias o desperfectos no cubiertos por la póliza. Dicha fianza será liberada íntegramente tras la inspección de devolución del vehículo en el mismo estado de conservación.
+              Todas nuestras furgonetas camper disponen de seguro a todo riesgo. En el momento del check-in se retendrá una fianza reembolsable mediante tarjeta bancaria, desde 1.000 € (2.000 € en la modalidad Estándar o 1.000 € en la modalidad Flex), para responder de posibles contingencias o desperfectos no cubiertos por la póliza. Dicha fianza será liberada íntegramente tras la inspección de devolución del vehículo en el mismo estado de conservación.
             </p>
           </section>
 

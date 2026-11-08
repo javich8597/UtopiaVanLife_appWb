@@ -1,6 +1,7 @@
 'use client'
 
 import { useMemo, useState } from 'react'
+import { useLocale } from 'next-intl'
 import Image from 'next/image'
 import { Link } from '@/i18n/routing'
 import {
@@ -446,13 +447,18 @@ export default function DashboardClient({ bookings, profile, user }: Props) {
 function RetryPaymentButton({ bookingId }: { bookingId: string }) {
     const [loading, setLoading] = useState(false)
     const [error, setError] = useState('')
+    const locale = useLocale()
 
     const pay = async () => {
         if (loading) return
         setLoading(true)
         setError('')
         try {
-            const res = await fetch(`/api/bookings/${bookingId}/pay`, { method: 'POST' })
+            const res = await fetch(`/api/bookings/${bookingId}/pay`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ locale }),
+            })
             const data = await res.json()
             if (!res.ok || !data.form) throw new Error(data.error || 'No se pudo preparar el pago')
 

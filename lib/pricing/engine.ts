@@ -36,9 +36,16 @@ export * from './types'
 // UTILIDADES DE FECHA Y RANGOS
 // ==========================================
 
+const MS_PER_DAY = 24 * 60 * 60 * 1000
+
 export function formatDateToString(date: Date | string): string {
     if (typeof date === 'string') {
         return date.split('T')[0]
+    }
+    // Las fechas 'YYYY-MM-DD' llegan como medianoche UTC: se leen en UTC para que el día no cambie
+    // con la zona horaria del navegador. Cualquier otra hora es una fecha local.
+    if (date.getTime() % MS_PER_DAY === 0) {
+        return date.toISOString().slice(0, 10)
     }
     const year = date.getFullYear()
     const month = String(date.getMonth() + 1).padStart(2, '0')
@@ -195,11 +202,9 @@ export function calculatePriceV2({
     const nightsPerSeason: Record<string, { season: string; nights: number; pricePerNight: number; subtotal: number }> = {}
     let baseNightsTotal = 0
 
+    const firstNight = Date.parse(`${formatDateToString(sDate)}T00:00:00Z`)
     for (let i = 0; i < baseNights; i++) {
-        const currentDate = new Date(sDate)
-        currentDate.setDate(currentDate.getDate() + i)
-
-        const activeSeason = resolveSeasonForDate(currentDate, seasons, periods)
+        const activeSeason = resolveSeasonForDate(new Date(firstNight + i * MS_PER_DAY), seasons, periods)
         const pricePerNight = baseCamper + Number(activeSeason.supplement_per_night || 0)
         const seasonName = activeSeason.name
 

@@ -1,5 +1,6 @@
 import { describe, it, before, after } from 'node:test'
 import assert from 'node:assert/strict'
+import './helpers/fakeSupabase'
 import { NextRequest } from 'next/server'
 import { GET } from '../app/api/bookings/verify-payment/route'
 import { CHECKOUT_ACCESS_COOKIE, createCheckoutAccessCookie } from '../lib/checkoutAccess'
@@ -30,6 +31,7 @@ describe('Ruta verify-payment: datos personales', () => {
     const env = { ...process.env }
     const realFetch = globalThis.fetch
     let row = bookingRow
+    let verificationStatus = 'not_submitted'
 
     before(() => {
         process.env.NEXT_PUBLIC_SUPABASE_URL = FAKE_SUPABASE
@@ -41,7 +43,7 @@ describe('Ruta verify-payment: datos personales', () => {
             assert.equal(url.origin, FAKE_SUPABASE, 'El test no debe llamar a ningún servicio real')
 
             const rows = url.pathname.endsWith('/users')
-                ? [{ driver_license_issue_date: '2015-01-01', birth_date: '1985-02-02' }]
+                ? [{ driver_license_issue_date: '2015-01-01', birth_date: '1985-02-02', verification_status: verificationStatus }]
                 : [row]
             return new Response(JSON.stringify(rows), { status: 200, headers: { 'content-type': 'application/json' } })
         }) as typeof fetch
@@ -89,6 +91,13 @@ describe('Ruta verify-payment: datos personales', () => {
         assertNoPersonalData((await verify(`${other.name}=${other.value}`)).text)
     })
 
+    it('sin pagar, la cookie no da datos personales', async () => {
+        row = { ...bookingRow, user_id: 'u1', payment_status: 'pending' }
+        const access = createCheckoutAccessCookie(ORDER)!
+
+        assertNoPersonalData((await verify(`${access.name}=${access.value}`)).text)
+    })
+
     it('el navegador que hizo la reserva recupera sus datos para el formulario', async () => {
         row = { ...bookingRow, user_id: 'u1' }
         const access = createCheckoutAccessCookie(ORDER)!
@@ -98,6 +107,28 @@ describe('Ruta verify-payment: datos personales', () => {
         assert.equal(status, 200)
         assert.equal(json.booking.customerDni, '12345678Z')
         assert.equal(json.booking.customerAddress, 'Calle Mayor 1')
-        assert.equal(json.booking.driverLicenseIssueDate, '2015-01-01')
+    })
+
+    it('con solo la cookie no devuelve los datos del perfil', async () => {
+        row = { ...bookingRow, user_id: 'u1' }
+        const access = createCheckoutAccessCookie(ORDER)!
+
+        const { text, json } = await verify(`${access.name}=${access.value}`)
+
+        assert.equal(json.booking.birthDate, null)
+        assert.equal(json.booking.driverLicenseIssueDate, null)
+        assert.ok(!text.includes('1985-02-02'))
+        assert.ok(!text.includes('2015-01-01'))
+    })
+
+    it('la cookie deja de valer cuando la documentación ya se envió o se aprobó', async () => {
+        row = { ...bookingRow, user_id: 'u1' }
+        const access = createCheckoutAccessCookie(ORDER)!
+
+        for (const status of ['pending_validation', 'verified', 'approved']) {
+            verificationStatus = status
+            assertNoPersonalData((await verify(`${access.name}=${access.value}`)).text)
+        }
+        verificationStatus = 'not_submitted'
     })
 })

@@ -26,6 +26,25 @@ export function isAdminUser(user: UserLike | null | undefined): boolean {
 }
 
 /**
+ * Decide si una sesión es de administrador para el middleware de /admin.
+ *
+ * app_metadata basta (solo lo escribe el servidor). Si no, se lee el rol de public.users con
+ * `loadDbRole`, igual que el layout y las API. Si esa lectura falla, se deniega.
+ */
+export async function isAdminSession(
+  user: { app_metadata?: Record<string, any> } | null | undefined,
+  loadDbRole: () => Promise<string | null | undefined>
+): Promise<boolean> {
+  if (!user) return false
+  if (isAdminUser({ app_metadata: user.app_metadata })) return true
+  try {
+    return isAdminUser({ role: (await loadDbRole()) ?? undefined })
+  } catch {
+    return false
+  }
+}
+
+/**
  * Validates whether the configured service role key is a genuine Supabase JWT
  * and not a template placeholder like "tu_clave_secreta_aqui".
  */

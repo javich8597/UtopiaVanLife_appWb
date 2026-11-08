@@ -49,6 +49,13 @@ export const REDSYS_URLS = {
     production: 'https://sis.redsys.es/sis/realizarPago/utf-8',
 }
 
+const REDSYS_RETURN_LOCALES = ['es', 'en', 'de', 'fr']
+
+/** Idiomas de la web a los que puede volver el cliente desde Redsys */
+export function isRedsysLocale(locale: unknown): locale is string {
+    return typeof locale === 'string' && REDSYS_RETURN_LOCALES.includes(locale)
+}
+
 // Default Sandbox Credentials for Testing (Official Redsys Test Gateway)
 export const REDSYS_TEST_DEFAULTS = {
     merchantCode: '999008881',
@@ -56,32 +63,56 @@ export const REDSYS_TEST_DEFAULTS = {
     secretKey: 'sq7HjrUOBfKmC576ILgskD5srU870gJ7',
 }
 
+/** La misma clave se puede escribir distinto en base64: lo que cuenta son sus bytes */
+function isTestSecretKey(secretKey: string | undefined): boolean {
+    return Boolean(secretKey)
+        && Buffer.from(secretKey!, 'base64').equals(Buffer.from(REDSYS_TEST_DEFAULTS.secretKey, 'base64'))
+}
+
+function readRedsysEnvironment(): RedsysConfig['environment'] {
+    const value = process.env.REDSYS_ENVIRONMENT
+    if (!value) return 'test'
+    if (value === 'test' || value === 'production') return value
+    throw new Error('REDSYS_ENVIRONMENT solo admite test o production')
+}
+
 /**
- * Retrieves the current Redsys configuration from environment variables
+ * Retrieves the current Redsys configuration from environment variables.
+ *
+ * Con la clave pública de pruebas cualquiera firma notificaciones, así que una configuración
+ * insegura lanza un error aquí, al usarla: la ruta responde 500 y nada se marca como pagado.
+ * Un despliegue de producción solo usa el modo de pruebas con REDSYS_ALLOW_TEST_MODE=true.
  */
 export function getRedsysConfig(): RedsysConfig {
-    const environment = (process.env.REDSYS_ENVIRONMENT === 'production' ? 'production' : 'test') as 'test' | 'production'
-    
+    const environment = readRedsysEnvironment()
+
+    if (environment === 'test' && process.env.NODE_ENV === 'production' && process.env.REDSYS_ALLOW_TEST_MODE !== 'true') {
+        throw new Error('Redsys está en modo de pruebas en producción: define REDSYS_ENVIRONMENT=production o REDSYS_ALLOW_TEST_MODE=true')
+    }
+
     // In production, require actual merchant code and secret key
-    if (environment === 'production' && !process.env.REDSYS_SECRET_KEY) {
+    let merchantCode = process.env.REDSYS_MERCHANT_CODE?.trim()
+    let secretKey = process.env.REDSYS_SECRET_KEY?.trim()
+
+    if (environment === 'production' && !secretKey) {
         throw new Error('REDSYS_SECRET_KEY es obligatoria con REDSYS_ENVIRONMENT=production')
     }
 
     const terminal = process.env.REDSYS_TERMINAL || '1'
     const appUrl = (process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000').replace(/\/$/, '')
 
-    let merchantCode = process.env.REDSYS_MERCHANT_CODE
-    let secretKey = process.env.REDSYS_SECRET_KEY
-
     if (environment === 'production') {
         merchantCode = merchantCode || '369355383'
+        if (isTestSecretKey(secretKey) || merchantCode === REDSYS_TEST_DEFAULTS.merchantCode) {
+            throw new Error('REDSYS_ENVIRONMENT=production no admite la clave ni el comercio de pruebas')
+        }
     } else {
         // En entorno test / sandbox:
         // Si no se proporcionó REDSYS_SECRET_KEY o coincide con la clave oficial de test de 999008881,
         // aseguramos que use el par coherente FUC 999008881 + secretKey oficial para evitar SIS0042
-        if (!secretKey || secretKey === REDSYS_TEST_DEFAULTS.secretKey) {
+        if (!secretKey || isTestSecretKey(secretKey)) {
             secretKey = REDSYS_TEST_DEFAULTS.secretKey
-            merchantCode = merchantCode && merchantCode !== '369355383' && merchantCode !== '36935583'
+            merchantCode = merchantCode && merchantCode !== '369355383'
                 ? merchantCode 
                 : REDSYS_TEST_DEFAULTS.merchantCode
         } else {
@@ -204,8 +235,8 @@ export function verifyRedsysSignature(
 ): boolean {
     try {
         const decoded = decodeMerchantParameters(merchantParametersBase64)
-        // Redsys parameters in notification can be Ds_Order or DS_ORDER (or DS_MERCHANT_ORDER in requests)
-        const orderId = decoded.Ds_Order || decoded.DS_ORDER || decoded.DS_MERCHANT_ORDER || decoded.Ds_Merchant_Order
+        // Solo notificaciones: la firma del formulario de pago (DS_MERCHANT_ORDER) la ve el cliente
+        const orderId = decoded.Ds_Order || decoded.DS_ORDER
         if (!orderId) {
             return false
         }

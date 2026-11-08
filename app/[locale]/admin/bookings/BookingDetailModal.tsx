@@ -30,6 +30,7 @@ import {
 } from 'lucide-react'
 import { formatPrice } from '@/lib/pricing/engine'
 import { activePaymentAlerts } from '@/lib/admin/bookingStatus'
+import { adminBookingSecondDriver, bookingFlexDeposit, buildBreakdownLines, resolveBasePrice } from '@/lib/admin/bookingBreakdown'
 import ApproveActionClient from './ApproveActionClient'
 import RefundActionClient from './RefundActionClient'
 
@@ -244,11 +245,20 @@ export default function BookingDetailModal({ booking, onClose, onAlertsReviewed 
 
   // 5. Itemized Financial Breakdown
   const discountAmount = Number(booking.discount_amount || 0)
-  const basePrice = Number(
-    booking.base_price ??
-    booking.pricing_breakdown?.basePrice ??
-    Math.max(0, booking.total_price - kmSupplement - cancellationSupplement - extrasSubtotal + discountAmount)
-  )
+  const basePrice = resolveBasePrice(booking, { kmSupplement, cancellationSupplement, extrasSubtotal, discountAmount })
+  const flexDeposit = bookingFlexDeposit(booking)
+  const secondDriver = adminBookingSecondDriver(booking)
+  const breakdownLines = buildBreakdownLines(booking, {
+    basePrice,
+    nights,
+    kmLabel,
+    cancellationLabel,
+    kmSupplement,
+    cancellationSupplement,
+    extrasSubtotal,
+    discountAmount,
+    extrasCount: parsedExtrasList.length,
+  })
   const depositAmount = Number(booking.deposit_amount || 1000)
   const redsysOrderId = booking.payment_intent_id || booking.payment_intent || booking.order_id || null
   const isPaid = booking.payment_status === 'paid'
@@ -460,6 +470,21 @@ export default function BookingDetailModal({ booking, onClose, onAlertsReviewed 
                   </div>
                 </div>
 
+                {secondDriver && (
+                  <div className="bm-field">
+                    <span className="bm-label">Segundo conductor</span>
+                    <strong className="bm-val">
+                      {secondDriver.fullName || 'Consta segundo conductor, pero faltan sus datos'}
+                    </strong>
+                    {secondDriver.document && <div className="bm-val bm-val--mono">{secondDriver.document}</div>}
+                    <div className="bm-val-sub">
+                      {secondDriver.included
+                        ? (flexDeposit.isFlex ? 'Incluido sin coste con la fianza Flex.' : 'Sin suplemento registrado en esta reserva.')
+                        : `Suplemento de ${formatPrice(secondDriver.supplement)}${secondDriver.ratePerDay > 0 ? ` (${formatPrice(secondDriver.ratePerDay)}/día)` : ''}, ya dentro del total.`}
+                    </div>
+                  </div>
+                )}
+
                 <div className="bm-field">
                   <span className="bm-label">Peticiones o Notas Especiales</span>
                   <div className="bm-val-sub" style={{ fontStyle: specialNotes !== 'Ninguna' ? 'normal' : 'italic', color: 'var(--adm-text-2)' }}>
@@ -524,34 +549,22 @@ export default function BookingDetailModal({ booking, onClose, onAlertsReviewed 
               <Euro size={16} /> Desglose Económico Pormenorizado
             </h4>
             <div className="bm-pricing-grid">
-              <div className="bm-price-row">
-                <span>Alquiler base camper ({nights} noches)</span>
-                <strong>{formatPrice(basePrice)}</strong>
-              </div>
-
-              {discountAmount > 0 && (
-                <div className="bm-price-row" style={{ color: 'var(--adm-sage)' }}>
-                  <span>Descuento aplicado por estancia prolongada</span>
-                  <strong>- {formatPrice(discountAmount)}</strong>
+              {breakdownLines.map(line => (
+                <div key={line.kind} className={`bm-price-row${line.kind === 'discount' ? ' bm-price-row--discount' : ''}`}>
+                  <span>{line.label}</span>
+                  <strong>
+                    {line.included
+                      ? 'Incluido'
+                      : line.kind === 'base'
+                        ? formatPrice(line.amount)
+                        : line.amount < 0
+                          ? `- ${formatPrice(-line.amount)}`
+                          : line.amount > 0
+                            ? `+ ${formatPrice(line.amount)}`
+                            : formatPrice(0)}
+                  </strong>
                 </div>
-              )}
-
-              <div className="bm-price-row">
-                <span>Paquete de KM: {kmLabel}</span>
-                <strong>{kmSupplement > 0 ? `+ ${formatPrice(kmSupplement)}` : '0,00 €'}</strong>
-              </div>
-
-              <div className="bm-price-row">
-                <span>Política de Cancelación: {cancellationLabel}</span>
-                <strong>{cancellationSupplement > 0 ? `+ ${formatPrice(cancellationSupplement)}` : '0,00 €'}</strong>
-              </div>
-
-              {extrasSubtotal > 0 && (
-                <div className="bm-price-row">
-                  <span>Extras y experiencias ({parsedExtrasList.length} seleccionados)</span>
-                  <strong>+ {formatPrice(extrasSubtotal)}</strong>
-                </div>
-              )}
+              ))}
 
               <div className="bm-price-total">
                 <div>
@@ -845,8 +858,17 @@ export default function BookingDetailModal({ booking, onClose, onAlertsReviewed 
         .bm-price-row {
           display: flex;
           justify-content: space-between;
+          gap: 12px;
           font-size: 0.88rem;
           color: var(--adm-text);
+        }
+
+        .bm-price-row--discount {
+          color: var(--adm-sage);
+        }
+
+        .bm-val--mono {
+          font-family: monospace;
         }
 
         .bm-opt-badge {

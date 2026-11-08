@@ -1,6 +1,42 @@
 import { jsPDF } from 'jspdf'
 import { ContractData } from './contractEngine'
 
+/**
+ * Frase del suplemento del segundo conductor.
+ *
+ * "Incluido sin coste" solo se afirma cuando el desglose guardado de la reserva lo dice
+ * (`includesSecondDriver`, que el motor del contrato traduce a `included`). Un suplemento de 0 € no
+ * basta: en una reserva anterior a este cambio significa "sin dato", y con la fianza Estándar el 2º
+ * conductor se cobra, así que ahí no se afirma ni cobro ni gratuidad.
+ *
+ * `lib/admin/contractHtml.ts` toma la misma decisión con las mismas palabras para el contrato
+ * imprimible del backoffice: los dos textos se comparan en tests/contracts/segundoConductorContrato.test.ts.
+ */
+export function secondDriverSupplementText(
+  secondDriver: Pick<NonNullable<ContractData['secondDriver']>, 'supplement' | 'ratePerDay'> & { included?: boolean }
+): string {
+  if (secondDriver.supplement > 0) {
+    const rate = secondDriver.ratePerDay > 0 ? ` (${secondDriver.ratePerDay.toFixed(2)} €/día)` : ''
+    return `Suplemento de segundo conductor contratado: ${secondDriver.supplement.toFixed(2)} €${rate}, ya incluido en el precio total del arrendamiento.`
+  }
+  if (secondDriver.included === false) return 'No consta suplemento de segundo conductor en esta reserva.'
+  return 'Segundo conductor incluido sin coste adicional en la modalidad de fianza contratada.'
+}
+
+/** Fila "Segundo Conductor" de las condiciones particulares */
+export function secondDriverParticularsValue(data: ContractData): string {
+  const sd = data.secondDriver
+  if (!sd) return 'No contratado · Solo el arrendatario está autorizado a conducir'
+  if (sd.supplement > 0) {
+    const rate = sd.ratePerDay > 0 ? ` (${sd.ratePerDay.toFixed(2)} €/día)` : ''
+    return `Contratado · Suplemento de ${sd.supplement.toFixed(2)} €${rate}, incluido en el precio total`
+  }
+  if (sd.included && data.pricing.depositOption === 'flex_1000') {
+    return 'Contratado · Incluido sin coste en la modalidad de Fianza Flex'
+  }
+  return 'Contratado · Suplemento según las condiciones económicas de esta reserva'
+}
+
 export interface GeneratedPdfResult {
   doc: jsPDF
   blob: Blob
@@ -141,7 +177,14 @@ export async function generateOfficialContractPdfBlob(
 
     pdf.setFont('helvetica', 'normal')
     pdf.setFontSize(7.2)
-    const secondDriverText = `D./Dña. ${data.secondDriver.fullName}, con DNI/NIE nº ${data.secondDriver.dniNie} y permiso de conducción nº ${data.secondDriver.driverLicenseId}, facultado como conductor adicional bajo los mismos términos, garantías y coberturas.`
+    // El suplemento se imprime tal como se cobró, y la gratuidad solo se afirma con la Fianza Flex
+    const supplementText = secondDriverSupplementText(data.secondDriver)
+    // La antigüedad del carnet es el requisito del que depende la cobertura: se imprime como la del
+    // arrendatario, y en blanco si la reserva no la guarda
+    const secondDriverYears = isTemplatePreview || data.secondDriver.yearsHeld === null
+      ? '______'
+      : `${data.secondDriver.yearsHeld}`
+    const secondDriverText = `D./Dña. ${data.secondDriver.fullName}, con DNI/NIE nº ${data.secondDriver.dniNie} y permiso de conducción nº ${data.secondDriver.driverLicenseId} (${secondDriverYears} años de antigüedad de carné), facultado como conductor adicional bajo los mismos términos, garantías y coberturas. ${supplementText}`
     const secondDriverLines = pdf.splitTextToSize(secondDriverText, 174)
     pdf.text(secondDriverLines, 18, yPos)
     yPos += secondDriverLines.length * 3.4 + 2.5
@@ -195,6 +238,10 @@ export async function generateOfficialContractPdfBlob(
       label: 'Fianza Obligatoria:',
       value: `${data.pricing.depositAmount.toFixed(2)} € (Bloqueo en tarjeta bancaria previa a la entrega física)`,
       boldValue: true
+    },
+    {
+      label: 'Segundo Conductor:',
+      value: secondDriverParticularsValue(data)
     },
     {
       label: 'Póliza de Seguro & Franquicia:',

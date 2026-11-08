@@ -15,6 +15,8 @@ import {
     validateStep3,
     validateStep4,
     validateStep5,
+    step5HasSecondDriver,
+    normalizeStep5Draft,
 } from './types'
 import {
     calculatePriceV2,
@@ -180,7 +182,9 @@ export default function BookingWizardClient({
                     if (draft.step4 && Array.isArray(draft.step4.selectedExtras)) {
                         setStep4(draft.step4)
                     }
-                    if (draft.step5) setStep5(draft.step5)
+                    // Los borradores anteriores a `travelersCount` llegan sin ese campo: se normaliza
+                    // al cargarlo para que el resumen cuente el mismo 2º conductor que se cobra
+                    if (draft.step5) setStep5(normalizeStep5Draft(draft.step5, draft.step1?.pax || initialPaxCount))
                     if (typeof draft.maxCompletedStep === 'number') {
                         setMaxCompletedStep(draft.maxCompletedStep)
                     }
@@ -343,9 +347,13 @@ export default function BookingWizardClient({
                 category: e.category,
             })),
             depositOption: activeDepositOption,
+            // El 2º conductor suma su suplemento con fianza Estándar. El importe que se cobra lo
+            // vuelve a calcular el servidor en /api/bookings/checkout: esto es solo el resumen
+            // Con el mismo número de viajeros efectivo que usa el paso 5 (`|| step1.pax || 1`)
+            secondDriver: step5HasSecondDriver(step5, step5.travelersCount || step1.pax || 1),
             depositAmount: activeDepositOption === 'flex_1000' ? 1000 : 2000,
         })
-    }, [camper, step1, step2, step3, step4, step5.depositOption, seasonsV2, seasonPeriods, durationDiscounts])
+    }, [camper, step1, step2, step3, step4, step5, seasonsV2, seasonPeriods, durationDiscounts])
 
     // Validación de cada paso
     const isCurrentStepValid = useMemo(() => {

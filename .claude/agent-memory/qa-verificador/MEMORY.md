@@ -1,2 +1,3 @@
 - [Validación de textos de clientes](validacion-textos-clientes.md) — valores a probar; comparar paso 5 con la ruta sobre el valor guardado; email sin unificar
 - [Árbol en movimiento](verificar-arbol-en-movimiento.md) — otros agentes editan durante QA; sellos de hora, rerun final, mutaciones en copia con unión
+- [Tests que pasan con y sin el cambio](tests-que-copian-el-paso-5.md) — copias del paso 5, nombres heredados, aserciones ancladas a una pantalla; fronteras vivas del 2º conductor

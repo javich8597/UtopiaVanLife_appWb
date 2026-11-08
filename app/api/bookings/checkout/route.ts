@@ -10,10 +10,15 @@ import {
     calculateAge,
     calculateLicenseSeniorityYears,
     camperSeats,
+    countSecondDrivers,
+    isAlreadyAmong,
+    isSecondDriverFlag,
     MAX_CAMPER_SEATS,
+    MAX_SECOND_DRIVERS,
     isValidDateString,
     isValidEmail,
     normalizeEmail,
+    personDocument,
     resolveBookingSlots,
     sanitizeCustomerNotes,
     validateBookingDates,
@@ -101,13 +106,23 @@ export function validateBookingPassengers(
     const text = (value: unknown) => typeof value === 'string' ? value : ''
     const items: any[] = Array.isArray(rawPassengers) ? [...rawPassengers] : []
     if (separateSecondDriver && typeof separateSecondDriver === 'object') {
-        const sDoc = text(separateSecondDriver.dniNie || separateSecondDriver.dni || separateSecondDriver.passport).trim().toUpperCase()
-        const exists = items.some(p => {
-            const pDoc = text(p?.dniNie || p?.dni || p?.passport).trim().toUpperCase()
-            return pDoc && sDoc && pDoc === sDoc
-        })
-        if (!exists) {
+        if (isAlreadyAmong(separateSecondDriver, items)) {
+            // Ya viene entre los acompañantes: se marca ahí y no se duplica
+            const doc = personDocument(separateSecondDriver)
+            const existing = items.find(p => personDocument(p) === doc)
+            if (existing) items[items.indexOf(existing)] = { ...existing, isSecondDriver: true }
+        } else {
             items.push({ ...separateSecondDriver, isSecondDriver: true })
+        }
+    }
+
+    // Como máximo un 2º conductor por reserva, sea cual sea la fianza (decisión de negocio).
+    // Un borrador antiguo o una pestaña vieja pueden traer varias fichas marcadas
+    if (countSecondDrivers(items) > MAX_SECOND_DRIVERS) {
+        return {
+            isValid: false,
+            error: `Solo puede haber ${MAX_SECOND_DRIVERS} segundo conductor en la reserva. Desmarca los demás.`,
+            passengers: []
         }
     }
 
@@ -122,8 +137,8 @@ export function validateBookingPassengers(
         const rawName = text(p.fullName || p.name || p.customer_name)
         // Se guarda normalizado, como el nombre del cliente: es lo que imprime el contrato
         const fullName = normalizeDriverText(rawName) ?? ''
-        const doc = text(p.dniNie || p.dni || p.passport || p.documentNumber || p.document_number || p.dni_nie).trim().toUpperCase()
-        const isSecondDriver = Boolean(p.isSecondDriver || p.is_second_driver || p.secondDriver || p.isDriver)
+        const doc = personDocument(p)
+        const isSecondDriver = isSecondDriverFlag(p)
 
         if (!fullName) {
             return {
@@ -186,7 +201,8 @@ export function validateBookingPassengers(
                         passengers: []
                     }
                 }
-                birthDateStr = typeof rawBirthDate === 'string' ? rawBirthDate.split('T')[0] : bDate.toISOString().split('T')[0]
+                // isValidDateString ya garantiza YYYY-MM-DD: se guarda la cadena tal cual
+                birthDateStr = rawBirthDate
             } else if (rawAge !== undefined && rawAge !== null && rawAge !== '') {
                 const ageNum = Number(rawAge)
                 if (isNaN(ageNum) || ageNum < 25) {
@@ -222,7 +238,7 @@ export function validateBookingPassengers(
                         passengers: []
                     }
                 }
-                licenseDateStr = typeof rawLicenseDate === 'string' ? rawLicenseDate.split('T')[0] : lDate.toISOString().split('T')[0]
+                licenseDateStr = rawLicenseDate
             } else if (rawLicenseYears !== undefined && rawLicenseYears !== null && rawLicenseYears !== '') {
                 const yearsNum = Number(rawLicenseYears)
                 if (isNaN(yearsNum) || yearsNum < 2) {
@@ -240,13 +256,30 @@ export function validateBookingPassengers(
                 }
             }
         } else {
-            if (p.birthDate || p.birth_date) {
-                const b = new Date(p.birthDate || p.birth_date)
-                if (!isNaN(b.getTime())) birthDateStr = b.toISOString().split('T')[0]
+            // Acompañante que no conduce: las fechas son opcionales, pero si vienen deben ser
+            // YYYY-MM-DD y se guardan tal cual. `new Date(...)` admitía "1980/01/01 (texto)" y
+            // `toISOString()` sobre una fecha local corría el día según la zona horaria del servidor
+            const rawBirthDate = p.birthDate || p.birth_date
+            if (rawBirthDate) {
+                if (!isValidDateString(rawBirthDate)) {
+                    return {
+                        isValid: false,
+                        error: `La fecha de nacimiento del acompañante "${fullName}" (Pasajero ${passengerNum}) no es válida.`,
+                        passengers: []
+                    }
+                }
+                birthDateStr = rawBirthDate
             }
-            if (p.licenseDate || p.license_date) {
-                const l = new Date(p.licenseDate || p.license_date)
-                if (!isNaN(l.getTime())) licenseDateStr = l.toISOString().split('T')[0]
+            const rawLicenseDate = p.licenseDate || p.license_date
+            if (rawLicenseDate) {
+                if (!isValidDateString(rawLicenseDate)) {
+                    return {
+                        isValid: false,
+                        error: `La fecha de expedición del carnet de conducir del acompañante "${fullName}" (Pasajero ${passengerNum}) no es válida.`,
+                        passengers: []
+                    }
+                }
+                licenseDateStr = rawLicenseDate
             }
         }
 
@@ -488,29 +521,28 @@ export async function POST(req: Request) {
 
         // 2b. Validaciones de acompañantes y segundo conductor server-side
         const rawPassengersInput = body.passengers || cust.passengers || body.companions || cust.companions || []
-        // El 2º conductor solo se incluye con fianza Flex: si el cliente vuelve a Estándar, una ficha de acompañante
-        // puede conservar isSecondDriver: true en el borrador aunque la casilla ya no se vea ni se valide en el paso 5
-        const secondDriverAllowed = depositOption === 'flex_1000'
-        const rawPassengers = Array.isArray(rawPassengersInput)
-            ? rawPassengersInput.map((p: unknown) =>
-                p && typeof p === 'object' && !secondDriverAllowed
-                    ? { ...(p as Record<string, unknown>), isSecondDriver: false, is_second_driver: false, secondDriver: false, isDriver: false }
-                    : p
-            )
-            : rawPassengersInput
-        // El 2º conductor "solo" existe únicamente con 1 viajero y fianza Flex (el bloque del paso 5 solo
-        // se ve así). Fuera de ese caso se ignora: una pestaña antigua o un borrador lo pueden seguir enviando
-        const soloSecondDriverAllowed = travelersCount === 1 && secondDriverAllowed
-        const separateSecondDriver =
-            body.secondDriver ||
-            cust.secondDriver ||
-            (soloSecondDriverAllowed && (cust.secondDriverSoloEnabled || body.secondDriverSoloEnabled)
-                ? (body.secondDriverSolo || cust.secondDriverSolo)
-                : null) ||
-            null
+        const rawPassengers = Array.isArray(rawPassengersInput) ? rawPassengersInput : []
 
-        // Cada acompañante es un viajero más que el titular (el 2º conductor "solo" no viaja como acompañante)
-        const companionsCount = Array.isArray(rawPassengers) ? rawPassengers.length : 0
+        // ── Regla única del 2º conductor (`secondDriver`, `cust.secondDriver`, `secondDriverSolo`
+        // y el `isSecondDriver` de cada acompañante) ──
+        // Se admite con cualquier fianza: con Flex va incluido y con Estándar se cobra
+        // SECOND_DRIVER_RATE_PER_DAY, que suma el servidor al recalcular el precio.
+        // Como máximo uno por reserva: lo comprueba validateBookingPassengers sobre todas las fichas.
+        //
+        // El bloque "solo" del paso 5 solo existe con 1 viajero: fuera de ahí se ignora, porque una
+        // pestaña antigua o el borrador de sessionStorage lo pueden seguir enviando
+        const soloSecondDriver = travelersCount === 1 && (cust.secondDriverSoloEnabled || body.secondDriverSoloEnabled)
+            ? (body.secondDriverSolo || cust.secondDriverSolo || null)
+            : null
+        // Un 2º conductor enviado aparte de las fichas viaja además de los acompañantes y ocupa
+        // plaza, salvo que ya figure entre ellos. El del bloque "solo" se registra aparte de los
+        // viajeros (el paso 5 lo presenta así) y no suma plaza
+        const standaloneSecondDriver = body.secondDriver || cust.secondDriver || null
+        const separateSecondDriver = standaloneSecondDriver || soloSecondDriver
+        const extraSeats = standaloneSecondDriver && !isAlreadyAmong(standaloneSecondDriver, rawPassengers) ? 1 : 0
+
+        // Cada acompañante es un viajero más que el titular
+        const companionsCount = rawPassengers.length + extraSeats
         if (travelersCount < companionsCount + 1) {
             return NextResponse.json(
                 { error: `Has indicado ${travelersCount} ${travelersCount === 1 ? 'viajero' : 'viajeros'} y ${companionsCount} ${companionsCount === 1 ? 'acompañante' : 'acompañantes'}: revisa el número de viajeros.` },
@@ -526,6 +558,9 @@ export async function POST(req: Request) {
             )
         }
         const validatedPassengers = passengerValidation.passengers
+        // El suplemento se cobra por lo que ha quedado validado en el servidor, nunca por lo que
+        // diga el navegador: ninguna bandera del cuerpo entra en el cálculo del precio
+        const hasSecondDriver = countSecondDrivers(validatedPassengers) > 0
 
         const supabase = getSupabaseAdmin()
 
@@ -651,6 +686,7 @@ export async function POST(req: Request) {
             kmPackage,
             cancellationPolicy,
             depositOption,
+            secondDriver: hasSecondDriver,
             extrasSelected: verifiedExtras,
             depositAmount: depositOption === 'flex_1000' ? 1000 : 2000,
         })

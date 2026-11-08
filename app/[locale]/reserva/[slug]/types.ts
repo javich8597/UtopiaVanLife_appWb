@@ -352,6 +352,44 @@ export function validateStep4(data: Step4Data): { isValid: boolean; error?: stri
     return { isValid: true }
 }
 
+/**
+ * Fichas de 2º conductor que el asistente está mostrando: las de los acompañantes visibles más la
+ * del bloque "solo" (1 viajero). Es la misma cuenta que envía el paso 5 y que recalcula el servidor.
+ * La fianza no entra: el 2º conductor vale con las dos (Flex lo incluye, Estándar lo cobra).
+ */
+export function countStep5SecondDrivers(
+    data: Pick<Step5Customer, 'travelersCount' | 'passengers' | 'secondDriverSoloEnabled'>,
+    effectiveTravelersCount?: number
+): number {
+    // El mismo valor efectivo que usa Step5Checkout (`customer.travelersCount || step1.pax || 1`):
+    // un borrador antiguo sin travelersCount descuadraba el resumen frente a lo que se cobra
+    const travelers = effectiveTravelersCount || data.travelersCount || 1
+    const visible = (data.passengers || []).slice(0, Math.max(0, travelers - 1))
+    const marked = visible.filter(p => p.isSecondDriver).length
+    return marked + (travelers === 1 && data.secondDriverSoloEnabled ? 1 : 0)
+}
+
+/** ¿El asistente lleva un 2º conductor? Es lo que decide si el desglose cobra su suplemento */
+export function step5HasSecondDriver(
+    data: Pick<Step5Customer, 'travelersCount' | 'passengers' | 'secondDriverSoloEnabled'>,
+    effectiveTravelersCount?: number
+): boolean {
+    return countStep5SecondDrivers(data, effectiveTravelersCount) > 0
+}
+
+/**
+ * Borrador del paso 5 recuperado de sessionStorage, normalizado: los borradores anteriores a
+ * `travelersCount` llegan sin ese campo y el resumen contaba un 2º conductor distinto del que se
+ * cobra. El número de viajeros del paso 1 es el que manda.
+ */
+export function normalizeStep5Draft<T extends Partial<Step5Customer>>(
+    draft: T,
+    paxFromStep1: number
+): T & { travelersCount: number } {
+    const travelers = Number(draft?.travelersCount) || Number(paxFromStep1) || 1
+    return { ...draft, travelersCount: Math.max(1, Math.floor(travelers)) }
+}
+
 export function validateStep5(
     data: Step5Customer,
     maxCamperBerths: number = 4
@@ -447,8 +485,9 @@ export function validateStep5(
                 }
             }
 
-            // Si es Fianza Flex y está marcado como 2º conductor
-            if (data.depositOption === 'flex_1000' && passenger.isSecondDriver) {
+            // Marcado como 2º conductor: se valida con cualquier fianza (con Flex va incluido,
+            // con Estándar cuesta SECOND_DRIVER_RATE_PER_DAY). Sus fechas son obligatorias
+            if (passenger.isSecondDriver) {
                 if (!passenger.birthDate) {
                     errors[`passenger_${pNum}_birthDate`] = `Fecha de nacimiento requerida para 2º conductor (Pasajero ${pNum})`
                 } else {
@@ -469,8 +508,13 @@ export function validateStep5(
         })
     }
 
-    // Validar 2º conductor opcional para 1 solo viajero con Fianza Flex
-    if (data.travelersCount === 1 && data.depositOption === 'flex_1000' && data.secondDriverSoloEnabled) {
+    // Como máximo un 2º conductor por reserva, sea cual sea la fianza
+    if (countStep5SecondDrivers(data) > 1) {
+        errors.secondDriver = 'Solo un acompañante puede ser 2º conductor: desmarca los demás'
+    }
+
+    // Validar el 2º conductor opcional cuando viaja 1 sola persona (con cualquier fianza)
+    if (data.travelersCount === 1 && data.secondDriverSoloEnabled) {
         const sec = data.secondDriverSolo || { fullName: '', dniNie: '', birthDate: '', licenseDate: '' }
         if (!sec.fullName || sec.fullName.trim().length < 3) {
             errors.secondDriverSolo_fullName = 'Nombre y apellidos completos requeridos para el 2º conductor'

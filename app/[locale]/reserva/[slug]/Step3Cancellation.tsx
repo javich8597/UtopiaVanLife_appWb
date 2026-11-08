@@ -3,7 +3,7 @@
 import React from 'react'
 import { ShieldCheck, Check, Sparkles, RefreshCw, UserCheck, Shield } from 'lucide-react'
 import { Step3Data, DepositOption, CancellationPolicy } from './types'
-import { formatPrice } from '@/lib/pricing/engine'
+import { formatPrice, SECOND_DRIVER_RATE_PER_DAY } from '@/lib/pricing/engine'
 
 interface Step3CancellationProps {
     data: Step3Data
@@ -51,10 +51,10 @@ export default function Step3Cancellation({
                 <div className="section-block__header">
                     <div className="section-block__title-wrap">
                         <ShieldCheck size={20} className="text-forest" />
-                        <h3 className="section-block__title">1. Modalidad de Fianza y Seguro</h3>
+                        <h3 className="section-block__title">1. Fianza y conductores</h3>
                     </div>
                     <p className="section-block__desc">
-                        El depósito de fianza no se abona hoy: se bloquea temporalmente en tu tarjeta de crédito o débito durante el check-in presencial y se desbloquea al 100% tras el viaje.
+                        El depósito de fianza no se abona hoy: se bloquea temporalmente en tu tarjeta de crédito o débito durante el check-in presencial y se desbloquea al 100% tras el viaje. Puedes añadir un 2º conductor en el paso 5: incluido con la Fianza Flex y +{SECOND_DRIVER_RATE_PER_DAY} €/día con la Fianza Estándar.
                     </p>
                 </div>
 
@@ -110,6 +110,10 @@ export default function Step3Cancellation({
                                 </li>
                                 <li className="feature-item">
                                     <Check size={14} className="feature-item__icon" />
+                                    <span>2º conductor autorizado opcional por +{SECOND_DRIVER_RATE_PER_DAY} €/día</span>
+                                </li>
+                                <li className="feature-item">
+                                    <Check size={14} className="feature-item__icon" />
                                     <span>Asistencia en carretera 24/7 en toda Mallorca</span>
                                 </li>
                             </ul>
@@ -157,7 +161,7 @@ export default function Step3Cancellation({
                             </div>
 
                             <p className="policy-card__description">
-                                Reduce la retención en tu tarjeta bancaria al 50% (solo 1.000 €) e incluye la posibilidad de añadir un 2º conductor autorizado sin coste adicional.
+                                Reduce la retención en tu tarjeta bancaria al 50% (solo 1.000 €) e incluye la posibilidad de añadir un 2º conductor autorizado sin suplemento.
                             </p>
 
                             <ul className="policy-card__features">
@@ -167,7 +171,7 @@ export default function Step3Cancellation({
                                 </li>
                                 <li className="feature-item">
                                     <Check size={14} className="feature-item__icon feature-item__icon--gold" />
-                                    <span className="text-strong-gold">2º conductor autorizado GRATIS incluido</span>
+                                    <span className="text-strong-gold">2º conductor autorizado incluido, sin suplemento</span>
                                 </li>
                                 <li className="feature-item">
                                     <Check size={14} className="feature-item__icon" />

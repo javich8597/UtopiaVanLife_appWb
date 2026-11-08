@@ -1,1 +1,3 @@
 - [Comprobaciones del entorno](project_entorno_comprobaciones.md) — lint por archivos, sin build contra la base real, mutar en copia aislada
+- [Segundo conductor](project_segundo_conductor.md) — 5 €/día con Estándar, incluido con Flex, máximo uno; ya no es solo de Flex
+- [El 2º conductor es de la reserva](project_segundo_conductor_reserva.md) — la reserva manda sobre el perfil: contrato, subida y columnas nuevas (migración sin aplicar)

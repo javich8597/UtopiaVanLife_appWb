@@ -32,10 +32,23 @@ const FILES_TOO_LARGE_MESSAGE = 'Tus archivos pesan demasiado para enviarlos jun
 const CONNECTION_ERROR_MESSAGE = 'No hemos podido enviar la documentación. Revisa tu conexión e inténtalo de nuevo: no has perdido nada de lo que has escrito.'
 const UNREADABLE_RESPONSE_MESSAGE = 'No hemos podido confirmar que la documentación se haya guardado. Inténtalo de nuevo en unos segundos.'
 
+/**
+ * Reserva viva y pagada que autoriza a un 2º conductor, con su ficha tal y como se validó al
+ * reservar. Es lo que decide si este formulario pide sus datos: el perfil ya no manda.
+ */
+export interface SecondDriverBooking {
+  bookingId: string
+  startDate: string
+  fullName: string
+  dniNie: string
+  licenseId: string
+}
+
 interface Props {
   user: any
   profile: any
   rejectionReason?: string | null
+  secondDriverBooking?: SecondDriverBooking | null
 }
 
 interface UploadedFilePreview {
@@ -43,7 +56,7 @@ interface UploadedFilePreview {
   previewUrl: string | null
 }
 
-export default function DriverDataClient({ user, profile, rejectionReason }: Props) {
+export default function DriverDataClient({ user, profile, rejectionReason, secondDriverBooking }: Props) {
   const searchParams = useSearchParams()
   const router = useRouter()
   const isMissingContractData = searchParams.get('reason') === 'missing_contract_data'
@@ -57,11 +70,19 @@ export default function DriverDataClient({ user, profile, rejectionReason }: Pro
   const [phone, setPhone] = useState(profile?.phone || '')
   const [address, setAddress] = useState(profile?.address || '')
   
-  // Segundo conductor
-  const [hasSecondDriver, setHasSecondDriver] = useState(profile?.has_second_driver || false)
-  const [secondDriverFullName, setSecondDriverFullName] = useState(profile?.second_driver_name || '')
-  const [secondDriverDni, setSecondDriverDni] = useState(profile?.second_driver_dni || '')
-  const [secondDriverLicense, setSecondDriverLicense] = useState(profile?.second_driver_license || '')
+  // Segundo conductor: lo decide la RESERVA que lo lleva, no el perfil. Un `has_second_driver`
+  // antiguo en el perfil no debe pedir sus datos ni, sobre todo, impedir que el titular guarde los
+  // suyos: la ruta solo acepta al 2º conductor que autoriza una reserva viva y pagada
+  const [hasSecondDriver, setHasSecondDriver] = useState(Boolean(secondDriverBooking))
+  const [secondDriverFullName, setSecondDriverFullName] = useState(
+    secondDriverBooking?.fullName || profile?.second_driver_name || ''
+  )
+  const [secondDriverDni, setSecondDriverDni] = useState(
+    secondDriverBooking?.dniNie || profile?.second_driver_dni || ''
+  )
+  const [secondDriverLicense, setSecondDriverLicense] = useState(
+    secondDriverBooking?.licenseId || profile?.second_driver_license || ''
+  )
 
   // Archivos del conductor principal
   const [dniFront, setDniFront] = useState<UploadedFilePreview>({ file: null, previewUrl: profile?.dni_front_url || null })
@@ -172,8 +193,17 @@ export default function DriverDataClient({ user, profile, rejectionReason }: Pro
         if (!field.startsWith('second_')) formData.append(field, preparedFiles[index])
       })
 
-      formData.append('hasSecondDriver', hasSecondDriver ? 'true' : 'false')
-      if (hasSecondDriver) {
+      // Solo se manda el 2º conductor si hay una reserva que lo autorice, y se dice cuál: la ruta
+      // comprueba contra esa reserva que el documento sea el de la persona autorizada
+      const sendSecondDriver = hasSecondDriver && Boolean(secondDriverBooking)
+      // Sin reserva que lo autorice no se afirma nada: un `has_second_driver` antiguo del perfil no
+      // debe hacer que este guardado le quite la validación al titular. Con reserva, apagar el
+      // interruptor sí es una baja explícita
+      if (sendSecondDriver || secondDriverBooking || !profile?.has_second_driver) {
+        formData.append('hasSecondDriver', sendSecondDriver ? 'true' : 'false')
+      }
+      if (sendSecondDriver) {
+        formData.append('bookingId', secondDriverBooking!.bookingId)
         formData.append('secondDriverFullName', secondDriverFullName)
         formData.append('secondDriverDni', secondDriverDni)
         formData.append('secondDriverLicense', secondDriverLicense)
@@ -666,16 +696,21 @@ export default function DriverDataClient({ user, profile, rejectionReason }: Pro
           <div className="second-driver-header">
             <div>
               <h2 className="form-card__title">Segundo Conductor</h2>
-              <p className="form-card__subtitle">Habilitar si otra persona va a compartir la conducción del vehículo</p>
+              <p className="form-card__subtitle">
+                {secondDriverBooking
+                  ? 'Sube aquí la documentación de la persona autorizada en tu reserva'
+                  : 'El segundo conductor se contrata en la reserva. Escríbenos para añadirlo y después podrás subir su documentación aquí.'}
+              </p>
             </div>
 
             <label className="custom-switch" htmlFor="hasSecondDriverToggle">
-              <input 
+              <input
                 id="hasSecondDriverToggle"
                 name="hasSecondDriver"
                 aria-label="Habilitar segundo conductor"
-                type="checkbox" 
+                type="checkbox"
                 checked={hasSecondDriver}
+                disabled={!secondDriverBooking}
                 onChange={e => setHasSecondDriver(e.target.checked)}
               />
               <span className="custom-switch-slider" />

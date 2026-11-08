@@ -96,7 +96,10 @@ export function installFakeSupabase(initial: Record<string, Row[]> = {}) {
     const realFetch = globalThis.fetch
     process.env.NEXT_PUBLIC_SUPABASE_URL = FAKE_SUPABASE
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY = 'anon-de-test'
-    process.env.SUPABASE_SERVICE_ROLE_KEY = 'clave-de-test'
+    // Tiene la forma que exige isValidServiceRoleKey (empieza por "eyJ" y pasa de 50 caracteres):
+    // en producción la clave es obligatoria, y las rutas que no la ven válida responden 503 en lugar
+    // de seguir con la sesión del cliente. No es una clave real ni abre nada: el fetch está simulado
+    process.env.SUPABASE_SERVICE_ROLE_KEY = 'eyJhbGciOiJIUzI1NiJ9.clave-de-test-sin-valor-real.firma-de-test'
 
     function rest(req: RecordedRequest, table: string): Response {
         if (failures.table === table && failures.method === req.method) {

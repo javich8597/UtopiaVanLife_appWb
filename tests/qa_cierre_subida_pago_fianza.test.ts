@@ -411,13 +411,18 @@ describe('Paso 5 → checkout → subida: lo que se guarda', () => {
         assert.equal(status, 200, json.error)
     })
 
-    it('QA-C9 un segundo conductor a medias y oculto al cambiar a fianza Estándar no impide pagar', async () => {
+    // El bloque del 2º conductor "solo" ya se ve con cualquier fianza, así que con Estándar sus datos
+    // dejan de estar ocultos: a medias los rechazan el paso 5 y el checkout, y completos se cobran
+    it('QA-C9 un segundo conductor a medias con fianza Estándar lo rechazan el paso 5 y el checkout', async () => {
         const stale = { travelersCount: 1, depositOption: 'standard_2000', passengers: [], secondDriverSoloEnabled: true, secondDriverSolo: { fullName: 'Luis', dniNie: '', birthDate: '', licenseDate: '' } }
-        assert.equal(validateStep5({ ...RAW_CUSTOMER, ...stale } as never).isValid, true, 'el paso 5 lo acepta')
+        const { errors } = validateStep5({ ...RAW_CUSTOMER, ...stale } as never)
+        assert.ok(errors.secondDriverSolo_dniNie, 'el paso 5 pide su documento')
+        assert.ok(errors.secondDriverSolo_birthDate, 'el paso 5 pide su fecha de nacimiento')
 
-        const { status, json } = await flows.checkout(step5Payload({}, sentCustomer({ ...RAW_CUSTOMER, ...stale })))
+        const { status } = await flows.checkout(step5Payload({}, sentCustomer({ ...RAW_CUSTOMER, ...stale })))
 
-        assert.equal(status, 200, json.error)
+        assert.equal(status, 400)
+        assert.equal(flows.fake.tables.bookings.length, 0)
     })
 
     /** Lo que envía Step5Checkout desde la tercera tanda: solo las fichas visibles de acompañantes y del 2º conductor */
@@ -474,19 +479,45 @@ describe('Paso 5 → checkout → subida: lo que se guarda', () => {
         assert.equal(checked, 15)
     })
 
-    // Mismo patrón que QA-C9, en las fichas de acompañantes: la casilla "2º conductor" de un acompañante
-    // solo se ve con Flex y validateStep5 solo la mira con Flex; al pasar a Estándar no debe impedir pagar
-    it('QA-C10 un acompañante marcado como 2º conductor con Flex no impide pagar tras pasar a Estándar', async () => {
+    // El 2º conductor vale con las dos fianzas: con Flex va incluido y con Estándar se cobra 5 €/día.
+    // Al pasar de Flex a Estándar la ficha marcada se conserva y el suplemento entra en el cobro;
+    // si le faltan sus fechas obligatorias (edad >= 25 y carnet B >= 2 años), el paso 5 y el checkout lo rechazan
+    it('QA-C10 un acompañante marcado como 2º conductor se cobra a 5 €/día al pasar de Flex a Estándar', async () => {
+        const driver = { ...companion('Luis Pérez', 'AB123456'), isSecondDriver: true, birthDate: '1985-01-01', licenseDate: '2010-01-01' }
+        const stale = { travelersCount: 2, depositOption: 'standard_2000', passengers: [driver] }
+        assert.equal(validateStep5({ ...RAW_CUSTOMER, ...stale } as never).isValid, true, 'el paso 5 lo acepta')
+
+        const sinDriver = await flows.checkout(step5Payload({}, sentCustomer({ ...RAW_CUSTOMER, travelersCount: 2, passengers: [companion('Luis Pérez', 'AB123456')] })))
+        assert.equal(sinDriver.status, 200, sinDriver.json.error)
+        const baseTotal = sinDriver.json.breakdown.payableTotal
+
+        flows.fake.restore()
+        flows = installFlows()
+        const { status, json } = await flows.checkout(step5Payload({}, sentCustomer({ ...RAW_CUSTOMER, ...stale })))
+
+        assert.equal(status, 200, json.error)
+        const saved = flows.fake.tables.bookings[0]
+        assert.equal(saved.passengers[0].isSecondDriver, true, 'con Estándar también se guarda el 2º conductor')
+        // 7 noches con recogida por la tarde y devolución por la mañana = 7 días × 5 €
+        assert.equal(json.breakdown.secondDriverRatePerDay, 5)
+        assert.equal(json.breakdown.secondDriverSupplement, 35)
+        assert.equal(saved.total_price, baseTotal + 35, 'el suplemento se cobra')
+        assert.equal(saved.pricing_breakdown.secondDriverSupplement, 35)
+    })
+
+    it('QA-C10 sin las fechas obligatorias del 2º conductor con Estándar, el paso 5 y el checkout lo rechazan', async () => {
         const stale = {
             travelersCount: 2, depositOption: 'standard_2000',
             passengers: [{ ...companion('Luis Pérez', 'AB123456'), isSecondDriver: true }],
         }
-        assert.equal(validateStep5({ ...RAW_CUSTOMER, ...stale } as never).isValid, true, 'el paso 5 lo acepta')
+        const { errors } = validateStep5({ ...RAW_CUSTOMER, ...stale } as never)
+        assert.ok(errors.passenger_2_birthDate, 'el paso 5 pide su fecha de nacimiento')
+        assert.ok(errors.passenger_2_licenseDate, 'el paso 5 pide su carnet B')
 
-        const { status, json } = await flows.checkout(step5Payload({}, sentCustomer({ ...RAW_CUSTOMER, ...stale })))
+        const { status } = await flows.checkout(step5Payload({}, sentCustomer({ ...RAW_CUSTOMER, ...stale })))
 
-        assert.equal(status, 200, json.error)
-        assert.equal(flows.fake.tables.bookings[0].passengers[0].isSecondDriver, false, 'con Estándar no hay 2º conductor')
+        assert.equal(status, 400)
+        assert.equal(flows.fake.tables.bookings.length, 0)
     })
 
     it('cierre: el enlace de acceso se reintenta si falla y deja de enviarse cuando sale', async () => {
@@ -643,7 +674,13 @@ describe('Subida: multipart real contra la ruta', () => {
 
     beforeEach(() => {
         fake = installFakeSupabase({
-            bookings: [{ id: 'b1', user_id: 'u1', payment_intent_id: ORDER, payment_status: 'paid' }],
+            // `worstForm` envía hasSecondDriver=true: la reserva tiene que estar viva, pagada y
+            // llevar como 2º conductor justamente a esa persona (el documento se compara)
+            bookings: [{
+                id: 'b1', user_id: 'u1', payment_intent_id: ORDER, payment_status: 'paid',
+                status: 'confirmed', start_date: '2099-06-01',
+                passengers: [{ fullName: 'Luis Pérez', dniNie: 'A'.repeat(20), isSecondDriver: true }],
+            }],
             users: [{ id: 'u1', verification_status: 'not_submitted', full_name: 'Ana' }],
         })
         console.error = () => {}

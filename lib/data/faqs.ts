@@ -279,6 +279,18 @@ export const FAQ_ITEMS: FAQItem[] = [
     "answer_en": "A temporary pre-authorization hold of €2,000, or €1,000 with the Flex option, is placed on your credit card at vehicle pickup. It is released promptly following positive post-rental inspection."
   },
   {
+    "id": "faq-34",
+    "categoryId": "fianza",
+    "categoryName_es": "Fianza y Devolución",
+    "categoryName_en": "Deposit & Return",
+    "question_es": "¿Puedo añadir un segundo conductor?",
+    // Los 5 €/día son SECOND_DRIVER_RATE_PER_DAY (lib/pricing/engine.ts): este archivo es JSON
+    // tipado y no importa constantes, así que si la tarifa cambia hay que cambiarlo también aquí
+    "answer_es": "Sí. Puedes registrar un segundo conductor autorizado, como máximo uno por reserva.\n\n• Con la Fianza Flex (1.000 €) está incluido sin suplemento\n• Con la Fianza Estándar (2.000 €) tiene un suplemento de 5 €/día\n\nDebe cumplir los mismos requisitos que el conductor principal: al menos 25 años y carnet B con un mínimo de 2 años de antigüedad. Sus datos se añaden en el paso 5 de la reserva.\n\nSu documentación (DNI y carnet) se sube después, desde tu área de cliente, en «Mis datos». Solo se admite la de la persona autorizada en esa reserva.",
+    "question_en": "Can I add a second driver?",
+    "answer_en": "Yes. You can register one additional authorised driver per booking.\n\n• Included with no supplement with the Flex deposit (€1,000)\n• €5 per day with the Standard deposit (€2,000)\n\nThe second driver must meet the same requirements as the main driver: at least 25 years old and a Category B licence held for at least 2 years. Their details are added in step 5 of the booking.\n\nTheir documents (ID and driving licence) are uploaded afterwards from your customer area, under \"My details\". Only the person authorised on that booking is accepted."
+  },
+  {
     "id": "faq-26",
     "categoryId": "fianza",
     "categoryName_es": "Fianza y Devolución",

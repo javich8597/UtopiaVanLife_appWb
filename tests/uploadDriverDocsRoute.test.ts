@@ -62,7 +62,13 @@ describe('Ruta de subida de documentación', () => {
 
     beforeEach(() => {
         fake = installFakeSupabase({
-            bookings: [{ id: 'b1', user_id: 'u1', payment_intent_id: ORDER, payment_status: 'paid' }],
+            // La reserva, viva y pagada, lleva a esa persona como 2º conductor: es lo que permite
+            // subir su documentación (y solo la suya: el documento se compara)
+            bookings: [{
+                id: 'b1', user_id: 'u1', payment_intent_id: ORDER, payment_status: 'paid',
+                status: 'confirmed', start_date: '2099-06-01',
+                passengers: [{ fullName: 'Luis Gómez', dniNie: '87654321X', isSecondDriver: true }],
+            }],
             users: [{ id: 'u1', verification_status: 'not_submitted', full_name: 'Ana' }],
         })
         console.error = () => {}
@@ -268,13 +274,23 @@ describe('Ruta de subida de documentación', () => {
             assert.equal(status(), 'pending_validation')
         })
 
-        for (const [field, value] of [['secondDriverFullName', 'Otro'], ['secondDriverDni', '11111111H'], ['secondDriverLicense', 'B-1']]) {
+        // El documento no está en la lista: identifica a la persona que autoriza la reserva y no se
+        // puede cambiar desde aquí (ver el test de abajo)
+        for (const [field, value] of [['secondDriverFullName', 'Otro'], ['secondDriverLicense', 'B-1']]) {
             it(`cambiar ${field} vuelve a revisión`, async () => {
                 await upload(form({ ...secondDriver, [field]: value }))
 
                 assert.equal(status(), 'pending_validation')
             })
         }
+
+        it('cambiar el documento del 2º conductor no se acepta: es el que autoriza la reserva', async () => {
+            const { status: http, json } = await upload(form({ ...secondDriver, secondDriverDni: '11111111H' }))
+
+            assert.equal(http, 400)
+            assert.match(json.error, /segundo conductor/i)
+            assert.equal(status(), 'verified')
+        })
 
         it('añadir un segundo conductor vuelve a revisión', async () => {
             Object.assign(fake.tables.users[0], { has_second_driver: false, second_driver_name: null, second_driver_dni: null, second_driver_license: null })
@@ -288,6 +304,43 @@ describe('Ruta de subida de documentación', () => {
             await upload(form({ hasSecondDriver: 'false' }))
 
             assert.equal(status(), 'pending_validation')
+        })
+
+        it('sin ese dato en el perfil, un 2º conductor que ninguna reserva autoriza se rechaza sin subir nada', async () => {
+            Object.assign(fake.tables.users[0], { has_second_driver: false, second_driver_name: null, second_driver_dni: null, second_driver_license: null })
+            fake.tables.bookings[0].passengers = [{ fullName: 'Luis Gómez', dniNie: '87654321X', isSecondDriver: false }]
+
+            const { status: http, json } = await upload(form({ ...secondDriver, dni_front: new File([PNG], 'dni.png') }))
+
+            assert.equal(http, 400)
+            assert.match(json.error, /segundo conductor/i)
+            assert.deepEqual(storageUploads(), [])
+            assert.deepEqual(fake.writesTo('users'), [])
+        })
+
+        it('un 2º conductor que el perfil ya traía y ninguna reserva autoriza se ignora, sin bloquear al titular', async () => {
+            // /dashboard/datos reenviaba `users.has_second_driver`: ese cliente no puede quedarse
+            // sin poder guardar su propio DNI, carnet ni fotos
+            fake.tables.bookings[0].passengers = [{ fullName: 'Luis Gómez', dniNie: '87654321X', isSecondDriver: false }]
+
+            const { status: http, json } = await upload(form({ ...secondDriver, dni_front: new File([PNG], 'dni.png') }))
+
+            assert.equal(http, 200, json.error)
+            assert.equal(storageUploads().length, 1)
+            assert.deepEqual(fake.writesTo('bookings'), [], 'no se guarda en una reserva que no lo lleva')
+        })
+
+        it('acepta el 2º conductor si su ficha está en el desglose con el que se cobró la reserva', async () => {
+            fake.tables.bookings[0].passengers = []
+            fake.tables.bookings[0].pricing_breakdown = {
+                secondDriver: true, secondDriverRatePerDay: 5, secondDriverSupplement: 35,
+                passengers: [{ fullName: 'Luis Gómez', dniNie: '87654321X', isSecondDriver: true }],
+            }
+
+            const { status: http, json } = await upload(form({ ...secondDriver, fullName: 'Ana Pérez' }))
+
+            assert.equal(http, 200, json.error)
+            assert.notDeepEqual(fake.writesTo('bookings'), [], 'la ficha se guarda en esa reserva')
         })
 
         it('una foto nueva pasa a revisión antes de subirse', async () => {

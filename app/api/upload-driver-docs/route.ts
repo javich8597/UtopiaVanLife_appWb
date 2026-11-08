@@ -6,12 +6,39 @@ import { getSupabaseAdmin } from '@/lib/supabase/admin'
 import { validateDriverLicense } from '@/lib/contracts/licenseValidator'
 import { CHECKOUT_ACCESS_COOKIE, expiredCheckoutAccessCookie, resolveCheckoutUploadOwner } from '@/lib/checkoutAccess'
 import { detectDocumentType, driverFieldError, DocumentType, normalizeDriverText } from '@/lib/driverDocuments'
-import { normalizeVerificationStatus } from '@/lib/admin/auth'
+import {
+    bookingSecondDriver,
+    BookingSecondDriver,
+    BookingSecondDriverRow,
+    LIVE_BOOKING_STATUSES,
+    sameDocument,
+    secondDriverRequirementError,
+} from '@/lib/booking/secondDriver'
+import { isValidServiceRoleKey, normalizeVerificationStatus } from '@/lib/admin/auth'
 import { MAX_REQUEST_BYTES } from '@/lib/documentUploadBudget'
 
 // Vercel corta en torno a 4,5 MB por petición a una función: el navegador reduce las fotos para que
 // todas quepan en una sola petición (lib/compressDocumentImage.ts). Ningún archivo suelto supera este límite.
 const TOO_LARGE_MESSAGE = 'Los archivos pesan demasiado para enviarlos juntos. Haz otra foto de los documentos o súbelos en formato JPG.'
+
+/**
+ * ¿El formulario solo está reenviando el 2º conductor que ya constaba en el perfil?
+ *
+ * /dashboard/datos inicializaba el interruptor con `users.has_second_driver`, así que un cliente con
+ * ese dato antiguo lo manda en cada guardado. Eso no introduce a nadie nuevo —coincide el documento
+ * o, si el perfil no lo guardaba, el nombre—, y no puede dejar al titular sin poder guardar sus
+ * propios datos. La parte del 2º conductor se ignora: quien manda es la reserva.
+ */
+function profileRepeatsSecondDriver(
+  current: { has_second_driver?: boolean | null; second_driver_name?: string | null; second_driver_dni?: string | null } | null | undefined,
+  fullName: string,
+  document: string
+): boolean {
+  if (!current?.has_second_driver) return false
+  if (current.second_driver_dni) return sameDocument(document, current.second_driver_dni)
+  const stored = (normalizeDriverText(current.second_driver_name || '') || '').toLocaleLowerCase('es-ES')
+  return stored.length > 0 && stored === fullName.toLocaleLowerCase('es-ES')
+}
 
 export async function POST(request: NextRequest) {
   try {
@@ -85,6 +112,97 @@ export async function POST(request: NextRequest) {
     // (sin service role, la sesión del propio cliente; nunca la clave anónima sin sesión)
     const supabaseAdmin = getAdminClientOrSession(supabase)
 
+    // El perfil actual se lee antes de validar o escribir nada: decide si hace falta volver a
+    // revisión y si el formulario solo está reenviando un 2º conductor que ya constaba
+    const { data: current, error: currentErr } = await supabaseAdmin
+      .from('users')
+      .select('verification_status, full_name, dni_nie, driver_license_id, driver_license_issue_date, driver_license_expiry_date, has_second_driver, second_driver_name, second_driver_dni, second_driver_license')
+      .eq('id', user.id)
+      .maybeSingle()
+    if (currentErr) throw new Error(currentErr.message)
+
+    // El 2º conductor pertenece a la RESERVA, no al cliente: aquí solo se sube la documentación de
+    // la persona que una reserva suya autoriza. La reserva sale del `bookingId` del formulario o del
+    // pedido de la URL; si no llegan, de la reserva viva y pagada cuyo 2º conductor es justamente
+    // esa persona. En todos los casos el documento subido tiene que ser el de la reserva: antes
+    // bastaba con que "alguna" reserva llevara un 2º conductor, sin comparar con quién.
+    // Todo esto se comprueba antes de subir o escribir nada.
+    let secondDriverBooking: BookingSecondDriverRow | null = null
+    let authorizedSecondDriver: BookingSecondDriver | null = null
+    // El 2º conductor que se acepta guardar: puede quedar en false aunque el formulario lo mande
+    let secondDriverAccepted = hasSecondDriver
+
+    if (hasSecondDriver) {
+      // Sin los tres datos no se guarda nada: antes un `true` con los campos vacíos borraba los
+      // valores del perfil y lo dejaba incoherente
+      if (!secondDriverFullName || !secondDriverDni || !secondDriverLicense) {
+        return NextResponse.json(
+          { error: 'Para registrar al segundo conductor hacen falta su nombre completo, su DNI/NIE o pasaporte y su número de carnet.' },
+          { status: 400 }
+        )
+      }
+
+      // Sin sesión, las reservas solo se pueden leer con la service role: RLS se las oculta al
+      // visitante. Sin clave válida el fallo es del servidor, no del cliente
+      if (!sessionUser && !isValidServiceRoleKey(process.env.SUPABASE_SERVICE_ROLE_KEY)) {
+        console.error('upload-driver-docs: sin sesión y sin SUPABASE_SERVICE_ROLE_KEY válida; no se puede comprobar la reserva')
+        return NextResponse.json(
+          { error: 'No podemos comprobar tu reserva en este momento. Vuelve a intentarlo en unos minutos o escríbenos.' },
+          { status: 503 }
+        )
+      }
+
+      const formBookingId = typeof formData.get('bookingId') === 'string' ? (formData.get('bookingId') as string).trim() : ''
+      const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(formBookingId)
+      if (formBookingId && !isUuid) {
+        return NextResponse.json({ error: 'La reserva indicada no es válida.' }, { status: 400 })
+      }
+      const orderId = request.nextUrl.searchParams.get('order') || ''
+
+      // Solo reservas vivas y pagadas: una cancelada, rechazada o sin pagar no autoriza a nadie a
+      // conducir. `select('*')` porque las columnas second_driver_* de bookings pueden no estar
+      // aplicadas todavía (migración 20261108, preparada sin aplicar)
+      let bookingQuery = supabaseAdmin
+        .from('bookings')
+        .select('*')
+        .eq('user_id', user.id)
+        .eq('payment_status', 'paid')
+        .in('status', LIVE_BOOKING_STATUSES as unknown as string[])
+      if (isUuid) bookingQuery = bookingQuery.eq('id', formBookingId)
+      else if (orderId) bookingQuery = bookingQuery.eq('payment_intent_id', orderId)
+
+      const { data: bookingRows, error: bookingsErr } = await bookingQuery
+      if (bookingsErr) throw new Error(bookingsErr.message)
+
+      for (const row of (bookingRows || []) as BookingSecondDriverRow[]) {
+        const driver = bookingSecondDriver(row)
+        // Un 2º conductor cobrado del que no consta el documento no autoriza a nadie
+        if (!driver?.document || !sameDocument(secondDriverDni, driver.document)) continue
+        secondDriverBooking = row
+        authorizedSecondDriver = driver
+        break
+      }
+
+      if (authorizedSecondDriver) {
+        // Los requisitos se vuelven a comprobar contra la fecha de recogida de esa reserva
+        const requirementError = secondDriverRequirementError(authorizedSecondDriver, secondDriverBooking?.start_date)
+        if (requirementError) {
+          return NextResponse.json({ error: requirementError }, { status: 400 })
+        }
+      } else if (profileRepeatsSecondDriver(current, secondDriverFullName, secondDriverDni)) {
+        // El formulario de /dashboard/datos reenvía el 2º conductor que ya constaba en el perfil.
+        // Si ninguna reserva lo lleva, el titular no puede quedarse sin poder guardar SUS datos:
+        // se ignora esa parte (la reserva manda) y no se toca lo que había
+        console.warn('upload-driver-docs: 2º conductor del perfil sin reserva que lo autorice; se ignora')
+        secondDriverAccepted = false
+      } else {
+        return NextResponse.json(
+          { error: 'Ninguna reserva tuya pagada autoriza a ese segundo conductor. Escríbenos para añadirlo a tu reserva antes de subir su documentación.' },
+          { status: 400 }
+        )
+      }
+    }
+
     try {
       await supabaseAdmin.storage.createBucket('documents', { public: false })
     } catch {
@@ -103,23 +221,26 @@ export async function POST(request: NextRequest) {
       [secondDriverLicenseFront, 'second_license_front'],
       [secondDriverLicenseBack, 'second_license_back'],
     ]
-    const toUpload: Array<{ prefix: string; content: Buffer; type: DocumentType }> = []
+    // Las fotos del 2º conductor van ligadas a su reserva (`<cliente>/<reserva>/second_*`), no a la
+    // carpeta del perfil: la persona autorizada es de esa reserva y solo de esa
+    const secondDriverFolder = secondDriverBooking?.id ? `${user.id}/${secondDriverBooking.id}` : null
+    const toUpload: Array<{ folder: string; prefix: string; content: Buffer; type: DocumentType }> = []
     for (const [file, prefix] of documents) {
       if (!file || typeof file === 'string' || file.size === 0) continue
+      const isSecondDriverFile = prefix.startsWith('second_')
+      if (isSecondDriverFile && !secondDriverFolder) {
+        return NextResponse.json(
+          { error: 'Esas fotos son de un segundo conductor que ninguna reserva tuya pagada autoriza. Escríbenos para añadirlo a tu reserva.' },
+          { status: 400 }
+        )
+      }
       const content = Buffer.from(await file.arrayBuffer())
       const type = detectDocumentType(content)
       if (!type) {
         return NextResponse.json({ error: 'Solo se aceptan fotos reales (JPG, PNG, HEIC) o PDF.' }, { status: 400 })
       }
-      toUpload.push({ prefix, content, type })
+      toUpload.push({ folder: isSecondDriverFile ? secondDriverFolder! : user.id, prefix, content, type })
     }
-
-    const { data: current, error: currentErr } = await supabaseAdmin
-      .from('users')
-      .select('verification_status, full_name, dni_nie, driver_license_id, driver_license_issue_date, driver_license_expiry_date, has_second_driver, second_driver_name, second_driver_dni, second_driver_license')
-      .eq('id', user.id)
-      .maybeSingle()
-    if (currentErr) throw new Error(currentErr.message)
 
     // Antes de subir: una foto nueva nunca debe quedar en un perfil que sigue constando como verificado
     if (toUpload.length > 0 && normalizeVerificationStatus(current?.verification_status) === 'verified') {
@@ -130,8 +251,8 @@ export async function POST(request: NextRequest) {
       if (reviewErr) throw new Error(reviewErr.message)
     }
 
-    const uploaded = await Promise.all(toUpload.map(async ({ prefix, content, type }) => {
-      const filePath = `${user.id}/${prefix}_${crypto.randomUUID()}.${type.extension}`
+    const uploaded = await Promise.all(toUpload.map(async ({ folder, prefix, content, type }) => {
+      const filePath = `${folder}/${prefix}_${crypto.randomUUID()}.${type.extension}`
       const { error } = await supabaseAdmin.storage
         .from('documents')
         .upload(filePath, content, { contentType: type.contentType })
@@ -145,7 +266,7 @@ export async function POST(request: NextRequest) {
     // Solo vuelve a revisión si hay fotos nuevas o cambian los datos del carnet/DNI.
     // Cambiar el teléfono o la dirección no debe quitarle a un cliente la validación.
     const hasNewFiles = uploaded.length > 0
-    const secondDriverChanged = !!current && (hasSecondDriver
+    const secondDriverChanged = !!current && (secondDriverAccepted
       ? !current.has_second_driver ||
         secondDriverFullName !== (current.second_driver_name || '') ||
         secondDriverDni !== (current.second_driver_dni || '') ||
@@ -176,7 +297,10 @@ export async function POST(request: NextRequest) {
     if (address) updatePayload.address = address
     if (phone) updatePayload.phone = phone
 
-    if (hasSecondDriver) {
+    // El 2º conductor se guarda en SU reserva. Las columnas del perfil se siguen escribiendo solo
+    // mientras la migración 20261108 no esté aplicada: en cuanto lo esté, este bloque desaparece y
+    // `users.second_driver_*` queda como dato histórico (ya no lo lee ni el contrato ni la subida)
+    if (secondDriverAccepted) {
       updatePayload.has_second_driver = true
       updatePayload.second_driver_name = secondDriverFullName
       updatePayload.second_driver_dni = secondDriverDni
@@ -193,6 +317,30 @@ export async function POST(request: NextRequest) {
     if (updateErr) {
       console.error('Could not update driver profile:', updateErr.message)
       return NextResponse.json({ error: 'No hemos podido guardar tus datos. Inténtalo de nuevo.' }, { status: 500 })
+    }
+
+    // Los datos del 2º conductor, en la reserva que lo autoriza. Las fechas son las que validó el
+    // checkout; del formulario solo se acepta el nombre y el carnet de la MISMA persona
+    // (el documento ya se comparó arriba). Si las columnas aún no existen, se registra y se sigue:
+    // la reserva sigue siendo la que manda a través de `passengers`
+    if (secondDriverAccepted && secondDriverBooking?.id && authorizedSecondDriver) {
+      const { error: bookingUpdateErr } = await supabaseAdmin
+        .from('bookings')
+        .update({
+          has_second_driver: true,
+          second_driver_name: secondDriverFullName || authorizedSecondDriver.fullName,
+          second_driver_dni: authorizedSecondDriver.document,
+          second_driver_license: secondDriverLicense || authorizedSecondDriver.licenseId,
+          second_driver_birth_date: authorizedSecondDriver.birthDate,
+          second_driver_license_date: authorizedSecondDriver.licenseDate,
+          second_driver_docs_uploaded_at: new Date().toISOString(),
+        })
+        .eq('id', secondDriverBooking.id)
+        .eq('user_id', user.id)
+
+      if (bookingUpdateErr) {
+        console.error('No se pudieron guardar los datos del 2º conductor en la reserva (¿migración 20261108 sin aplicar?):', bookingUpdateErr.message)
+      }
     }
 
     const response = NextResponse.json({

@@ -23,7 +23,7 @@ import {
 import { Step5Customer, WizardCamper, Step1Data, Step2Data, Step3Data, Step4Data, BookingPassenger, DepositOption } from './types'
 import { validateStep5, validateDriverAge, validateDrivingLicense } from './types'
 import { formatPhoneWithPrefix } from '@/lib/driverDocuments'
-import { formatPrice } from '@/lib/pricing/engine'
+import { formatPrice, SECOND_DRIVER_RATE_PER_DAY } from '@/lib/pricing/engine'
 
 interface Step5CheckoutProps {
     camper: WizardCamper
@@ -75,8 +75,13 @@ export default function Step5Checkout({
     const currentTravelersCount = customer.travelersCount || step1.pax || 1
     const additionalPaxCount = Math.max(0, currentTravelersCount - 1)
     const currentDeposit: DepositOption = customer.depositOption || step3.depositOption || 'standard_2000'
-    /** El bloque del 2º conductor "solo" (y su validación en validateStep5) solo existe con 1 viajero y Flex */
-    const soloSecondDriverVisible = currentTravelersCount === 1 && currentDeposit === 'flex_1000'
+    /** El bloque del 2º conductor "solo" (y su validación en validateStep5) solo existe con 1 viajero */
+    const soloSecondDriverVisible = currentTravelersCount === 1
+    /** Con Flex el 2º conductor va incluido; con Estándar cuesta SECOND_DRIVER_RATE_PER_DAY */
+    const secondDriverIncluded = currentDeposit === 'flex_1000'
+    const secondDriverPriceLabel = secondDriverIncluded
+        ? 'Incluido sin recargo en tu Fianza Flex.'
+        : `Suplemento de ${SECOND_DRIVER_RATE_PER_DAY} €/día con la Fianza Estándar.`
 
     // Helpers reactivos para cálculo de edad y antigüedad
     const calculateAge = (birthDate?: string | null): number | null => {
@@ -286,10 +291,10 @@ export default function Step5Checkout({
                     country: customer.country.trim(),
                     travelersCount: currentTravelersCount,
                     // Solo las fichas que se ven: un borrador antiguo puede guardar más.
-                    // Con fianza Estándar no hay 2º conductor (su casilla no se ve ni se valida)
-                    passengers: (customer.passengers || []).slice(0, Math.max(0, currentTravelersCount - 1)).map((p) => (currentDeposit === 'flex_1000' ? p : { ...p, isSecondDriver: false })),
+                    // El 2º conductor vale con cualquier fianza, así que su casilla se envía tal cual
+                    passengers: (customer.passengers || []).slice(0, Math.max(0, currentTravelersCount - 1)),
                     // El 2º conductor "solo" se envía únicamente si su bloque está visible (y por tanto validado):
-                    // el borrador de sessionStorage lo conserva aunque se cambie de viajeros o de fianza
+                    // el borrador de sessionStorage lo conserva aunque se cambie de viajeros
                     secondDriverSoloEnabled: soloSecondDriverVisible && Boolean(customer.secondDriverSoloEnabled),
                     secondDriverSolo: soloSecondDriverVisible && customer.secondDriverSoloEnabled ? customer.secondDriverSolo : undefined,
                     notes: customer.specialNotes || '',
@@ -600,11 +605,11 @@ export default function Step5Checkout({
                                         <span className="deposit-title">Fianza Estándar · 2.000 €</span>
                                         <span className="deposit-badge deposit-badge--standard">Sin recargo</span>
                                     </div>
-                                    <span className="deposit-subtitle">1 conductor principal incluido</span>
+                                    <span className="deposit-subtitle">1 conductor principal incluido · 2º conductor +{SECOND_DRIVER_RATE_PER_DAY} €/día</span>
                                 </div>
                             </div>
                             <p className="deposit-desc">
-                                Retención temporal de 2.000 € en tarjeta. Se libera íntegramente tras el check-out del vehículo.
+                                Retención temporal de 2.000 € en tarjeta. Se libera íntegramente tras el check-out del vehículo. Puedes añadir un 2º conductor por {SECOND_DRIVER_RATE_PER_DAY} €/día.
                             </p>
                         </div>
 
@@ -628,11 +633,11 @@ export default function Step5Checkout({
                                         <span className="deposit-title">Fianza Flex · 1.000 €</span>
                                         <span className="deposit-badge deposit-badge--gold">Recomendado · +10 €/día</span>
                                     </div>
-                                    <span className="deposit-subtitle">Depósito al 50% y 2º conductor gratis</span>
+                                    <span className="deposit-subtitle">Depósito al 50% y 2º conductor incluido</span>
                                 </div>
                             </div>
                             <p className="deposit-desc">
-                                Menor bloqueo en tu tarjeta (solo 1.000 €) e incluye la cobertura para un 2º conductor gratis.
+                                Menor bloqueo en tu tarjeta (solo 1.000 €) e incluye la autorización de un 2º conductor sin suplemento adicional.
                             </p>
                         </div>
                     </div>
@@ -746,74 +751,75 @@ export default function Step5Checkout({
                                             </div>
                                         </div>
 
-                                        {/* Fianza Flex: Casilla destacada para habilitar 2º conductor */}
-                                        {currentDeposit === 'flex_1000' && (
-                                            <div className="second-driver-toggle-box">
-                                                <label className="driver-toggle-label" htmlFor={`checkbox-second-driver-${pNum}`}>
-                                                    <input
-                                                        id={`checkbox-second-driver-${pNum}`}
-                                                        type="checkbox"
-                                                        className="driver-toggle-checkbox"
-                                                        checked={is2ndDriver}
-                                                        onChange={(e) => handlePassengerChange(idx, 'isSecondDriver', e.target.checked)}
-                                                        disabled={isSubmitting}
-                                                    />
-                                                    <div className="driver-toggle-text">
-                                                        <span className="driver-toggle-title">
-                                                            Habilitar a Pasajero {pNum} como 2º conductor autorizado
-                                                        </span>
-                                                        <span className="driver-toggle-sub">
-                                                            Incluido sin recargo en tu Fianza Flex. Solo un acompañante puede ser 2º conductor.
-                                                        </span>
-                                                    </div>
-                                                </label>
+                                        {/* Casilla para habilitar 2º conductor (con cualquier fianza) */}
+                                        <div className="second-driver-toggle-box">
+                                            <label className="driver-toggle-label" htmlFor={`checkbox-second-driver-${pNum}`}>
+                                                <input
+                                                    id={`checkbox-second-driver-${pNum}`}
+                                                    type="checkbox"
+                                                    className="driver-toggle-checkbox"
+                                                    checked={is2ndDriver}
+                                                    onChange={(e) => handlePassengerChange(idx, 'isSecondDriver', e.target.checked)}
+                                                    disabled={isSubmitting}
+                                                />
+                                                <div className="driver-toggle-text">
+                                                    <span className="driver-toggle-title">
+                                                        Habilitar a Pasajero {pNum} como 2º conductor autorizado
+                                                        {secondDriverIncluded
+                                                            ? <span className="driver-toggle-price">incluido</span>
+                                                            : <span className="driver-toggle-price driver-toggle-price--charged">+{SECOND_DRIVER_RATE_PER_DAY} €/día</span>}
+                                                    </span>
+                                                    <span className="driver-toggle-sub">
+                                                        {secondDriverPriceLabel} Solo un acompañante puede ser 2º conductor.
+                                                    </span>
+                                                </div>
+                                            </label>
 
-                                                {/* Campos adicionales de carnet B para el 2º conductor */}
-                                                {is2ndDriver && (
-                                                    <div className="second-driver-license-block">
-                                                        <div className="form-field">
-                                                            <label htmlFor={`input-passenger_${pNum}_licenseDate`} className="field-label">
-                                                                Fecha expedición carnet de conducir B (Pasajero {pNum}) *
-                                                            </label>
-                                                            <div className="input-with-icon">
-                                                                <Award size={16} className="input-icon" />
-                                                                <input
-                                                                    id={`input-passenger_${pNum}_licenseDate`}
-                                                                    type="date"
-                                                                    className={`field-input field-input--has-icon ${fieldErrors[`passenger_${pNum}_licenseDate`] ? 'field-input--error' : ''}`}
-                                                                    value={passenger.licenseDate || ''}
-                                                                    onChange={(e) => handlePassengerChange(idx, 'licenseDate', e.target.value)}
-                                                                    disabled={isSubmitting}
-                                                                    required
-                                                                />
-                                                            </div>
-                                                            {fieldErrors[`passenger_${pNum}_licenseDate`] && (
-                                                                <span className="field-error-text">{fieldErrors[`passenger_${pNum}_licenseDate`]}</span>
-                                                            )}
+                                            {/* Campos adicionales de carnet B para el 2º conductor */}
+                                            {is2ndDriver && (
+                                                <div className="second-driver-license-block">
+                                                    <div className="form-field">
+                                                        <label htmlFor={`input-passenger_${pNum}_licenseDate`} className="field-label">
+                                                            Fecha expedición carnet de conducir B (Pasajero {pNum}) *
+                                                        </label>
+                                                        <div className="input-with-icon">
+                                                            <Award size={16} className="input-icon" />
+                                                            <input
+                                                                id={`input-passenger_${pNum}_licenseDate`}
+                                                                type="date"
+                                                                className={`field-input field-input--has-icon ${fieldErrors[`passenger_${pNum}_licenseDate`] ? 'field-input--error' : ''}`}
+                                                                value={passenger.licenseDate || ''}
+                                                                onChange={(e) => handlePassengerChange(idx, 'licenseDate', e.target.value)}
+                                                                disabled={isSubmitting}
+                                                                required
+                                                            />
                                                         </div>
-
-                                                        {/* Real-time verification badge */}
-                                                        <div className="driver-verification-status">
-                                                            {pAge !== null && pAge < 25 && (
-                                                                <span className="verification-pill verification-pill--error">
-                                                                    ⚠️ Edad: {pAge} años (Se requieren al menos 25 años para conducir)
-                                                                </span>
-                                                            )}
-                                                            {pLicenseYears !== null && pLicenseYears < 2 && (
-                                                                <span className="verification-pill verification-pill--error">
-                                                                    ⚠️ Carnet B: {pLicenseYears} {pLicenseYears === 1 ? 'año' : 'años'} (Se requieren mínimo 2 años de experiencia)
-                                                                </span>
-                                                            )}
-                                                            {pAge !== null && pAge >= 25 && pLicenseYears !== null && pLicenseYears >= 2 && (
-                                                                <span className="verification-pill verification-pill--success">
-                                                                    ✓ 2º conductor verificado: {pAge} años y {pLicenseYears} años de experiencia
-                                                                </span>
-                                                            )}
-                                                        </div>
+                                                        {fieldErrors[`passenger_${pNum}_licenseDate`] && (
+                                                            <span className="field-error-text">{fieldErrors[`passenger_${pNum}_licenseDate`]}</span>
+                                                        )}
                                                     </div>
-                                                )}
-                                            </div>
-                                        )}
+
+                                                    {/* Real-time verification badge */}
+                                                    <div className="driver-verification-status">
+                                                        {pAge !== null && pAge < 25 && (
+                                                            <span className="verification-pill verification-pill--error">
+                                                                ⚠️ Edad: {pAge} años (Se requieren al menos 25 años para conducir)
+                                                            </span>
+                                                        )}
+                                                        {pLicenseYears !== null && pLicenseYears < 2 && (
+                                                            <span className="verification-pill verification-pill--error">
+                                                                ⚠️ Carnet B: {pLicenseYears} {pLicenseYears === 1 ? 'año' : 'años'} (Se requieren mínimo 2 años de experiencia)
+                                                            </span>
+                                                        )}
+                                                        {pAge !== null && pAge >= 25 && pLicenseYears !== null && pLicenseYears >= 2 && (
+                                                            <span className="verification-pill verification-pill--success">
+                                                                ✓ 2º conductor verificado: {pAge} años y {pLicenseYears} años de experiencia
+                                                            </span>
+                                                        )}
+                                                    </div>
+                                                </div>
+                                            )}
+                                        </div>
                                     </div>
                                 )
                             })}
@@ -821,15 +827,17 @@ export default function Step5Checkout({
                     </div>
                 )}
 
-                {/* ── Si viaja 1 solo pasajero pero tiene Fianza Flex: Opción de 2º conductor ── */}
+                {/* ── Si viaja 1 solo pasajero: Opción de 2º conductor (con cualquier fianza) ── */}
                 {soloSecondDriverVisible && (
                     <div className="form-group-card form-group-card--solo-second-driver">
                         <div className="form-group-card__header">
                             <UserCheck size={18} className="text-forest" />
-                            <h4 className="form-group-card__title">2º Conductor Autorizado Opcional (Fianza Flex)</h4>
+                            <h4 className="form-group-card__title">
+                                2º Conductor Autorizado Opcional ({secondDriverIncluded ? 'incluido con Fianza Flex' : `+${SECOND_DRIVER_RATE_PER_DAY} €/día con Fianza Estándar`})
+                            </h4>
                         </div>
                         <p className="deposit-section-intro">
-                            Tu tarifa Fianza Flex incluye la posibilidad de registrar un segundo conductor gratis. Si alguien más va a conducir la camper durante tu viaje, puedes añadir sus datos ahora:
+                            {secondDriverPriceLabel} Si alguien más va a conducir la camper durante tu viaje, puedes añadir sus datos ahora:
                         </p>
 
                         <div className="second-driver-toggle-box">
@@ -845,6 +853,9 @@ export default function Step5Checkout({
                                 <div className="driver-toggle-text">
                                     <span className="driver-toggle-title">
                                         Añadir datos de un 2º conductor autorizado (opcional)
+                                        {secondDriverIncluded
+                                            ? <span className="driver-toggle-price">incluido</span>
+                                            : <span className="driver-toggle-price driver-toggle-price--charged">+{SECOND_DRIVER_RATE_PER_DAY} €/día</span>}
                                     </span>
                                     <span className="driver-toggle-sub">
                                         Habilita a otra persona para alternarse al volante con cobertura total del seguro.
@@ -1527,6 +1538,27 @@ export default function Step5Checkout({
                     font-size: 11px;
                     color: rgba(255, 255, 255, 0.6);
                     line-height: 1.4;
+                }
+
+                /* Etiqueta del precio del 2º conductor: "incluido" con Flex, "+5 €/día" con Estándar */
+                .driver-toggle-price {
+                    display: inline-block;
+                    margin-left: 8px;
+                    padding: 2px 8px;
+                    border-radius: 999px;
+                    font-size: 10px;
+                    font-weight: 700;
+                    letter-spacing: 0.02em;
+                    text-transform: uppercase;
+                    white-space: nowrap;
+                    vertical-align: middle;
+                    background: rgba(46, 125, 93, 0.18);
+                    color: #7fd6ac;
+                }
+
+                .driver-toggle-price--charged {
+                    background: rgba(212, 175, 55, 0.18);
+                    color: #e3c969;
                 }
 
                 .second-driver-license-block {

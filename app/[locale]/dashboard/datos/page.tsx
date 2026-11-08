@@ -2,6 +2,7 @@ import { createClient } from '@/lib/supabase/server'
 import { redirect } from '@/i18n/routing'
 import DriverDataClient from './DriverDataClient'
 import { getAdminClientOrSession } from '@/lib/admin/auth'
+import { bookingSecondDriver, LIVE_BOOKING_STATUSES } from '@/lib/booking/secondDriver'
 
 export const metadata = {
     title: 'Datos y carnet | Utopia Van Life',
@@ -42,7 +43,37 @@ export default async function DriverDataPage({
         rejectionReason = lastRejection?.rejected_reason || null
     }
 
+    // El 2º conductor pertenece a la RESERVA, no al perfil: el formulario refleja la reserva viva y
+    // pagada que lo lleva. Antes el interruptor salía de `users.has_second_driver`, y un cliente con
+    // ese dato antiguo recibía un 400 en cualquier guardado, también en el de sus propios documentos
+    const { data: liveBookings } = await supabase
+        .from('bookings')
+        .select('id, status, payment_status, start_date, passengers, pricing_breakdown')
+        .eq('user_id', user.id)
+        .eq('payment_status', 'paid')
+        .in('status', LIVE_BOOKING_STATUSES as unknown as string[])
+        .order('start_date', { ascending: true })
+
+    const authorized = (liveBookings || [])
+        .map(booking => ({ booking, driver: bookingSecondDriver(booking) }))
+        .find(({ driver }) => Boolean(driver?.document))
+
+    const secondDriverBooking = authorized
+        ? {
+            bookingId: authorized.booking.id as string,
+            startDate: (authorized.booking.start_date as string) || '',
+            fullName: authorized.driver!.fullName,
+            dniNie: authorized.driver!.document,
+            licenseId: authorized.driver!.licenseId,
+        }
+        : null
+
     return (
-        <DriverDataClient user={user} profile={profile} rejectionReason={rejectionReason} />
+        <DriverDataClient
+            user={user}
+            profile={profile}
+            rejectionReason={rejectionReason}
+            secondDriverBooking={secondDriverBooking}
+        />
     )
 }

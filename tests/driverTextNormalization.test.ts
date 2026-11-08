@@ -293,19 +293,40 @@ describe('Checkout: segundo conductor y viajeros', () => {
         assert.equal(driver.birthDate, '1980-01-01')
     })
 
-    for (const [label, overrides, customer] of [
-        ['2 viajeros', { depositOption: 'flex_1000' }, { depositOption: 'flex_1000', travelersCount: 2 }],
-        ['fianza Estándar', {}, { travelersCount: 1 }],
-    ] as const) {
-        it(`con ${label} ignora el 2º conductor solo que envíe una pestaña antigua`, async () => {
-            const { status, json } = await flows.checkout(step5Payload(overrides, {
-                ...customer, passengers: [], secondDriverSoloEnabled: true, secondDriverSolo: { ...SOLO, birthDate: '' },
-            }))
+    // El bloque "solo" solo se ve con 1 viajero: con 2 o más, lo que envíe una pestaña antigua se ignora
+    it('con 2 viajeros ignora el 2º conductor solo que envíe una pestaña antigua', async () => {
+        const { status, json } = await flows.checkout(step5Payload({ depositOption: 'flex_1000' }, {
+            depositOption: 'flex_1000', travelersCount: 2, passengers: [], secondDriverSoloEnabled: true,
+            secondDriverSolo: { ...SOLO, birthDate: '' },
+        }))
 
-            assert.equal(status, 200, json.error)
-            assert.deepEqual(flows.fake.tables.bookings[0].passengers, [])
-        })
-    }
+        assert.equal(status, 200, json.error)
+        assert.deepEqual(flows.fake.tables.bookings[0].passengers, [])
+    })
+
+    // Con fianza Estándar el 2º conductor ya no se ignora: se cobra a 5 €/día y se le exigen sus fechas
+    it('con 1 viajero y fianza Estándar guarda el 2º conductor y cobra su suplemento', async () => {
+        const { status, json } = await flows.checkout(step5Payload({}, {
+            travelersCount: 1, passengers: [], secondDriverSoloEnabled: true, secondDriverSolo: SOLO,
+        }))
+
+        assert.equal(status, 200, json.error)
+        const saved = flows.fake.tables.bookings[0]
+        const [driver] = saved.passengers
+        assert.equal(driver.isSecondDriver, true)
+        assert.equal(json.breakdown.secondDriverRatePerDay, 5)
+        assert.equal(json.breakdown.secondDriverSupplement, 35)
+        assert.equal(saved.num_pax, 1, 'el 2º conductor solo no ocupa plaza de viajero')
+    })
+
+    it('con fianza Estándar rechaza un 2º conductor solo sin fecha de nacimiento', async () => {
+        const { status } = await flows.checkout(step5Payload({}, {
+            travelersCount: 1, passengers: [], secondDriverSoloEnabled: true, secondDriverSolo: { ...SOLO, birthDate: '' },
+        }))
+
+        assert.equal(status, 400)
+        assert.equal(flows.fake.tables.bookings.length, 0)
+    })
 
     for (const [field, value] of [
         ['birthDate', '1980/01/01 (texto)'],
@@ -337,8 +358,8 @@ describe('Checkout: segundo conductor y viajeros', () => {
 describe('Paso 5: lo que envía del 2º conductor solo', () => {
     const source = readFileSync('app/[locale]/reserva/[slug]/Step5Checkout.tsx', 'utf8')
 
-    it('solo lo envía con su bloque visible (1 viajero y Flex)', () => {
-        assert.match(source, /const soloSecondDriverVisible = currentTravelersCount === 1 && currentDeposit === 'flex_1000'/)
+    it('solo lo envía con su bloque visible (1 viajero, con cualquier fianza)', () => {
+        assert.match(source, /const soloSecondDriverVisible = currentTravelersCount === 1\b/)
         assert.match(source, /secondDriverSoloEnabled: soloSecondDriverVisible && Boolean\(customer\.secondDriverSoloEnabled\)/)
         assert.match(source, /secondDriverSolo: soloSecondDriverVisible && customer\.secondDriverSoloEnabled \? customer\.secondDriverSolo : undefined/)
         assert.match(source, /\{soloSecondDriverVisible && \(/)

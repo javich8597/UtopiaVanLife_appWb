@@ -431,6 +431,22 @@ function TripSummaryContent({
                             </div>
                         )}
 
+                        {/* Segundo conductor: incluido con Flex, suplemento diario con Estándar */}
+                        {breakdown.secondDriver && (
+                            <div className="summary-breakdown-row">
+                                <span className="summary-row-label">
+                                    {breakdown.secondDriverRatePerDay > 0
+                                        ? `Segundo conductor (+${breakdown.secondDriverRatePerDay} €/día)`
+                                        : 'Segundo conductor'}
+                                </span>
+                                <span className="summary-row-val">
+                                    {breakdown.secondDriverSupplement > 0
+                                        ? `+${formatPrice(breakdown.secondDriverSupplement)}`
+                                        : '0,00 € (Incluido)'}
+                                </span>
+                            </div>
+                        )}
+
                         {/* Selected Extras */}
                         {breakdown.itemizedExtras.length > 0 && (
                             <div className="summary-extras-group">

@@ -1,3 +1,5 @@
+import { MAX_SECOND_DRIVERS } from '../booking/checkoutRules';
+import { SECOND_DRIVER_RATE_PER_DAY } from '../pricing/engine';
 import { ContractArticle } from './contractEngine';
 
 export interface ContractTermsSettings {
@@ -5,6 +7,10 @@ export interface ContractTermsSettings {
   conductorMinAge: number;
   conductorMinLicenseYears: number;
   conductorLicenseType: string;
+  /** Segundos conductores admitidos por reserva */
+  secondDriverMaxCount: number;
+  /** Suplemento diario del 2º conductor con la Fianza Estándar (con la Flex va incluido) */
+  secondDriverPricePerDay: number;
 
   // Kilometraje
   includedKmPerDay: number;
@@ -74,6 +80,9 @@ export const defaultContractTerms: ContractTermsSettings = {
   conductorMinAge: 25,
   conductorMinLicenseYears: 2,
   conductorLicenseType: 'B',
+  // La tarifa sale de la constante del motor de precios para que no vuelva a divergir
+  secondDriverMaxCount: MAX_SECOND_DRIVERS,
+  secondDriverPricePerDay: SECOND_DRIVER_RATE_PER_DAY,
 
   includedKmPerDay: 150,
   extraKmPrice: 0.25,

@@ -182,6 +182,11 @@ describe('N3: UPDATE y DELETE en bookings', () => {
       'app/api/admin/refund/route.ts',
       'app/api/bookings/[id]/pay/route.ts',
       'app/api/contracts/sign/route.ts',
+      // El 2º conductor pertenece a la reserva: su ficha se guarda en bookings.second_driver_*
+      // (migración 20261108). El update va con el cliente privilegiado de la ruta y filtrado por
+      // `id` de la reserva y `user_id`; con la sesión de un cliente el trigger
+      // protect_bookings_privileged_columns lo rechaza y la ruta lo registra sin romper el guardado
+      'app/api/upload-driver-docs/route.ts',
       'lib/redsysNotification.ts',
     ]), [])
   })

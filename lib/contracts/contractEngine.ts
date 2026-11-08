@@ -609,7 +609,7 @@ export function generateContractData(
     modelName: specs.modelName,
     vehicleType: specs.vehicleType,
     capacity: specs.capacity,
-    plateNumber: camperData?.plate_number || (specs.modelKey === 'space' ? '4182-MXP' : '8291-LKN'),
+    plateNumber: camperData?.plate_number || (specs.modelKey === 'space' ? '4618NHX' : '4630NHX'),
     specsList: specs.specsList
   }
 

@@ -28,7 +28,8 @@ import {
   Copy,
   Download,
   AlertTriangle,
-  Loader2
+  Loader2,
+  Send
 } from 'lucide-react'
 import { formatPrice } from '@/lib/pricing/engine'
 import { activePaymentAlerts } from '@/lib/admin/bookingStatus'
@@ -41,6 +42,51 @@ interface Props {
   onClose: () => void
   /** Se llama con las notas nuevas cuando el admin marca los avisos de pago como revisados */
   onAlertsReviewed?: (notes: string) => void
+}
+
+export interface SesSentInfo {
+  isSent: boolean
+  registryNumber?: string
+  sentAt?: string
+}
+
+export function parseSesSentInfo(notes?: string | null): SesSentInfo | null {
+  if (!notes || typeof notes !== 'string') return null
+  const regex = /\[SES\.HOSPEDAJES ENVIADO:\s*([^\]]+)\]/gi
+  let lastMatch: RegExpExecArray | null = null
+  let match: RegExpExecArray | null
+  while ((match = regex.exec(notes)) !== null) {
+    lastMatch = match
+  }
+  if (!lastMatch) return null
+
+  const content = lastMatch[1].trim()
+  const regMatch = content.match(/Reg(?:istro)?:\s*([A-Za-z0-9\-_./]+)/i)
+  const registryNumber = regMatch ? regMatch[1].trim() : undefined
+
+  const dateMatch = content.match(/a las\s*([^\s\]]+(?:\s+[^\s\]]+)*)/i)
+  let sentAt: string | undefined
+  if (dateMatch) {
+    const rawDate = dateMatch[1].trim()
+    const d = new Date(rawDate)
+    if (!isNaN(d.getTime())) {
+      sentAt = d.toLocaleDateString('es-ES', {
+        day: '2-digit',
+        month: '2-digit',
+        year: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit',
+      })
+    } else {
+      sentAt = rawDate
+    }
+  }
+
+  return {
+    isSent: true,
+    registryNumber,
+    sentAt,
+  }
 }
 
 interface NormalizedExtra {
@@ -60,6 +106,14 @@ export default function BookingDetailModal({ booking, onClose, onAlertsReviewed 
   const [reviewing, setReviewing] = useState(false)
   const [reviewError, setReviewError] = useState<string | null>(null)
 
+  // SES.HOSPEDAJES Estados reactivos
+  const [sesSentState, setSesSentState] = useState<SesSentInfo | null>(() =>
+    parseSesSentInfo(booking?.notes)
+  )
+  const [transmittingSes, setTransmittingSes] = useState(false)
+  const [sesError, setSesError] = useState<string | null>(null)
+  const [sesSuccessMsg, setSesSuccessMsg] = useState<string | null>(null)
+
   const handleCopyReference = async (ref: string) => {
     try {
       await navigator.clipboard.writeText(ref)
@@ -67,6 +121,71 @@ export default function BookingDetailModal({ booking, onClose, onAlertsReviewed 
       setTimeout(() => setCopiedRef(false), 2000)
     } catch (err) {
       console.error('Error al copiar la referencia ministerial:', err)
+    }
+  }
+
+  const handleTransmitSes = async () => {
+    setTransmittingSes(true)
+    setSesError(null)
+    setSesSuccessMsg(null)
+
+    try {
+      const res = await fetch('/api/admin/ses-hospedajes/transmit', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ bookingId: booking.id }),
+      })
+      const data = await res.json().catch(() => ({}))
+
+      if (!res.ok || !data.success) {
+        const errorMsg =
+          data.error ||
+          data.message ||
+          'Error ministerial en la transmisión telemática con SES.HOSPEDAJES.'
+        throw new Error(errorMsg)
+      }
+
+      const formattedDate = data.sentAt
+        ? new Date(data.sentAt).toLocaleDateString('es-ES', {
+            day: '2-digit',
+            month: '2-digit',
+            year: 'numeric',
+            hour: '2-digit',
+            minute: '2-digit',
+          })
+        : new Date().toLocaleDateString('es-ES', {
+            day: '2-digit',
+            month: '2-digit',
+            year: 'numeric',
+            hour: '2-digit',
+            minute: '2-digit',
+          })
+
+      const newSentInfo: SesSentInfo = {
+        isSent: true,
+        registryNumber: data.registryNumber,
+        sentAt: formattedDate,
+      }
+      setSesSentState(newSentInfo)
+
+      setSesSuccessMsg(
+        data.registryNumber
+          ? `Registro ministerial completado. Código oficial: ${data.registryNumber}`
+          : (data.message || 'Parte telemático transmitido correctamente al Ministerio del Interior.')
+      )
+
+      if (onAlertsReviewed) {
+        const logEntry = data.registryNumber
+          ? `[SES.HOSPEDAJES ENVIADO: ${data.reference || sesReference} - Reg: ${data.registryNumber} a las ${data.sentAt || new Date().toISOString()}]`
+          : `[SES.HOSPEDAJES ENVIADO: ${data.reference || sesReference} - ${data.message || 'OK'} a las ${data.sentAt || new Date().toISOString()}]`
+        const currentNotes = typeof booking.notes === 'string' ? booking.notes : ''
+        const updatedNotes = currentNotes ? `${currentNotes}\n${logEntry}` : logEntry
+        onAlertsReviewed(updatedNotes)
+      }
+    } catch (err: any) {
+      setSesError(err.message || 'No se pudo completar la transmisión con SES.HOSPEDAJES.')
+    } finally {
+      setTransmittingSes(false)
     }
   }
 
@@ -279,7 +398,7 @@ export default function BookingDetailModal({ booking, onClose, onAlertsReviewed 
             </div>
             <div>
               <div className="bm-title-row">
-                <h3 className="bm-title">Reserva #{booking.id.split('-')[0].toUpperCase()}</h3>
+                <h3 className="bm-title">Reserva {sesReference}</h3>
                 <span className={`status-badge status-${booking.status}`}>
                   {booking.status === 'confirmed' ? 'Confirmada' :
                    booking.status === 'active' ? 'En Curso' :
@@ -613,15 +732,49 @@ export default function BookingDetailModal({ booking, onClose, onAlertsReviewed 
           <div className="bm-card bm-card--ses">
             <div className="bm-ses-header">
               <div className="bm-ses-title-wrap">
-                <h4 className="bm-card-title bm-ses-title">
-                  <ShieldCheck size={18} className="bm-ses-icon" />
-                  <span>Comunicación Oficial SES.HOSPEDAJES (RD 933/2021)</span>
-                </h4>
-                <span className="bm-ses-badge">Ministerio del Interior</span>
+                <div className="bm-ses-title-left">
+                  <h4 className="bm-card-title bm-ses-title">
+                    <ShieldCheck size={18} className="bm-ses-icon" />
+                    <span>Comunicación Oficial SES.HOSPEDAJES (RD 933/2021)</span>
+                  </h4>
+                </div>
+                <div className="bm-ses-badges">
+                  {sesSentState?.isSent && (
+                    <span className="bm-ses-badge-sent">
+                      <Check size={12} strokeWidth={3} />
+                      <span>
+                        Registrado en Ministerio
+                        {sesSentState.registryNumber ? ` · Nº: ${sesSentState.registryNumber}` : ''}
+                        {sesSentState.sentAt ? ` (${sesSentState.sentAt})` : ''}
+                      </span>
+                    </span>
+                  )}
+                  <span className="bm-ses-badge">Ministerio del Interior</span>
+                </div>
               </div>
             </div>
 
             <div className="bm-ses-body">
+              {sesSuccessMsg && (
+                <div className="bm-ses-feedback bm-ses-feedback--success" role="status">
+                  <CheckCircle2 size={16} className="bm-ses-feedback-icon" />
+                  <div className="bm-ses-feedback-body">
+                    <strong className="bm-ses-feedback-title">Transmisión Ministerial Confirmada</strong>
+                    <p className="bm-ses-feedback-text">{sesSuccessMsg}</p>
+                  </div>
+                </div>
+              )}
+
+              {sesError && (
+                <div className="bm-ses-feedback bm-ses-feedback--error" role="alert">
+                  <AlertCircle size={16} className="bm-ses-feedback-icon" />
+                  <div className="bm-ses-feedback-body">
+                    <strong className="bm-ses-feedback-title">Aviso de Servicio Web SES.HOSPEDAJES</strong>
+                    <p className="bm-ses-feedback-text">{sesError}</p>
+                  </div>
+                </div>
+              )}
+
               <div className="bm-ses-ref-box">
                 <div className="bm-ses-ref-info">
                   <span className="bm-label">Referencia Ministerial Oficial</span>
@@ -649,23 +802,50 @@ export default function BookingDetailModal({ booking, onClose, onAlertsReviewed 
               </div>
 
               <p className="bm-ses-note">
-                Descarga este fichero XML y arrástralo a la sección &apos;Alta masiva&apos; de la Sede del Ministerio del Interior para registrar el parte de alquiler sin picar datos a mano.
+                Transmisión telemática directa mediante Web Service SOAP oficial con el Ministerio del Interior. Puedes transmitir directamente con un clic o descargar el XML para importación manual en la Sede.
               </p>
 
               <div className="bm-ses-actions">
+                <button
+                  type="button"
+                  onClick={handleTransmitSes}
+                  disabled={transmittingSes}
+                  className="bm-btn bm-btn--primary bm-ses-btn-transmit"
+                  title="Transmitir parte de alquiler telemáticamente al Ministerio del Interior"
+                >
+                  {transmittingSes ? (
+                    <>
+                      <Loader2 size={14} className="bm-spin" />
+                      <span>Transmitiendo a SES.HOSPEDAJES...</span>
+                    </>
+                  ) : (
+                    <>
+                      <Send size={14} />
+                      <span>
+                        {sesSentState?.isSent
+                          ? 'Re-transmitir a SES.HOSPEDAJES'
+                          : 'Transmitir a SES.HOSPEDAJES'}
+                      </span>
+                    </>
+                  )}
+                </button>
+
                 <a
                   href={`/api/admin/ses-hospedajes/xml?bookingId=${booking.id}`}
                   download
-                  className="bm-btn bm-btn--primary bm-ses-btn-dl"
+                  className="bm-btn bm-btn--secondary bm-ses-btn-dl"
+                  title="Descargar XML oficial para importación manual"
                 >
                   <Download size={14} />
                   <span>Descargar XML Oficial</span>
                 </a>
+
                 <a
                   href="https://hospedajes.ses.mir.es/hospedajes-sede/#/comunicacion/alta-masiva"
                   target="_blank"
                   rel="noopener noreferrer"
                   className="bm-btn bm-btn--secondary bm-ses-btn-ext"
+                  title="Abrir sección de Alta Masiva en la Sede Electrónica del Ministerio"
                 >
                   <ExternalLink size={14} />
                   <span>Abrir Sede Alta Masiva</span>
@@ -727,6 +907,7 @@ export default function BookingDetailModal({ booking, onClose, onAlertsReviewed 
           padding: 20px 24px;
           border-bottom: 1px solid var(--adm-border);
           background: var(--adm-surface-2);
+          flex-shrink: 0;
         }
 
         .bm-header-left {
@@ -798,10 +979,29 @@ export default function BookingDetailModal({ booking, onClose, onAlertsReviewed 
 
         .bm-body {
           padding: 24px;
+          padding-bottom: 36px;
+          flex: 1 1 auto;
+          min-height: 0;
           overflow-y: auto;
+          overscroll-behavior: contain;
           display: flex;
           flex-direction: column;
           gap: 18px;
+          scrollbar-width: thin;
+          scrollbar-color: var(--adm-border-strong) transparent;
+        }
+
+        .bm-body::-webkit-scrollbar {
+          width: 6px;
+        }
+
+        .bm-body::-webkit-scrollbar-track {
+          background: transparent;
+        }
+
+        .bm-body::-webkit-scrollbar-thumb {
+          background: var(--adm-border-strong);
+          border-radius: 9999px;
         }
 
         .bm-grid {
@@ -830,8 +1030,9 @@ export default function BookingDetailModal({ booking, onClose, onAlertsReviewed 
         .bm-card--ses {
           background: var(--adm-surface-2);
           border: 1px solid var(--adm-border);
+          border-radius: 12px;
           position: relative;
-          overflow: hidden;
+          padding: 20px 22px;
         }
 
         .bm-card--ses::before {
@@ -841,6 +1042,7 @@ export default function BookingDetailModal({ booking, onClose, onAlertsReviewed 
           left: 0;
           right: 0;
           height: 3px;
+          border-radius: 12px 12px 0 0;
           background: linear-gradient(90deg, var(--adm-sage) 0%, #D97706 100%);
         }
 
@@ -857,7 +1059,12 @@ export default function BookingDetailModal({ booking, onClose, onAlertsReviewed 
           justify-content: space-between;
           width: 100%;
           flex-wrap: wrap;
-          gap: 8px;
+          gap: 10px;
+        }
+
+        .bm-ses-title-left {
+          display: flex;
+          align-items: center;
         }
 
         .bm-ses-title {
@@ -875,6 +1082,13 @@ export default function BookingDetailModal({ booking, onClose, onAlertsReviewed 
           flex-shrink: 0;
         }
 
+        .bm-ses-badges {
+          display: flex;
+          align-items: center;
+          gap: 8px;
+          flex-wrap: wrap;
+        }
+
         .bm-ses-badge {
           display: inline-flex;
           align-items: center;
@@ -882,17 +1096,89 @@ export default function BookingDetailModal({ booking, onClose, onAlertsReviewed 
           font-weight: 700;
           text-transform: uppercase;
           letter-spacing: 0.04em;
-          padding: 2px 8px;
+          padding: 3px 9px;
           border-radius: 9999px;
           background: var(--adm-gold-soft);
           color: var(--adm-gold-text);
           border: 1px solid rgba(217, 119, 6, 0.25);
         }
 
+        .bm-ses-badge-sent {
+          display: inline-flex;
+          align-items: center;
+          gap: 5px;
+          font-size: 0.72rem;
+          font-weight: 700;
+          padding: 3px 10px;
+          border-radius: 9999px;
+          background: var(--adm-sage-soft);
+          color: var(--adm-sage);
+          border: 1px solid var(--adm-sage);
+          letter-spacing: 0.01em;
+        }
+
         .bm-ses-body {
           display: flex;
           flex-direction: column;
           gap: 12px;
+        }
+
+        .bm-ses-feedback {
+          display: flex;
+          align-items: flex-start;
+          gap: 10px;
+          padding: 10px 14px;
+          border-radius: 8px;
+          font-size: 0.82rem;
+          line-height: 1.4;
+          animation: bmFadeIn 0.2s ease-out;
+        }
+
+        @keyframes bmFadeIn {
+          from { opacity: 0; transform: translateY(-4px); }
+          to { opacity: 1; transform: translateY(0); }
+        }
+
+        .bm-ses-feedback--success {
+          background: var(--adm-sage-soft);
+          border: 1px solid var(--adm-sage);
+          color: var(--adm-text);
+        }
+
+        .bm-ses-feedback--success .bm-ses-feedback-icon {
+          color: var(--adm-sage);
+          margin-top: 2px;
+          flex-shrink: 0;
+        }
+
+        .bm-ses-feedback--error {
+          background: var(--adm-amber-soft, #fef3c7);
+          border: 1px solid var(--adm-amber, #d97706);
+          color: var(--adm-text);
+        }
+
+        .bm-ses-feedback--error .bm-ses-feedback-icon {
+          color: var(--adm-amber, #d97706);
+          margin-top: 2px;
+          flex-shrink: 0;
+        }
+
+        .bm-ses-feedback-body {
+          display: flex;
+          flex-direction: column;
+          gap: 2px;
+          min-width: 0;
+        }
+
+        .bm-ses-feedback-title {
+          font-weight: 700;
+          font-size: 0.84rem;
+        }
+
+        .bm-ses-feedback-text {
+          margin: 0;
+          color: var(--adm-text-2);
+          word-break: break-word;
         }
 
         .bm-ses-ref-box {
@@ -962,6 +1248,33 @@ export default function BookingDetailModal({ booking, onClose, onAlertsReviewed 
           gap: 10px;
           flex-wrap: wrap;
           padding-top: 4px;
+        }
+
+        .bm-ses-btn-transmit,
+        .bm-btn--ses-transmit {
+          background: var(--adm-sage);
+          color: #ffffff;
+          font-weight: 700;
+        }
+
+        .bm-ses-btn-transmit:hover:not(:disabled),
+        .bm-btn--ses-transmit:hover:not(:disabled) {
+          opacity: 0.92;
+        }
+
+        .bm-ses-btn-transmit:disabled,
+        .bm-btn--ses-transmit:disabled {
+          opacity: 0.65;
+          cursor: not-allowed;
+        }
+
+        .bm-spin {
+          animation: bmSpin 1s linear infinite;
+        }
+
+        @keyframes bmSpin {
+          from { transform: rotate(0deg); }
+          to { transform: rotate(360deg); }
         }
 
         .bm-ses-btn-dl {
@@ -1212,6 +1525,7 @@ export default function BookingDetailModal({ booking, onClose, onAlertsReviewed 
           background: var(--adm-surface-2);
           flex-wrap: wrap;
           gap: 12px;
+          flex-shrink: 0;
         }
 
         .bm-footer-actions {
@@ -1431,10 +1745,11 @@ export default function BookingDetailModal({ booking, onClose, onAlertsReviewed 
 
         .bm-btn--primary {
           background: var(--adm-sage);
-          color: var(--adm-surface);
+          color: #ffffff;
         }
         .bm-btn--primary:hover {
           background: var(--adm-sage);
+          opacity: 0.92;
         }
 
         @media (max-width: 640px) {
@@ -1467,7 +1782,7 @@ export default function BookingDetailModal({ booking, onClose, onAlertsReviewed 
             justify-content: center;
           }
           .bm-body {
-            padding: 16px;
+            padding: 16px 16px 36px 16px;
             gap: 14px;
           }
           .bm-grid {
@@ -1492,7 +1807,23 @@ export default function BookingDetailModal({ booking, onClose, onAlertsReviewed 
           .bm-ses-title-wrap {
             flex-direction: column;
             align-items: flex-start;
+            gap: 8px;
+          }
+          .bm-ses-badges {
+            width: 100%;
+            flex-wrap: wrap;
             gap: 6px;
+          }
+          .bm-ses-badge-sent {
+            width: 100%;
+            justify-content: flex-start;
+            padding: 4px 10px;
+            font-size: 0.72rem;
+            white-space: normal;
+            word-break: break-word;
+          }
+          .bm-ses-feedback {
+            padding: 10px 12px;
           }
           .bm-ses-ref-box {
             flex-direction: column;

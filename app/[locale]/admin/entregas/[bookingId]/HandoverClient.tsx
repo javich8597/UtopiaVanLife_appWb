@@ -8,6 +8,7 @@ import VideoRecorder from './VideoRecorder'
 import SignaturePad from './SignaturePad'
 import { CHECKLIST, FUEL_LEVELS, handoverSteps, kmSummary, type HandoverKind } from '@/lib/handover/checklist'
 import { compressImage, uploadWithSignedUrl } from '@/lib/handover/media'
+import { buildSesHospedajesReference } from '@/lib/sesHospedajes/xmlGenerator'
 
 interface Props {
   kind: HandoverKind
@@ -99,13 +100,14 @@ export default function HandoverClient({ kind, booking, customer, licensePhotos,
 
   const km = kmSummary(pickupKm, h.km, booking.num_nights, booking.km_package)
   const stepDone = (id: string) => steps.find(s => s.id === id)?.done
+  const bookingRef = buildSesHospedajesReference(booking, camper)
 
   return (
     <div className="adm-page ho">
       <Link href="/admin/bookings" className="ho-back"><ArrowLeft size={16} /> Reservas</Link>
       <AdminPageHeader
         title={title}
-        description={`${booking.customer_name || 'Cliente'} · ${camper?.name || 'Camper'} · ${fmtDay(booking.start_date)} – ${fmtDay(booking.end_date)}`}
+        description={`${bookingRef} · ${booking.customer_name || 'Cliente'} · ${camper?.name || 'Camper'} · ${fmtDay(booking.start_date)} – ${fmtDay(booking.end_date)}`}
       />
 
       <div className="adm-card ho-progress" role="status">

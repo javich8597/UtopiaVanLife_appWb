@@ -1,0 +1,112 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ns2:peticion xmlns:ns2="http://www.neg.hospedajes.mir.es/altaAlquilerVehiculo">
+  <solicitud>
+    <comunicacion>
+      <contrato>
+        <referencia>UVL-SPACE-0911-1911-0016</referencia>
+        <fechaContrato>2026-11-08+01:00</fechaContrato>
+        <fechaRecogida>2026-11-09T10:00:00+01:00</fechaRecogida>
+        <direccionRecogida>
+          <direccion>Carrer del Camp Franc, 8</direccion>
+          <direccionComplementaria>Poligono Son Oms</direccionComplementaria>
+          <codigoMunicipio>07040</codigoMunicipio>
+          <codigoPostal>07199</codigoPostal>
+          <pais>ESP</pais>
+        </direccionRecogida>
+        <direccionDevolucion>
+          <direccion>Carrer del Camp Franc, 8</direccion>
+          <direccionComplementaria>Poligono Son Oms</direccionComplementaria>
+          <codigoMunicipio>07040</codigoMunicipio>
+          <codigoPostal>07199</codigoPostal>
+          <pais>ESP</pais>
+        </direccionDevolucion>
+        <fechaDevolucion>2026-11-19T10:00:00+01:00</fechaDevolucion>
+        <pago>
+          <tipoPago>TARJT</tipoPago>
+          <fechaPago>2026-11-08+01:00</fechaPago>
+          <medioPago>Redsys TPV</medioPago>
+          <titular>DANILO MARONI</titular>
+        </pago>
+      </contrato>
+      <vehiculo>
+        <categoria>Vehículo vivienda</categoria>
+        <tipo>CAMPER</tipo>
+        <marca>FIAT</marca>
+        <modelo>Ducato</modelo>
+        <matricula>4618NHX</matricula>
+        <numeroBastidor>ZFA250006SG060635</numeroBastidor>
+        <color>GRIS</color>
+      </vehiculo>
+      <persona>
+        <datosPersona>
+          <rol>TI</rol>
+          <nombre>DANILO</nombre>
+          <apellido1>MARONI</apellido1>
+          <tipoDocumento>PAS</tipoDocumento>
+          <numeroDocumento>YB5936204</numeroDocumento>
+          <fechaNacimiento>1965-03-20+01:00</fechaNacimiento>
+          <nacionalidad>DEU</nacionalidad>
+          <sexo>H</sexo>
+          <direccion>
+            <direccion>Blumenstraße 4 56070 Koblenz, Alemania</direccion>
+            <nombreMunicipio>Koblenz</nombreMunicipio>
+            <codigoPostal>56070</codigoPostal>
+            <pais>DEU</pais>
+          </direccion>
+          <telefono>+4915233522021</telefono>
+          <correo>danilo.maroni@utopiavanlife-customer.de</correo>
+        </datosPersona>
+      </persona>
+      <persona>
+        <datosPersona>
+          <rol>CP</rol>
+          <nombre>DANILO</nombre>
+          <apellido1>MARONI</apellido1>
+          <tipoDocumento>PAS</tipoDocumento>
+          <numeroDocumento>YB5936204</numeroDocumento>
+          <fechaNacimiento>1965-03-20+01:00</fechaNacimiento>
+          <nacionalidad>DEU</nacionalidad>
+          <sexo>H</sexo>
+          <direccion>
+            <direccion>Blumenstraße 4 56070 Koblenz, Alemania</direccion>
+            <nombreMunicipio>Koblenz</nombreMunicipio>
+            <codigoPostal>56070</codigoPostal>
+            <pais>DEU</pais>
+          </direccion>
+          <telefono>+4915233522021</telefono>
+          <correo>danilo.maroni@utopiavanlife-customer.de</correo>
+        </datosPersona>
+        <permisoConducir>
+          <tipo>B</tipo>
+          <validez>2031-01-26+01:00</validez>
+          <numero>K01002LKD31</numero>
+        </permisoConducir>
+      </persona>
+      <persona>
+        <datosPersona>
+          <rol>CS</rol>
+          <nombre>GORDANA</nombre>
+          <apellido1>MARONI</apellido1>
+          <tipoDocumento>PAS</tipoDocumento>
+          <numeroDocumento>L2T8Z9ZNM</numeroDocumento>
+          <fechaNacimiento>1968-05-15+01:00</fechaNacimiento>
+          <nacionalidad>DEU</nacionalidad>
+          <sexo>M</sexo>
+          <direccion>
+            <direccion>Blumenstraße 4 56070 Koblenz, Alemania</direccion>
+            <nombreMunicipio>Koblenz</nombreMunicipio>
+            <codigoPostal>56070</codigoPostal>
+            <pais>DEU</pais>
+          </direccion>
+          <telefono>+4915233522021</telefono>
+          <correo>danilo.maroni@utopiavanlife-customer.de</correo>
+        </datosPersona>
+        <permisoConducir>
+          <tipo>B</tipo>
+          <validez>2040-05-27+02:00</validez>
+          <numero>K01003AS761</numero>
+        </permisoConducir>
+      </persona>
+    </comunicacion>
+  </solicitud>
+</ns2:peticion>

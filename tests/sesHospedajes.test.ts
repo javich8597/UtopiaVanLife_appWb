@@ -77,7 +77,7 @@ describe('Motor SES.HOSPEDAJES / Real Decreto 933/2021', () => {
       const space = FLEET_VEHICLES.SPACE
       assert.equal(space.matricula, '4618NHX')
       assert.equal(space.numeroBastidor, 'ZFA250006SG060635')
-      assert.equal(space.marca, 'Fiat')
+      assert.equal(space.marca, 'FIAT')
       assert.equal(space.modelo, 'Ducato')
       assert.equal(space.tipo, 'CAMPER')
       assert.equal(space.categoria, 'Vehículo vivienda')
@@ -88,7 +88,7 @@ describe('Motor SES.HOSPEDAJES / Real Decreto 933/2021', () => {
       const neo = FLEET_VEHICLES.NEO
       assert.equal(neo.matricula, '4630NHX')
       assert.equal(neo.numeroBastidor, 'ZFA250003SMC13122')
-      assert.equal(neo.marca, 'Fiat')
+      assert.equal(neo.marca, 'FIAT')
       assert.equal(neo.modelo, 'Ducato')
       assert.equal(neo.tipo, 'CAMPER')
       assert.equal(neo.categoria, 'Vehículo vivienda')
@@ -256,6 +256,191 @@ describe('Motor SES.HOSPEDAJES / Real Decreto 933/2021', () => {
       assert.equal(res.status, 400)
       const data = await res.json()
       assert.ok(data.error.includes('bookingId'))
+    })
+  })
+
+  describe('6. Cliente M2M y Tolerancia TLS Gubernamental (FNMT-RCM)', () => {
+    it('diagnostica y formatea con claridad el error TLS UNABLE_TO_VERIFY_LEAF_SIGNATURE', async () => {
+      const { formatTransmissionError } = await import('../lib/sesHospedajes/client')
+      const tlsError = new Error('unable to verify the first certificate')
+      ;(tlsError as any).code = 'UNABLE_TO_VERIFY_LEAF_SIGNATURE'
+
+      const result = formatTransmissionError(
+        tlsError,
+        'https://hospedajes.ses.mir.es/hospedajes-web/ws/v1/comunicacion',
+        30000
+      )
+
+      assert.equal(result.httpStatus, 526)
+      assert.ok(result.message.includes('FNMT-RCM'))
+      assert.ok(result.error.includes('UNABLE_TO_VERIFY_LEAF_SIGNATURE'))
+      assert.ok(result.error.includes('FNMT-RCM'))
+    })
+
+    it('diagnostica y formatea con claridad errores DNS ENOTFOUND', async () => {
+      const { formatTransmissionError } = await import('../lib/sesHospedajes/client')
+      const dnsError = new Error('getaddrinfo ENOTFOUND fake.mir.es')
+      ;(dnsError as any).code = 'ENOTFOUND'
+
+      const result = formatTransmissionError(
+        dnsError,
+        'https://fake.mir.es/hospedajes-web/ws/v1/comunicacion',
+        30000
+      )
+
+      assert.equal(result.httpStatus, 503)
+      assert.ok(result.message.includes('DNS'))
+      assert.ok(result.error.includes('fake.mir.es'))
+    })
+
+    it('diagnostica y formatea con claridad errores de timeout', async () => {
+      const { formatTransmissionError } = await import('../lib/sesHospedajes/client')
+      const timeoutError = new Error('Timeout tras 5000ms')
+      ;(timeoutError as any).name = 'TimeoutError'
+
+      const result = formatTransmissionError(
+        timeoutError,
+        'https://hospedajes.ses.mir.es/hospedajes-web/ws/v1/comunicacion',
+        5000
+      )
+
+      assert.equal(result.httpStatus, 408)
+      assert.ok(result.message.includes('Timeout'))
+    })
+
+    it('transmite exitosamente vía mock y recupera el número de lote', async () => {
+      const { transmitToSesHospedajes } = await import('../lib/sesHospedajes/client')
+      const res = await transmitToSesHospedajes({
+        xml: '<mock/>',
+        reference: 'UVL-TEST-MOCK-01',
+        options: {
+          mock: {
+            success: true,
+            registryNumber: 'LOTE-TEST-12345',
+            message: 'Aceptado por SES.HOSPEDAJES',
+          },
+        },
+      })
+
+      assert.equal(res.success, true)
+      assert.equal(res.registryNumber, 'LOTE-TEST-12345')
+      assert.equal(res.message, 'Aceptado por SES.HOSPEDAJES')
+    })
+  })
+
+  describe('7. Esquema Oficial RD 933/2021: Localidad Extranjera, FIAT y Segundo Conductor', () => {
+    it('renderiza codigoMunicipio para España y nombreMunicipio para extranjeros', async () => {
+      const { renderDireccionXml } = await import('../lib/sesHospedajes/xmlGenerator')
+
+      // Caso España
+      const xmlEsp = renderDireccionXml({
+        direccion: 'Calle Mayor 1',
+        codigoMunicipio: '28079',
+        nombreMunicipio: 'Madrid',
+        codigoPostal: '28001',
+        pais: 'ESP',
+      })
+      assert.ok(xmlEsp.includes('<codigoMunicipio>28079</codigoMunicipio>'))
+      assert.ok(!xmlEsp.includes('<nombreMunicipio>'), 'España no debe incluir nombreMunicipio')
+      assert.ok(xmlEsp.includes('<pais>ESP</pais>'))
+
+      // Caso Alemania (extranjero)
+      const xmlDeu = renderDireccionXml({
+        direccion: 'Blumenstraße 4',
+        codigoMunicipio: '56070',
+        nombreMunicipio: 'Koblenz',
+        codigoPostal: '56070',
+        pais: 'DEU',
+      })
+      assert.ok(xmlDeu.includes('<nombreMunicipio>Koblenz</nombreMunicipio>'))
+      assert.ok(!xmlDeu.includes('<codigoMunicipio>'), 'Extranjero no debe incluir codigoMunicipio')
+      assert.ok(xmlDeu.includes('<pais>DEU</pais>'))
+    })
+
+    it('genera el XML perfecto para el contrato real de Danilo y Gordana Maroni', () => {
+      const booking = {
+        id: '16',
+        booking_number: 16,
+        start_date: '2026-11-09',
+        end_date: '2026-11-19',
+        pickup_time: '10:00:00',
+        dropoff_time: '10:00:00',
+        customer_name: 'DANILO MARONI',
+        customer_email: 'danilo.maroni@utopiavanlife-customer.de',
+        customer_phone: '+49 15233522021',
+        customer_dni: 'YB5936204',
+        customer_address: 'Blumenstraße 4 56070 Koblenz, Alemania',
+        nationality: 'DEU',
+        country_code: 'DEU',
+        passengers: [
+          {
+            fullName: 'GORDANA MARONI',
+            dniNie: 'L2T8Z9ZNM',
+            driverLicense: 'K01003AS761',
+            isSecondDriver: true,
+            birthDate: '1968-05-15',
+            nationality: 'DEU',
+            countryCode: 'DEU',
+            sex: 'M',
+            driverLicenseExpiry: '2040-05-27',
+            municipalityName: 'Koblenz',
+          },
+        ],
+      }
+
+      const user = {
+        full_name: 'DANILO MARONI',
+        dni_nie: 'YB5936204',
+        driver_license_id: 'K01002LKD31',
+        driver_license_expiry_date: '2031-01-26',
+        birth_date: '1965-03-20',
+        address: 'Blumenstraße 4 56070 Koblenz, Alemania',
+        postal_code: '56070',
+        municipality_name: 'Koblenz',
+        nationality: 'DEU',
+        country_code: 'DEU',
+        sex: 'H',
+        has_second_driver: true,
+        second_driver_name: 'GORDANA MARONI',
+        second_driver_dni: 'L2T8Z9ZNM',
+        second_driver_license: 'K01003AS761',
+        second_driver_birth_date: '1968-05-15',
+        second_driver_license_expiry_date: '2040-05-27',
+        second_driver_nationality: 'DEU',
+        second_driver_sex: 'M',
+      }
+
+      const camper = {
+        name: 'SPACE',
+        slug: 'space',
+      }
+
+      const { xml, reference } = generateSesHospedajesXml(booking, user, camper, {
+        includeSecondDriver: true,
+      })
+
+      // 1. Referencia
+      assert.equal(reference, 'UVL-SPACE-0911-1911-16')
+
+      // 2. Vehículo: Marca en mayúsculas FIAT
+      assert.ok(xml.includes('<marca>FIAT</marca>'))
+      assert.ok(!xml.includes('<marca>Fiat</marca>'))
+
+      // 3. Titular Danilo Maroni: DEU, H, Koblenz (sin codigoMunicipio en dirección de Danilo)
+      assert.ok(xml.includes('<rol>TI</rol>'))
+      assert.ok(xml.includes('<nacionalidad>DEU</nacionalidad>'))
+      assert.ok(xml.includes('<sexo>H</sexo>'))
+      assert.ok(xml.includes('<nombreMunicipio>Koblenz</nombreMunicipio>'))
+
+      // 4. Conductor Secundario Gordana Maroni: CS, DEU, M, Koblenz, validez 2040-05-27
+      assert.ok(xml.includes('<rol>CS</rol>'))
+      assert.ok(xml.includes('<nombre>GORDANA</nombre>'))
+      assert.ok(xml.includes('<apellido1>MARONI</apellido1>'))
+      assert.ok(xml.includes('<numeroDocumento>L2T8Z9ZNM</numeroDocumento>'))
+      assert.ok(xml.includes('<fechaNacimiento>1968-05-15+01:00</fechaNacimiento>'))
+      assert.ok(xml.includes('<sexo>M</sexo>'), 'Gordana debe ser sexo Mujer (M)')
+      assert.ok(xml.includes('<validez>2040-05-27+02:00</validez>'), 'Validez carnet Gordana debe ser 2040-05-27 con offset de verano CEST')
+      assert.ok(xml.includes('<numero>K01003AS761</numero>'))
     })
   })
 })

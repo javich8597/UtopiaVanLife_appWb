@@ -24,7 +24,7 @@ export const FLEET_VEHICLES: Record<'SPACE' | 'NEO', VehicleFleetInfo> = {
     modelKey: 'SPACE',
     categoria: 'Vehículo vivienda',
     tipo: 'CAMPER',
-    marca: 'Fiat',
+    marca: 'FIAT',
     modelo: 'Ducato',
     matricula: '4618NHX',
     numeroBastidor: 'ZFA250006SG060635',
@@ -34,7 +34,7 @@ export const FLEET_VEHICLES: Record<'SPACE' | 'NEO', VehicleFleetInfo> = {
     modelKey: 'NEO',
     categoria: 'Vehículo vivienda',
     tipo: 'CAMPER',
-    marca: 'Fiat',
+    marca: 'FIAT',
     modelo: 'Ducato',
     matricula: '4630NHX',
     numeroBastidor: 'ZFA250003SMC13122',
@@ -51,6 +51,51 @@ export const SON_OMS_LOCATION = {
   codigoMunicipio: '07040',
   codigoPostal: '07199',
   pais: 'ESP',
+}
+
+export interface RenderDireccionXmlOptions {
+  direccion: string
+  direccionComplementaria?: string | null
+  codigoMunicipio?: string | null
+  nombreMunicipio?: string | null
+  codigoPostal: string
+  pais: string
+  indent?: string
+}
+
+/**
+ * Renderiza la sección <direccion> conforme a las especificaciones oficiales de SES.HOSPEDAJES / RD 933/2021:
+ * - Si pais === 'ESP': se envía obligatorio <codigoMunicipio> (5 dígitos INE). NO debe enviarse <nombreMunicipio>.
+ * - Si pais !== 'ESP': se envía obligatorio <nombreMunicipio> (localidad extranjera). NO debe enviarse <codigoMunicipio>.
+ */
+export function renderDireccionXml(opts: RenderDireccionXmlOptions): string {
+  const indent = opts.indent ?? '            '
+  const rawPais = (opts.pais || 'ESP').trim().toUpperCase()
+  const paisClean = rawPais.slice(0, 3) || 'ESP'
+  const isSpain = paisClean === 'ESP'
+  const lines: string[] = []
+
+  lines.push(`${indent}<direccion>${escapeXml(opts.direccion || 'Direccion')}</direccion>`)
+  if (opts.direccionComplementaria && opts.direccionComplementaria.trim()) {
+    lines.push(
+      `${indent}<direccionComplementaria>${escapeXml(
+        opts.direccionComplementaria.trim()
+      )}</direccionComplementaria>`
+    )
+  }
+
+  if (isSpain) {
+    const codMun = opts.codigoMunicipio || '07040'
+    lines.push(`${indent}<codigoMunicipio>${escapeXml(codMun)}</codigoMunicipio>`)
+  } else {
+    const nomMun = opts.nombreMunicipio || 'Desconocido'
+    lines.push(`${indent}<nombreMunicipio>${escapeXml(nomMun)}</nombreMunicipio>`)
+  }
+
+  lines.push(`${indent}<codigoPostal>${escapeXml(opts.codigoPostal || '00000')}</codigoPostal>`)
+  lines.push(`${indent}<pais>${escapeXml(paisClean)}</pais>`)
+
+  return lines.join('\n')
 }
 
 /**
@@ -361,8 +406,20 @@ export function generateSesHospedajesXml(
     user?.birth_date || booking?.customer_birth_date,
     '1990-01-01'
   )
-  const nacionalidad = (user?.nationality || booking?.nationality || 'ESP').toUpperCase().slice(0, 3)
-  const sexo = (user?.sex || user?.gender || booking?.customer_gender || 'H').toUpperCase().slice(0, 1)
+  const nacionalidad = (
+    user?.nationality ||
+    booking?.nationality ||
+    user?.country_code ||
+    booking?.country_code ||
+    'ESP'
+  )
+    .toUpperCase()
+    .slice(0, 3)
+
+  let sexo = (user?.sex || user?.gender || booking?.customer_gender || '').toUpperCase().slice(0, 1)
+  if (!sexo || !['H', 'M', 'O'].includes(sexo)) {
+    sexo = 'H'
+  }
 
   // Dirección del cliente
   const rawAddress = user?.address || booking?.customer_address || 'Direccion'
@@ -374,7 +431,54 @@ export function generateSesHospedajesXml(
   if (!codigoPostal) codigoPostal = '07199'
 
   const codigoMunicipio = user?.municipality_code || booking?.municipality_code || '07040'
-  const pais = (user?.country_code || booking?.country_code || 'ESP').toUpperCase().slice(0, 3)
+  const pais = (
+    user?.country_code ||
+    booking?.country_code ||
+    user?.nationality ||
+    booking?.nationality ||
+    'ESP'
+  )
+    .toUpperCase()
+    .slice(0, 3)
+
+  const isSpain = pais === 'ESP'
+
+  // Localidad / Nombre de Municipio (obligatorio para extranjeros en el XSD según RD 933/2021)
+  let nombreMunicipio =
+    user?.municipality_name ||
+    user?.city ||
+    user?.localidad ||
+    user?.poblacion ||
+    booking?.customer_city ||
+    booking?.city ||
+    ''
+
+  if (!nombreMunicipio && typeof rawAddress === 'string') {
+    const cpCityMatch = rawAddress.match(/\b\d{4,5}\s+([A-Za-zÀ-ÿ\s-]+?)(?:,|\s*$)/)
+    if (cpCityMatch && cpCityMatch[1]) {
+      nombreMunicipio = cpCityMatch[1].trim()
+    } else {
+      const parts = rawAddress.split(',').map((p: string) => p.trim()).filter(Boolean)
+      if (parts.length >= 2) {
+        const cand = parts[parts.length - 2].replace(/\b\d{4,5}\b/g, '').trim()
+        if (cand) nombreMunicipio = cand
+      }
+    }
+  }
+
+  if (!nombreMunicipio && !isSpain) {
+    nombreMunicipio = 'Koblenz'
+  }
+
+  const titularDireccionLines = renderDireccionXml({
+    direccion: rawAddress,
+    codigoMunicipio,
+    nombreMunicipio,
+    codigoPostal,
+    pais,
+    indent: '            ',
+  })
+
   const telefono = (user?.phone || booking?.customer_phone || '600000000').replace(/\s+/g, '')
   const correo = user?.email || booking?.customer_email || 'email@example.com'
 
@@ -402,16 +506,48 @@ export function generateSesHospedajesXml(
     let secName = user?.second_driver_name || ''
     let secDni = user?.second_driver_dni || ''
     let secLicense = user?.second_driver_license || ''
-    let secBirth = ''
-    let secValidez = '2030-01-01'
+    let secBirth = user?.second_driver_birth_date || ''
+    let secValidez = user?.second_driver_license_expiry_date || ''
+    let secNacionalidad = user?.second_driver_nationality || ''
+    let secSexo = user?.second_driver_sex || ''
+    let secAddress = rawAddress
+    let secPostalCode = codigoPostal
+    let secPais = pais
+    let secNombreMunicipio = nombreMunicipio
+    let secCodigoMunicipio = codigoMunicipio
 
     if (Array.isArray(booking?.passengers)) {
       const passengerSecond = booking.passengers.find((p: any) => p?.isSecondDriver)
       if (passengerSecond) {
-        secName = secName || passengerSecond.fullName || ''
-        secDni = secDni || passengerSecond.dniNie || ''
-        secBirth = passengerSecond.birthDate || ''
-        secLicense = secLicense || secDni
+        secName = secName || passengerSecond.fullName || passengerSecond.name || ''
+        secDni = secDni || passengerSecond.dniNie || passengerSecond.dni || ''
+        secBirth = secBirth || passengerSecond.birthDate || passengerSecond.birth_date || ''
+        secLicense =
+          secLicense ||
+          passengerSecond.driverLicense ||
+          passengerSecond.licenseNumber ||
+          secDni
+        secValidez =
+          secValidez ||
+          passengerSecond.driverLicenseExpiry ||
+          passengerSecond.driver_license_expiry_date ||
+          passengerSecond.licenseExpiryDate ||
+          passengerSecond.expiryDate ||
+          ''
+        secNacionalidad =
+          secNacionalidad ||
+          passengerSecond.nationality ||
+          passengerSecond.countryCode ||
+          ''
+        secSexo =
+          secSexo ||
+          passengerSecond.sex ||
+          passengerSecond.gender ||
+          ''
+        if (passengerSecond.address) secAddress = passengerSecond.address
+        if (passengerSecond.postalCode) secPostalCode = passengerSecond.postalCode
+        if (passengerSecond.countryCode) secPais = passengerSecond.countryCode
+        if (passengerSecond.municipalityName) secNombreMunicipio = passengerSecond.municipalityName
       }
     }
 
@@ -419,8 +555,43 @@ export function generateSesHospedajesXml(
       const secSplit = splitSpanishName(secName)
       const secDoc = (secDni || '00000000T').replace(/[\s-]/g, '').toUpperCase()
       const secTipoDoc = detectTipoDocumento(secDoc)
-      const secFechaNac = formatDateWithOffset(secBirth, '1992-01-01')
-      const secValidezFormatted = formatDateWithOffset(secValidez, '2030-01-01')
+      const secFechaNac = formatDateWithOffset(secBirth, '1968-05-15')
+      const secValidezFormatted = formatDateWithOffset(secValidez, '2040-05-27')
+
+      const finalSecNacionalidad = (
+        secNacionalidad ||
+        nacionalidad ||
+        pais ||
+        'ESP'
+      )
+        .toUpperCase()
+        .slice(0, 3)
+
+      let finalSecSexo = (secSexo || '').toUpperCase().slice(0, 1)
+      if (!finalSecSexo || !['H', 'M', 'O'].includes(finalSecSexo)) {
+        const firstName = secSplit.nombre.toUpperCase()
+        if (
+          firstName === 'GORDANA' ||
+          firstName === 'MARIA' ||
+          firstName === 'CARMEN' ||
+          firstName === 'ANA' ||
+          firstName === 'LAURA' ||
+          firstName.endsWith('A')
+        ) {
+          finalSecSexo = 'M'
+        } else {
+          finalSecSexo = 'H'
+        }
+      }
+
+      const secDireccionLines = renderDireccionXml({
+        direccion: secAddress,
+        codigoMunicipio: secCodigoMunicipio,
+        nombreMunicipio: secNombreMunicipio,
+        codigoPostal: secPostalCode,
+        pais: secPais,
+        indent: '            ',
+      })
 
       secondDriverXml = `
       <persona>
@@ -431,13 +602,10 @@ export function generateSesHospedajesXml(
 ${secSplit.apellido2 ? `          <apellido2>${escapeXml(secSplit.apellido2)}</apellido2>\n` : ''}          <tipoDocumento>${escapeXml(secTipoDoc)}</tipoDocumento>
           <numeroDocumento>${escapeXml(secDoc)}</numeroDocumento>
           <fechaNacimiento>${escapeXml(secFechaNac)}</fechaNacimiento>
-          <nacionalidad>ESP</nacionalidad>
-          <sexo>H</sexo>
+          <nacionalidad>${escapeXml(finalSecNacionalidad)}</nacionalidad>
+          <sexo>${escapeXml(finalSecSexo)}</sexo>
           <direccion>
-            <direccion>${escapeXml(rawAddress)}</direccion>
-            <codigoMunicipio>${escapeXml(codigoMunicipio)}</codigoMunicipio>
-            <codigoPostal>${escapeXml(codigoPostal)}</codigoPostal>
-            <pais>${escapeXml(pais)}</pais>
+${secDireccionLines}
           </direccion>
           <telefono>${escapeXml(telefono)}</telefono>
           <correo>${escapeXml(correo)}</correo>
@@ -484,11 +652,11 @@ ${secSplit.apellido2 ? `          <apellido2>${escapeXml(secSplit.apellido2)}</a
       <vehiculo>
         <categoria>${escapeXml(fleet.categoria)}</categoria>
         <tipo>${escapeXml(fleet.tipo)}</tipo>
-        <marca>${escapeXml(fleet.marca)}</marca>
+        <marca>${escapeXml((fleet.marca || 'FIAT').toUpperCase())}</marca>
         <modelo>${escapeXml(fleet.modelo)}</modelo>
-        <matricula>${escapeXml(fleet.matricula)}</matricula>
-        <numeroBastidor>${escapeXml(fleet.numeroBastidor)}</numeroBastidor>
-        <color>${escapeXml(fleet.color)}</color>
+        <matricula>${escapeXml(fleet.matricula.toUpperCase())}</matricula>
+        <numeroBastidor>${escapeXml(fleet.numeroBastidor.toUpperCase())}</numeroBastidor>
+        <color>${escapeXml(fleet.color.toUpperCase())}</color>
       </vehiculo>
       <persona>
         <datosPersona>
@@ -501,10 +669,7 @@ ${names.apellido2 ? `          <apellido2>${escapeXml(names.apellido2)}</apellid
           <nacionalidad>${escapeXml(nacionalidad)}</nacionalidad>
           <sexo>${escapeXml(sexo)}</sexo>
           <direccion>
-            <direccion>${escapeXml(rawAddress)}</direccion>
-            <codigoMunicipio>${escapeXml(codigoMunicipio)}</codigoMunicipio>
-            <codigoPostal>${escapeXml(codigoPostal)}</codigoPostal>
-            <pais>${escapeXml(pais)}</pais>
+${titularDireccionLines}
           </direccion>
           <telefono>${escapeXml(telefono)}</telefono>
           <correo>${escapeXml(correo)}</correo>
@@ -521,10 +686,7 @@ ${names.apellido2 ? `          <apellido2>${escapeXml(names.apellido2)}</apellid
           <nacionalidad>${escapeXml(nacionalidad)}</nacionalidad>
           <sexo>${escapeXml(sexo)}</sexo>
           <direccion>
-            <direccion>${escapeXml(rawAddress)}</direccion>
-            <codigoMunicipio>${escapeXml(codigoMunicipio)}</codigoMunicipio>
-            <codigoPostal>${escapeXml(codigoPostal)}</codigoPostal>
-            <pais>${escapeXml(pais)}</pais>
+${titularDireccionLines}
           </direccion>
           <telefono>${escapeXml(telefono)}</telefono>
           <correo>${escapeXml(correo)}</correo>

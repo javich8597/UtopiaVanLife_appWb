@@ -6,6 +6,7 @@ import { Search, Eye, Archive, Loader2, X, BookOpen, CheckCircle2, Navigation, C
 import { Link } from '@/i18n/routing'
 import { formatPrice } from '@/lib/pricing/engine'
 import { ADMIN_STATUS_LABELS, AdminBookingStatus, activePaymentAlerts, getAdminBookingStatus } from '@/lib/admin/bookingStatus'
+import { buildSesHospedajesReference } from '@/lib/sesHospedajes/xmlGenerator'
 import AdminPageHeader from '../AdminPageHeader'
 import RefundActionClient from './RefundActionClient'
 import ApproveActionClient from './ApproveActionClient'
@@ -66,6 +67,7 @@ export default function BookingsClient({ initialBookings }: Props) {
     const now = new Date()
     return initialBookings.map(b => ({
       ...b,
+      bookingRef: buildSesHospedajesReference(b, b.campers),
       adminStatus: getAdminBookingStatus(b, now),
       paymentAlerts: activePaymentAlerts(b.notes),
     }))
@@ -82,9 +84,12 @@ export default function BookingsClient({ initialBookings }: Props) {
 
     if (q) {
       setSearchTerm(q)
+      const queryLower = q.toLowerCase().trim()
       const found = bookings.find(b =>
-        b.id.toLowerCase() === q.toLowerCase() ||
-        b.id.toLowerCase().startsWith(q.toLowerCase())
+        b.id.toLowerCase() === queryLower ||
+        b.id.toLowerCase().startsWith(queryLower) ||
+        b.bookingRef?.toLowerCase() === queryLower ||
+        b.bookingRef?.toLowerCase().includes(queryLower)
       )
       if (found && (searchParams.get('open') === 'true' || searchParams.get('id'))) {
         setSelectedBooking(found)
@@ -109,6 +114,7 @@ export default function BookingsClient({ initialBookings }: Props) {
         b.customer_phone || b.users?.phone,
         b.customer_dni || b.users?.dni_nie,
         b.campers?.name,
+        b.bookingRef,
         b.id,
         b.payment_intent_id,
         b.customer_city,
@@ -340,10 +346,8 @@ export default function BookingsClient({ initialBookings }: Props) {
                         </span>
                         <span className="bk-client__text">
                           <span className="adm-table__strong">{clientName}</span>
-                          <span className="adm-table__muted">
-                            {clientEmail}
-                            {clientEmail && ' · '}#{b.id.split('-')[0].toUpperCase()}
-                          </span>
+                          {clientEmail && <span className="adm-table__muted">{clientEmail}</span>}
+                          {b.bookingRef && <span className="bk-client__ref">{b.bookingRef}</span>}
                         </span>
                       </span>
                     </td>
@@ -472,7 +476,16 @@ export default function BookingsClient({ initialBookings }: Props) {
         .bk-client__text {
           display: flex;
           flex-direction: column;
+          gap: 2px;
           min-width: 0;
+        }
+        .bk-client__ref {
+          font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+          font-size: 0.76rem;
+          font-weight: 600;
+          color: var(--adm-text-2);
+          letter-spacing: 0.02em;
+          line-height: 1.3;
         }
         .bk-avatar {
           width: 40px;

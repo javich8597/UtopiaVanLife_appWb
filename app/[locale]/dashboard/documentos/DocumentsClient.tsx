@@ -7,6 +7,7 @@ import { generateContractData } from '@/lib/contracts/contractEngine'
 import { generateOfficialContractPdfBlob } from '@/lib/contracts/pdfGenerator'
 import { getLicenseState, pickCurrentBooking } from '@/lib/user/tripState'
 import { downloadReceiptPdf, receiptReference } from '@/lib/user/receiptPdf'
+import { buildSesHospedajesReference } from '@/lib/sesHospedajes/xmlGenerator'
 import ContractSignModal from './ContractSignModal'
 
 interface Props {
@@ -100,7 +101,7 @@ export default function DocumentsClient({ bookings, profile, user, contractTempl
       {current ? (
         <section className="docs-group" aria-labelledby="docs-current">
           <h2 id="docs-current" className="docs-group__title">
-            Viaje del {fmtRange(current.start_date, current.end_date)}
+            Viaje del {fmtRange(current.start_date, current.end_date)} · {buildSesHospedajesReference(current, current.camper)}
           </h2>
           <ul className="usr-card docs-list">
             {/* Contrato */}
@@ -230,7 +231,7 @@ export default function DocumentsClient({ bookings, profile, user, contractTempl
               <li key={b.id} className="docs-row">
                 <span className="docs-row__icon docs-row__icon--soft"><FileText size={20} aria-hidden="true" /></span>
                 <span className="docs-row__text">
-                  <strong>Camper {b.camper?.name || 'NEO'}</strong>
+                  <strong>Camper {b.camper?.name || 'NEO'} · {buildSesHospedajesReference(b, b.camper)}</strong>
                   <span>{fmtRange(b.start_date, b.end_date)}</span>
                 </span>
                 <span className="docs-row__actions">

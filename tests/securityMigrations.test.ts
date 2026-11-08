@@ -180,6 +180,7 @@ describe('N3: UPDATE y DELETE en bookings', () => {
       'app/api/admin/bookings/resolve-payment-alert/route.ts',
       'app/api/admin/handovers/route.ts',
       'app/api/admin/refund/route.ts',
+      'app/api/admin/ses-hospedajes/transmit/route.ts',
       'app/api/bookings/[id]/pay/route.ts',
       'app/api/contracts/sign/route.ts',
       // El 2º conductor pertenece a la reserva: su ficha se guarda en bookings.second_driver_*

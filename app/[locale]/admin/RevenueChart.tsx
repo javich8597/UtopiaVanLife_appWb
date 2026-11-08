@@ -288,8 +288,8 @@ export default function RevenueChart({ monthlyData }: Props) {
             align-self: flex-start;
           }
           .rev__toggle-btn {
-            min-height: 36px;
-            padding: 6px 14px;
+            min-height: 40px;
+            padding: 8px 14px;
           }
           .rev__plot {
             height: 170px;

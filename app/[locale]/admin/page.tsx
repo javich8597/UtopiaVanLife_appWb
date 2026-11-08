@@ -33,6 +33,7 @@ import {
     calculateFleetLiveStatus,
     calculateDelta
 } from '@/lib/admin/dashboardMetrics'
+import { buildSesHospedajesReference } from '@/lib/sesHospedajes/xmlGenerator'
 import { ADMIN_STATUS_LABELS, getAdminBookingStatus, hasPaymentAlert } from '@/lib/admin/bookingStatus'
 import './dashboard.css'
 
@@ -301,17 +302,18 @@ export default async function AdminDashboardPage() {
                                 const nights = nightsBetween(b.start_date, b.end_date)
                                 const docPending = b.users?.verification_status === 'pending_validation'
                                 const payAlert = hasPaymentAlert(b)
+                                const ref = buildSesHospedajesReference(b, b.campers)
                                 return (
                                     <li key={b.id} className="dsh-row">
                                         <span className="dsh-row__avatar" aria-hidden="true">
                                             {clientName.trim().split(/\s+/).slice(0, 2).map((p: string) => p[0]).join('').toUpperCase()}
                                         </span>
                                         <span className="dsh-row__main">
-                                            <Link href={`/admin/bookings?search=${b.id}&open=true` as any} className="dsh-row__name">
+                                            <Link href={`/admin/bookings?search=${encodeURIComponent(ref)}&open=true` as any} className="dsh-row__name">
                                                 {clientName}
                                             </Link>
                                             <span className="dsh-row__sub">
-                                                {b.campers?.name || 'Camper'} · {formatDay(b.start_date)} – {formatDay(b.end_date)} · {nights} {nights === 1 ? 'noche' : 'noches'}
+                                                {ref} · {b.campers?.name || 'Camper'} · {formatDay(b.start_date)} – {formatDay(b.end_date)} · {nights} {nights === 1 ? 'noche' : 'noches'}
                                             </span>
                                         </span>
                                         <span className="dsh-row__status">
@@ -324,7 +326,7 @@ export default async function AdminDashboardPage() {
                                             </span>
                                         </span>
                                         <Link
-                                            href={`/admin/bookings?search=${b.id}&open=true` as any}
+                                            href={`/admin/bookings?search=${encodeURIComponent(ref)}&open=true` as any}
                                             className="dsh-row__more"
                                             aria-label={`Abrir la reserva de ${clientName}`}
                                         >

@@ -10,6 +10,7 @@ import {
 } from 'lucide-react'
 import { formatPrice } from '@/lib/pricing/engine'
 import { getTripState, pickCurrentBooking, type NextStep } from '@/lib/user/tripState'
+import { buildSesHospedajesReference } from '@/lib/sesHospedajes/xmlGenerator'
 
 const FALLBACK_IMAGES: Record<string, string> = {
     neo: '/images/campers/neo/neo-ext.png',
@@ -268,6 +269,7 @@ export default function DashboardClient({ bookings, profile, user }: Props) {
     const pickupSlot = formatBookingSlotTime(booking.pickup_time, '15:00 - 19:00')
     const dropoffSlot = formatBookingSlotTime(booking.dropoff_time, '09:00 - 12:00')
     const showCountdown = trip.daysToStart > 0 && trip.isPaid
+    const bookingRef = buildSesHospedajesReference(booking, booking.camper)
 
     return (
         <div className="dash">
@@ -281,7 +283,10 @@ export default function DashboardClient({ bookings, profile, user }: Props) {
             {/* 1. El viaje */}
             <article className="usr-card dash-hero">
                 <div className="dash-hero__info">
-                    <span className={`usr-chip ${BADGE_TONE[badge.status]}`}>{badge.text}</span>
+                    <div className="dash-hero__badge-row">
+                        <span className={`usr-chip ${BADGE_TONE[badge.status]}`}>{badge.text}</span>
+                        <span className="dash-hero__ref">{bookingRef}</span>
+                    </div>
                     <h2 className="dash-hero__name">Camper {camperName}</h2>
                     <p className="dash-hero__dates">
                         <span>{fmtDate(booking.start_date)}</span>
@@ -419,6 +424,7 @@ export default function DashboardClient({ bookings, profile, user }: Props) {
                 {showDetails && (
                     <div id="dash-details-panel" className="dash-details__panel">
                         <dl className="dash-rows">
+                            <div><dt>Referencia</dt><dd><strong>{bookingRef}</strong></dd></div>
                             <div><dt>Recogida</dt><dd>{fmtLong(booking.start_date)} · {pickupSlot}</dd></div>
                             <div><dt>Devolución</dt><dd>{fmtLong(booking.end_date)} · {dropoffSlot}</dd></div>
                             <div><dt>Punto de entrega</dt><dd>{PICKUP.address}</dd></div>
@@ -508,17 +514,20 @@ function PastTrips({ bookings }: { bookings: any[] }) {
         <section className="dash-history">
             <h3 className="dash-history__title">Viajes anteriores</h3>
             <ul className="usr-card dash-history__list">
-                {bookings.map(b => (
-                    <li key={b.id} className="dash-history__row">
-                        <span className="dash-history__main">
-                            <strong>Camper {b.camper?.name || 'NEO'}</strong>
-                            <span>{fmtDate(b.start_date)} – {fmtDate(b.end_date)} {fmtYear(b.end_date)}</span>
-                        </span>
-                        {b.status === 'cancelled'
-                            ? <span className="usr-chip usr-chip--rose">Cancelado</span>
-                            : <span className="dash-history__price">{formatPrice(Number(b.total_price || 0))}</span>}
-                    </li>
-                ))}
+                {bookings.map(b => {
+                    const ref = buildSesHospedajesReference(b, b.camper)
+                    return (
+                        <li key={b.id} className="dash-history__row">
+                            <span className="dash-history__main">
+                                <strong>Camper {b.camper?.name || 'NEO'} <span className="dash-history__ref">· {ref}</span></strong>
+                                <span>{fmtDate(b.start_date)} – {fmtDate(b.end_date)} {fmtYear(b.end_date)}</span>
+                            </span>
+                            {b.status === 'cancelled'
+                                ? <span className="usr-chip usr-chip--rose">Cancelado</span>
+                                : <span className="dash-history__price">{formatPrice(Number(b.total_price || 0))}</span>}
+                        </li>
+                    )
+                })}
             </ul>
         </section>
     )
@@ -549,6 +558,29 @@ function DashStyles() {
                 align-items: flex-start;
                 gap: 6px;
                 padding: 28px 0 24px 30px;
+            }
+            .dash-hero__badge-row {
+                display: flex;
+                align-items: center;
+                gap: 8px;
+                flex-wrap: wrap;
+            }
+            .dash-hero__ref {
+                font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+                font-size: 0.78rem;
+                font-weight: 700;
+                color: var(--usr-text-2);
+                background: var(--usr-surface-2);
+                padding: 2px 8px;
+                border-radius: 9999px;
+                border: 1px solid var(--usr-border);
+                letter-spacing: 0.02em;
+            }
+            .dash-history__ref {
+                font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+                font-size: 0.8rem;
+                font-weight: 600;
+                color: var(--usr-text-3);
             }
             .dash-hero__name {
                 margin: 8px 0 0;

@@ -4,6 +4,7 @@ import { useEffect, useMemo, useRef, useState } from 'react'
 import { useRouter } from '@/i18n/routing'
 import { Search, BookOpen, User, CornerDownLeft } from 'lucide-react'
 import { navItems } from './AdminNavClient'
+import { buildSesHospedajesReference } from '@/lib/sesHospedajes/xmlGenerator'
 
 interface Props {
   open: boolean
@@ -76,14 +77,17 @@ export default function AdminCommandPalette({ open, onClose }: Props) {
       .filter(item => !q || item.label.toLowerCase().includes(q))
       .map(item => ({ key: `p-${item.href}`, group: 'Secciones', title: item.label, href: item.href, icon: item.icon }))
 
-    const bookings: ResultItem[] = remote.bookings.map(b => ({
-      key: `b-${b.id}`,
-      group: 'Reservas',
-      title: `${b.customer_name || 'Cliente'} · ${b.campers?.name || 'Camper'}`,
-      subtitle: `${formatDay(b.start_date)} – ${formatDay(b.end_date)} · #${String(b.id).split('-')[0].toUpperCase()}`,
-      href: `/admin/bookings?search=${b.id}&open=true`,
-      icon: BookOpen,
-    }))
+    const bookings: ResultItem[] = remote.bookings.map(b => {
+      const ref = buildSesHospedajesReference(b, b.campers)
+      return {
+        key: `b-${b.id}`,
+        group: 'Reservas',
+        title: `${b.customer_name || 'Cliente'} · ${b.campers?.name || 'Camper'}`,
+        subtitle: `${formatDay(b.start_date)} – ${formatDay(b.end_date)} · ${ref}`,
+        href: `/admin/bookings?search=${encodeURIComponent(ref)}&open=true`,
+        icon: BookOpen,
+      }
+    })
     const customers: ResultItem[] = remote.customers.map(c => ({
       key: `c-${c.id}`,
       group: 'Clientes',

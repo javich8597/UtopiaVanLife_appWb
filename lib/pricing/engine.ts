@@ -98,7 +98,7 @@ export function resolveSeasonForDate(
     }
 
     const defaultSeason = seasons.find(s => s.is_default) ||
-        seasons.find(s => s.code.toLowerCase() === 'baja') ||
+        seasons.find(s => s.code?.toLowerCase() === 'baja' || (s as any).name?.toLowerCase().includes('baja')) ||
         seasons[0]
 
     return defaultSeason || {

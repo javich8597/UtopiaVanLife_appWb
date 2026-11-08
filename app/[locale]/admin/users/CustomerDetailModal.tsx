@@ -23,6 +23,7 @@ import {
   ShieldAlert
 } from 'lucide-react'
 import { validateDriverLicenseExpiration } from '@/lib/admin/auth'
+import { buildSesHospedajesReference } from '@/lib/sesHospedajes/xmlGenerator'
 
 interface CustomerDetailModalProps {
   userId: string | null
@@ -411,45 +412,48 @@ export default function CustomerDetailModal({
                     </div>
                   ) : (
                     <div className="cd-booking-list">
-                      {bookings.map((b: any) => (
-                        <div key={b.id} className="cd-booking-item">
-                          <div className="cd-booking-info">
-                            <div className="cd-booking-status-wrap">
-                              <span className="cd-camper-tag">
-                                {b.campers?.name || 'Camper Utopia'}
-                              </span>
-                              <span className={`cd-booking-status cd-booking-status--${b.status}`}>
-                                {b.status === 'confirmed' ? 'Confirmada' :
-                                 b.status === 'active' ? 'En Curso' :
-                                 b.status === 'pending' ? 'Pendiente' :
-                                 b.status === 'completed' ? 'Completada' : 'Cancelada'}
-                              </span>
+                      {bookings.map((b: any) => {
+                        const ref = buildSesHospedajesReference(b, b.campers)
+                        return (
+                          <div key={b.id} className="cd-booking-item">
+                            <div className="cd-booking-info">
+                              <div className="cd-booking-status-wrap">
+                                <span className="cd-camper-tag">
+                                  {ref} · {b.campers?.name || 'Camper Utopia'}
+                                </span>
+                                <span className={`cd-booking-status cd-booking-status--${b.status}`}>
+                                  {b.status === 'confirmed' ? 'Confirmada' :
+                                   b.status === 'active' ? 'En Curso' :
+                                   b.status === 'pending' ? 'Pendiente' :
+                                   b.status === 'completed' ? 'Completada' : 'Cancelada'}
+                                </span>
+                              </div>
+                              <div className="cd-booking-dates">
+                                <Calendar size={14} />
+                                <strong>
+                                  {new Date(b.start_date).toLocaleDateString('es-ES')} ({b.pickup_time || '10:00'}h)
+                                  {' → '}
+                                  {new Date(b.end_date).toLocaleDateString('es-ES')} ({b.dropoff_time || '18:00'}h)
+                                </strong>
+                              </div>
                             </div>
-                            <div className="cd-booking-dates">
-                              <Calendar size={14} />
-                              <strong>
-                                {new Date(b.start_date).toLocaleDateString('es-ES')} ({b.pickup_time || '10:00'}h)
-                                {' → '}
-                                {new Date(b.end_date).toLocaleDateString('es-ES')} ({b.dropoff_time || '18:00'}h)
-                              </strong>
-                            </div>
-                          </div>
 
-                          <div className="cd-booking-right">
-                            <div className="cd-booking-price">
-                              {b.total_price} €
-                              <span className="cd-booking-deposit">(+{b.deposit_amount || 500}€ fianza)</span>
+                            <div className="cd-booking-right">
+                              <div className="cd-booking-price">
+                                {b.total_price} €
+                                <span className="cd-booking-deposit">(+{b.deposit_amount || 500}€ fianza)</span>
+                              </div>
+                              <a
+                                href={`/es/admin/bookings?search=${encodeURIComponent(ref)}&open=true`}
+                                className="cd-booking-link"
+                                title="Gestionar en Reservas"
+                              >
+                                Ver en Reservas <ChevronRight size={14} />
+                              </a>
                             </div>
-                            <a
-                              href={`/es/admin/bookings`}
-                              className="cd-booking-link"
-                              title="Gestionar en Reservas"
-                            >
-                              Ver en Reservas <ChevronRight size={14} />
-                            </a>
                           </div>
-                        </div>
-                      ))}
+                        )
+                      })}
                     </div>
                   )}
                 </div>

@@ -13,32 +13,59 @@ export async function GET(request: Request) {
       return NextResponse.json({ error: 'Falta bookingId' }, { status: 400 })
     }
 
-    const supabase = await createServerClient()
-    const { data: { user }, error: authError } = await supabase.auth.getUser()
+    // 1. Verificación de autenticación de usuario (sesión admin o Bearer service role)
+    const authHeader = request.headers.get('authorization') || request.headers.get('Authorization')
+    const bearerToken = authHeader?.replace(/^Bearer\s+/i, '').trim()
+    const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY?.trim()
 
-    if (authError || !user) {
+    let isAuthorized = false
+    let clientToUse: any = null
+
+    if (bearerToken && serviceKey && bearerToken === serviceKey) {
+      isAuthorized = true
+      clientToUse = getAdminClientOrSession(null)
+    } else {
+      let supabase: any = null
+      try {
+        supabase = await createServerClient()
+      } catch {
+        supabase = null
+      }
+
+      if (supabase) {
+        const { data: { user }, error: authError } = bearerToken
+          ? await supabase.auth.getUser(bearerToken)
+          : await supabase.auth.getUser()
+
+        if (!authError && user) {
+          const { data: profile } = await supabase
+            .from('users')
+            .select('role')
+            .eq('id', user.id)
+            .maybeSingle()
+
+          isAuthorized = isAdminUser({
+            id: user.id,
+            email: user.email,
+            role: profile?.role,
+            user_metadata: user.user_metadata,
+            app_metadata: user.app_metadata
+          })
+
+          if (isAuthorized) {
+            clientToUse = getAdminClientOrSession(supabase)
+          }
+        }
+      }
+    }
+
+    if (!isAuthorized) {
       return NextResponse.json({ error: 'No autorizado' }, { status: 401 })
     }
 
-    const { data: profile } = await supabase
-      .from('users')
-      .select('role')
-      .eq('id', user.id)
-      .maybeSingle()
-
-    const isAuthorized = isAdminUser({
-      id: user.id,
-      email: user.email,
-      role: profile?.role,
-      user_metadata: user.user_metadata,
-            app_metadata: user.app_metadata
-    })
-
-    if (!isAuthorized) {
-      return NextResponse.json({ error: 'Acceso denegado' }, { status: 403 })
+    if (!clientToUse) {
+      clientToUse = getAdminClientOrSession(null)
     }
-
-    const clientToUse = getAdminClientOrSession(supabase)
 
     const { data: booking, error: bookingErr } = await clientToUse
       .from('bookings')
@@ -54,7 +81,10 @@ export async function GET(request: Request) {
       return NextResponse.json({ error: 'Reserva no encontrada' }, { status: 404 })
     }
 
-    const contract = generateContractData(booking, booking.users, booking.campers)
+    const userObj = Array.isArray(booking.users) ? booking.users[0] : (booking.users || {})
+    const camperObj = Array.isArray(booking.campers) ? booking.campers[0] : (booking.campers || {})
+
+    const contract = generateContractData(booking, userObj, camperObj)
 
     // HTML imprimible: mismo contenido que el PDF del cliente (incluido el segundo conductor)
     const html = renderContractHtml(contract)

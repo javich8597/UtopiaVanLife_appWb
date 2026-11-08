@@ -25,12 +25,16 @@ import {
   Package,
   Waves,
   Check,
+  Copy,
+  Download,
   AlertTriangle,
-  Loader2
+  Loader2,
+  Send
 } from 'lucide-react'
 import { formatPrice } from '@/lib/pricing/engine'
 import { activePaymentAlerts } from '@/lib/admin/bookingStatus'
 import { adminBookingSecondDriver, bookingFlexDeposit, buildBreakdownLines, resolveBasePrice } from '@/lib/admin/bookingBreakdown'
+import { buildSesHospedajesReference } from '@/lib/sesHospedajes/xmlGenerator'
 import ApproveActionClient from './ApproveActionClient'
 import RefundActionClient from './RefundActionClient'
 
@@ -39,6 +43,51 @@ interface Props {
   onClose: () => void
   /** Se llama con las notas nuevas cuando el admin marca los avisos de pago como revisados */
   onAlertsReviewed?: (notes: string) => void
+}
+
+export interface SesSentInfo {
+  isSent: boolean
+  registryNumber?: string
+  sentAt?: string
+}
+
+export function parseSesSentInfo(notes?: string | null): SesSentInfo | null {
+  if (!notes || typeof notes !== 'string') return null
+  const regex = /\[SES\.HOSPEDAJES ENVIADO:\s*([^\]]+)\]/gi
+  let lastMatch: RegExpExecArray | null = null
+  let match: RegExpExecArray | null
+  while ((match = regex.exec(notes)) !== null) {
+    lastMatch = match
+  }
+  if (!lastMatch) return null
+
+  const content = lastMatch[1].trim()
+  const regMatch = content.match(/Reg(?:istro)?:\s*([A-Za-z0-9\-_./]+)/i)
+  const registryNumber = regMatch ? regMatch[1].trim() : undefined
+
+  const dateMatch = content.match(/a las\s*([^\s\]]+(?:\s+[^\s\]]+)*)/i)
+  let sentAt: string | undefined
+  if (dateMatch) {
+    const rawDate = dateMatch[1].trim()
+    const d = new Date(rawDate)
+    if (!isNaN(d.getTime())) {
+      sentAt = d.toLocaleDateString('es-ES', {
+        day: '2-digit',
+        month: '2-digit',
+        year: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit',
+      })
+    } else {
+      sentAt = rawDate
+    }
+  }
+
+  return {
+    isSent: true,
+    registryNumber,
+    sentAt,
+  }
 }
 
 interface NormalizedExtra {
@@ -54,8 +103,92 @@ interface NormalizedExtra {
 export default function BookingDetailModal({ booking, onClose, onAlertsReviewed }: Props) {
   useBodyScrollLock()
   const [showContractPreview, setShowContractPreview] = useState(false)
+  const [copiedRef, setCopiedRef] = useState(false)
   const [reviewing, setReviewing] = useState(false)
   const [reviewError, setReviewError] = useState<string | null>(null)
+
+  // SES.HOSPEDAJES Estados reactivos
+  const [sesSentState, setSesSentState] = useState<SesSentInfo | null>(() =>
+    parseSesSentInfo(booking?.notes)
+  )
+  const [transmittingSes, setTransmittingSes] = useState(false)
+  const [sesError, setSesError] = useState<string | null>(null)
+  const [sesSuccessMsg, setSesSuccessMsg] = useState<string | null>(null)
+
+  const handleCopyReference = async (ref: string) => {
+    try {
+      await navigator.clipboard.writeText(ref)
+      setCopiedRef(true)
+      setTimeout(() => setCopiedRef(false), 2000)
+    } catch (err) {
+      console.error('Error al copiar la referencia ministerial:', err)
+    }
+  }
+
+  const handleTransmitSes = async () => {
+    setTransmittingSes(true)
+    setSesError(null)
+    setSesSuccessMsg(null)
+
+    try {
+      const res = await fetch('/api/admin/ses-hospedajes/transmit', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ bookingId: booking.id }),
+      })
+      const data = await res.json().catch(() => ({}))
+
+      if (!res.ok || !data.success) {
+        const errorMsg =
+          data.error ||
+          data.message ||
+          'Error ministerial en la transmisión telemática con SES.HOSPEDAJES.'
+        throw new Error(errorMsg)
+      }
+
+      const formattedDate = data.sentAt
+        ? new Date(data.sentAt).toLocaleDateString('es-ES', {
+            day: '2-digit',
+            month: '2-digit',
+            year: 'numeric',
+            hour: '2-digit',
+            minute: '2-digit',
+          })
+        : new Date().toLocaleDateString('es-ES', {
+            day: '2-digit',
+            month: '2-digit',
+            year: 'numeric',
+            hour: '2-digit',
+            minute: '2-digit',
+          })
+
+      const newSentInfo: SesSentInfo = {
+        isSent: true,
+        registryNumber: data.registryNumber,
+        sentAt: formattedDate,
+      }
+      setSesSentState(newSentInfo)
+
+      setSesSuccessMsg(
+        data.registryNumber
+          ? `Registro ministerial completado. Código oficial: ${data.registryNumber}`
+          : (data.message || 'Parte telemático transmitido correctamente al Ministerio del Interior.')
+      )
+
+      if (onAlertsReviewed) {
+        const logEntry = data.registryNumber
+          ? `[SES.HOSPEDAJES ENVIADO: ${data.reference || sesReference} - Reg: ${data.registryNumber} a las ${data.sentAt || new Date().toISOString()}]`
+          : `[SES.HOSPEDAJES ENVIADO: ${data.reference || sesReference} - ${data.message || 'OK'} a las ${data.sentAt || new Date().toISOString()}]`
+        const currentNotes = typeof booking.notes === 'string' ? booking.notes : ''
+        const updatedNotes = currentNotes ? `${currentNotes}\n${logEntry}` : logEntry
+        onAlertsReviewed(updatedNotes)
+      }
+    } catch (err: any) {
+      setSesError(err.message || 'No se pudo completar la transmisión con SES.HOSPEDAJES.')
+    } finally {
+      setTransmittingSes(false)
+    }
+  }
 
   if (!booking) return null
 
@@ -85,6 +218,7 @@ export default function BookingDetailModal({ booking, onClose, onAlertsReviewed 
     }
   }
 
+  const sesReference = buildSesHospedajesReference(booking, booking.campers)
   const clientName = booking.customer_name || booking.users?.full_name || 'Viajero Utopia'
   const clientEmail = booking.customer_email || booking.users?.email || '-'
   const clientPhone = booking.customer_phone || booking.users?.phone || '-'
@@ -273,8 +407,8 @@ export default function BookingDetailModal({ booking, onClose, onAlertsReviewed 
               <Truck size={22} />
             </div>
             <div>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap' }}>
-                <h3 className="bm-title">Reserva #{booking.id.split('-')[0].toUpperCase()}</h3>
+              <div className="bm-title-row">
+                <h3 className="bm-title">Reserva {sesReference}</h3>
                 <span className={`status-badge status-${booking.status}`}>
                   {booking.status === 'confirmed' ? 'Confirmada' :
                    booking.status === 'active' ? 'En Curso' :
@@ -329,7 +463,7 @@ export default function BookingDetailModal({ booking, onClose, onAlertsReviewed 
               <div className="bm-field-list">
                 <div className="bm-field">
                   <span className="bm-label">Duración del Viaje</span>
-                  <strong style={{ fontSize: '1.05rem', color: 'var(--adm-sage)' }}>
+                  <strong className="bm-nights-val">
                     {nights} {nights === 1 ? 'noche' : 'noches'}
                   </strong>
                 </div>
@@ -350,19 +484,19 @@ export default function BookingDetailModal({ booking, onClose, onAlertsReviewed 
                 <div className="bm-field">
                   <span className="bm-label">Punto de Entrega / Recogida</span>
                   <div className="bm-val-sub flex-align">
-                    <MapPin size={13} style={{ color: 'var(--adm-text-2)', flexShrink: 0 }} /> {pickupLocation}
+                    <MapPin size={13} className="bm-icon-muted" /> {pickupLocation}
                   </div>
                 </div>
 
                 {/* KM Package */}
-                <div className="bm-field" style={{ paddingTop: 8, borderTop: '1px dashed var(--adm-border)' }}>
+                <div className="bm-field bm-field--divider">
                   <span className="bm-label">Paquete de Kilometraje</span>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginTop: 2 }}>
+                  <div className="bm-opt-wrap">
                     <span className={`bm-opt-badge ${kmBadgeClass}`}>
                       <Gauge size={13} /> {kmLabel}
                     </span>
                   </div>
-                  <p style={{ fontSize: '0.78rem', color: 'var(--adm-text-2)', margin: '3px 0 0' }}>
+                  <p className="bm-field-hint">
                     {isUnlimitedKm
                       ? `Kilometraje ilimitado sin recargos (+15 €/día × ${nights} días = +${formatPrice(kmSupplement)})`
                       : '150 km/día incluidos en tarifa de alquiler sin coste adicional.'}
@@ -370,14 +504,14 @@ export default function BookingDetailModal({ booking, onClose, onAlertsReviewed 
                 </div>
 
                 {/* Cancellation Policy */}
-                <div className="bm-field" style={{ paddingTop: 8, borderTop: '1px dashed var(--adm-border)' }}>
+                <div className="bm-field bm-field--divider">
                   <span className="bm-label">Política de Cancelación</span>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginTop: 2 }}>
+                  <div className="bm-opt-wrap">
                     <span className={`bm-opt-badge ${cancellationBadgeClass}`}>
                       <Shield size={13} /> {cancellationLabel}
                     </span>
                   </div>
-                  <p style={{ fontSize: '0.78rem', color: 'var(--adm-text-2)', margin: '3px 0 0' }}>
+                  <p className="bm-field-hint">
                     {isFlexibleCancel
                       ? `Reembolso 100% >30d, 50% 29-15d, 1 cambio gratis >15d (+8 €/día × ${nights} días = +${formatPrice(cancellationSupplement)})`
                       : 'Modificación de fechas gratuita hasta 60 días antes de la recogida.'}
@@ -398,39 +532,28 @@ export default function BookingDetailModal({ booking, onClose, onAlertsReviewed 
                 </div>
                 <div className="bm-field">
                   <span className="bm-label">DNI / NIE / Pasaporte</span>
-                  <div className="bm-val" style={{ fontFamily: 'monospace' }}>
+                  <div className="bm-val bm-val--mono">
                     {clientDni}
                   </div>
                 </div>
                 <div className="bm-field">
                   <span className="bm-label">Email</span>
                   <div className="bm-val flex-align">
-                    <Mail size={13} style={{ color: 'var(--adm-text-2)' }} />
-                    <a href={`mailto:${clientEmail}`} style={{ color: 'var(--adm-sage)', textDecoration: 'none' }}>
+                    <Mail size={13} className="bm-icon-muted" />
+                    <a href={`mailto:${clientEmail}`} className="bm-link-sage">
                       {clientEmail}
                     </a>
                   </div>
                 </div>
                 <div className="bm-field">
                   <span className="bm-label">Teléfono de Contacto</span>
-                  <div className="bm-val flex-align" style={{ flexWrap: 'wrap', gap: '8px' }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-                      <Phone size={13} style={{ color: 'var(--adm-text-2)' }} /> {clientPhone}
+                  <div className="bm-val flex-align bm-phone-row">
+                    <div className="bm-contact-item">
+                      <Phone size={13} className="bm-icon-muted" /> {clientPhone}
                     </div>
                     {telLink && (
-                      <div style={{ display: 'inline-flex', gap: '6px' }}>
-                        <a
-                          href={telLink}
-                          style={{
-                            fontSize: '0.72rem',
-                            fontWeight: 700,
-                            color: 'var(--adm-sage)',
-                            background: 'var(--adm-sage-soft)',
-                            padding: '2px 8px',
-                            borderRadius: '9999px',
-                            textDecoration: 'none',
-                          }}
-                        >
+                      <div className="bm-action-pills">
+                        <a href={telLink} className="bm-pill-tel">
                           Llamar
                         </a>
                         {whatsAppLink && (
@@ -438,15 +561,7 @@ export default function BookingDetailModal({ booking, onClose, onAlertsReviewed 
                             href={whatsAppLink}
                             target="_blank"
                             rel="noopener noreferrer"
-                            style={{
-                              fontSize: '0.72rem',
-                              fontWeight: 700,
-                              color: 'var(--adm-text-2)',
-                              background: 'var(--adm-surface-2)',
-                              padding: '2px 8px',
-                              borderRadius: '9999px',
-                              textDecoration: 'none',
-                            }}
+                            className="bm-pill-wa"
                           >
                             WhatsApp
                           </a>
@@ -456,9 +571,9 @@ export default function BookingDetailModal({ booking, onClose, onAlertsReviewed 
                   </div>
                 </div>
 
-                <div className="bm-field" style={{ paddingTop: 8, borderTop: '1px dashed var(--adm-border)' }}>
+                <div className="bm-field bm-field--divider">
                   <span className="bm-label">Dirección de Facturación</span>
-                  <div className="bm-val-sub" style={{ color: 'var(--adm-text)' }}>
+                  <div className="bm-val-sub bm-text-dark">
                     {billingAddress}
                   </div>
                 </div>
@@ -487,7 +602,7 @@ export default function BookingDetailModal({ booking, onClose, onAlertsReviewed 
 
                 <div className="bm-field">
                   <span className="bm-label">Peticiones o Notas Especiales</span>
-                  <div className="bm-val-sub" style={{ fontStyle: specialNotes !== 'Ninguna' ? 'normal' : 'italic', color: 'var(--adm-text-2)' }}>
+                  <div className={`bm-val-sub ${specialNotes !== 'Ninguna' ? '' : 'bm-italic'}`}>
                     {specialNotes}
                   </div>
                 </div>
@@ -497,12 +612,12 @@ export default function BookingDetailModal({ booking, onClose, onAlertsReviewed 
 
           {/* Categorized Extras */}
           <div className="bm-card bm-card--extras">
-            <h4 className="bm-card-title" style={{ color: 'var(--adm-text)', marginBottom: 12 }}>
+            <h4 className="bm-card-title bm-title-extras">
               <Package size={16} className="bm-icon-green" /> Extras y Experiencias Contratadas
             </h4>
 
             {parsedExtrasList.length === 0 ? (
-              <div style={{ padding: '8px 12px', background: 'var(--adm-surface-2)', borderRadius: 8, fontSize: '0.85rem', color: 'var(--adm-text-2)' }}>
+              <div className="bm-extras-default-note">
                 ✨ <strong>Equipamiento de Serie Utopia incluido:</strong> Vajilla y menaje completo, kit de limpieza eco, cable eléctrico 220V, manguera y cuñas de nivelación. Sin extras de pago adicionales.
               </div>
             ) : (
@@ -545,7 +660,7 @@ export default function BookingDetailModal({ booking, onClose, onAlertsReviewed 
 
           {/* Pricing & Financial Breakdown */}
           <div className="bm-card bm-card--pricing">
-            <h4 className="bm-card-title" style={{ color: 'var(--adm-sage)' }}>
+            <h4 className="bm-card-title bm-title-sage">
               <Euro size={16} /> Desglose Económico Pormenorizado
             </h4>
             <div className="bm-pricing-grid">
@@ -568,7 +683,7 @@ export default function BookingDetailModal({ booking, onClose, onAlertsReviewed 
 
               <div className="bm-price-total">
                 <div>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
+                  <div className="bm-paid-tag-wrap">
                     <span>Total Abonado</span>
                     {isPaid ? (
                       <span className="badge-paid-pill">
@@ -581,8 +696,8 @@ export default function BookingDetailModal({ booking, onClose, onAlertsReviewed 
                     )}
                   </div>
                   {redsysOrderId && (
-                    <div style={{ fontSize: '0.75rem', fontWeight: 500, color: 'var(--adm-text-2)', marginTop: 2 }}>
-                      Ref. Transacción: <code style={{ color: 'var(--adm-sage)' }}>{redsysOrderId}</code>
+                    <div className="bm-tx-ref">
+                      Ref. Transacción: <code className="bm-tx-code">{redsysOrderId}</code>
                     </div>
                   )}
                 </div>
@@ -590,11 +705,11 @@ export default function BookingDetailModal({ booking, onClose, onAlertsReviewed 
               </div>
 
               <div className="bm-deposit-box">
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                  <span style={{ fontWeight: 600, color: 'var(--adm-text)' }}>Fianza Informativa Reembolsable (bloqueo)</span>
-                  <strong style={{ color: 'var(--adm-text)' }}>{formatPrice(depositAmount)}</strong>
+                <div className="bm-deposit-header">
+                  <span className="bm-deposit-label">Fianza Informativa Reembolsable (bloqueo)</span>
+                  <strong className="bm-deposit-amount">{formatPrice(depositAmount)}</strong>
                 </div>
-                <p style={{ fontSize: '0.78rem', color: 'var(--adm-text-2)', margin: '4px 0 0' }}>
+                <p className="bm-deposit-note">
                   Bloqueo preventivo en tarjeta de crédito al momento del check-in. No se cobra por adelantado y se libera íntegramente tras la devolución de la camper.
                 </p>
               </div>
@@ -603,25 +718,150 @@ export default function BookingDetailModal({ booking, onClose, onAlertsReviewed 
 
           {/* Official Contract Box */}
           <div className="bm-card bm-card--contract">
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 12 }}>
+            <div className="bm-contract-box-content">
               <div>
-                <h4 className="bm-card-title" style={{ margin: 0, display: 'flex', alignItems: 'center', gap: 6 }}>
+                <h4 className="bm-card-title bm-contract-title">
                   <FileText size={16} /> Contrato de Alquiler Oficial
                 </h4>
-                <p style={{ fontSize: '0.82rem', color: 'var(--adm-text-2)', margin: '4px 0 0' }}>
+                <p className="bm-contract-desc">
                   Contrato legal de 31 artículos generado automáticamente con cláusulas, datos de la camper y firmas.
                 </p>
               </div>
 
-              <div style={{ display: 'flex', gap: 8 }}>
+              <div className="bm-contract-actions">
                 <a
                   href={`/api/admin/contract?bookingId=${booking.id}`}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="bm-btn bm-btn--primary"
-                  style={{ textDecoration: 'none' }}
+                  className="bm-btn bm-btn--primary bm-contract-link"
                 >
                   <ExternalLink size={14} /> Abrir / Imprimir PDF
+                </a>
+              </div>
+            </div>
+          </div>
+
+          {/* Official SES.HOSPEDAJES / RD 933/2021 Box */}
+          <div className="bm-card bm-card--ses">
+            <div className="bm-ses-header">
+              <div className="bm-ses-title-wrap">
+                <div className="bm-ses-title-left">
+                  <h4 className="bm-card-title bm-ses-title">
+                    <ShieldCheck size={18} className="bm-ses-icon" />
+                    <span>Comunicación Oficial SES.HOSPEDAJES (RD 933/2021)</span>
+                  </h4>
+                </div>
+                <div className="bm-ses-badges">
+                  {sesSentState?.isSent && (
+                    <span className="bm-ses-badge-sent">
+                      <Check size={12} strokeWidth={3} />
+                      <span>
+                        Registrado en Ministerio
+                        {sesSentState.registryNumber ? ` · Nº: ${sesSentState.registryNumber}` : ''}
+                        {sesSentState.sentAt ? ` (${sesSentState.sentAt})` : ''}
+                      </span>
+                    </span>
+                  )}
+                  <span className="bm-ses-badge">Ministerio del Interior</span>
+                </div>
+              </div>
+            </div>
+
+            <div className="bm-ses-body">
+              {sesSuccessMsg && (
+                <div className="bm-ses-feedback bm-ses-feedback--success" role="status">
+                  <CheckCircle2 size={16} className="bm-ses-feedback-icon" />
+                  <div className="bm-ses-feedback-body">
+                    <strong className="bm-ses-feedback-title">Transmisión Ministerial Confirmada</strong>
+                    <p className="bm-ses-feedback-text">{sesSuccessMsg}</p>
+                  </div>
+                </div>
+              )}
+
+              {sesError && (
+                <div className="bm-ses-feedback bm-ses-feedback--error" role="alert">
+                  <AlertCircle size={16} className="bm-ses-feedback-icon" />
+                  <div className="bm-ses-feedback-body">
+                    <strong className="bm-ses-feedback-title">Aviso de Servicio Web SES.HOSPEDAJES</strong>
+                    <p className="bm-ses-feedback-text">{sesError}</p>
+                  </div>
+                </div>
+              )}
+
+              <div className="bm-ses-ref-box">
+                <div className="bm-ses-ref-info">
+                  <span className="bm-label">Referencia Ministerial Oficial</span>
+                  <code className="bm-ses-ref-code">{sesReference}</code>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => handleCopyReference(sesReference)}
+                  className={`bm-btn-copy ${copiedRef ? 'bm-btn-copy--copied' : ''}`}
+                  title="Copiar referencia ministerial para SES.HOSPEDAJES"
+                  aria-label="Copiar referencia ministerial"
+                >
+                  {copiedRef ? (
+                    <>
+                      <Check size={13} />
+                      <span>¡Copiado!</span>
+                    </>
+                  ) : (
+                    <>
+                      <Copy size={13} />
+                      <span>Copiar Referencia</span>
+                    </>
+                  )}
+                </button>
+              </div>
+
+              <p className="bm-ses-note">
+                Transmisión telemática directa mediante Web Service SOAP oficial con el Ministerio del Interior. Puedes transmitir directamente con un clic o descargar el XML para importación manual en la Sede.
+              </p>
+
+              <div className="bm-ses-actions">
+                <button
+                  type="button"
+                  onClick={handleTransmitSes}
+                  disabled={transmittingSes}
+                  className="bm-btn bm-btn--primary bm-ses-btn-transmit"
+                  title="Transmitir parte de alquiler telemáticamente al Ministerio del Interior"
+                >
+                  {transmittingSes ? (
+                    <>
+                      <Loader2 size={14} className="bm-spin" />
+                      <span>Transmitiendo a SES.HOSPEDAJES...</span>
+                    </>
+                  ) : (
+                    <>
+                      <Send size={14} />
+                      <span>
+                        {sesSentState?.isSent
+                          ? 'Re-transmitir a SES.HOSPEDAJES'
+                          : 'Transmitir a SES.HOSPEDAJES'}
+                      </span>
+                    </>
+                  )}
+                </button>
+
+                <a
+                  href={`/api/admin/ses-hospedajes/xml?bookingId=${booking.id}`}
+                  download
+                  className="bm-btn bm-btn--secondary bm-ses-btn-dl"
+                  title="Descargar XML oficial para importación manual"
+                >
+                  <Download size={14} />
+                  <span>Descargar XML Oficial</span>
+                </a>
+
+                <a
+                  href="https://hospedajes.ses.mir.es/hospedajes-sede/#/comunicacion/alta-masiva"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="bm-btn bm-btn--secondary bm-ses-btn-ext"
+                  title="Abrir sección de Alta Masiva en la Sede Electrónica del Ministerio"
+                >
+                  <ExternalLink size={14} />
+                  <span>Abrir Sede Alta Masiva</span>
                 </a>
               </div>
             </div>
@@ -680,6 +920,7 @@ export default function BookingDetailModal({ booking, onClose, onAlertsReviewed 
           padding: 20px 24px;
           border-bottom: 1px solid var(--adm-border);
           background: var(--adm-surface-2);
+          flex-shrink: 0;
         }
 
         .bm-header-left {
@@ -727,13 +968,6 @@ export default function BookingDetailModal({ booking, onClose, onAlertsReviewed 
           color: var(--adm-text);
         }
 
-        .bm-body {
-          padding: 24px;
-          overflow-y: auto;
-          display: flex;
-          flex-direction: column;
-          gap: 18px;
-        }
 
         .bm-alert__list {
           margin: 6px 0 0;
@@ -755,15 +989,32 @@ export default function BookingDetailModal({ booking, onClose, onAlertsReviewed 
         @keyframes bm-alert-spin {
           to { transform: rotate(360deg); }
         }
-        @media (max-width: 640px) {
-          .bm-alert {
-            flex-wrap: wrap;
-          }
-          .bm-alert :global(.adm-btn) {
-            width: 100%;
-            min-height: 44px;
-            justify-content: center;
-          }
+
+        .bm-body {
+          padding: 24px;
+          padding-bottom: 36px;
+          flex: 1 1 auto;
+          min-height: 0;
+          overflow-y: auto;
+          overscroll-behavior: contain;
+          display: flex;
+          flex-direction: column;
+          gap: 18px;
+          scrollbar-width: thin;
+          scrollbar-color: var(--adm-border-strong) transparent;
+        }
+
+        .bm-body::-webkit-scrollbar {
+          width: 6px;
+        }
+
+        .bm-body::-webkit-scrollbar-track {
+          background: transparent;
+        }
+
+        .bm-body::-webkit-scrollbar-thumb {
+          background: var(--adm-border-strong);
+          border-radius: 9999px;
         }
 
         .bm-grid {
@@ -787,6 +1038,264 @@ export default function BookingDetailModal({ booking, onClose, onAlertsReviewed 
         .bm-card--contract {
           background: var(--adm-surface-2);
           border-color: var(--adm-border);
+        }
+
+        .bm-card--ses {
+          background: var(--adm-surface-2);
+          border: 1px solid var(--adm-border);
+          border-radius: 12px;
+          position: relative;
+          padding: 20px 22px;
+        }
+
+        .bm-card--ses::before {
+          content: '';
+          position: absolute;
+          top: 0;
+          left: 0;
+          right: 0;
+          height: 3px;
+          border-radius: 12px 12px 0 0;
+          background: linear-gradient(90deg, var(--adm-sage) 0%, #D97706 100%);
+        }
+
+        .bm-ses-header {
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          margin-bottom: 12px;
+        }
+
+        .bm-ses-title-wrap {
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          width: 100%;
+          flex-wrap: wrap;
+          gap: 10px;
+        }
+
+        .bm-ses-title-left {
+          display: flex;
+          align-items: center;
+        }
+
+        .bm-ses-title {
+          margin: 0;
+          color: var(--adm-text);
+          font-size: 0.92rem;
+          font-weight: 700;
+          display: flex;
+          align-items: center;
+          gap: 8px;
+        }
+
+        .bm-ses-icon {
+          color: var(--adm-sage);
+          flex-shrink: 0;
+        }
+
+        .bm-ses-badges {
+          display: flex;
+          align-items: center;
+          gap: 8px;
+          flex-wrap: wrap;
+        }
+
+        .bm-ses-badge {
+          display: inline-flex;
+          align-items: center;
+          font-size: 0.7rem;
+          font-weight: 700;
+          text-transform: uppercase;
+          letter-spacing: 0.04em;
+          padding: 3px 9px;
+          border-radius: 9999px;
+          background: var(--adm-gold-soft);
+          color: var(--adm-gold-text);
+          border: 1px solid rgba(217, 119, 6, 0.25);
+        }
+
+        .bm-ses-badge-sent {
+          display: inline-flex;
+          align-items: center;
+          gap: 5px;
+          font-size: 0.72rem;
+          font-weight: 700;
+          padding: 3px 10px;
+          border-radius: 9999px;
+          background: var(--adm-sage-soft);
+          color: var(--adm-sage);
+          border: 1px solid var(--adm-sage);
+          letter-spacing: 0.01em;
+        }
+
+        .bm-ses-body {
+          display: flex;
+          flex-direction: column;
+          gap: 12px;
+        }
+
+        .bm-ses-feedback {
+          display: flex;
+          align-items: flex-start;
+          gap: 10px;
+          padding: 10px 14px;
+          border-radius: 8px;
+          font-size: 0.82rem;
+          line-height: 1.4;
+          animation: bmFadeIn 0.2s ease-out;
+        }
+
+        @keyframes bmFadeIn {
+          from { opacity: 0; transform: translateY(-4px); }
+          to { opacity: 1; transform: translateY(0); }
+        }
+
+        .bm-ses-feedback--success {
+          background: var(--adm-sage-soft);
+          border: 1px solid var(--adm-sage);
+          color: var(--adm-text);
+        }
+
+        .bm-ses-feedback--success .bm-ses-feedback-icon {
+          color: var(--adm-sage);
+          margin-top: 2px;
+          flex-shrink: 0;
+        }
+
+        .bm-ses-feedback--error {
+          background: var(--adm-amber-soft, #fef3c7);
+          border: 1px solid var(--adm-amber, #d97706);
+          color: var(--adm-text);
+        }
+
+        .bm-ses-feedback--error .bm-ses-feedback-icon {
+          color: var(--adm-amber, #d97706);
+          margin-top: 2px;
+          flex-shrink: 0;
+        }
+
+        .bm-ses-feedback-body {
+          display: flex;
+          flex-direction: column;
+          gap: 2px;
+          min-width: 0;
+        }
+
+        .bm-ses-feedback-title {
+          font-weight: 700;
+          font-size: 0.84rem;
+        }
+
+        .bm-ses-feedback-text {
+          margin: 0;
+          color: var(--adm-text-2);
+          word-break: break-word;
+        }
+
+        .bm-ses-ref-box {
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          gap: 12px;
+          background: var(--adm-surface);
+          border: 1px solid var(--adm-border);
+          border-radius: 8px;
+          padding: 10px 14px;
+        }
+
+        .bm-ses-ref-info {
+          display: flex;
+          flex-direction: column;
+          gap: 2px;
+          min-width: 0;
+        }
+
+        .bm-ses-ref-code {
+          font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+          font-size: 0.88rem;
+          font-weight: 700;
+          color: var(--adm-sage);
+          word-break: break-all;
+        }
+
+        .bm-btn-copy {
+          display: inline-flex;
+          align-items: center;
+          gap: 6px;
+          background: var(--adm-surface-2);
+          color: var(--adm-text);
+          border: 1px solid var(--adm-border-strong);
+          border-radius: 6px;
+          padding: 6px 12px;
+          font-size: 0.78rem;
+          font-weight: 600;
+          cursor: pointer;
+          white-space: nowrap;
+          transition: all 0.15s ease;
+          flex-shrink: 0;
+        }
+
+        .bm-btn-copy:hover {
+          background: var(--adm-border);
+          color: var(--adm-text);
+        }
+
+        .bm-btn-copy--copied {
+          background: var(--adm-sage-soft);
+          color: var(--adm-sage);
+          border-color: var(--adm-sage);
+        }
+
+        .bm-ses-note {
+          font-size: 0.82rem;
+          line-height: 1.45;
+          color: var(--adm-text-2);
+          margin: 0;
+        }
+
+        .bm-ses-actions {
+          display: flex;
+          align-items: center;
+          gap: 10px;
+          flex-wrap: wrap;
+          padding-top: 4px;
+        }
+
+        .bm-ses-btn-transmit,
+        .bm-btn--ses-transmit {
+          background: var(--adm-sage);
+          color: #ffffff;
+          font-weight: 700;
+        }
+
+        .bm-ses-btn-transmit:hover:not(:disabled),
+        .bm-btn--ses-transmit:hover:not(:disabled) {
+          opacity: 0.92;
+        }
+
+        .bm-ses-btn-transmit:disabled,
+        .bm-btn--ses-transmit:disabled {
+          opacity: 0.65;
+          cursor: not-allowed;
+        }
+
+        .bm-spin {
+          animation: bmSpin 1s linear infinite;
+        }
+
+        @keyframes bmSpin {
+          from { transform: rotate(0deg); }
+          to { transform: rotate(360deg); }
+        }
+
+        .bm-ses-btn-dl {
+          text-decoration: none;
+        }
+
+        .bm-ses-btn-ext {
+          text-decoration: none;
         }
 
         .bm-card-title {
@@ -1038,6 +1547,7 @@ export default function BookingDetailModal({ booking, onClose, onAlertsReviewed 
           background: var(--adm-surface-2);
           flex-wrap: wrap;
           gap: 12px;
+          flex-shrink: 0;
         }
 
         .bm-footer-actions {
@@ -1068,12 +1578,200 @@ export default function BookingDetailModal({ booking, onClose, onAlertsReviewed 
           background: var(--adm-border);
         }
 
+        .bm-title-row {
+          display: flex;
+          align-items: center;
+          gap: 10px;
+          flex-wrap: wrap;
+        }
+
+        .bm-nights-val {
+          font-size: 1.05rem;
+          color: var(--adm-sage);
+        }
+
+        .bm-icon-muted {
+          color: var(--adm-text-2);
+          flex-shrink: 0;
+        }
+
+        .bm-field--divider {
+          padding-top: 8px;
+          border-top: 1px dashed var(--adm-border);
+        }
+
+        .bm-opt-wrap {
+          display: flex;
+          align-items: center;
+          gap: 8px;
+          margin-top: 2px;
+        }
+
+        .bm-field-hint {
+          font-size: 0.78rem;
+          color: var(--adm-text-2);
+          margin: 3px 0 0;
+        }
+
+        .bm-val--mono {
+          font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+        }
+
+        .bm-link-sage {
+          color: var(--adm-sage);
+          text-decoration: none;
+        }
+        .bm-link-sage:hover {
+          text-decoration: underline;
+        }
+
+        .bm-phone-row {
+          flex-wrap: wrap;
+          gap: 8px;
+        }
+
+        .bm-contact-item {
+          display: flex;
+          align-items: center;
+          gap: 6px;
+        }
+
+        .bm-action-pills {
+          display: inline-flex;
+          gap: 6px;
+        }
+
+        .bm-pill-tel {
+          font-size: 0.72rem;
+          font-weight: 700;
+          color: var(--adm-sage);
+          background: var(--adm-sage-soft);
+          padding: 2px 8px;
+          border-radius: 9999px;
+          text-decoration: none;
+          display: inline-flex;
+          align-items: center;
+        }
+
+        .bm-pill-wa {
+          font-size: 0.72rem;
+          font-weight: 700;
+          color: var(--adm-text-2);
+          background: var(--adm-surface-2);
+          padding: 2px 8px;
+          border-radius: 9999px;
+          text-decoration: none;
+          display: inline-flex;
+          align-items: center;
+        }
+
+        .bm-text-dark {
+          color: var(--adm-text);
+        }
+
+        .bm-italic {
+          font-style: italic;
+          color: var(--adm-text-2);
+        }
+
+        .bm-title-extras {
+          color: var(--adm-text);
+          margin-bottom: 12px;
+        }
+
+        .bm-extras-default-note {
+          padding: 8px 12px;
+          background: var(--adm-surface-2);
+          border-radius: 8px;
+          font-size: 0.85rem;
+          color: var(--adm-text-2);
+        }
+
+        .bm-title-sage {
+          color: var(--adm-sage);
+        }
+
+        .bm-price-row--discount {
+          color: var(--adm-sage);
+        }
+
+        .bm-paid-tag-wrap {
+          display: flex;
+          align-items: center;
+          gap: 8px;
+          flex-wrap: wrap;
+        }
+
+        .bm-tx-ref {
+          font-size: 0.75rem;
+          font-weight: 500;
+          color: var(--adm-text-2);
+          margin-top: 2px;
+        }
+
+        .bm-tx-code {
+          color: var(--adm-sage);
+          font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+        }
+
+        .bm-deposit-header {
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+        }
+
+        .bm-deposit-label {
+          font-weight: 600;
+          color: var(--adm-text);
+        }
+
+        .bm-deposit-amount {
+          color: var(--adm-text);
+        }
+
+        .bm-deposit-note {
+          font-size: 0.78rem;
+          color: var(--adm-text-2);
+          margin: 4px 0 0;
+        }
+
+        .bm-contract-box-content {
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          flex-wrap: wrap;
+          gap: 12px;
+        }
+
+        .bm-contract-title {
+          margin: 0;
+          display: flex;
+          align-items: center;
+          gap: 6px;
+        }
+
+        .bm-contract-desc {
+          font-size: 0.82rem;
+          color: var(--adm-text-2);
+          margin: 4px 0 0;
+        }
+
+        .bm-contract-actions {
+          display: flex;
+          gap: 8px;
+        }
+
+        .bm-contract-link {
+          text-decoration: none;
+        }
+
         .bm-btn--primary {
           background: var(--adm-sage);
-          color: var(--adm-surface);
+          color: #ffffff;
         }
         .bm-btn--primary:hover {
           background: var(--adm-sage);
+          opacity: 0.92;
         }
 
         @media (max-width: 640px) {
@@ -1089,8 +1787,24 @@ export default function BookingDetailModal({ booking, onClose, onAlertsReviewed 
           .bm-header {
             padding: 14px 16px;
           }
+
+          .bm-alert {
+            flex-wrap: wrap;
+          }
+          .bm-alert :global(.adm-btn) {
+            width: 100%;
+            min-height: 44px;
+            justify-content: center;
+          }
+          .bm-close-btn {
+            min-width: 44px;
+            min-height: 44px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+          }
           .bm-body {
-            padding: 16px;
+            padding: 16px 16px 36px 16px;
             gap: 14px;
           }
           .bm-grid {
@@ -1109,7 +1823,49 @@ export default function BookingDetailModal({ booking, onClose, onAlertsReviewed 
           }
           .bm-btn {
             width: 100%;
+            min-height: 44px;
             justify-content: center;
+          }
+          .bm-ses-title-wrap {
+            flex-direction: column;
+            align-items: flex-start;
+            gap: 8px;
+          }
+          .bm-ses-badges {
+            width: 100%;
+            flex-wrap: wrap;
+            gap: 6px;
+          }
+          .bm-ses-badge-sent {
+            width: 100%;
+            justify-content: flex-start;
+            padding: 4px 10px;
+            font-size: 0.72rem;
+            white-space: normal;
+            word-break: break-word;
+          }
+          .bm-ses-feedback {
+            padding: 10px 12px;
+          }
+          .bm-ses-ref-box {
+            flex-direction: column;
+            align-items: stretch;
+            gap: 10px;
+          }
+          .bm-ses-actions {
+            flex-direction: column;
+            width: 100%;
+            gap: 8px;
+          }
+          .bm-ses-actions .bm-btn {
+            width: 100%;
+            min-height: 44px;
+            justify-content: center;
+          }
+          .bm-btn-copy {
+            width: 100%;
+            justify-content: center;
+            min-height: 44px;
           }
         }
 

@@ -8,8 +8,9 @@
  * 3. Calcular descuento por estancia según tramos dinámicos de días
  * 4. Sumar paquete de kilometraje (150 km incluidos vs ilimitado +15€/día)
  * 5. Sumar política de cancelación (estándar vs flexible +8€/día)
- * 6. Sumar extras categorizados (por día o fijos)
- * 7. Fianza informativa reembolsable de la camper (1.000 €)
+ * 6. Sumar el 2º conductor (incluido con fianza Flex, +5€/día con fianza Estándar)
+ * 7. Sumar extras categorizados (por día o fijos)
+ * 8. Fianza informativa reembolsable de la camper (1.000 €)
  */
 
 import {
@@ -37,6 +38,12 @@ export * from './types'
 // ==========================================
 
 const MS_PER_DAY = 24 * 60 * 60 * 1000
+
+/**
+ * Suplemento diario del 2º conductor con fianza Estándar (2.000 €). Con fianza Flex (1.000 €)
+ * va incluido sin coste. Decisión de negocio de Javier: como máximo un 2º conductor por reserva.
+ */
+export const SECOND_DRIVER_RATE_PER_DAY = 5
 
 export function formatDateToString(date: Date | string): string {
     if (typeof date === 'string') {
@@ -157,6 +164,7 @@ export function calculatePriceV2({
     selectedExtras = [],
     depositOption = 'standard_2000',
     depositAmount,
+    secondDriver = false,
 }: CalculatePriceV2Params): PricingBreakdown {
     const sDate = typeof rawStartDate === 'string' ? new Date(rawStartDate) : rawStartDate
     const eDate = typeof rawEndDate === 'string' ? new Date(rawEndDate) : rawEndDate
@@ -168,8 +176,10 @@ export function calculatePriceV2({
         ? depositAmount
         : (resolvedDepositOption === 'flex_1000' ? 1000 : 2000)
 
+    const hasSecondDriver = Boolean(secondDriver)
+
     if (baseNights <= 0) {
-        return emptyBreakdown(finalDeposit, Number(camperBasePrice) || 0, resolvedDepositOption)
+        return emptyBreakdown(finalDeposit, Number(camperBasePrice) || 0, resolvedDepositOption, hasSecondDriver)
     }
 
     const baseCamper = (typeof camperBasePrice === 'number' && !isNaN(camperBasePrice))
@@ -236,7 +246,11 @@ export function calculatePriceV2({
     const flexDepositSupplement = Math.round(flexDepositRatePerDay * totalDays * 100) / 100
     const includesSecondDriver = resolvedDepositOption === 'flex_1000'
 
-    // 6. Extras Categorizados
+    // 6. Segundo conductor (Flex: incluido, 0 € | Estándar: 5.00 €/día * totalDays)
+    const secondDriverRatePerDay = hasSecondDriver && !includesSecondDriver ? SECOND_DRIVER_RATE_PER_DAY : 0
+    const secondDriverSupplement = Math.round(secondDriverRatePerDay * totalDays * 100) / 100
+
+    // 7. Extras Categorizados
     const rawExtras = extrasSelected && extrasSelected.length > 0 ? extrasSelected : selectedExtras
     const itemizedExtras: ItemizedExtra[] = (rawExtras || []).map((e: any, index: number) => {
         const qty = typeof e.quantity === 'number' && e.quantity > 0 ? e.quantity : 1
@@ -258,11 +272,11 @@ export function calculatePriceV2({
 
     const extrasTotal = Math.round(itemizedExtras.reduce((sum, item) => sum + item.total, 0) * 100) / 100
 
-    // 7. Totales finales
-    const payableTotal = Math.round((discountedBaseTotal + kmSupplement + cancellationSupplement + flexDepositSupplement + extrasTotal) * 100) / 100
+    // 8. Totales finales
+    const payableTotal = Math.round((discountedBaseTotal + kmSupplement + cancellationSupplement + flexDepositSupplement + secondDriverSupplement + extrasTotal) * 100) / 100
     const grandTotalWithDeposit = Math.round((payableTotal + finalDeposit) * 100) / 100
 
-    // 8. Desglose transparente de IVA (21%)
+    // 9. Desglose transparente de IVA (21%)
     const netTotal = Math.round((payableTotal / 1.21) * 100) / 100
     const vatAmount = Math.round((payableTotal - netTotal) * 100) / 100
 
@@ -295,6 +309,9 @@ export function calculatePriceV2({
         flexDepositRatePerDay,
         flexDepositSupplement,
         includesSecondDriver,
+        secondDriver: hasSecondDriver,
+        secondDriverRatePerDay,
+        secondDriverSupplement,
         vatPct: 21,
         vatRate: 0.21,
         netTotal,
@@ -465,6 +482,9 @@ export function calculatePrice(
         flexDepositRatePerDay: 0,
         flexDepositSupplement: 0,
         includesSecondDriver: false,
+        secondDriver: false,
+        secondDriverRatePerDay: 0,
+        secondDriverSupplement: 0,
         vatPct: 21,
         vatRate: 0.21,
         netTotal,
@@ -485,7 +505,12 @@ function findSeason(date: Date, seasons: Season[]): Season | undefined {
     return seasons.find(s => s.start_date <= dateStr && s.end_date >= dateStr)
 }
 
-function emptyBreakdown(depositAmount: number, camperBasePrice: number = 0, depositOption: DepositOption = 'standard_2000'): PricingBreakdown {
+function emptyBreakdown(
+    depositAmount: number,
+    camperBasePrice: number = 0,
+    depositOption: DepositOption = 'standard_2000',
+    secondDriver: boolean = false
+): PricingBreakdown {
     const isFlex = depositOption === 'flex_1000' || (depositOption as any) === 'flex'
     const resolvedOption: DepositOption = isFlex ? 'flex_1000' : 'standard_2000'
     const numDeposit = Number(depositAmount) || (isFlex ? 1000 : 2000)
@@ -518,6 +543,10 @@ function emptyBreakdown(depositAmount: number, camperBasePrice: number = 0, depo
         flexDepositRatePerDay: isFlex ? 10 : 0,
         flexDepositSupplement: 0,
         includesSecondDriver: isFlex,
+        secondDriver,
+        // Sin noches no hay nada que cobrar: la tarifa diaria se ve en el desglose cuando ya hay fechas
+        secondDriverRatePerDay: 0,
+        secondDriverSupplement: 0,
         vatPct: 21,
         vatRate: 0.21,
         netTotal: 0,

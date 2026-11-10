@@ -874,13 +874,13 @@ export default function BookingCalendar({
                     box-shadow: 0 4px 10px rgba(204, 160, 83, 0.35);
                 }
 
-                @media (min-width: 769px) {
+                @media (min-width: 861px) {
                     .hide-desktop {
                         visibility: hidden;
                         pointer-events: none;
                     }
                 }
-                @media (max-width: 768px) {
+                @media (max-width: 860px) {
                     .booking-cal {
                         width: 100% !important;
                         max-width: 330px !important;

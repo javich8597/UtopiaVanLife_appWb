@@ -2,6 +2,8 @@ import { createClient } from '@/lib/supabase/server'
 import { redirect } from '@/i18n/routing'
 import DriverDataClient from './DriverDataClient'
 import { getAdminClientOrSession } from '@/lib/admin/auth'
+import { LIVE_BOOKING_STATUSES } from '@/lib/booking/secondDriver'
+import { upcomingSecondDriverBookings } from '@/lib/user/secondDriverBookings'
 
 export const metadata = {
     title: 'Datos y carnet | Utopia Van Life',
@@ -42,7 +44,27 @@ export default async function DriverDataPage({
         rejectionReason = lastRejection?.rejected_reason || null
     }
 
+    // El 2º conductor pertenece a la RESERVA, no al perfil: el formulario refleja las reservas pagadas
+    // y con viaje por delante que lo llevan. Antes se tomaba la más antigua que lo llevara, y un viaje
+    // ya terminado tapaba a la reserva próxima: su documentación no se podía subir por ninguna pantalla.
+    // Aquí solo se consulta; cuál se ofrece y en qué orden lo decide `upcomingSecondDriverBookings`.
+    // `select('*')` como la ruta de subida: las columnas second_driver_* de bookings pueden no estar
+    // aplicadas todavía, y a la pantalla solo llegan los campos que elige esa función
+    const { data: liveBookings } = await supabase
+        .from('bookings')
+        .select('*')
+        .eq('user_id', user.id)
+        .eq('payment_status', 'paid')
+        .in('status', LIVE_BOOKING_STATUSES as unknown as string[])
+
+    const secondDriverBookings = upcomingSecondDriverBookings(liveBookings || [])
+
     return (
-        <DriverDataClient user={user} profile={profile} rejectionReason={rejectionReason} />
+        <DriverDataClient
+            user={user}
+            profile={profile}
+            rejectionReason={rejectionReason}
+            secondDriverBookings={secondDriverBookings}
+        />
     )
 }

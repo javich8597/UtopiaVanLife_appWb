@@ -26,16 +26,25 @@ import {
 import { validateDriverLicense } from '@/lib/contracts/licenseValidator'
 import { prepareDocumentsForUpload } from '@/lib/compressDocumentImage'
 import { interpretUploadResponse, MAX_SOURCE_FILE_BYTES } from '@/lib/documentUploadBudget'
+import { formatTripRange, type SecondDriverBooking } from '@/lib/user/secondDriverBookings'
 
 // Esta pantalla está en español: mismos textos que CheckoutSuccess en messages/es.json
 const FILES_TOO_LARGE_MESSAGE = 'Tus archivos pesan demasiado para enviarlos juntos (unos 4 MB en total). Haz otra foto de los documentos o súbelos en formato JPG: los PDF y algunas fotos HEIC no se pueden reducir. Lo que has escrito sigue aquí.'
 const CONNECTION_ERROR_MESSAGE = 'No hemos podido enviar la documentación. Revisa tu conexión e inténtalo de nuevo: no has perdido nada de lo que has escrito.'
 const UNREADABLE_RESPONSE_MESSAGE = 'No hemos podido confirmar que la documentación se haya guardado. Inténtalo de nuevo en unos segundos.'
+// Solo se muestra: lo que se envía es el dato de la ficha, vacío si la ficha no lo trae
+const SECOND_DRIVER_PENDING_LABEL = 'Pendiente de verificación'
 
 interface Props {
   user: any
   profile: any
   rejectionReason?: string | null
+  /**
+   * Reservas pagadas y con viaje por delante que autorizan a un 2º conductor, de la más próxima a la
+   * más lejana (la primera es la que se marca por defecto). Si está vacía, el formulario no pide ni
+   * afirma nada del 2º conductor: el perfil ya no manda.
+   */
+  secondDriverBookings?: SecondDriverBooking[]
 }
 
 interface UploadedFilePreview {
@@ -43,7 +52,7 @@ interface UploadedFilePreview {
   previewUrl: string | null
 }
 
-export default function DriverDataClient({ user, profile, rejectionReason }: Props) {
+export default function DriverDataClient({ user, profile, rejectionReason, secondDriverBookings = [] }: Props) {
   const searchParams = useSearchParams()
   const router = useRouter()
   const isMissingContractData = searchParams.get('reason') === 'missing_contract_data'
@@ -57,11 +66,25 @@ export default function DriverDataClient({ user, profile, rejectionReason }: Pro
   const [phone, setPhone] = useState(profile?.phone || '')
   const [address, setAddress] = useState(profile?.address || '')
   
-  // Segundo conductor
-  const [hasSecondDriver, setHasSecondDriver] = useState(profile?.has_second_driver || false)
-  const [secondDriverFullName, setSecondDriverFullName] = useState(profile?.second_driver_name || '')
-  const [secondDriverDni, setSecondDriverDni] = useState(profile?.second_driver_dni || '')
-  const [secondDriverLicense, setSecondDriverLicense] = useState(profile?.second_driver_license || '')
+  // Segundo conductor: lo decide la RESERVA que lo lleva, no el perfil. Un `has_second_driver`
+  // antiguo en el perfil no debe pedir sus datos ni, sobre todo, impedir que el titular guarde los
+  // suyos: la ruta solo acepta al 2º conductor que autoriza una reserva viva y pagada.
+  // Con varias reservas se elige a cuál corresponde lo que se sube; por defecto, la próxima
+  const [selectedBookingId, setSelectedBookingId] = useState(secondDriverBookings[0]?.bookingId || '')
+  const secondDriverBooking = secondDriverBookings.find(b => b.bookingId === selectedBookingId) || null
+  // Nombre, documento y nº de carnet son SOLO los de la ficha de esa reserva, y nunca se teclean:
+  // la subida rechaza cualquier otro. No se leen del perfil: `second_driver_*` puede ser el 2º
+  // conductor de OTRA reserva del mismo cliente y acabaría en el contrato de esta. Lo que la ficha
+  // no trae queda vacío (se muestra como pendiente) y se completa escribiéndonos
+  const [hasSecondDriver, setHasSecondDriver] = useState(Boolean(secondDriverBooking))
+  const secondDriverFullName = secondDriverBooking?.fullName || ''
+  const secondDriverDni = secondDriverBooking?.dniNie || ''
+  const secondDriverLicense = secondDriverBooking?.licenseId || ''
+  const secondDriverPending = [
+    secondDriverFullName ? null : 'El nombre',
+    secondDriverDni ? null : 'El documento',
+    secondDriverLicense ? null : 'El número de carnet',
+  ].filter((label): label is string => label !== null)
 
   // Archivos del conductor principal
   const [dniFront, setDniFront] = useState<UploadedFilePreview>({ file: null, previewUrl: profile?.dni_front_url || null })
@@ -69,9 +92,21 @@ export default function DriverDataClient({ user, profile, rejectionReason }: Pro
   const [licenseFront, setLicenseFront] = useState<UploadedFilePreview>({ file: null, previewUrl: profile?.license_front_url || null })
   const [licenseBack, setLicenseBack] = useState<UploadedFilePreview>({ file: null, previewUrl: profile?.license_back_url || null })
 
-  // Archivos del segundo conductor
-  const [secondLicenseFront, setSecondLicenseFront] = useState<UploadedFilePreview>({ file: null, previewUrl: profile?.second_license_front_url || profile?.second_driver_license_front_url || null })
-  const [secondLicenseBack, setSecondLicenseBack] = useState<UploadedFilePreview>({ file: null, previewUrl: profile?.second_license_back_url || profile?.second_driver_license_back_url || null })
+  // Archivos del segundo conductor. No hay vista previa de las ya enviadas: viven en Storage, en la
+  // carpeta de la reserva (`<cliente>/<reserva>/second_*`), y ninguna columna del perfil guarda su
+  // ruta. Solo se reenvían si el cliente elige otras; las que ya envió no se tocan
+  const [secondLicenseFront, setSecondLicenseFront] = useState<UploadedFilePreview>({ file: null, previewUrl: null })
+  const [secondLicenseBack, setSecondLicenseBack] = useState<UploadedFilePreview>({ file: null, previewUrl: null })
+
+  // Cambiar de reserva cambia a la persona: sus datos salen de la ficha elegida y las fotos
+  // elegidas no se arrastran
+  const handleSelectBooking = (bookingId: string) => {
+    const next = secondDriverBookings.find(b => b.bookingId === bookingId)
+    if (!next || bookingId === selectedBookingId) return
+    setSelectedBookingId(bookingId)
+    setSecondLicenseFront({ file: null, previewUrl: null })
+    setSecondLicenseBack({ file: null, previewUrl: null })
+  }
 
   // Estado del formulario
   const [status, setStatus] = useState<string>(profile?.verification_status || 'not_submitted')
@@ -172,8 +207,17 @@ export default function DriverDataClient({ user, profile, rejectionReason }: Pro
         if (!field.startsWith('second_')) formData.append(field, preparedFiles[index])
       })
 
-      formData.append('hasSecondDriver', hasSecondDriver ? 'true' : 'false')
-      if (hasSecondDriver) {
+      // Solo se manda el 2º conductor si hay una reserva que lo autorice, y se dice cuál: la ruta
+      // comprueba contra esa reserva que el documento sea el de la persona autorizada
+      const sendSecondDriver = hasSecondDriver && Boolean(secondDriverBooking)
+      // Sin reserva que lo autorice no se afirma nada: un `has_second_driver` antiguo del perfil no
+      // debe hacer que este guardado le quite la validación al titular. Con reserva, apagar el
+      // interruptor sí es una baja explícita
+      if (sendSecondDriver || secondDriverBooking || !profile?.has_second_driver) {
+        formData.append('hasSecondDriver', sendSecondDriver ? 'true' : 'false')
+      }
+      if (sendSecondDriver) {
+        formData.append('bookingId', secondDriverBooking!.bookingId)
         formData.append('secondDriverFullName', secondDriverFullName)
         formData.append('secondDriverDni', secondDriverDni)
         formData.append('secondDriverLicense', secondDriverLicense)
@@ -666,36 +710,88 @@ export default function DriverDataClient({ user, profile, rejectionReason }: Pro
           <div className="second-driver-header">
             <div>
               <h2 className="form-card__title">Segundo Conductor</h2>
-              <p className="form-card__subtitle">Habilitar si otra persona va a compartir la conducción del vehículo</p>
+              <p className="form-card__subtitle">
+                {secondDriverBooking
+                  ? 'Sube aquí la documentación de la persona autorizada en tu reserva'
+                  : 'El segundo conductor se contrata en la reserva. Escríbenos para añadirlo y después podrás subir su documentación aquí.'}
+              </p>
             </div>
 
             <label className="custom-switch" htmlFor="hasSecondDriverToggle">
-              <input 
+              <input
                 id="hasSecondDriverToggle"
                 name="hasSecondDriver"
                 aria-label="Habilitar segundo conductor"
-                type="checkbox" 
+                type="checkbox"
                 checked={hasSecondDriver}
+                disabled={!secondDriverBooking}
                 onChange={e => setHasSecondDriver(e.target.checked)}
               />
               <span className="custom-switch-slider" />
             </label>
           </div>
 
-          {hasSecondDriver && (
+          {hasSecondDriver && secondDriverBooking && (
             <div className="second-driver-body">
+              {secondDriverBookings.length > 1 ? (
+                <fieldset className="trip-picker">
+                  <legend className="trip-picker__legend">
+                    Tienes varias reservas con segundo conductor. Elige a cuál corresponde lo que vas a subir:
+                  </legend>
+                  <div className="trip-picker__options">
+                    {secondDriverBookings.map((option, index) => (
+                      <label
+                        key={option.bookingId}
+                        className={`trip-option ${option.bookingId === selectedBookingId ? 'trip-option--selected' : ''}`}
+                      >
+                        <input
+                          type="radio"
+                          name="secondDriverBookingId"
+                          value={option.bookingId}
+                          checked={option.bookingId === selectedBookingId}
+                          onChange={() => handleSelectBooking(option.bookingId)}
+                          className="trip-option__radio"
+                        />
+                        <span className="trip-option__mark" aria-hidden="true" />
+                        <span className="trip-option__text">
+                          <span className="trip-option__dates">
+                            Reserva {formatTripRange(option.startDate, option.endDate)}
+                            {index === 0 && <span className="trip-option__chip">Próxima</span>}
+                          </span>
+                          <span className="trip-option__person">
+                            {option.fullName ? `Segundo conductor: ${option.fullName}` : 'Segundo conductor autorizado'}
+                          </span>
+                        </span>
+                      </label>
+                    ))}
+                  </div>
+                </fieldset>
+              ) : null}
+
+              <p className="trip-context" role="status">
+                Estás subiendo la documentación de{' '}
+                <strong>{secondDriverBooking.fullName || 'la persona autorizada'}</strong> para tu reserva{' '}
+                <strong>{formatTripRange(secondDriverBooking.startDate, secondDriverBooking.endDate)}</strong>.
+              </p>
+
+              <p id="secondDriverFromBooking" className="second-driver-locked-note">
+                {secondDriverPending.length === 0
+                  ? 'El nombre, el documento y el número de carnet de esta persona salen de tu reserva y no se pueden cambiar aquí. Si necesitas cambiar de persona, escríbenos y lo gestionamos contigo.'
+                  : `${secondDriverPending.map(label => `${label} de esta persona está pendiente de verificación.`).join(' ')} Para completar sus datos, escríbenos y lo gestionamos contigo: no se pueden escribir aquí. Lo que ya consta sale de tu reserva y tampoco se puede cambiar aquí.`}
+              </p>
+
               <div className="form-grid-3">
                 <div className="field-block">
                   <label className="field-label" htmlFor="secondDriverFullName">Nombre y Apellidos</label>
                   <div className="field-input-box">
-                    <input 
+                    <input
                       id="secondDriverFullName"
                       name="secondDriverFullName"
-                      type="text" 
-                      placeholder="Nombre del segundo conductor..."
-                      value={secondDriverFullName}
-                      onChange={e => setSecondDriverFullName(e.target.value)}
-                      className="field-input"
+                      type="text"
+                      value={secondDriverFullName || SECOND_DRIVER_PENDING_LABEL}
+                      readOnly
+                      aria-describedby="secondDriverFromBooking"
+                      className="field-input field-input--readonly"
                     />
                   </div>
                 </div>
@@ -703,14 +799,14 @@ export default function DriverDataClient({ user, profile, rejectionReason }: Pro
                 <div className="field-block">
                   <label className="field-label" htmlFor="secondDriverDni">DNI / Pasaporte</label>
                   <div className="field-input-box">
-                    <input 
+                    <input
                       id="secondDriverDni"
                       name="secondDriverDni"
-                      type="text" 
-                      placeholder="DNI o NIE..."
-                      value={secondDriverDni}
-                      onChange={e => setSecondDriverDni(e.target.value)}
-                      className="field-input"
+                      type="text"
+                      value={secondDriverDni || SECOND_DRIVER_PENDING_LABEL}
+                      readOnly
+                      aria-describedby="secondDriverFromBooking"
+                      className="field-input field-input--readonly"
                     />
                   </div>
                 </div>
@@ -718,14 +814,14 @@ export default function DriverDataClient({ user, profile, rejectionReason }: Pro
                 <div className="field-block">
                   <label className="field-label" htmlFor="secondDriverLicense">Nº Carnet Conducir</label>
                   <div className="field-input-box">
-                    <input 
+                    <input
                       id="secondDriverLicense"
                       name="secondDriverLicense"
-                      type="text" 
-                      placeholder="Nº de carnet..."
-                      value={secondDriverLicense}
-                      onChange={e => setSecondDriverLicense(e.target.value)}
-                      className="field-input"
+                      type="text"
+                      value={secondDriverLicense || SECOND_DRIVER_PENDING_LABEL}
+                      readOnly
+                      aria-describedby="secondDriverFromBooking"
+                      className="field-input field-input--readonly"
                     />
                   </div>
                 </div>
@@ -734,6 +830,9 @@ export default function DriverDataClient({ user, profile, rejectionReason }: Pro
               {/* Subida carnet segundo conductor */}
               <div className="second-driver-upload-section">
                 <span className="dropzone-section-title">CARNET DEL SEGUNDO CONDUCTOR</span>
+                <p className="second-driver-saved-note">
+                  Si ya enviaste las fotos de su carnet, siguen guardadas: no hace falta subirlas otra vez. Solo súbelas de nuevo si quieres cambiarlas.
+                </p>
                 <div className="dropzone-grid-2">
                   <div className="dropzone-card">
                     <span className="dropzone-card-label">Anverso (Frontal)</span>
@@ -1312,6 +1411,152 @@ export default function DriverDataClient({ user, profile, rejectionReason }: Pro
           margin-top: var(--space-4);
         }
 
+        /* Selector de reserva del segundo conductor */
+        .trip-picker {
+          border: none;
+          margin: 0 0 var(--space-4);
+          padding: 0;
+          min-width: 0;
+        }
+
+        .trip-picker__legend {
+          padding: 0;
+          margin-bottom: 10px;
+          font-size: 0.84rem;
+          font-weight: 700;
+          color: var(--usr-text);
+          line-height: 1.4;
+        }
+
+        .trip-picker__options {
+          display: flex;
+          flex-direction: column;
+          gap: 8px;
+        }
+
+        .trip-option {
+          position: relative;
+          display: flex;
+          align-items: center;
+          gap: 12px;
+          min-height: 56px;
+          padding: 10px 14px;
+          border: 1.5px solid var(--usr-border-strong);
+          border-radius: 12px;
+          background: var(--usr-input-bg);
+          cursor: pointer;
+          transition: border-color 0.2s ease, background 0.2s ease;
+        }
+
+        .trip-option:hover {
+          border-color: var(--usr-text-3);
+        }
+
+        .trip-option--selected {
+          border-color: var(--usr-gold);
+          background: var(--usr-gold-soft);
+        }
+
+        .trip-option__radio {
+          position: absolute;
+          opacity: 0;
+          width: 100%;
+          height: 100%;
+          inset: 0;
+          margin: 0;
+          cursor: pointer;
+        }
+
+        .trip-option__radio:focus-visible + .trip-option__mark {
+          box-shadow: 0 0 0 4px var(--usr-gold-soft);
+          border-color: var(--usr-gold);
+        }
+
+        .trip-option__mark {
+          flex-shrink: 0;
+          width: 20px;
+          height: 20px;
+          border-radius: 50%;
+          border: 2px solid var(--usr-border-strong);
+          background: var(--usr-surface);
+          position: relative;
+        }
+
+        .trip-option--selected .trip-option__mark {
+          border-color: var(--usr-gold);
+        }
+
+        .trip-option--selected .trip-option__mark::after {
+          content: '';
+          position: absolute;
+          inset: 3px;
+          border-radius: 50%;
+          background: var(--usr-gold);
+        }
+
+        .trip-option__text {
+          display: flex;
+          flex-direction: column;
+          gap: 2px;
+          min-width: 0;
+        }
+
+        .trip-option__dates {
+          display: flex;
+          align-items: center;
+          flex-wrap: wrap;
+          gap: 8px;
+          font-size: 0.88rem;
+          font-weight: 700;
+          color: var(--usr-text);
+        }
+
+        .trip-option__chip {
+          font-size: 0.68rem;
+          font-weight: 700;
+          letter-spacing: 0.06em;
+          text-transform: uppercase;
+          color: var(--usr-sage);
+          background: var(--usr-sage-soft);
+          border: 1px solid var(--usr-sage-line);
+          border-radius: var(--radius-full);
+          padding: 2px 8px;
+        }
+
+        .trip-option__person {
+          font-size: 0.8rem;
+          color: var(--usr-text-2);
+          overflow-wrap: anywhere;
+        }
+
+        .trip-context {
+          margin: 0 0 var(--space-4);
+          font-size: 0.86rem;
+          line-height: 1.5;
+          color: var(--usr-text);
+        }
+
+        .field-input--readonly {
+          background: var(--usr-surface-2);
+          color: var(--usr-text-2);
+          border-color: var(--usr-border);
+          cursor: default;
+        }
+
+        .second-driver-locked-note {
+          margin: 0 0 var(--space-4);
+          font-size: 0.8rem;
+          line-height: 1.45;
+          color: var(--usr-text-2);
+        }
+
+        .second-driver-saved-note {
+          margin: -4px 0 12px;
+          font-size: 0.78rem;
+          line-height: 1.45;
+          color: var(--usr-text-2);
+        }
+
         /* Security Bar */
         .security-bar {
           background: var(--usr-surface-2);
@@ -1522,6 +1767,10 @@ export default function DriverDataClient({ user, profile, rejectionReason }: Pro
           .profile-alert-box {
             padding: 12px 14px;
             gap: 10px;
+          }
+          .trip-option {
+            min-height: 60px;
+            padding: 12px;
           }
         }
       `}</style>

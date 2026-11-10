@@ -117,7 +117,7 @@ describe('QA punta a punta', () => {
             const { status } = await flows.checkout(step5Payload({ depositOption: 'flex_1000' }, {
                 depositOption: 'flex_1000',
                 travelersCount: 2,
-                passengers: [{ fullName: 'Luis Gómez', dniNie: '87654321X', birthDate: '1990-01-01', licenseDate: '2015-01-01', isSecondDriver: true }],
+                passengers: [{ fullName: 'Luis Gómez', dniNie: '87654321X', birthDate: '1990-01-01', licenseDate: '2015-01-01', driverLicenseId: 'B-4455667', isSecondDriver: true }],
             }))
             assert.equal(status, 200)
         })

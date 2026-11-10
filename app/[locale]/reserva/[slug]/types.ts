@@ -1,5 +1,6 @@
 import {
     formatPhoneWithPrefix,
+    isValidLicenseIdText,
     isValidPersonName,
     isValidPhoneText,
     isValidTypedAddress,
@@ -131,6 +132,12 @@ export interface BookingPassenger {
     birthDate?: string // YYYY-MM-DD (con cálculo reactivo de edad)
     isSecondDriver?: boolean
     licenseDate?: string // YYYY-MM-DD (requerido si isSecondDriver)
+    /**
+     * Número del permiso de conducir, obligatorio si `isSecondDriver` (decisión de Javier,
+     * 2026-11-09). Los tres datos de esa persona (nombre, documento y nº de carnet) salen de la
+     * ficha de la reserva: si el asistente no lo pide, el contrato imprime siempre «Pendiente».
+     */
+    driverLicenseId?: string
 }
 
 export interface Step5Customer {
@@ -391,6 +398,62 @@ export function validateStep4(data: Step4Data): { isValid: boolean; error?: stri
     return { isValid: true }
 }
 
+/**
+ * Fichas de 2º conductor que el asistente está mostrando: las de los acompañantes visibles más la
+ * del bloque "solo" (1 viajero). Es la misma cuenta que envía el paso 5 y que recalcula el servidor.
+ * La fianza no entra: el 2º conductor vale con las dos (Flex lo incluye, Estándar lo cobra).
+ */
+export function countStep5SecondDrivers(
+    data: Pick<Step5Customer, 'travelersCount' | 'passengers' | 'secondDriverSoloEnabled'>,
+    effectiveTravelersCount?: number
+): number {
+    // El mismo valor efectivo que usa Step5Checkout (`customer.travelersCount || step1.pax || 1`):
+    // un borrador antiguo sin travelersCount descuadraba el resumen frente a lo que se cobra
+    const travelers = effectiveTravelersCount || data.travelersCount || 1
+    const visible = (data.passengers || []).slice(0, Math.max(0, travelers - 1))
+    const marked = visible.filter(p => p.isSecondDriver).length
+    return marked + (travelers === 1 && data.secondDriverSoloEnabled ? 1 : 0)
+}
+
+/** ¿El asistente lleva un 2º conductor? Es lo que decide si el desglose cobra su suplemento */
+export function step5HasSecondDriver(
+    data: Pick<Step5Customer, 'travelersCount' | 'passengers' | 'secondDriverSoloEnabled'>,
+    effectiveTravelersCount?: number
+): boolean {
+    return countStep5SecondDrivers(data, effectiveTravelersCount) > 0
+}
+
+/**
+ * Borrador del paso 5 recuperado de sessionStorage, normalizado: los borradores anteriores a
+ * `travelersCount` llegan sin ese campo y el resumen contaba un 2º conductor distinto del que se
+ * cobra. El número de viajeros del paso 1 es el que manda.
+ */
+export function normalizeStep5Draft<T extends Partial<Step5Customer>>(
+    draft: T,
+    paxFromStep1: number
+): T & { travelersCount: number } {
+    const travelers = Number(draft?.travelersCount) || Number(paxFromStep1) || 1
+    return { ...draft, travelersCount: Math.max(1, Math.floor(travelers)) }
+}
+
+/**
+ * Número de permiso de conducir del 2º conductor: obligatorio desde el paso 5 (decisión de Javier,
+ * 2026-11-09) y con la misma regla que la subida de documentación (`isValidLicenseIdText`).
+ *
+ * Los tres datos de esa persona (nombre, documento y nº de carnet) salen de la ficha de la reserva:
+ * si el asistente no lo pide, ninguna ficha lo trae y el contrato imprime siempre «Pendiente».
+ */
+export function validateSecondDriverLicenseId(value: string | undefined | null): { isValid: boolean; error?: string } {
+    const sent = typeof value === 'string' ? value.trim() : ''
+    if (!sent) {
+        return { isValid: false, error: 'Número del permiso de conducir obligatorio: es el que se autoriza en el contrato' }
+    }
+    if (!isValidLicenseIdText(sent)) {
+        return { isValid: false, error: 'El número del permiso de conducir solo puede tener letras, números y los signos . / - (entre 3 y 30 caracteres)' }
+    }
+    return { isValid: true }
+}
+
 export function validateStep5(
     data: Step5Customer,
     maxCamperBerths: number = 4
@@ -486,8 +549,9 @@ export function validateStep5(
                 }
             }
 
-            // Si es Fianza Flex y está marcado como 2º conductor
-            if (data.depositOption === 'flex_1000' && passenger.isSecondDriver) {
+            // Marcado como 2º conductor: se valida con cualquier fianza (con Flex va incluido,
+            // con Estándar cuesta SECOND_DRIVER_RATE_PER_DAY). Sus fechas son obligatorias
+            if (passenger.isSecondDriver) {
                 if (!passenger.birthDate) {
                     errors[`passenger_${pNum}_birthDate`] = `Fecha de nacimiento requerida para 2º conductor (Pasajero ${pNum})`
                 } else {
@@ -504,12 +568,22 @@ export function validateStep5(
                         errors[`passenger_${pNum}_licenseDate`] = `2º Conductor (Pasajero ${pNum}): ${licCheck.error}`
                     }
                 }
+                // Nº de carnet: tan obligatorio como las fechas, y es lo que imprime el contrato
+                const licIdCheck = validateSecondDriverLicenseId(passenger.driverLicenseId)
+                if (!licIdCheck.isValid) {
+                    errors[`passenger_${pNum}_driverLicenseId`] = `2º Conductor (Pasajero ${pNum}): ${licIdCheck.error}`
+                }
             }
         })
     }
 
-    // Validar 2º conductor opcional para 1 solo viajero con Fianza Flex
-    if (data.travelersCount === 1 && data.depositOption === 'flex_1000' && data.secondDriverSoloEnabled) {
+    // Como máximo un 2º conductor por reserva, sea cual sea la fianza
+    if (countStep5SecondDrivers(data) > 1) {
+        errors.secondDriver = 'Solo un acompañante puede ser 2º conductor: desmarca los demás'
+    }
+
+    // Validar el 2º conductor opcional cuando viaja 1 sola persona (con cualquier fianza)
+    if (data.travelersCount === 1 && data.secondDriverSoloEnabled) {
         const sec = data.secondDriverSolo || { fullName: '', dniNie: '', birthDate: '', licenseDate: '' }
         if (!sec.fullName || sec.fullName.trim().length < 3) {
             errors.secondDriverSolo_fullName = 'Nombre y apellidos completos requeridos para el 2º conductor'
@@ -535,6 +609,11 @@ export function validateStep5(
             if (!licCheck.isValid) {
                 errors.secondDriverSolo_licenseDate = `2º Conductor: ${licCheck.error}`
             }
+        }
+        // Nº de carnet: tan obligatorio como las fechas, y es lo que imprime el contrato
+        const soloLicIdCheck = validateSecondDriverLicenseId(sec.driverLicenseId)
+        if (!soloLicIdCheck.isValid) {
+            errors.secondDriverSolo_driverLicenseId = `2º Conductor: ${soloLicIdCheck.error}`
         }
     }
 

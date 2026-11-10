@@ -1,2 +1,7 @@
 - [Validación de textos de clientes](validacion-textos-clientes.md) — valores a probar; comparar paso 5 con la ruta sobre el valor guardado; email sin unificar
 - [Árbol en movimiento](verificar-arbol-en-movimiento.md) — otros agentes editan durante QA; sellos de hora, rerun final, mutaciones en copia con unión
+- [Tests que pasan con y sin el cambio](tests-que-copian-el-paso-5.md) — copias del paso 5, nombres heredados, aserciones ancladas a una pantalla; fronteras vivas del 2º conductor
+- [Mutar para validar tests](mutar-para-validar-tests.md) — receta de mutación en copia (copiar los `??`, CRLF, reloj fijo) y las mutaciones que sobrevivieron en verde
+- [Regla y pantalla del 2º conductor](regla-y-pantalla-segundo-conductor.md) — las dos listas que deciden el plazo de subida, ya alineadas; orden de la regla y trampa del fixture compartido
+- [Suite con un test inestable](suite-con-test-inestable.md) — el `Set-Cookie` con `Expires` de checkoutRoute falla por el reloj: un rojo puede no ser del cambio
+- [Política de conservación de documentación](politica-conservacion-documentacion.md) — 100 días / 3 años: borrado a medias sin traza, tope sin orden, nadie llama a la ruta, el atajo `bookingId`

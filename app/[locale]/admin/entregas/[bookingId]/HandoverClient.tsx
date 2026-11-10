@@ -2,26 +2,45 @@
 
 import { useMemo, useState } from 'react'
 import { Link, useRouter } from '@/i18n/routing'
-import { ArrowLeft, Check, Camera, IdCard, Gauge, Video, ListChecks, PenLine, Loader2, AlertTriangle, Plus } from 'lucide-react'
+import { ArrowLeft, Check, Camera, IdCard, Users, Gauge, Video, ListChecks, PenLine, Loader2, AlertTriangle, Plus } from 'lucide-react'
 import AdminPageHeader from '../../AdminPageHeader'
 import VideoRecorder from './VideoRecorder'
 import SignaturePad from './SignaturePad'
-import { CHECKLIST, FUEL_LEVELS, handoverSteps, kmSummary, type HandoverKind } from '@/lib/handover/checklist'
+import {
+  CHECKLIST,
+  FUEL_LEVELS,
+  SECOND_DRIVER_CHECKS,
+  SECOND_DRIVER_NO_PHOTOS_CHECK,
+  handoverSteps,
+  kmSummary,
+  secondDriverStepProblems,
+  type HandoverKind,
+  type SecondDriverStepInput,
+} from '@/lib/handover/checklist'
 import { compressImage, uploadWithSignedUrl } from '@/lib/handover/media'
 import { buildSesHospedajesReference } from '@/lib/sesHospedajes/xmlGenerator'
+import type { SecondDriverDocGroup } from '@/lib/admin/secondDriverDocuments'
 
 interface Props {
   kind: HandoverKind
   booking: any
   customer: any
   licensePhotos: string[]
+  /** Segundo conductor de esta reserva y sus fotos; vacío si la reserva no lleva ninguno */
+  secondDriverGroups?: SecondDriverDocGroup[]
+  /** Fotos sueltas de una subida anterior: no son de esta reserva y no cuentan para la casilla del carnet */
+  earlierSecondDriverUpload?: SecondDriverDocGroup | null
+  /** Avisos de la lectura de Storage (fallo o recorte) */
+  secondDriverNotices?: string[]
+  /** Lo que consta en la reserva sobre su segundo conductor; null si la reserva no lleva ninguno (no hay paso) */
+  secondDriverStep?: SecondDriverStepInput | null
   initial: any | null
   pickupKm: number | null
 }
 
 const fmtDay = (d: string) => new Date(d).toLocaleDateString('es-ES', { weekday: 'short', day: 'numeric', month: 'short', timeZone: 'UTC' })
 
-export default function HandoverClient({ kind, booking, customer, licensePhotos, initial, pickupKm }: Props) {
+export default function HandoverClient({ kind, booking, customer, licensePhotos, secondDriverGroups = [], earlierSecondDriverUpload = null, secondDriverNotices = [], secondDriverStep = null, initial, pickupKm }: Props) {
   const router = useRouter()
   const [h, setH] = useState<any>(initial || { kind, checklist: {}, damage_photo_paths: [], damagePhotoUrls: [] })
   const [kmInput, setKmInput] = useState<string>(initial?.km != null ? String(initial.km) : '')
@@ -29,7 +48,34 @@ export default function HandoverClient({ kind, booking, customer, licensePhotos,
   const [error, setError] = useState<string | null>(null)
   const [signature, setSignature] = useState<string | null>(null)
   const isDone = Boolean(h.completed_at)
-  const steps = useMemo(() => handoverSteps({ ...h, customer_signature: h.customer_signature || signature }), [h, signature])
+  // El paso del segundo conductor solo existe en la entrega de recogida y si la reserva lleva uno
+  const secondDriver = kind === 'pickup' ? secondDriverStep : null
+  const steps = useMemo(
+    () => handoverSteps({ ...h, customer_signature: h.customer_signature || signature }, { secondDriver }),
+    [h, signature, secondDriver]
+  )
+  // Los pasos siguientes se numeran a partir de aquí: el del segundo conductor desplaza una posición
+  const stepNo = (base: number) => base + (secondDriver ? 1 : 0)
+  const secondDriverProblems = secondDriver
+    ? secondDriverStepProblems(secondDriver)
+    : { missingData: [] as string[], missingPhotos: [] as string[], photosUnknown: false }
+  const secondDriverGroup = secondDriverGroups.find(g => !g.legacy) ?? null
+  // Lo que consta en la reserva, en el orden en que se compara con el documento físico
+  const secondDriverFacts: Array<[string, string]> = secondDriver
+    ? [
+        ['Nombre', secondDriver.fullName],
+        ['DNI/NIE/pasaporte', secondDriver.document],
+        ['Nº de carnet', secondDriver.licenseId],
+        ['Nacimiento', secondDriver.birthDate ? fmtDay(secondDriver.birthDate) : ''],
+        ['Carnet expedido', secondDriver.licenseDate ? fmtDay(secondDriver.licenseDate) : ''],
+      ]
+    : []
+  const secondDriverPhotoSlots: Array<[string, string | null]> = [
+    ['DNI/NIE (anverso)', secondDriverGroup?.urls.dniFrontUrl ?? null],
+    ['DNI/NIE (reverso)', secondDriverGroup?.urls.dniBackUrl ?? null],
+    ['Carnet (anverso)', secondDriverGroup?.urls.licenseFrontUrl ?? null],
+    ['Carnet (reverso)', secondDriverGroup?.urls.licenseBackUrl ?? null],
+  ]
   const doneCount = steps.filter(s => s.done).length
   const camper = Array.isArray(booking.campers) ? booking.campers[0] : booking.campers
   const title = kind === 'pickup' ? 'Entrega de la camper' : 'Devolución de la camper'
@@ -125,7 +171,7 @@ export default function HandoverClient({ kind, booking, customer, licensePhotos,
 
       {kind === 'pickup' && (
         <section className={`adm-card ho-step ${stepDone('license') ? 'ho-step--done' : ''}`}>
-          <h2 className="ho-step__title"><IdCard size={18} /> 1. Comprobar el carnet de conducir</h2>
+          <h2 className="ho-step__title"><IdCard size={18} /> 1. Comprobar el carnet del titular</h2>
           <p className="ho-muted">
             {customer?.full_name || booking.customer_name} · Carnet {customer?.driver_license_id || 'sin número'}
             {customer?.driver_license_expiry_date ? ` · Caduca ${fmtDay(customer.driver_license_expiry_date)}` : ''}
@@ -133,7 +179,7 @@ export default function HandoverClient({ kind, booking, customer, licensePhotos,
           </p>
           {licensePhotos.length > 0 ? (
             <div className="ho-photos">
-              {licensePhotos.map(url => <img key={url} src={url} alt="Carnet subido por el cliente" className="ho-photo" />)}
+              {licensePhotos.map(url => <img key={url} src={url} alt="Carnet del titular subido por el cliente" className="ho-photo" />)}
             </div>
           ) : (
             <p className="ho-muted">El cliente no ha subido fotos del carnet: compruébalo y pídele que las suba desde su perfil.</p>
@@ -145,13 +191,116 @@ export default function HandoverClient({ kind, booking, customer, licensePhotos,
               disabled={isDone || saving === 'license'}
               onChange={e => { const v = e.target.checked; setH((p: any) => ({ ...p, license_checked: v })); save({ license_checked: v }, 'license').catch(() => {}) }}
             />
-            <span>He visto el carnet físico: coincide con la persona, está en vigor y tiene más de 2 años</span>
+            <span>He visto el carnet físico del titular: coincide con la persona, está en vigor y tiene más de 2 años</span>
           </label>
         </section>
       )}
 
+      {secondDriver && (
+        <section className={`adm-card ho-step ${stepDone('second_driver') ? 'ho-step--done' : ''}`} aria-labelledby="ho-second-title">
+          <h2 id="ho-second-title" className="ho-step__title"><Users size={18} /> 2. Comprobar al segundo conductor</h2>
+          <p className="ho-muted">
+            Es otra persona distinta del titular. Compara su carnet y su documento físicos con lo que consta en la reserva y con las fotos que subió el cliente.
+          </p>
+
+          <dl className="ho-facts">
+            {secondDriverFacts.map(([label, value]) => (
+              <div key={label} className="ho-fact">
+                <dt>{label}</dt>
+                <dd>{value ? value : <span className="adm-chip adm-chip--rose">Falta en la reserva</span>}</dd>
+              </div>
+            ))}
+          </dl>
+
+          {secondDriverProblems.missingData.length > 0 && (
+            <div className="adm-note adm-note--alert ho-note" role="alert">
+              <AlertTriangle size={16} aria-hidden="true" />
+              <span>
+                La reserva no trae: {secondDriverProblems.missingData.join(', ')}. Sin esos datos no hay contra qué comparar y no se puede cerrar la entrega.{' '}
+                <Link href={`/admin/bookings?id=${booking.id}&open=true`} className="ho-link">Completar la ficha desde el detalle de la reserva</Link>
+              </span>
+            </div>
+          )}
+          {secondDriver.requirementWarning && (
+            <div className="adm-note adm-note--alert ho-note" role="alert">
+              <AlertTriangle size={16} aria-hidden="true" />
+              <span>{secondDriver.requirementWarning}</span>
+            </div>
+          )}
+          {secondDriverNotices.length > 0 && (
+            <div className="adm-note ho-error" role="alert">
+              <AlertTriangle size={16} />
+              <span>{secondDriverNotices.join(' ')}</span>
+            </div>
+          )}
+
+          <div className="ho-photos">
+            {secondDriverPhotoSlots.map(([label, url]) => (
+              <figure key={label} className="ho-slot">
+                {url ? (
+                  <img src={url} alt={`Segundo conductor: ${label}, subido por el cliente`} className="ho-photo" />
+                ) : (
+                  <div className="ho-photo ho-photo--empty">Sin foto</div>
+                )}
+                <figcaption>{label}</figcaption>
+              </figure>
+            ))}
+          </div>
+          {secondDriverProblems.photosUnknown ? (
+            <p className="ho-muted">No se pudo leer qué fotos hay: no des por bueno un «Sin foto» sin recargar la página.</p>
+          ) : secondDriverProblems.missingPhotos.length > 0 ? (
+            <p className="ho-muted">Faltan fotos: {secondDriverProblems.missingPhotos.join(', ')}. Pide al titular que las suba desde su perfil o, si lo compruebas en persona, confírmalo abajo.</p>
+          ) : null}
+
+          <div className="ho-list">
+            {SECOND_DRIVER_CHECKS.map(item => (
+              <label key={item.id} className="ho-check">
+                <input
+                  type="checkbox"
+                  checked={Boolean((h.checklist || {})[item.id])}
+                  disabled={isDone || secondDriverProblems.missingData.length > 0}
+                  onChange={() => toggleCheck(item.id)}
+                />
+                <span>{item.label}</span>
+              </label>
+            ))}
+            {(secondDriverProblems.missingPhotos.length > 0 || secondDriverProblems.photosUnknown) && (
+              <label className="ho-check">
+                <input
+                  type="checkbox"
+                  checked={Boolean((h.checklist || {})[SECOND_DRIVER_NO_PHOTOS_CHECK.id])}
+                  disabled={isDone || secondDriverProblems.missingData.length > 0}
+                  onChange={() => toggleCheck(SECOND_DRIVER_NO_PHOTOS_CHECK.id)}
+                />
+                <span>{SECOND_DRIVER_NO_PHOTOS_CHECK.label}</span>
+              </label>
+            )}
+          </div>
+          {isDone && !stepDone('second_driver') && (
+            <p className="ho-muted">Esta entrega se cerró sin registrar la comprobación del segundo conductor.</p>
+          )}
+
+          {earlierSecondDriverUpload && (
+            <div className="ho-earlier">
+              <p className="ho-muted">
+                <strong>Fotos de una subida anterior</strong>
+                <span className="adm-chip adm-chip--amber ho-chip">No son de esta reserva</span>
+              </p>
+              <p className="ho-muted">
+                Están sueltas en la carpeta del cliente, de antes de que cada reserva guardara sus documentos. Pueden ser de otra persona: no sirven para comprobar al segundo conductor de esta reserva y las casillas de arriba no las cuentan.
+              </p>
+              <div className="ho-photos">
+                {[earlierSecondDriverUpload.urls.licenseFrontUrl, earlierSecondDriverUpload.urls.licenseBackUrl]
+                  .filter((u): u is string => Boolean(u))
+                  .map(url => <img key={url} src={url} alt="Carnet de una subida anterior, puede ser de otra persona" className="ho-photo ho-photo--earlier" />)}
+              </div>
+            </div>
+          )}
+        </section>
+      )}
+
       <section className={`adm-card ho-step ${stepDone('km') ? 'ho-step--done' : ''}`}>
-        <h2 className="ho-step__title"><Gauge size={18} /> {kind === 'pickup' ? '2' : '1'}. Kilómetros y cuadro de mando</h2>
+        <h2 className="ho-step__title"><Gauge size={18} /> {stepNo(kind === 'pickup' ? 2 : 1)}. Kilómetros y cuadro de mando</h2>
         <div className="ho-row">
           <label className="ho-field">
             <span>Kilómetros</span>
@@ -188,7 +337,7 @@ export default function HandoverClient({ kind, booking, customer, licensePhotos,
 
       {(['exterior', 'interior'] as const).map((side, i) => (
         <section key={side} className={`adm-card ho-step ${stepDone(side) ? 'ho-step--done' : ''}`}>
-          <h2 className="ho-step__title"><Video size={18} /> {(kind === 'pickup' ? 3 : 2) + i}. Vídeo {side}</h2>
+          <h2 className="ho-step__title"><Video size={18} /> {stepNo(kind === 'pickup' ? 3 : 2) + i}. Vídeo {side}</h2>
           {isDone ? (
             h[`${side}VideoUrl`] && <video src={h[`${side}VideoUrl`]} controls playsInline preload="metadata" className="ho-video" />
           ) : (
@@ -203,7 +352,7 @@ export default function HandoverClient({ kind, booking, customer, licensePhotos,
       ))}
 
       <section className={`adm-card ho-step ${stepDone('checklist') ? 'ho-step--done' : ''}`}>
-        <h2 className="ho-step__title"><ListChecks size={18} /> {kind === 'pickup' ? '5' : '4'}. Revisión</h2>
+        <h2 className="ho-step__title"><ListChecks size={18} /> {stepNo(kind === 'pickup' ? 5 : 4)}. Revisión</h2>
         <div className="ho-list">
           {CHECKLIST[kind].map(item => (
             <label key={item.id} className="ho-check">
@@ -232,7 +381,7 @@ export default function HandoverClient({ kind, booking, customer, licensePhotos,
       </section>
 
       <section className={`adm-card ho-step ${stepDone('signature') ? 'ho-step--done' : ''}`}>
-        <h2 className="ho-step__title"><PenLine size={18} /> {kind === 'pickup' ? '6' : '5'}. Firma del cliente</h2>
+        <h2 className="ho-step__title"><PenLine size={18} /> {stepNo(kind === 'pickup' ? 6 : 5)}. Firma del cliente</h2>
         {h.customer_signature ? (
           <img src={h.customer_signature} alt="Firma del cliente" className="ho-signature" />
         ) : (
@@ -254,6 +403,9 @@ export default function HandoverClient({ kind, booking, customer, licensePhotos,
           {doneCount < steps.length && (
             <span className="ho-muted">Falta: {steps.filter(s => !s.done).map(s => s.label).join(', ')}</span>
           )}
+          {doneCount < steps.length && steps.some(s => !s.done && s.detail) && (
+            <span className="ho-muted">{steps.filter(s => !s.done && s.detail).map(s => s.detail).join(' ')}</span>
+          )}
         </div>
       )}
 
@@ -273,6 +425,18 @@ export default function HandoverClient({ kind, booking, customer, licensePhotos,
         .ho-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
         .ho-field { display: flex; flex-direction: column; gap: 6px; font-size: 0.85rem; color: var(--adm-text-2); }
         .ho-notes { resize: vertical; }
+        .ho-earlier { display: flex; flex-direction: column; gap: 10px; margin-top: 4px; padding: 12px; border: 1px dashed var(--adm-border); border-radius: 12px; background: var(--adm-surface-2); }
+        .ho-photo--earlier { opacity: 0.6; filter: grayscale(1); }
+        .ho-facts { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(200px, 100%), 1fr)); gap: 10px 16px; margin: 0; }
+        .ho-fact { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+        .ho-fact dt { font-size: 0.78rem; color: var(--adm-text-3); text-transform: uppercase; letter-spacing: 0.04em; }
+        .ho-fact dd { margin: 0; font-weight: 600; color: var(--adm-text); overflow-wrap: anywhere; }
+        .ho-note { display: flex; gap: 8px; align-items: flex-start; }
+        .ho-note :global(svg) { flex-shrink: 0; margin-top: 2px; }
+        .ho :global(.ho-link) { color: var(--adm-gold-text); font-weight: 600; text-decoration: underline; }
+        .ho-slot { margin: 0; display: flex; flex-direction: column; gap: 4px; }
+        .ho-slot figcaption { font-size: 0.8rem; color: var(--adm-text-3); }
+        .ho-photo--empty { display: flex; align-items: center; justify-content: center; border-style: dashed; background: var(--adm-surface-2); color: var(--adm-text-3); font-size: 0.85rem; }
         .ho-photos { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(140px, 100%), 1fr)); gap: 10px; }
         .ho-photo { width: 100%; aspect-ratio: 4 / 3; object-fit: cover; border-radius: 12px; border: 1px solid var(--adm-border); }
         .ho-photo--wide { aspect-ratio: auto; max-height: 280px; object-fit: contain; background: #000; }

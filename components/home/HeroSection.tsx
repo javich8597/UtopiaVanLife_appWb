@@ -104,18 +104,18 @@ export default function HeroSection() {
     }
   }, [isCalendarOpen])
 
-  // Bloquear scroll en móvil si el calendario está abierto
+  // Asegurar visibilidad del calendario en pantallas con poca altura al abrirse
   useEffect(() => {
-    if (typeof window === 'undefined') return
-    const isMobile = window.innerWidth <= 768
-    if (isCalendarOpen && isMobile) {
-      document.body.style.overflow = 'hidden'
-    } else {
-      document.body.style.overflow = ''
-    }
-    return () => {
-      document.body.style.overflow = ''
-    }
+    if (!isCalendarOpen || typeof window === 'undefined') return
+    const timer = setTimeout(() => {
+      if (calendarPopoverRef.current) {
+        const rect = calendarPopoverRef.current.getBoundingClientRect()
+        if (rect.bottom > window.innerHeight) {
+          calendarPopoverRef.current.scrollIntoView({ behavior: 'smooth', block: 'nearest' })
+        }
+      }
+    }, 60)
+    return () => clearTimeout(timer)
   }, [isCalendarOpen])
 
   const handleSearch = (e: React.FormEvent) => {
@@ -359,13 +359,16 @@ export default function HeroSection() {
       <style jsx>{`
         .hero {
           position: relative;
+          z-index: 20;
           min-height: 100svh;
           height: auto;
           padding: 100px 0 60px;
           display: flex;
           align-items: center;
           justify-content: center;
-          overflow: hidden;
+          overflow: visible;
+          overflow-x: clip;
+          overflow-y: visible;
         }
 
         /* Split Background (50% Izquierda Vídeo, 50% Derecha Carrusel de Fotos) */
@@ -751,6 +754,9 @@ export default function HeroSection() {
         @media (max-width: 860px) {
           .hero {
             padding: 95px var(--space-4) 40px;
+            overflow: visible;
+            overflow-x: clip;
+            overflow-y: visible;
           }
           .hero__title-line {
             font-size: clamp(2.8rem, 11vw, 4.4rem);

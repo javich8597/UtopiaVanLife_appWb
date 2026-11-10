@@ -1,0 +1,1 @@
+- [Política de conservación de la documentación](politica-conservacion-documentacion.md) — dos plazos (100 días / 3 años), carpetas compartidas por cuenta y lo que sigue pendiente de Javier

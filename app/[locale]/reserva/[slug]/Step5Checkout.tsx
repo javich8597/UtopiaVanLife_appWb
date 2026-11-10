@@ -165,6 +165,7 @@ export default function Step5Checkout({
                     birthDate: '',
                     isSecondDriver: false,
                     licenseDate: '',
+                    driverLicenseId: '',
                 })
             }
         } else if (updatedPassengers.length > needed) {
@@ -186,6 +187,7 @@ export default function Step5Checkout({
                 birthDate: '',
                 isSecondDriver: false,
                 licenseDate: '',
+                driverLicenseId: '',
             })
         }
 
@@ -216,7 +218,7 @@ export default function Step5Checkout({
     }
 
     const handleSoloSecondDriverChange = (field: keyof BookingPassenger, value: any) => {
-        const currentSec = customer.secondDriverSolo || { fullName: '', dniNie: '', birthDate: '', licenseDate: '' }
+        const currentSec = customer.secondDriverSolo || { fullName: '', dniNie: '', birthDate: '', licenseDate: '', driverLicenseId: '' }
         const nextSec = { ...currentSec, [field]: value }
         const next = { ...customer, secondDriverSolo: nextSec }
         onChange(next)
@@ -591,6 +593,7 @@ export default function Step5Checkout({
                                     birthDate: '',
                                     isSecondDriver: false,
                                     licenseDate: '',
+                                    driverLicenseId: '',
                                 }
                                 const pAge = calculateAge(passenger.birthDate)
 
@@ -1246,6 +1249,27 @@ export default function Step5Checkout({
                     font-size: 11px;
                     color: var(--gray-600);
                     line-height: 1.4;
+                }
+
+                /* Etiqueta del precio del 2º conductor: "incluido" con Flex, "+5 €/día" con Estándar */
+                .driver-toggle-price {
+                    display: inline-block;
+                    margin-left: 8px;
+                    padding: 2px 8px;
+                    border-radius: 999px;
+                    font-size: 10px;
+                    font-weight: 700;
+                    letter-spacing: 0.02em;
+                    text-transform: uppercase;
+                    white-space: nowrap;
+                    vertical-align: middle;
+                    background: rgba(46, 125, 93, 0.18);
+                    color: #7fd6ac;
+                }
+
+                .driver-toggle-price--charged {
+                    background: rgba(212, 175, 55, 0.18);
+                    color: #e3c969;
                 }
 
                 .second-driver-license-block {

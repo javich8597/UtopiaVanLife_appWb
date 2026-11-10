@@ -14,34 +14,79 @@
 export const MAX_CHECKOUTS_PER_IP = 5
 export const CHECKOUT_IP_WINDOW_MS = 15 * 60 * 1000
 
+/**
+ * Envíos de documentación por IP y titular. Cada uno puede llegar a 4,5 MB y abre lecturas de
+ * reservas y escrituras en Storage, así que la ruta no puede quedarse sin límite; el margen es
+ * amplio porque un cliente legítimo reintenta cuando una foto no sube.
+ */
+export const MAX_DOCUMENT_UPLOADS_PER_IP = 10
+export const DOCUMENT_UPLOAD_IP_WINDOW_MS = 15 * 60 * 1000
+
 const MAX_TRACKED_IPS = 10000
 
-const attempts = new Map<string, { count: number; resetAt: number }>()
+/** Un contador por tipo de intento: el checkout y la subida no se gastan el límite entre ellos */
+const buckets = {
+    checkout: new Map<string, { count: number; resetAt: number }>(),
+    documentUpload: new Map<string, { count: number; resetAt: number }>(),
+}
 
 export function clientIp(headers: Headers): string | null {
     const forwarded = headers.get('x-forwarded-for')
     return forwarded?.split(',').at(-1)?.trim() || null
 }
 
-function forgetExpired(now: number): void {
+function forgetExpired(attempts: Map<string, { count: number; resetAt: number }>, now: number): void {
     for (const [ip, entry] of attempts) {
         if (entry.resetAt <= now) attempts.delete(ip)
     }
     if (attempts.size >= MAX_TRACKED_IPS) attempts.clear()
 }
 
-/** Apunta un intento. Devuelve false si esa IP ya ha llegado al límite */
-export function registerCheckoutAttempt(ip: string | null, now: number = Date.now()): boolean {
-    if (!ip) return true
+/** `key` es la IP, o la IP y el titular: sin clave (sin `x-forwarded-for`) no se limita nada */
+function registerAttempt(
+    attempts: Map<string, { count: number; resetAt: number }>,
+    max: number,
+    windowMs: number,
+    key: string | null,
+    now: number
+): boolean {
+    if (!key) return true
 
-    const entry = attempts.get(ip)
+    const entry = attempts.get(key)
     if (!entry || entry.resetAt <= now) {
-        if (attempts.size >= MAX_TRACKED_IPS) forgetExpired(now)
-        attempts.set(ip, { count: 1, resetAt: now + CHECKOUT_IP_WINDOW_MS })
+        if (attempts.size >= MAX_TRACKED_IPS) forgetExpired(attempts, now)
+        attempts.set(key, { count: 1, resetAt: now + windowMs })
         return true
     }
-    if (entry.count >= MAX_CHECKOUTS_PER_IP) return false
+    if (entry.count >= max) return false
 
     entry.count++
     return true
+}
+
+/** Apunta un intento de reserva. Devuelve false si esa IP ya ha llegado al límite */
+export function registerCheckoutAttempt(ip: string | null, now: number = Date.now()): boolean {
+    return registerAttempt(buckets.checkout, MAX_CHECKOUTS_PER_IP, CHECKOUT_IP_WINDOW_MS, ip, now)
+}
+
+/**
+ * Clave del contador de envíos de documentación: la IP del proxy **y** el titular ya resuelto.
+ *
+ * El contador se apuntaba solo por IP y antes de saber quién enviaba (QA-SD-12), así que diez
+ * peticiones anónimas —todas rechazadas con 401— dejaban sin poder subir documentación, durante 15
+ * minutos, a cualquiera que compartiera salida: el wifi de un camping, una oficina, el CGNAT de una
+ * red móvil o la pareja del propio cliente. Con el titular en la clave, cada cliente gasta su cupo.
+ *
+ * Sigue haciendo falta la IP: sin cabecera `x-forwarded-for` devuelve null y entonces NO hay límite
+ * (es lo que hace `registerAttempt` con una clave nula), porque esa cabecera la pone el proxy y sin
+ * ella no hay forma de separar a un cliente insistente del resto.
+ */
+export function documentUploadBucketKey(ip: string | null, userId: string | null | undefined): string | null {
+    if (!ip) return null
+    return userId ? `${ip}|${userId}` : ip
+}
+
+/** Apunta un envío de documentación. Devuelve false si esa clave ya ha llegado al límite */
+export function registerDocumentUploadAttempt(key: string | null, now: number = Date.now()): boolean {
+    return registerAttempt(buckets.documentUpload, MAX_DOCUMENT_UPLOADS_PER_IP, DOCUMENT_UPLOAD_IP_WINDOW_MS, key, now)
 }

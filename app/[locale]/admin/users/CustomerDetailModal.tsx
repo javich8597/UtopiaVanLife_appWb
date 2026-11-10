@@ -24,6 +24,8 @@ import {
 } from 'lucide-react'
 import { validateDriverLicenseExpiration } from '@/lib/admin/auth'
 import { buildSesHospedajesReference } from '@/lib/sesHospedajes/xmlGenerator'
+import { bookingSecondDriver, isLiveBooking } from '@/lib/booking/secondDriver'
+import { bookingLabel, type SecondDriverDocGroup } from '@/lib/admin/secondDriverDocuments'
 
 interface CustomerDetailModalProps {
   userId: string | null
@@ -38,7 +40,7 @@ export default function CustomerDetailModal({
 }: CustomerDetailModalProps) {
   const [activeTab, setActiveTab] = useState<'info' | 'docs' | 'bookings'>('info')
   const [loading, setLoading] = useState(true)
-  const [data, setData] = useState<{ user: any; bookings: any[]; documents: any } | null>(null)
+  const [data, setData] = useState<{ user: any; bookings: any[]; documents: any; secondDriverGroups?: SecondDriverDocGroup[]; secondDriverNotices?: string[] } | null>(null)
   const [actionLoading, setActionLoading] = useState(false)
   const [zoomImage, setZoomImage] = useState<string | null>(null)
   useBodyScrollLock()
@@ -97,6 +99,14 @@ export default function CustomerDetailModal({
   const user = data?.user
   const bookings = data?.bookings || []
   const docs = data?.documents || {}
+  const secondDriverGroups = data?.secondDriverGroups || []
+  const secondDriverNotices = data?.secondDriverNotices || []
+  // El segundo conductor es de la RESERVA: se lee de ella con la misma regla que el contrato y la
+  // subida de documentos. El perfil (users.second_driver_*) solo completa el nº de carnet.
+  const bookingSecondDrivers = bookings
+    .filter((b: any) => isLiveBooking(b))
+    .map((b: any) => ({ booking: b, driver: bookingSecondDriver(b) }))
+    .filter((x: any) => x.driver)
 
   const licenseValidation = user?.driver_license_expiry_date
     ? validateDriverLicenseExpiration(user.driver_license_expiry_date, user.driver_license_issue_date)
@@ -253,12 +263,37 @@ export default function CustomerDetailModal({
                     </div>
                   </div>
 
-                  {/* Segundo Conductor */}
-                  {user?.has_second_driver && (
-                    <div className="cd-card cd-card--second-driver">
-                      <h4 className="cd-card-title" style={{ color: 'var(--adm-text-2)' }}>
+                  {/* Segundo conductor: dato de cada reserva viva, no del perfil del cliente */}
+                  {bookingSecondDrivers.map(({ booking: b, driver }: any) => (
+                    <div className="cd-card cd-card--second-driver" key={b.id}>
+                      <h4 className="cd-card-title cd-card-title--plain">
                         Segundo Conductor Autorizado
                       </h4>
+                      <p className="cd-subtitle">{bookingLabel(b, String(b.id))}</p>
+                      <div className="cd-grid cd-grid--3">
+                        <div className="cd-field">
+                          <span className="cd-field-label">Nombre Segundo Conductor</span>
+                          <strong>{driver.fullName || '-'}</strong>
+                        </div>
+                        <div className="cd-field">
+                          <span className="cd-field-label">DNI / Pasaporte</span>
+                          <strong>{driver.document || '-'}</strong>
+                        </div>
+                        <div className="cd-field">
+                          <span className="cd-field-label">Nº Permiso de Conducir</span>
+                          <strong>{driver.licenseId || user?.second_driver_license || '-'}</strong>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+
+                  {/* Dato antiguo del perfil: ninguna reserva viva lo lleva, así que no autoriza a nadie */}
+                  {bookingSecondDrivers.length === 0 && user?.has_second_driver && (
+                    <div className="cd-card cd-card--second-driver">
+                      <h4 className="cd-card-title cd-card-title--plain">
+                        Segundo conductor del perfil (dato antiguo)
+                      </h4>
+                      <p className="cd-subtitle">Ninguna reserva viva de este cliente lo lleva: no está autorizado a conducir.</p>
                       <div className="cd-grid cd-grid--3">
                         <div className="cd-field">
                           <span className="cd-field-label">Nombre Segundo Conductor</span>
@@ -270,7 +305,7 @@ export default function CustomerDetailModal({
                         </div>
                         <div className="cd-field">
                           <span className="cd-field-label">Nº Permiso de Conducir</span>
-                          <strong>{user?.second_driver_license_id || '-'}</strong>
+                          <strong>{user?.second_driver_license || '-'}</strong>
                         </div>
                       </div>
                     </div>
@@ -376,6 +411,44 @@ export default function CustomerDetailModal({
                       )}
                     </div>
                   </div>
+
+                  {/* Fotos del segundo conductor, una sección por reserva */}
+                  {secondDriverNotices.length > 0 && (
+                    <div className="adm-note adm-note--alert" role="alert">
+                      <div className="adm-note__text">
+                        {secondDriverNotices.map(text => <p key={text}>{text}</p>)}
+                      </div>
+                    </div>
+                  )}
+                  {secondDriverGroups.map((group: SecondDriverDocGroup) => (
+                    <div key={group.bookingId ?? 'legacy'} className="cd-second-docs">
+                      <h4 className="cd-section-title">Segundo conductor · {group.bookingLabel}</h4>
+                      {(group.fullName || group.document) && (
+                        <p className="cd-subtitle">{group.fullName || 'Sin nombre'}{group.document ? ` · ${group.document}` : ''}</p>
+                      )}
+                      {group.legacy && <p className="cd-subtitle">Subida anterior sin reserva asociada: no se puede comprobar a quién autoriza.</p>}
+                      <div className="cd-doc-grid">
+                        {([
+                          ['dniFrontUrl', 'DNI / NIE / Pasaporte (Anverso)'],
+                          ['dniBackUrl', 'DNI / NIE / Pasaporte (Reverso)'],
+                          ['licenseFrontUrl', 'Carnet de Conducir (Anverso)'],
+                          ['licenseBackUrl', 'Carnet de Conducir (Reverso)'],
+                        ] as const).map(([key, label]) => (
+                          <div className="cd-doc-box" key={key}>
+                            <span className="cd-doc-label">{label}</span>
+                            {group.urls[key] ? (
+                              <div className="cd-img-wrap" onClick={() => setZoomImage(group.urls[key])}>
+                                <img src={group.urls[key] as string} alt={`${label} del segundo conductor`} className="cd-img-preview" />
+                                <div className="cd-img-hover"><Eye size={18} /> Ampliar</div>
+                              </div>
+                            ) : (
+                              <div className="cd-doc-empty">Sin archivo subido</div>
+                            )}
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  ))}
 
                   {/* Acciones de Validación Rápida */}
                   <div className="cd-action-bar">
@@ -665,8 +738,19 @@ export default function CustomerDetailModal({
         }
 
         .cd-card--second-driver {
-          background: #F0F9FF;
+          background: var(--adm-surface-2);
           border-color: var(--adm-border);
+        }
+
+        .cd-card-title--plain {
+          color: var(--adm-text-2);
+        }
+
+        .cd-second-docs {
+          display: flex;
+          flex-direction: column;
+          gap: 10px;
+          margin-top: 18px;
         }
 
         .cd-card--license-check {

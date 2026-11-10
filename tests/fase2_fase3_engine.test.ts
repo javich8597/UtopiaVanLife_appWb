@@ -353,7 +353,8 @@ describe('FASE 2 & FASE 3: Backend & Booking Core Engine Test Suite', () => {
                     dniNie: '12345678Z',
                     isSecondDriver: true,
                     birthDate: '1998-03-15', // 28 años en 2026
-                    licenseDate: '2020-05-10' // 6 años de antigüedad
+                    licenseDate: '2020-05-10', // 6 años de antigüedad
+                    driverLicenseId: 'B-7001234'
                 }
             ]
             const result = validateBookingPassengers(rawPassengers, rentalStart)
@@ -394,7 +395,9 @@ describe('FASE 2 & FASE 3: Backend & Booking Core Engine Test Suite', () => {
             assert.ok(result.error?.includes('2 años de antigüedad'))
         })
 
-        it('rechaza segundo conductor si falta la fecha de nacimiento / edad', () => {
+        // La edad autodeclarada ya no vale: el checkout exige la FECHA de nacimiento, que es lo
+        // único que queda guardado en la ficha para poder recomprobar los 25 años más adelante
+        it('rechaza segundo conductor si falta la fecha de nacimiento', () => {
             const rawPassengers = [
                 {
                     fullName: 'Conductor Sin Edad',
@@ -405,7 +408,7 @@ describe('FASE 2 & FASE 3: Backend & Booking Core Engine Test Suite', () => {
             ]
             const result = validateBookingPassengers(rawPassengers, rentalStart)
             assert.equal(result.isValid, false)
-            assert.ok(result.error?.includes('fecha de nacimiento o edad'))
+            assert.ok(result.error?.includes('fecha de nacimiento'))
         })
 
         it('rechaza segundo conductor si falta la fecha de carnet de conducir', () => {
@@ -430,7 +433,8 @@ describe('FASE 2 & FASE 3: Backend & Booking Core Engine Test Suite', () => {
                 fullName: 'Segundo Conductor Separado',
                 dniNie: 'X1234567L',
                 birthDate: '1990-01-01',
-                licenseDate: '2015-01-01'
+                licenseDate: '2015-01-01',
+                driverLicenseId: 'B-7001234'
             }
             const result = validateBookingPassengers(rawPassengers, rentalStart, separateSecondDriver)
             assert.equal(result.isValid, true)
@@ -447,14 +451,16 @@ describe('FASE 2 & FASE 3: Backend & Booking Core Engine Test Suite', () => {
                     dniNie: '12345678Z',
                     isSecondDriver: true,
                     birthDate: '1990-01-01',
-                    licenseDate: '2015-01-01'
+                    licenseDate: '2015-01-01',
+                    driverLicenseId: 'B-7001234'
                 }
             ]
             const separateSecondDriver = {
                 fullName: 'Segundo Conductor',
                 dniNie: '12345678Z',
                 birthDate: '1990-01-01',
-                licenseDate: '2015-01-01'
+                licenseDate: '2015-01-01',
+                driverLicenseId: 'B-7001234'
             }
             const result = validateBookingPassengers(rawPassengers, rentalStart, separateSecondDriver)
             assert.equal(result.isValid, true)

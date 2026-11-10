@@ -57,6 +57,15 @@ export const isValidPersonName = (value: string) => matchesNormalized(value, NAM
 export const isValidPhoneText = (value: string) => matchesNormalized(value, PHONE_PATTERN)
 /** Documento de identidad con el patrón de la subida, sobre el texto normalizado (lo que se guarda) */
 export const isValidDocumentIdText = (value: string) => matchesNormalized(value, DOCUMENT_ID_PATTERN)
+/**
+ * Número de permiso de conducir con el patrón de la subida (`LICENSE_ID_PATTERN`), sobre el texto
+ * normalizado, que es el que se guarda.
+ *
+ * El paso 5 pide el nº de carnet del 2º conductor y la subida compara el que teclea el cliente con
+ * el de la ficha de la reserva (`secondDriverLicenseConflict`): si las dos puntas no validan igual,
+ * el checkout aceptaría un número que después la subida rechaza y el contrato ya habría facultado.
+ */
+export const isValidLicenseIdText = (value: string) => matchesNormalized(value, LICENSE_ID_PATTERN)
 
 /**
  * Dirección tal como llega a la subida de documentos: sin caracteres de control ni de dirección del

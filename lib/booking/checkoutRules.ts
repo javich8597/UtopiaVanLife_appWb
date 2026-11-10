@@ -29,6 +29,56 @@ export function camperSeats(camper: { slug?: string | null; specs?: { seats?: un
 /** Pasado este tiempo una reserva sin pagar se considera caducada */
 export const OPEN_PENDING_WINDOW_MINUTES = 60
 
+/**
+ * Una sola regla del 2º conductor, la misma para el asistente, el checkout, el contrato y la subida:
+ * se permite con cualquier fianza (con Flex va incluido, con Estándar cuesta
+ * `SECOND_DRIVER_RATE_PER_DAY`), pero como máximo uno por reserva.
+ */
+export const MAX_SECOND_DRIVERS = 1
+
+/** Documento de una ficha, normalizado: es lo que identifica a una persona entre acompañantes */
+export function personDocument(person: unknown): string {
+    if (!person || typeof person !== 'object') return ''
+    const p = person as Record<string, unknown>
+    const raw = p.dniNie ?? p.dni ?? p.passport ?? p.documentNumber ?? p.document_number ?? p.dni_nie
+    return typeof raw === 'string' ? raw.trim().toUpperCase() : ''
+}
+
+/** ¿Esta persona ya figura entre los acompañantes? Se compara por documento, como el checkout */
+export function isAlreadyAmong(person: unknown, people: unknown): boolean {
+    const doc = personDocument(person)
+    if (!doc || !Array.isArray(people)) return false
+    return people.some(other => personDocument(other) === doc)
+}
+
+/** Los distintos nombres con los que una ficha puede llegar marcada como 2º conductor */
+export function isSecondDriverFlag(passenger: unknown): boolean {
+    if (!passenger || typeof passenger !== 'object') return false
+    const p = passenger as Record<string, unknown>
+    return Boolean(p.isSecondDriver || p.is_second_driver || p.secondDriver || p.isDriver)
+}
+
+export function countSecondDrivers(passengers: unknown): number {
+    return Array.isArray(passengers) ? passengers.filter(isSecondDriverFlag).length : 0
+}
+
+/**
+ * ¿Esta reserva lleva un 2º conductor? Mira las fichas guardadas y, como respaldo, el desglose de
+ * precio con el que se cobró (`pricing_breakdown.secondDriver`), que es el que lleva el suplemento.
+ */
+export function bookingHasSecondDriver(booking: unknown): boolean {
+    if (!booking || typeof booking !== 'object') return false
+    const row = booking as Record<string, unknown>
+    if (countSecondDrivers(row.passengers) > 0) return true
+    const breakdown = row.pricing_breakdown
+    if (breakdown && typeof breakdown === 'object') {
+        const b = breakdown as Record<string, unknown>
+        if (b.secondDriver === true) return true
+        if (countSecondDrivers(b.passengers) > 0) return true
+    }
+    return false
+}
+
 const MS_PER_DAY = 24 * 60 * 60 * 1000
 const MAX_EMAIL_LENGTH = 254
 /** Cada parte del dominio empieza y acaba por letra o número: `ana@-ex.com` no es un dominio */
@@ -154,4 +204,41 @@ export function calculateLicenseSeniorityYears(issueDate: Date, referenceDate: D
         years--
     }
     return Math.max(0, years)
+}
+
+const DNI_LETTERS = 'TRWAGMYFPDXBNJZSQVHLCKE'
+
+/**
+ * DNI, NIE o pasaporte, con la letra de control comprobada. Vivía exportado desde la ruta
+ * `app/api/bookings/checkout/route.ts`, y por eso el backoffice tuvo que hacerse una copia
+ * (`lib/admin/secondDriverRecord.ts`) con un test de paridad: importar una ruta de Next desde el
+ * panel arrastra la ruta entera. Aquí la comparten las dos puntas.
+ */
+export function isValidDniNieOrPassport(value: string): { isValid: boolean; error?: string } {
+    if (!value || typeof value !== 'string') {
+        return { isValid: false, error: 'Documento de identidad requerido' }
+    }
+    const clean = value.trim().toUpperCase()
+
+    // 1. DNI español: 8 dígitos + 1 letra de control
+    const dniMatch = clean.match(/^(\d{8})([A-Z])$/)
+    if (dniMatch) {
+        const expectedLetter = DNI_LETTERS[parseInt(dniMatch[1], 10) % 23]
+        if (dniMatch[2] === expectedLetter) return { isValid: true }
+        return { isValid: false, error: `Letra de DNI incorrecta. Para el número ${dniMatch[1]}, la letra debe ser ${expectedLetter}` }
+    }
+
+    // 2. NIE español: X, Y, Z + 7 dígitos + 1 letra de control
+    const nieMatch = clean.match(/^([XYZ])(\d{7})([A-Z])$/)
+    if (nieMatch) {
+        const prefixMap: Record<string, string> = { X: '0', Y: '1', Z: '2' }
+        const expectedLetter = DNI_LETTERS[parseInt(prefixMap[nieMatch[1]] + nieMatch[2], 10) % 23]
+        if (nieMatch[3] === expectedLetter) return { isValid: true }
+        return { isValid: false, error: `Letra de NIE incorrecta. Se esperaba ${expectedLetter}` }
+    }
+
+    // 3. Pasaporte internacional: 6-15 caracteres alfanuméricos
+    if (/^[A-Z0-9]{6,15}$/.test(clean)) return { isValid: true }
+
+    return { isValid: false, error: 'Formato de DNI, NIE o Pasaporte no válido' }
 }

@@ -178,11 +178,22 @@ describe('N3: UPDATE y DELETE en bookings', () => {
       'app/api/admin/approve-booking/route.ts',
       'app/api/admin/bookings/expire/route.ts',
       'app/api/admin/bookings/resolve-payment-alert/route.ts',
+      // Completa la ficha del segundo conductor de UNA reserva: requireAdmin(), exige la clave de servicio válida y filtra por `id`
+      'app/api/admin/bookings/second-driver/route.ts',
       'app/api/admin/handovers/route.ts',
       'app/api/admin/refund/route.ts',
+      // Purga de conservación (decisión de Javier, 2026-11-10): borra los datos de identidad del
+      // RD 933/2021 a los 3 años y deja constancia. requireAdmin(), exige la clave de servicio
+      // válida (503 sin ella), filtra por `id` y por defecto SIMULA sin escribir nada
+      'app/api/admin/retention/documents/route.ts',
       'app/api/admin/ses-hospedajes/transmit/route.ts',
       'app/api/bookings/[id]/pay/route.ts',
       'app/api/contracts/sign/route.ts',
+      // El 2º conductor pertenece a la reserva: su ficha se guarda en bookings.second_driver_*
+      // (migración 20261108). El update va con el cliente privilegiado de la ruta y filtrado por
+      // `id` de la reserva y `user_id`; con la sesión de un cliente el trigger
+      // protect_bookings_privileged_columns lo rechaza y la ruta lo registra sin romper el guardado
+      'app/api/upload-driver-docs/route.ts',
       'lib/redsysNotification.ts',
     ]), [])
   })

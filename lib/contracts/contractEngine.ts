@@ -1,3 +1,5 @@
+import { bookingSecondDriver, sameDocument } from '../booking/secondDriver'
+import type { DepositOption } from '../pricing/types'
 import { validateDriverLicense } from './licenseValidator'
 
 export interface CamperModelSpecs {
@@ -45,6 +47,17 @@ export interface ContractData {
     fullName: string
     dniNie: string
     driverLicenseId: string
+    /** Años de antigüedad del carnet, o null si no consta: es el requisito del que depende la cobertura */
+    yearsHeld: number | null
+    /** Suplemento diario cobrado por el 2º conductor: 0 con fianza Flex (incluido) */
+    ratePerDay: number
+    /** Suplemento total cobrado por el 2º conductor en esta reserva */
+    supplement: number
+    /**
+     * El desglose con el que se cobró dice que iba incluido sin coste (`includesSecondDriver`).
+     * Un suplemento de 0 € NO basta: en una reserva anterior a este cambio significa "sin dato".
+     */
+    included: boolean
   }
   vehicle: {
     modelName: string
@@ -65,6 +78,8 @@ export interface ContractData {
   pricing: {
     totalPrice: number
     depositAmount: number
+    /** Modalidad de fianza contratada: decide si el 2º conductor va incluido */
+    depositOption: DepositOption
     extras: string[]
   }
   articles: ContractArticle[]
@@ -596,12 +611,50 @@ export function generateContractData(
     email: userProfile?.email || booking?.customer_email || 'cliente@ejemplo.com'
   }
 
-  let secondDriver: { fullName: string; dniNie: string; driverLicenseId: string } | undefined
-  if (userProfile?.has_second_driver && userProfile?.second_driver_name) {
+  // El suplemento del 2º conductor sale del desglose con el que se cobró la reserva, no se
+  // recalcula aquí: con fianza Flex va incluido (0 €) y con Estándar se cobró por día
+  const bookingBreakdown: Record<string, unknown> = (booking?.pricing_breakdown && typeof booking.pricing_breakdown === 'object')
+    ? booking.pricing_breakdown
+    : {}
+
+  // Modalidad de fianza: la del desglose cobrado y, si la reserva es anterior, la que se deduce de
+  // la fianza retenida. Sin dato se toma la Estándar, que no afirma que el 2º conductor vaya incluido
+  const rawDepositOption = bookingBreakdown.depositOption
+  const depositOption: DepositOption = (rawDepositOption === 'flex_1000' || rawDepositOption === 'standard_2000')
+    ? rawDepositOption
+    : (Number(booking?.deposit_amount) === 1000 ? 'flex_1000' : 'standard_2000')
+
+  // El bloque del 2º conductor nace de la RESERVA (sus columnas, sus fichas o el desglose con el que
+  // se cobró), nunca del perfil: una cuenta puede tener varias reservas y solo algunas lo llevan.
+  // El perfil solo completa los datos que la reserva no guarda (su nº de carnet, por ejemplo).
+  const reservedSecondDriver = bookingSecondDriver(booking)
+  let secondDriver: ContractData['secondDriver']
+  if (reservedSecondDriver) {
+    const licenseDate = reservedSecondDriver.licenseDate
+    const licenseMs = licenseDate ? new Date(`${licenseDate}T00:00:00Z`).getTime() : NaN
+    const secondDriverYearsHeld = Number.isNaN(licenseMs)
+      ? null
+      : Math.max(0, Math.floor((Date.now() - licenseMs) / (1000 * 60 * 60 * 24 * 365.25)))
+
+    // El perfil NO puede nombrar a nadie: solo completa el nº de carnet de la persona que ESTA
+    // reserva ya identifica por documento. Una reserva que cobró el suplemento sin guardar la ficha
+    // (`source: 'pricing_only'`) sale "Pendiente de verificación": poner ahí el 2º conductor del
+    // perfil facultaba por contrato a quien esta reserva nunca registró (hallazgo QA-SD-9)
+    const profileCompletesLicense = sameDocument(reservedSecondDriver.document, userProfile?.second_driver_dni)
     secondDriver = {
-      fullName: userProfile.second_driver_name,
-      dniNie: userProfile.second_driver_dni || 'Pendiente',
-      driverLicenseId: userProfile.second_driver_license || 'Pendiente'
+      fullName: reservedSecondDriver.fullName || 'Pendiente de verificación',
+      dniNie: reservedSecondDriver.document || 'Pendiente',
+      driverLicenseId: reservedSecondDriver.licenseId
+        || (profileCompletesLicense ? userProfile?.second_driver_license : '')
+        || 'Pendiente',
+      yearsHeld: secondDriverYearsHeld,
+      ratePerDay: Number(bookingBreakdown.secondDriverRatePerDay) || 0,
+      supplement: Number(bookingBreakdown.secondDriverSupplement) || 0,
+      // Solo el desglose guardado puede afirmar que iba incluido. Una reserva anterior a este
+      // cambio no trae la clave: entonces lo dice la modalidad de fianza, y nunca un 0 € a secas
+      included: typeof bookingBreakdown.includesSecondDriver === 'boolean'
+        ? bookingBreakdown.includesSecondDriver === true
+        : depositOption === 'flex_1000',
     }
   }
 
@@ -635,6 +688,7 @@ export function generateContractData(
   const pricing = {
     totalPrice: Number(booking?.total_price || 0),
     depositAmount,
+    depositOption,
     extras: Array.isArray(booking?.extras_selected) && booking.extras_selected.length > 0
       ? booking.extras_selected.map((e: any) => `${e.name_es || e.name || 'Extra'}${e.quantity ? ` (x${e.quantity})` : ''}`)
       : (Array.isArray(booking?.extras)

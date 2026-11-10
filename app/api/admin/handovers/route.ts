@@ -1,6 +1,14 @@
 import { NextResponse } from 'next/server'
 import { requireAdmin } from '@/lib/admin/requireAdmin'
-import { CHECKLIST, FUEL_LEVELS, missingSteps, type HandoverKind } from '@/lib/handover/checklist'
+import { secondDriverPhotoPresence } from '@/lib/admin/secondDriverDocuments'
+import {
+  CHECKLIST,
+  FUEL_LEVELS,
+  SECOND_DRIVER_CHECK_ID_LIST,
+  incompleteSteps,
+  type HandoverKind,
+} from '@/lib/handover/checklist'
+import { secondDriverStepInput } from '@/lib/handover/secondDriverStep'
 
 const EDITABLE = [
   'license_checked', 'km', 'fuel_level', 'dashboard_photo_path', 'exterior_video_path',
@@ -10,6 +18,10 @@ const EDITABLE = [
 /**
  * Guarda los datos de la entrega/devolución paso a paso y, con complete=true,
  * la cierra si están todos los pasos (la reserva pasa a "En viaje" o "Completada").
+ *
+ * En la entrega de recogida de una reserva con segundo conductor hay un paso más: comprobar su
+ * carnet y su documento contra la ficha de la reserva. Se exige aquí, en el servidor, con la ficha
+ * y las fotos de Storage leídas en este momento; la pantalla solo lo enseña.
  */
 export async function POST(request: Request) {
   try {
@@ -22,11 +34,15 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'Parámetros no válidos' }, { status: 400 })
     }
 
-    const { data: booking } = await db.from('bookings').select('id, status').eq('id', bookingId).maybeSingle()
+    // `*` porque las columnas second_driver_* pueden no estar aplicadas todavía; el segundo
+    // conductor se deduce de la reserva (columnas, acompañantes o desglose de precio)
+    const { data: booking } = await db.from('bookings').select('*').eq('id', bookingId).maybeSingle()
     if (!booking) return NextResponse.json({ error: 'Reserva no encontrada' }, { status: 404 })
     if (['cancelled'].includes(booking.status)) {
       return NextResponse.json({ error: 'La reserva está cancelada' }, { status: 400 })
     }
+    // El segundo conductor solo se comprueba al entregar la camper, no al devolverla
+    const hasSecondDriver = kind === 'pickup' && secondDriverStepInput(booking, null) !== null
 
     const { data: existing } = await db.from('handovers').select('*').eq('booking_id', bookingId).eq('kind', kind).maybeSingle()
     if (existing?.completed_at && !complete) {
@@ -48,7 +64,11 @@ export async function POST(request: Request) {
         if (v && !(FUEL_LEVELS as readonly string[]).includes(v)) return NextResponse.json({ error: 'Nivel de combustible no válido' }, { status: 400 })
         clean.fuel_level = v || null
       } else if (key === 'checklist') {
-        const allowed = new Set(CHECKLIST[kind as HandoverKind].map(i => i.id))
+        // Las casillas del segundo conductor solo valen si esta reserva lleva uno
+        const allowed = new Set([
+          ...CHECKLIST[kind as HandoverKind].map(i => i.id),
+          ...(hasSecondDriver ? SECOND_DRIVER_CHECK_ID_LIST : []),
+        ])
         clean.checklist = Object.fromEntries(Object.entries(v || {}).filter(([k]) => allowed.has(k)).map(([k, b]) => [k, b === true]))
       } else if (key === 'customer_signature') {
         if (v && (typeof v !== 'string' || !v.startsWith('data:image/') || v.length > 400_000)) {
@@ -72,9 +92,16 @@ export async function POST(request: Request) {
 
     const merged = { ...(existing || { kind }), ...clean, kind }
     if (complete) {
-      const missing = missingSteps(merged)
-      if (missing.length > 0) {
-        return NextResponse.json({ error: `Faltan pasos: ${missing.join(', ')}`, missing }, { status: 400 })
+      // Ficha y fotos del segundo conductor leídas ahora: lo que la pantalla enseñó pudo cambiar
+      const photos = hasSecondDriver && booking.user_id ? await secondDriverPhotoPresence(db, booking.user_id, bookingId) : null
+      const secondDriver = hasSecondDriver ? secondDriverStepInput(booking, photos) : null
+      const pending = incompleteSteps(merged, { secondDriver })
+      if (pending.length > 0) {
+        const detail = pending.map(s => s.detail).filter(Boolean).join(' ')
+        return NextResponse.json(
+          { error: `Faltan pasos: ${pending.map(s => s.label).join(', ')}${detail ? `. ${detail}` : ''}`, missing: pending.map(s => s.label) },
+          { status: 400 }
+        )
       }
       clean.completed_at = new Date().toISOString()
       clean.admin_id = auth.user.id

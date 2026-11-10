@@ -112,7 +112,12 @@ export interface PricingBreakdown {
     deposit: number       // Alias fianza retenida
     flexDepositRatePerDay: number // 10 €/día si 'flex_1000', 0 si 'standard_2000'
     flexDepositSupplement: number // Suplemento total fianza flex
-    includesSecondDriver: boolean // true si 'flex_1000', false si 'standard_2000'
+    includesSecondDriver: boolean // true si 'flex_1000' (2º conductor sin coste), false si 'standard_2000'
+
+    // Segundo conductor: como máximo uno. Incluido con Flex, 5 €/día con Estándar
+    secondDriver: boolean           // true si la reserva lleva un 2º conductor
+    secondDriverRatePerDay: number  // 5 €/día con 'standard_2000', 0 con 'flex_1000' o sin 2º conductor
+    secondDriverSupplement: number  // Suplemento total del 2º conductor (va dentro de payableTotal)
 
     // Desglose transparente de IVA (21%)
     vatPct: number       // 21%
@@ -151,4 +156,6 @@ export interface CalculatePriceV2Params {
     selectedExtras?: Extra[] | CategorizedExtra[]
     depositOption?: DepositOption
     depositAmount?: number
+    /** La reserva lleva un 2º conductor autorizado (como máximo uno) */
+    secondDriver?: boolean
 }

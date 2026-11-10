@@ -16,7 +16,9 @@ import {
   ShieldCheck,
   CreditCard,
   XCircle,
+  Users,
 } from 'lucide-react'
+import { secondDriverViewerCaption, type SecondDriverDocGroup } from '@/lib/admin/secondDriverDocuments'
 
 export interface UserWithDocs {
   id: string
@@ -36,8 +38,22 @@ export interface UserWithDocs {
   dniBackUrl?: string | null
   licenseFrontUrl?: string | null
   licenseBackUrl?: string | null
+  /** Segundo conductor de cada reserva del cliente, con sus fotos (pertenecen a la reserva, no al perfil) */
+  secondDriverGroups?: SecondDriverDocGroup[]
+  /** Avisos de la lectura de Storage / reservas: recorte, fallo o carpetas ajenas */
+  secondDriverNotices?: string[] | null
   [key: string]: any
 }
+
+/** Las cuatro fotos que sube un conductor, en el orden en que se revisan */
+const DOC_TILES = [
+  { key: 'dniFrontUrl', type: 'DNI / NIE', tag: 'Anverso', title: 'DNI / Pasaporte (Anverso)' },
+  { key: 'dniBackUrl', type: 'DNI / NIE', tag: 'Reverso', title: 'DNI / Pasaporte (Reverso)' },
+  { key: 'licenseFrontUrl', type: 'Carnet Conducir', tag: 'Anverso', title: 'Carnet de Conducir (Anverso)' },
+  { key: 'licenseBackUrl', type: 'Carnet Conducir', tag: 'Reverso', title: 'Carnet de Conducir (Reverso)' },
+] as const
+
+const hasAnySecondDriverPhoto = (group: SecondDriverDocGroup) => DOC_TILES.some(tile => Boolean(group.urls[tile.key]))
 
 interface Props {
   initialUsers: UserWithDocs[]
@@ -63,7 +79,7 @@ export default function VerificationsClient({ initialUsers }: Props) {
   const [users, setUsers] = useState<UserWithDocs[]>(initialUsers || [])
 
   // Lightbox Zoom state
-  const [zoomDoc, setZoomDoc] = useState<{ url: string; title: string; userName: string } | null>(null)
+  const [zoomDoc, setZoomDoc] = useState<{ url: string; title: string; userName: string; caption?: string } | null>(null)
 
   // Rejection Dialog state
   const [rejectingUser, setRejectingUser] = useState<UserWithDocs | null>(null)
@@ -79,7 +95,17 @@ export default function VerificationsClient({ initialUsers }: Props) {
 
   // Handle Approve
   const handleApprove = async (user: UserWithDocs) => {
-    if (!confirm(`¿Estás seguro de que deseas VALIDAR la documentación de ${user.full_name || user.email}?`)) {
+    // El segundo conductor es de la reserva y conduce con el contrato: si falta su documentación, se avisa
+    const missingSecond = (user.secondDriverGroups || []).filter(g => !g.legacy && !hasAnySecondDriverPhoto(g))
+    const readNotices = user.secondDriverNotices || []
+    const secondDriverNote = readNotices.length > 0
+      ? `\n\nATENCIÓN: la lectura de la documentación del segundo conductor no está completa. ${readNotices.join(' ')}`
+      : (user.secondDriverGroups || []).length === 0
+        ? ''
+        : missingSecond.length > 0
+          ? `\n\nATENCIÓN: no hay fotos del segundo conductor en: ${missingSecond.map(g => g.bookingLabel).join('; ')}. Validar no las sustituye.`
+          : '\n\nHas revisado también las fotos del segundo conductor de la reserva.'
+    if (!confirm(`¿Estás seguro de que deseas VALIDAR la documentación de ${user.full_name || user.email}?${secondDriverNote}`)) {
       return
     }
 
@@ -397,6 +423,72 @@ export default function VerificationsClient({ initialUsers }: Props) {
                 </div>
               </div>
 
+              {/* Segundo conductor: sus fotos viven en la reserva, no en la carpeta del titular */}
+              {(user.secondDriverNotices || []).length > 0 && (
+                <div className="adm-note adm-note--alert" role="alert">
+                  <div className="adm-note__text">
+                    <strong>Segundo conductor: lectura incompleta</strong>
+                    {(user.secondDriverNotices || []).map(text => <p key={text}>{text}</p>)}
+                  </div>
+                </div>
+              )}
+              {(user.secondDriverGroups || []).map(group => (
+                <section key={group.bookingId ?? 'legacy'} className="verif-second" aria-label={`Segundo conductor, ${group.bookingLabel}`}>
+                  <div className="verif-second__head">
+                    <span className="verif-second__title">
+                      <Users size={14} aria-hidden="true" />
+                      Segundo conductor
+                    </span>
+                    <span className="adm-chip adm-chip--neutral">{group.bookingLabel}</span>
+                    {group.legacy && <span className="adm-chip adm-chip--amber">No se puede comprobar a quién autoriza</span>}
+                    {!group.legacy && !hasAnySecondDriverPhoto(group) && (
+                      <span className="adm-chip adm-chip--rose">Sin fotos subidas</span>
+                    )}
+                  </div>
+                  {(group.fullName || group.document) && (
+                    <p className="verif-second__who">
+                      <strong>{group.fullName || 'Sin nombre'}</strong>
+                      {group.document && <> · DNI/NIE {group.document}</>}
+                    </p>
+                  )}
+                  <div className="verif-docs-grid">
+                    {DOC_TILES.map(tile => {
+                      const url = group.urls[tile.key]
+                      const zoomTitle = `Segundo conductor · ${tile.title} · ${group.bookingLabel}`
+                      return (
+                        <div className="verif-doc-tile" key={tile.key}>
+                          <div className="verif-doc-tile__head">
+                            <span className="verif-doc-type">{tile.type}</span>
+                            <span className="verif-doc-tag">{tile.tag}</span>
+                          </div>
+                          {url ? (
+                            <div
+                              role="button"
+                              tabIndex={0}
+                              className="verif-doc-preview"
+                              onClick={() => setZoomDoc({ url, title: zoomTitle, userName: group.fullName, caption: secondDriverViewerCaption(group, user) })}
+                              onKeyDown={e => e.key === 'Enter' && setZoomDoc({ url, title: zoomTitle, userName: group.fullName, caption: secondDriverViewerCaption(group, user) })}
+                              aria-label={`Ampliar ${tile.type} ${tile.tag} del segundo conductor`}
+                            >
+                              <img src={url} alt={`${tile.type} ${tile.tag} del segundo conductor`} className="verif-doc-img" />
+                              <div className="verif-doc-overlay">
+                                <Eye size={20} aria-hidden="true" />
+                                <span>Ampliar</span>
+                              </div>
+                            </div>
+                          ) : (
+                            <div className="verif-doc-empty">
+                              <FileText size={24} className="verif-doc-empty__icon" aria-hidden="true" />
+                              <span>No adjuntado</span>
+                            </div>
+                          )}
+                        </div>
+                      )
+                    })}
+                  </div>
+                </section>
+              ))}
+
               {/* Actions Bar */}
               <footer className="verif-card__foot">
                 <div className="verif-foot-hint">
@@ -461,7 +553,7 @@ export default function VerificationsClient({ initialUsers }: Props) {
                 </span>
                 <div>
                   <h4 className="verif-lightbox-title">{zoomDoc.title}</h4>
-                  <p className="verif-lightbox-sub">Cliente: {zoomDoc.userName}</p>
+                  <p className="verif-lightbox-sub">{zoomDoc.caption ?? `Cliente: ${zoomDoc.userName}`}</p>
                 </div>
               </div>
               <div className="verif-lightbox-actions">
@@ -852,6 +944,40 @@ export default function VerificationsClient({ initialUsers }: Props) {
 
         :global(.verif-doc-empty__icon) {
           opacity: 0.5;
+        }
+
+        /* Segundo conductor de una reserva */
+        .verif-second {
+          display: flex;
+          flex-direction: column;
+          gap: 10px;
+          margin-top: 16px;
+          padding: 14px;
+          border-radius: 12px;
+          background: var(--adm-surface-2);
+          border: 1px solid var(--adm-border);
+        }
+
+        .verif-second__head {
+          display: flex;
+          align-items: center;
+          flex-wrap: wrap;
+          gap: 8px;
+        }
+
+        .verif-second__title {
+          display: inline-flex;
+          align-items: center;
+          gap: 6px;
+          font-size: 0.8rem;
+          font-weight: 700;
+          color: var(--adm-text);
+        }
+
+        .verif-second__who {
+          margin: 0;
+          font-size: 0.82rem;
+          color: var(--adm-text-2);
         }
 
         /* Actions Bar */

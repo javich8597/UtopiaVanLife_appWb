@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { useBodyScrollLock } from '@/lib/ui/useBodyScrollLock'
 import {
   X,
@@ -33,15 +33,21 @@ import {
 } from 'lucide-react'
 import { formatPrice } from '@/lib/pricing/engine'
 import { activePaymentAlerts } from '@/lib/admin/bookingStatus'
+import { adminBookingSecondDriver, bookingFlexDeposit, buildBreakdownLines, resolveBasePrice } from '@/lib/admin/bookingBreakdown'
+import { secondDriverAlerts } from '@/lib/admin/secondDriverAlerts'
+import type { SecondDriverPhotoPresence } from '@/lib/admin/secondDriverDocuments'
 import { buildSesHospedajesReference } from '@/lib/sesHospedajes/xmlGenerator'
 import ApproveActionClient from './ApproveActionClient'
 import RefundActionClient from './RefundActionClient'
+import SecondDriverRecordEditor from './SecondDriverRecordEditor'
 
 interface Props {
   booking: any
   onClose: () => void
   /** Se llama con las notas nuevas cuando el admin marca los avisos de pago como revisados */
   onAlertsReviewed?: (notes: string) => void
+  /** Se llama con las columnas guardadas cuando el admin completa o corrige la ficha del segundo conductor */
+  onSecondDriverSaved?: (patch: Record<string, unknown>) => void
 }
 
 export interface SesSentInfo {
@@ -99,12 +105,26 @@ interface NormalizedExtra {
   price_type?: string
 }
 
-export default function BookingDetailModal({ booking, onClose, onAlertsReviewed }: Props) {
+export default function BookingDetailModal({ booking, onClose, onAlertsReviewed, onSecondDriverSaved }: Props) {
   useBodyScrollLock()
   const [showContractPreview, setShowContractPreview] = useState(false)
   const [copiedRef, setCopiedRef] = useState(false)
   const [reviewing, setReviewing] = useState(false)
   const [reviewError, setReviewError] = useState<string | null>(null)
+
+  // Fotos del segundo conductor que hay de verdad en Storage (null mientras carga o si no se pudo leer)
+  const [secondDriverPhotos, setSecondDriverPhotos] = useState<SecondDriverPhotoPresence | null>(null)
+  const watchedBookingId: string | null = booking?.id && adminBookingSecondDriver(booking) ? String(booking.id) : null
+  useEffect(() => {
+    setSecondDriverPhotos(null)
+    if (!watchedBookingId) return
+    let cancelled = false
+    fetch(`/api/admin/bookings/second-driver-docs?bookingId=${encodeURIComponent(watchedBookingId)}`)
+      .then(res => (res.ok ? res.json() : null))
+      .then(data => { if (!cancelled) setSecondDriverPhotos(data?.photos ?? null) })
+      .catch(() => { if (!cancelled) setSecondDriverPhotos(null) })
+    return () => { cancelled = true }
+  }, [watchedBookingId])
 
   // SES.HOSPEDAJES Estados reactivos
   const [sesSentState, setSesSentState] = useState<SesSentInfo | null>(() =>
@@ -378,11 +398,21 @@ export default function BookingDetailModal({ booking, onClose, onAlertsReviewed 
 
   // 5. Itemized Financial Breakdown
   const discountAmount = Number(booking.discount_amount || 0)
-  const basePrice = Number(
-    booking.base_price ??
-    booking.pricing_breakdown?.basePrice ??
-    Math.max(0, booking.total_price - kmSupplement - cancellationSupplement - extrasSubtotal + discountAmount)
-  )
+  const basePrice = resolveBasePrice(booking, { kmSupplement, cancellationSupplement, extrasSubtotal, discountAmount })
+  const flexDeposit = bookingFlexDeposit(booking)
+  const secondDriver = adminBookingSecondDriver(booking)
+  const secondDriverWarnings = secondDriverAlerts(booking, new Date(), secondDriverPhotos)
+  const breakdownLines = buildBreakdownLines(booking, {
+    basePrice,
+    nights,
+    kmLabel,
+    cancellationLabel,
+    kmSupplement,
+    cancellationSupplement,
+    extrasSubtotal,
+    discountAmount,
+    extrasCount: parsedExtrasList.length,
+  })
   const depositAmount = Number(booking.deposit_amount || 1000)
   const redsysOrderId = booking.payment_intent_id || booking.payment_intent || booking.order_id || null
   const isPaid = booking.payment_status === 'paid'
@@ -440,6 +470,23 @@ export default function BookingDetailModal({ booking, onClose, onAlertsReviewed 
                 {reviewing ? <Loader2 size={14} className="bm-alert__spin" /> : <Check size={14} />}
                 Marcar como revisado
               </button>
+            </div>
+          )}
+
+          {secondDriverWarnings.length > 0 && (
+            <div className="adm-note adm-note--alert bm-alert" role="alert">
+              <AlertTriangle size={18} aria-hidden="true" />
+              <div className="adm-note__text">
+                <strong>Segundo conductor a revisar</strong>
+                <ul className="bm-alert__list">
+                  {secondDriverWarnings.map(alert => (
+                    <li key={alert.code}>
+                      {alert.severity === 'danger' && <strong>Actuar antes de la entrega: </strong>}
+                      {alert.text}
+                    </li>
+                  ))}
+                </ul>
+              </div>
             </div>
           )}
 
@@ -575,6 +622,22 @@ export default function BookingDetailModal({ booking, onClose, onAlertsReviewed 
                   </div>
                 </div>
 
+                {secondDriver && (
+                  <div className="bm-field">
+                    <span className="bm-label">Segundo conductor</span>
+                    <strong className="bm-val">
+                      {secondDriver.fullName || 'Consta segundo conductor, pero faltan sus datos'}
+                    </strong>
+                    {secondDriver.document && <div className="bm-val bm-val--mono">{secondDriver.document}</div>}
+                    <SecondDriverRecordEditor booking={booking} onSaved={patch => onSecondDriverSaved?.(patch)} />
+                    <div className="bm-val-sub">
+                      {secondDriver.included
+                        ? (flexDeposit.isFlex ? 'Incluido sin coste con la fianza Flex.' : 'Sin suplemento registrado en esta reserva.')
+                        : `Suplemento de ${formatPrice(secondDriver.supplement)}${secondDriver.ratePerDay > 0 ? ` (${formatPrice(secondDriver.ratePerDay)}/día)` : ''}, ya dentro del total.`}
+                    </div>
+                  </div>
+                )}
+
                 <div className="bm-field">
                   <span className="bm-label">Peticiones o Notas Especiales</span>
                   <div className={`bm-val-sub ${specialNotes !== 'Ninguna' ? '' : 'bm-italic'}`}>
@@ -639,34 +702,22 @@ export default function BookingDetailModal({ booking, onClose, onAlertsReviewed 
               <Euro size={16} /> Desglose Económico Pormenorizado
             </h4>
             <div className="bm-pricing-grid">
-              <div className="bm-price-row">
-                <span>Alquiler base camper ({nights} noches)</span>
-                <strong>{formatPrice(basePrice)}</strong>
-              </div>
-
-              {discountAmount > 0 && (
-                <div className="bm-price-row bm-price-row--discount">
-                  <span>Descuento aplicado por estancia prolongada</span>
-                  <strong>- {formatPrice(discountAmount)}</strong>
+              {breakdownLines.map(line => (
+                <div key={line.kind} className={`bm-price-row${line.kind === 'discount' ? ' bm-price-row--discount' : ''}`}>
+                  <span>{line.label}</span>
+                  <strong>
+                    {line.included
+                      ? 'Incluido'
+                      : line.kind === 'base'
+                        ? formatPrice(line.amount)
+                        : line.amount < 0
+                          ? `- ${formatPrice(-line.amount)}`
+                          : line.amount > 0
+                            ? `+ ${formatPrice(line.amount)}`
+                            : formatPrice(0)}
+                  </strong>
                 </div>
-              )}
-
-              <div className="bm-price-row">
-                <span>Paquete de KM: {kmLabel}</span>
-                <strong>{kmSupplement > 0 ? `+ ${formatPrice(kmSupplement)}` : '0,00 €'}</strong>
-              </div>
-
-              <div className="bm-price-row">
-                <span>Política de Cancelación: {cancellationLabel}</span>
-                <strong>{cancellationSupplement > 0 ? `+ ${formatPrice(cancellationSupplement)}` : '0,00 €'}</strong>
-              </div>
-
-              {extrasSubtotal > 0 && (
-                <div className="bm-price-row">
-                  <span>Extras y experiencias ({parsedExtrasList.length} seleccionados)</span>
-                  <strong>+ {formatPrice(extrasSubtotal)}</strong>
-                </div>
-              )}
+              ))}
 
               <div className="bm-price-total">
                 <div>
@@ -1354,8 +1405,17 @@ export default function BookingDetailModal({ booking, onClose, onAlertsReviewed 
         .bm-price-row {
           display: flex;
           justify-content: space-between;
+          gap: 12px;
           font-size: 0.88rem;
           color: var(--adm-text);
+        }
+
+        .bm-price-row--discount {
+          color: var(--adm-sage);
+        }
+
+        .bm-val--mono {
+          font-family: monospace;
         }
 
         .bm-opt-badge {

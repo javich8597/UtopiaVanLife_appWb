@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server'
 import { createClient as createServerClient } from '@/lib/supabase/server'
 import { isAdminUser, getAdminClientOrSession } from '@/lib/admin/auth'
 import { resolveCustomerDocumentUrls } from '@/lib/admin/documents'
+import { buildSecondDriverGroups, resolveSecondDriverDocuments, secondDriverDocsNotices } from '@/lib/admin/secondDriverDocuments'
 
 export async function GET(request: Request) {
     try {
@@ -47,7 +48,6 @@ export async function GET(request: Request) {
                         id: user.id,
                         email: user.email,
                         role: profile?.role,
-                        user_metadata: user.user_metadata,
                         app_metadata: user.app_metadata
                     })
 
@@ -78,7 +78,7 @@ export async function GET(request: Request) {
         }
 
         // 2. Fetch bookings of the user
-        const { data: bookings } = await clientToUse
+        const { data: bookings, error: bookingsError } = await clientToUse
             .from('bookings')
             .select(`
                 *,
@@ -90,14 +90,27 @@ export async function GET(request: Request) {
         // 3. Resolve document URLs from Supabase Storage
         const documents = await resolveCustomerDocumentUrls(clientToUse, userId)
 
+        // 4. Fotos del segundo conductor de cada reserva (documents/<cliente>/<reserva>/second_*)
+        // Si no se pudieron leer las reservas no se sabe qué carpetas son del cliente: se dice, no se calla
+        const secondDriverDocs = bookingsError
+            ? null
+            : await resolveSecondDriverDocuments(clientToUse, userId, bookings || [])
+        const secondDriverGroups = secondDriverDocs ? buildSecondDriverGroups(secondDriverDocs.folders, bookings || []) : []
+        const secondDriverNotices = secondDriverDocs
+            ? secondDriverDocsNotices(secondDriverDocs)
+            : ['No se pudieron leer las reservas del cliente: no se muestran las fotos ni los datos de su segundo conductor.']
+
         return NextResponse.json({
             user: targetUser,
             bookings: bookings || [],
-            documents
+            documents,
+            secondDriverGroups,
+            secondDriverNotices
         })
 
     } catch (error: any) {
+        // El detalle va al registro del servidor; al navegador nunca
         console.error('Customer Detail API Error:', error)
-        return NextResponse.json({ error: error.message || 'Error interno' }, { status: 500 })
+        return NextResponse.json({ error: 'Error interno' }, { status: 500 })
     }
 }

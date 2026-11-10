@@ -9,12 +9,14 @@ import {
     Step3Data,
     Step4Data,
     Step5Customer,
+    BookingPassenger,
     WizardExtraItem,
     validateStep1,
     validateStep2,
     validateStep3,
     validateStep4,
     validateStep5,
+    normalizeStep5Draft,
 } from './types'
 import {
     calculatePriceV2,
@@ -136,6 +138,7 @@ export default function BookingWizardClient({
             birthDate: '',
             isSecondDriver: false,
             licenseDate: '',
+            driverLicenseId: '',
         })),
         secondDriverSoloEnabled: false,
         secondDriverSolo: {
@@ -143,6 +146,7 @@ export default function BookingWizardClient({
             dniNie: '',
             birthDate: '',
             licenseDate: '',
+            driverLicenseId: '',
         },
         address: '',
         city: '',
@@ -199,10 +203,14 @@ export default function BookingWizardClient({
                         })
                     }
                     if (draft.step5) {
+                        const normalizedStep5 = normalizeStep5Draft(draft.step5, draft.step1?.pax || initialPaxCount)
                         setStep5({
-                            ...draft.step5,
+                            ...normalizedStep5,
                             depositOption: 'standard_2000',
                             secondDriverSoloEnabled: false,
+                            passengers: Array.isArray(normalizedStep5.passengers)
+                                ? normalizedStep5.passengers.map((p: BookingPassenger) => ({ ...p, isSecondDriver: false }))
+                                : [],
                         })
                     }
                     if (typeof draft.maxCompletedStep === 'number') {
@@ -326,6 +334,7 @@ export default function BookingWizardClient({
                         birthDate: '',
                         isSecondDriver: false,
                         licenseDate: '',
+                        driverLicenseId: '',
                     })
                 }
             } else if (updatedPassengers.length > needed) {

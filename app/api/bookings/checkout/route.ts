@@ -10,10 +10,16 @@ import {
     calculateAge,
     calculateLicenseSeniorityYears,
     camperSeats,
+    countSecondDrivers,
+    isAlreadyAmong,
+    isSecondDriverFlag,
     MAX_CAMPER_SEATS,
+    MAX_SECOND_DRIVERS,
     isValidDateString,
+    isValidDniNieOrPassport,
     isValidEmail,
     normalizeEmail,
+    personDocument,
     resolveBookingSlots,
     sanitizeCustomerNotes,
     validateBookingDates,
@@ -23,6 +29,7 @@ import { isBookingRangeFree } from '@/lib/booking/calendarLogic'
 import { clientIp, registerCheckoutAttempt } from '@/lib/booking/checkoutRateLimit'
 import {
     isValidDocumentIdText,
+    isValidLicenseIdText,
     isValidPersonName,
     isValidPhoneText,
     isValidTypedAddress,
@@ -31,50 +38,10 @@ import {
     normalizeDriverText,
 } from '@/lib/driverDocuments'
 
-export { calculateAge, calculateLicenseSeniorityYears }
-
-const DNI_LETTERS = 'TRWAGMYFPDXBNJZSQVHLCKE'
-
-export function isValidDniNieOrPassport(value: string): { isValid: boolean; error?: string } {
-    if (!value || typeof value !== 'string') {
-        return { isValid: false, error: 'Documento de identidad requerido' }
-    }
-    const clean = value.trim().toUpperCase()
-
-    // 1. DNI español: 8 dígitos + 1 letra de control
-    const dniRegex = /^(\d{8})([A-Z])$/
-    const dniMatch = clean.match(dniRegex)
-    if (dniMatch) {
-        const num = parseInt(dniMatch[1], 10)
-        const expectedLetter = DNI_LETTERS[num % 23]
-        if (dniMatch[2] === expectedLetter) {
-            return { isValid: true }
-        }
-        return { isValid: false, error: `Letra de DNI incorrecta. Para el número ${dniMatch[1]}, la letra debe ser ${expectedLetter}` }
-    }
-
-    // 2. NIE español: X, Y, Z + 7 dígitos + 1 letra de control
-    const nieRegex = /^([XYZ])(\d{7})([A-Z])$/
-    const nieMatch = clean.match(nieRegex)
-    if (nieMatch) {
-        const prefixMap: Record<string, string> = { X: '0', Y: '1', Z: '2' }
-        const numStr = prefixMap[nieMatch[1]] + nieMatch[2]
-        const num = parseInt(numStr, 10)
-        const expectedLetter = DNI_LETTERS[num % 23]
-        if (nieMatch[3] === expectedLetter) {
-            return { isValid: true }
-        }
-        return { isValid: false, error: `Letra de NIE incorrecta. Se esperaba ${expectedLetter}` }
-    }
-
-    // 3. Pasaporte internacional: 6-15 caracteres alfanuméricos
-    const passportRegex = /^[A-Z0-9]{6,15}$/
-    if (passportRegex.test(clean)) {
-        return { isValid: true }
-    }
-
-    return { isValid: false, error: 'Formato de DNI, NIE o Pasaporte no válido' }
-}
+// La regla del documento vive en `lib/booking/checkoutRules.ts` para que el backoffice no tenga que
+// copiarla: importar una ruta de Next desde el panel arrastra la ruta entera. Se reexporta porque
+// los tests y el resto del flujo la importan desde aquí
+export { calculateAge, calculateLicenseSeniorityYears, isValidDniNieOrPassport }
 
 export interface BookingPassenger {
     fullName: string
@@ -82,6 +49,13 @@ export interface BookingPassenger {
     isSecondDriver: boolean
     birthDate?: string | null
     licenseDate?: string | null
+    /**
+     * Número del permiso de conducir del 2º conductor, obligatorio como sus dos fechas (decisión de
+     * Javier, 2026-11-09). Es el único sitio de donde puede salir: el contrato lo imprime desde la
+     * ficha de la reserva y la subida de documentación solo lo confirma, nunca lo reescribe.
+     * `null` en los acompañantes que no conducen: de ellos no se guarda ningún carnet.
+     */
+    driverLicenseId?: string | null
 }
 
 export function validateBookingPassengers(
@@ -101,13 +75,23 @@ export function validateBookingPassengers(
     const text = (value: unknown) => typeof value === 'string' ? value : ''
     const items: any[] = Array.isArray(rawPassengers) ? [...rawPassengers] : []
     if (separateSecondDriver && typeof separateSecondDriver === 'object') {
-        const sDoc = text(separateSecondDriver.dniNie || separateSecondDriver.dni || separateSecondDriver.passport).trim().toUpperCase()
-        const exists = items.some(p => {
-            const pDoc = text(p?.dniNie || p?.dni || p?.passport).trim().toUpperCase()
-            return pDoc && sDoc && pDoc === sDoc
-        })
-        if (!exists) {
+        if (isAlreadyAmong(separateSecondDriver, items)) {
+            // Ya viene entre los acompañantes: se marca ahí y no se duplica
+            const doc = personDocument(separateSecondDriver)
+            const existing = items.find(p => personDocument(p) === doc)
+            if (existing) items[items.indexOf(existing)] = { ...existing, isSecondDriver: true }
+        } else {
             items.push({ ...separateSecondDriver, isSecondDriver: true })
+        }
+    }
+
+    // Como máximo un 2º conductor por reserva, sea cual sea la fianza (decisión de negocio).
+    // Un borrador antiguo o una pestaña vieja pueden traer varias fichas marcadas
+    if (countSecondDrivers(items) > MAX_SECOND_DRIVERS) {
+        return {
+            isValid: false,
+            error: `Solo puede haber ${MAX_SECOND_DRIVERS} segundo conductor en la reserva. Desmarca los demás.`,
+            passengers: []
         }
     }
 
@@ -122,8 +106,8 @@ export function validateBookingPassengers(
         const rawName = text(p.fullName || p.name || p.customer_name)
         // Se guarda normalizado, como el nombre del cliente: es lo que imprime el contrato
         const fullName = normalizeDriverText(rawName) ?? ''
-        const doc = text(p.dniNie || p.dni || p.passport || p.documentNumber || p.document_number || p.dni_nie).trim().toUpperCase()
-        const isSecondDriver = Boolean(p.isSecondDriver || p.is_second_driver || p.secondDriver || p.isDriver)
+        const doc = personDocument(p)
+        const isSecondDriver = isSecondDriverFlag(p)
 
         if (!fullName) {
             return {
@@ -160,93 +144,113 @@ export function validateBookingPassengers(
 
         let birthDateStr: string | null = null
         let licenseDateStr: string | null = null
+        let licenseIdStr: string | null = null
 
         if (isSecondDriver) {
             const rawBirthDate = p.birthDate || p.birth_date || p.driverBirthDate || p.driver_birth_date
-            const rawAge = p.age ?? p.driverAge ?? p.driver_age
             const rawLicenseDate = p.licenseDate || p.license_date || p.licenseIssueDate || p.license_issue_date || p.driverLicenseIssueDate || p.driver_license_issue_date
-            const rawLicenseYears = p.licenseYears ?? p.license_years ?? p.yearsHeld
 
-            // 1. Validar edad mínima obligatoria (>= 25 años)
-            if (rawBirthDate) {
-                // YYYY-MM-DD, como la del titular: new Date() admitía "2000/01/01 (texto…)" y se guardaba tal cual
-                if (!isValidDateString(rawBirthDate)) {
-                    return {
-                        isValid: false,
-                        error: `La fecha de nacimiento del segundo conductor ("${fullName}") no es válida.`,
-                        passengers: []
-                    }
-                }
-                const bDate = new Date(rawBirthDate)
-                const age = calculateAge(bDate, rentalStartDate)
-                if (age < 25) {
-                    return {
-                        isValid: false,
-                        error: `El segundo conductor ("${fullName}") debe tener al menos 25 años cumplidos en la fecha de alquiler (edad calculada: ${age} años). Requisito obligatorio según la póliza de seguro.`,
-                        passengers: []
-                    }
-                }
-                birthDateStr = typeof rawBirthDate === 'string' ? rawBirthDate.split('T')[0] : bDate.toISOString().split('T')[0]
-            } else if (rawAge !== undefined && rawAge !== null && rawAge !== '') {
-                const ageNum = Number(rawAge)
-                if (isNaN(ageNum) || ageNum < 25) {
-                    return {
-                        isValid: false,
-                        error: `El segundo conductor ("${fullName}") debe tener al menos 25 años cumplidos (edad indicada: ${rawAge} años). Requisito obligatorio según la póliza de seguro.`,
-                        passengers: []
-                    }
-                }
-            } else {
+            // 1. Validar edad mínima obligatoria (>= 25 años).
+            // Solo la FECHA: una edad o unos años autodeclarados (`age`, `licenseYears`) se perdían
+            // al guardar la ficha, así que ni el contrato ni la subida podían volver a comprobarlos.
+            // El paso 5 ya pide las dos fechas para la ficha marcada como 2º conductor.
+            if (!rawBirthDate) {
                 return {
                     isValid: false,
-                    error: `La fecha de nacimiento o edad del segundo conductor ("${fullName}") es obligatoria para verificar los requisitos de seguro (>= 25 años).`,
+                    error: `La fecha de nacimiento del segundo conductor ("${fullName}") es obligatoria para verificar los requisitos de seguro (>= 25 años).`,
                     passengers: []
                 }
             }
+            // YYYY-MM-DD, como la del titular: new Date() admitía "2000/01/01 (texto…)" y se guardaba tal cual
+            if (!isValidDateString(rawBirthDate)) {
+                return {
+                    isValid: false,
+                    error: `La fecha de nacimiento del segundo conductor ("${fullName}") no es válida.`,
+                    passengers: []
+                }
+            }
+            const age = calculateAge(new Date(rawBirthDate), rentalStartDate)
+            if (age < 25) {
+                return {
+                    isValid: false,
+                    error: `El segundo conductor ("${fullName}") debe tener al menos 25 años cumplidos en la fecha de alquiler (edad calculada: ${age} años). Requisito obligatorio según la póliza de seguro.`,
+                    passengers: []
+                }
+            }
+            // isValidDateString ya garantiza YYYY-MM-DD: se guarda la cadena tal cual
+            birthDateStr = rawBirthDate
 
-            // 2. Validar antigüedad carnet B obligatoria (>= 2 años)
-            if (rawLicenseDate) {
-                if (!isValidDateString(rawLicenseDate)) {
-                    return {
-                        isValid: false,
-                        error: `La fecha de expedición del carnet de conducir del segundo conductor ("${fullName}") no es válida.`,
-                        passengers: []
-                    }
-                }
-                const lDate = new Date(rawLicenseDate)
-                const seniority = calculateLicenseSeniorityYears(lDate, rentalStartDate)
-                if (seniority < 2) {
-                    return {
-                        isValid: false,
-                        error: `El segundo conductor ("${fullName}") debe tener al menos 2 años de antigüedad del permiso de conducir clase B (antigüedad calculada: ${seniority} años). Requisito obligatorio según la póliza de seguro.`,
-                        passengers: []
-                    }
-                }
-                licenseDateStr = typeof rawLicenseDate === 'string' ? rawLicenseDate.split('T')[0] : lDate.toISOString().split('T')[0]
-            } else if (rawLicenseYears !== undefined && rawLicenseYears !== null && rawLicenseYears !== '') {
-                const yearsNum = Number(rawLicenseYears)
-                if (isNaN(yearsNum) || yearsNum < 2) {
-                    return {
-                        isValid: false,
-                        error: `El segundo conductor ("${fullName}") debe tener al menos 2 años de antigüedad del permiso de conducir clase B (antigüedad indicada: ${rawLicenseYears} años). Requisito obligatorio según la póliza de seguro.`,
-                        passengers: []
-                    }
-                }
-            } else {
+            // 2. Validar antigüedad carnet B obligatoria (>= 2 años), también por fecha
+            if (!rawLicenseDate) {
                 return {
                     isValid: false,
                     error: `La fecha de expedición del carnet de conducir del segundo conductor ("${fullName}") es obligatoria para verificar la antigüedad mínima (>= 2 años).`,
                     passengers: []
                 }
             }
-        } else {
-            if (p.birthDate || p.birth_date) {
-                const b = new Date(p.birthDate || p.birth_date)
-                if (!isNaN(b.getTime())) birthDateStr = b.toISOString().split('T')[0]
+            if (!isValidDateString(rawLicenseDate)) {
+                return {
+                    isValid: false,
+                    error: `La fecha de expedición del carnet de conducir del segundo conductor ("${fullName}") no es válida.`,
+                    passengers: []
+                }
             }
-            if (p.licenseDate || p.license_date) {
-                const l = new Date(p.licenseDate || p.license_date)
-                if (!isNaN(l.getTime())) licenseDateStr = l.toISOString().split('T')[0]
+            const seniority = calculateLicenseSeniorityYears(new Date(rawLicenseDate), rentalStartDate)
+            if (seniority < 2) {
+                return {
+                    isValid: false,
+                    error: `El segundo conductor ("${fullName}") debe tener al menos 2 años de antigüedad del permiso de conducir clase B (antigüedad calculada: ${seniority} años). Requisito obligatorio según la póliza de seguro.`,
+                    passengers: []
+                }
+            }
+            licenseDateStr = rawLicenseDate
+
+            // 3. Nº del permiso de conducir, obligatorio igual que las dos fechas. Sin él, ninguna
+            // ficha lo trae y el contrato faculta a esa persona con un permiso «Pendiente»; la
+            // subida de documentación tampoco puede confirmar el que teclee el titular
+            const rawLicenseId = p.driverLicenseId || p.driver_license_id || p.licenseId || p.license_id
+            const licenseId = typeof rawLicenseId === 'string' ? (normalizeDriverText(rawLicenseId) ?? '') : ''
+            if (!licenseId) {
+                return {
+                    isValid: false,
+                    error: `El número del permiso de conducir del segundo conductor ("${fullName}") es obligatorio: es el permiso que se autoriza en el contrato.`,
+                    passengers: []
+                }
+            }
+            // La misma regla que la subida de documentación (LICENSE_ID_PATTERN): lo que pasa aquí pasa después
+            if (!isValidLicenseIdText(licenseId)) {
+                return {
+                    isValid: false,
+                    error: `El número del permiso de conducir del segundo conductor ("${fullName}") no es válido: solo letras, números y los signos . / - (entre 3 y 30 caracteres).`,
+                    passengers: []
+                }
+            }
+            licenseIdStr = licenseId
+        } else {
+            // Acompañante que no conduce: las fechas son opcionales, pero si vienen deben ser
+            // YYYY-MM-DD y se guardan tal cual. `new Date(...)` admitía "1980/01/01 (texto)" y
+            // `toISOString()` sobre una fecha local corría el día según la zona horaria del servidor
+            const rawBirthDate = p.birthDate || p.birth_date
+            if (rawBirthDate) {
+                if (!isValidDateString(rawBirthDate)) {
+                    return {
+                        isValid: false,
+                        error: `La fecha de nacimiento del acompañante "${fullName}" (Pasajero ${passengerNum}) no es válida.`,
+                        passengers: []
+                    }
+                }
+                birthDateStr = rawBirthDate
+            }
+            const rawLicenseDate = p.licenseDate || p.license_date
+            if (rawLicenseDate) {
+                if (!isValidDateString(rawLicenseDate)) {
+                    return {
+                        isValid: false,
+                        error: `La fecha de expedición del carnet de conducir del acompañante "${fullName}" (Pasajero ${passengerNum}) no es válida.`,
+                        passengers: []
+                    }
+                }
+                licenseDateStr = rawLicenseDate
             }
         }
 
@@ -256,6 +260,7 @@ export function validateBookingPassengers(
             isSecondDriver,
             birthDate: birthDateStr,
             licenseDate: licenseDateStr,
+            driverLicenseId: licenseIdStr,
         })
     }
 
@@ -488,29 +493,28 @@ export async function POST(req: Request) {
 
         // 2b. Validaciones de acompañantes y segundo conductor server-side
         const rawPassengersInput = body.passengers || cust.passengers || body.companions || cust.companions || []
-        // El 2º conductor solo se incluye con fianza Flex: si el cliente vuelve a Estándar, una ficha de acompañante
-        // puede conservar isSecondDriver: true en el borrador aunque la casilla ya no se vea ni se valide en el paso 5
-        const secondDriverAllowed = depositOption === 'flex_1000'
-        const rawPassengers = Array.isArray(rawPassengersInput)
-            ? rawPassengersInput.map((p: unknown) =>
-                p && typeof p === 'object' && !secondDriverAllowed
-                    ? { ...(p as Record<string, unknown>), isSecondDriver: false, is_second_driver: false, secondDriver: false, isDriver: false }
-                    : p
-            )
-            : rawPassengersInput
-        // El 2º conductor "solo" existe únicamente con 1 viajero y fianza Flex (el bloque del paso 5 solo
-        // se ve así). Fuera de ese caso se ignora: una pestaña antigua o un borrador lo pueden seguir enviando
-        const soloSecondDriverAllowed = travelersCount === 1 && secondDriverAllowed
-        const separateSecondDriver =
-            body.secondDriver ||
-            cust.secondDriver ||
-            (soloSecondDriverAllowed && (cust.secondDriverSoloEnabled || body.secondDriverSoloEnabled)
-                ? (body.secondDriverSolo || cust.secondDriverSolo)
-                : null) ||
-            null
+        const rawPassengers = Array.isArray(rawPassengersInput) ? rawPassengersInput : []
 
-        // Cada acompañante es un viajero más que el titular (el 2º conductor "solo" no viaja como acompañante)
-        const companionsCount = Array.isArray(rawPassengers) ? rawPassengers.length : 0
+        // ── Regla única del 2º conductor (`secondDriver`, `cust.secondDriver`, `secondDriverSolo`
+        // y el `isSecondDriver` de cada acompañante) ──
+        // Se admite con cualquier fianza: con Flex va incluido y con Estándar se cobra
+        // SECOND_DRIVER_RATE_PER_DAY, que suma el servidor al recalcular el precio.
+        // Como máximo uno por reserva: lo comprueba validateBookingPassengers sobre todas las fichas.
+        //
+        // El bloque "solo" del paso 5 solo existe con 1 viajero: fuera de ahí se ignora, porque una
+        // pestaña antigua o el borrador de sessionStorage lo pueden seguir enviando
+        const soloSecondDriver = travelersCount === 1 && (cust.secondDriverSoloEnabled || body.secondDriverSoloEnabled)
+            ? (body.secondDriverSolo || cust.secondDriverSolo || null)
+            : null
+        // Un 2º conductor enviado aparte de las fichas viaja además de los acompañantes y ocupa
+        // plaza, salvo que ya figure entre ellos. El del bloque "solo" se registra aparte de los
+        // viajeros (el paso 5 lo presenta así) y no suma plaza
+        const standaloneSecondDriver = body.secondDriver || cust.secondDriver || null
+        const separateSecondDriver = standaloneSecondDriver || soloSecondDriver
+        const extraSeats = standaloneSecondDriver && !isAlreadyAmong(standaloneSecondDriver, rawPassengers) ? 1 : 0
+
+        // Cada acompañante es un viajero más que el titular
+        const companionsCount = rawPassengers.length + extraSeats
         if (travelersCount < companionsCount + 1) {
             return NextResponse.json(
                 { error: `Has indicado ${travelersCount} ${travelersCount === 1 ? 'viajero' : 'viajeros'} y ${companionsCount} ${companionsCount === 1 ? 'acompañante' : 'acompañantes'}: revisa el número de viajeros.` },
@@ -526,6 +530,9 @@ export async function POST(req: Request) {
             )
         }
         const validatedPassengers = passengerValidation.passengers
+        // El suplemento se cobra por lo que ha quedado validado en el servidor, nunca por lo que
+        // diga el navegador: ninguna bandera del cuerpo entra en el cálculo del precio
+        const hasSecondDriver = countSecondDrivers(validatedPassengers) > 0
 
         const supabase = getSupabaseAdmin()
 
@@ -662,6 +669,7 @@ export async function POST(req: Request) {
             kmPackage,
             cancellationPolicy,
             depositOption,
+            secondDriver: hasSecondDriver,
             extrasSelected: verifiedExtras,
             depositAmount: body.depositAmount === 1000 ? 1000 : (depositOption === 'flex_1000' ? 1000 : 2000),
         })

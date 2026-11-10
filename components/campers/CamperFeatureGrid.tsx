@@ -6,7 +6,7 @@ import {
   Zap, Droplets, Sun, Shield, Utensils,
   Wifi, Battery, ThermometerSun, Wind, Tv,
   Bed, Plug, Gauge, Snowflake, FolderOpen,
-  ChevronDown
+  Users, Ruler, ChevronDown
 } from 'lucide-react'
 
 export interface FeatureItem {
@@ -36,6 +36,8 @@ const ICON_MAP: Record<string, any> = {
   gauge: Gauge,
   snowflake: Snowflake,
   folder: FolderOpen,
+  users: Users,
+  ruler: Ruler,
 }
 
 export default function CamperFeatureGrid({ features, initialVisible = 8 }: Props) {
@@ -186,6 +188,43 @@ export default function CamperFeatureGrid({ features, initialVisible = 8 }: Prop
         }
         :global(.feat-chevron.rotated) {
           transform: rotate(180deg);
+        }
+
+        :global(html[data-theme="light"]) .section-divider-title {
+          color: #5C554C;
+        }
+        :global(html[data-theme="light"]) .section-divider-line {
+          background: linear-gradient(90deg, rgba(150, 122, 34, 0.38), rgba(26, 23, 20, 0.08));
+        }
+        :global(html[data-theme="light"]) .feature-card {
+          background: #FAFAF7;
+          border-color: rgba(26, 23, 20, 0.12);
+          box-shadow: 0 2px 8px rgba(26, 23, 20, 0.05);
+        }
+        :global(html[data-theme="light"]) .feature-card:hover {
+          border-color: rgba(150, 122, 34, 0.42);
+          box-shadow: 0 6px 18px rgba(26, 23, 20, 0.09);
+        }
+        :global(html[data-theme="light"]) .feature-icon-box {
+          background: #F4EFE4;
+          border: 1px solid rgba(150, 122, 34, 0.22);
+          color: #82681A;
+        }
+        :global(html[data-theme="light"]) .feature-label {
+          color: #1A1714;
+        }
+        :global(html[data-theme="light"]) .feature-value {
+          color: #5C554C;
+        }
+        :global(html[data-theme="light"]) .feature-expand-btn {
+          background: #FAFAF7;
+          border-color: rgba(26, 23, 20, 0.18);
+          color: #1F1B17;
+        }
+        :global(html[data-theme="light"]) .feature-expand-btn:hover {
+          background: #F3EFE7;
+          border-color: rgba(150, 122, 34, 0.45);
+          color: #6B5514;
         }
 
         @media (max-width: 860px) {

@@ -64,8 +64,12 @@ export default function CamperIncluded({ items }: Props) {
           align-items: flex-start;
           gap: 10px;
           font-size: 13px;
-          color: rgba(255, 255, 255, 0.75);
+          color: rgba(255, 255, 255, 0.8);
           line-height: 1.5;
+          padding: 12px 14px;
+          border-radius: 12px;
+          background: #131518;
+          border: 1px solid rgba(255, 255, 255, 0.07);
         }
         .included-check {
           width: 22px;
@@ -78,6 +82,24 @@ export default function CamperIncluded({ items }: Props) {
           flex-shrink: 0;
           color: #e6ca65;
           margin-top: 1px;
+        }
+
+        :global(html[data-theme="light"]) .section-divider-title {
+          color: #5C554C;
+        }
+        :global(html[data-theme="light"]) .section-divider-line {
+          background: linear-gradient(90deg, rgba(150, 122, 34, 0.38), rgba(26, 23, 20, 0.08));
+        }
+        :global(html[data-theme="light"]) .included-item {
+          background: #FAFAF7;
+          border-color: rgba(26, 23, 20, 0.12);
+          color: #1F1B17;
+          box-shadow: 0 2px 6px rgba(26, 23, 20, 0.04);
+        }
+        :global(html[data-theme="light"]) .included-check {
+          background: #F4EFE4;
+          border: 1px solid rgba(150, 122, 34, 0.22);
+          color: #82681A;
         }
 
         @media (max-width: 640px) {

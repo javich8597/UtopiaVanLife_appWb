@@ -29,14 +29,14 @@ interface Step2ModelProps {
 
 const MODEL_HIGHLIGHTS: Record<string, string[]> = {
     neo: [
-        'Dormitorio fijo + separación de cabina',
-        'Maletero garaje XXL (2.230 L)',
-        'Litio Victron 540Ah + A/C 12V',
+        'Cama doble fija + cama auxiliar (3 plazas)',
+        'Gran maletero + Baño con WC y ducha',
+        'Sistema eléctrico Pro 540Ah + A/C 12V Dometic',
     ],
     space: [
-        'Salón panorámico en «U» (7 m²)',
-        'Cama eléctrica de techo',
-        'Pack Cine HD + Litio Victron 540Ah',
+        'Cama elevable + cama interbanco (2 plazas)',
+        'Máximo espacio interior diurno + Baño con WC y ducha',
+        'Sistema eléctrico Pro 540Ah + A/C 12V Dometic',
     ],
 }
 

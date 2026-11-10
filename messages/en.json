@@ -77,21 +77,21 @@
   "Campers": {
     "neo": {
       "name": "NEO",
-      "description": "NEO is the most versatile camper with superior cargo space. 2,230 liters of garage storage to carry all your adventure gear. Features complete cabin separation for maximum thermal and acoustic insulation, fixed memory foam bed (192x130 cm) plus auxiliary lounge bed, Victron PRO electrical system with 540Ah Lithium, 400W Solar, and 12V Dometic Air Conditioning.",
-      "beds": "2-3 beds",
-      "seats": "3 seats",
-      "length": "6.0m",
-      "engine": "Diesel 2.2L Multijet (140 HP)",
-      "transmission": "Manual / Automatic"
+      "description": "Not just a camper. NEO offers more space, more capacity, and more freedom thanks to its large rear trunk, ideal for carrying all your adventure gear. Equipped with the most advanced PRO electrical system on the market (2x lithium batteries 540Ah, 2x monocrystalline solar panels 400W, Victron Multiplus 2,000W inverter, Cerbo GX) and integrated 12V Dometic Air Conditioning. Ideal camper for 2 people that adapts seamlessly for 3.",
+      "beds": "3 sleeping places",
+      "seats": "3 travel seats",
+      "length": "5.99m",
+      "engine": "Diesel engine 8L/100 km",
+      "transmission": "Manual 140 HP"
     },
     "space": {
       "name": "SPACE",
-      "description": "SPACE redefines camper luxury with a 100% open concept layout (7m² 'The biggest 7m²'). Its electric drop-down roof bed elevates during the day, revealing a panoramic U-shaped lounge with a 360° swivel table for remote work or relaxation. Includes 160L fresh water tank, 540Ah Victron Lithium, 400W Solar, 12V Dometic AC, and Cinema Pack with HD projector.",
-      "beds": "2 beds",
-      "seats": "2 seats",
-      "length": "6.0m",
-      "engine": "Diesel 2.2L Multijet (140 HP)",
-      "transmission": "Manual / Automatic"
+      "description": "Maximum comfort in a camper. Thanks to its drop-down roof bed, during the day you enjoy the entire interior space as if you were in a motorhome… but with the freedom of a camper. Less trunk space, more quality of life in your day-to-day. Designed for 2 people, prioritizing maximum comfort at all times. Equipped with PRO electrical system (540Ah Lithium, 400W Solar, Victron Multiplus 2,000W, Cerbo GX), 12V Dometic AC, and full bathroom with indoor shower and chemical WC.",
+      "beds": "2 sleeping places",
+      "seats": "2 travel seats",
+      "length": "5.99m",
+      "engine": "Diesel engine 8L/100 km",
+      "transmission": "Manual 140 HP"
     }
   },
   "CamperDetail": {

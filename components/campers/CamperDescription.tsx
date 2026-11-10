@@ -126,6 +126,32 @@ export default function CamperDescription({ paragraphs, inlineImage, visibleCoun
           border-radius: 20px;
         }
 
+        :global(html[data-theme="light"]) .section-divider-title {
+          color: #5C554C;
+        }
+        :global(html[data-theme="light"]) .section-divider-line {
+          background: linear-gradient(90deg, rgba(150, 122, 34, 0.38), rgba(26, 23, 20, 0.08));
+        }
+        :global(html[data-theme="light"]) .description-paragraph {
+          color: #2A2520;
+        }
+        :global(html[data-theme="light"]) .description-fade {
+          background: linear-gradient(transparent, #F2F0EC);
+        }
+        :global(html[data-theme="light"]) .expand-toggle-btn {
+          color: #6B5514;
+          background: #FAFAF7;
+          border: 1px solid rgba(26, 23, 20, 0.16);
+          padding: 8px 16px;
+          border-radius: 9999px;
+          margin-top: 6px;
+        }
+        :global(html[data-theme="light"]) .expand-toggle-btn:hover {
+          background: #F3EFE7;
+          border-color: rgba(150, 122, 34, 0.42);
+          opacity: 1;
+        }
+
         @media (max-width: 640px) {
           .description-paragraph {
             font-size: 14px;

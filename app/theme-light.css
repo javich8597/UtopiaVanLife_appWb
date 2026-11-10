@@ -721,30 +721,50 @@ html[data-theme="light"] .camper-card__tagline {
   color: #5A5248 !important;
 }
 
-html[data-theme="light"] .camper-card__spec-chip {
+html[data-theme="light"] .camper-card__spec-chip,
+html[data-theme="light"] .camper-card__spec {
   background: #F7F5F1 !important;
   border: 1px solid #EAE5DD !important;
   color: #1F1B17 !important;
+}
+
+html[data-theme="light"] .camper-card__spec-icon {
+  background: #F7EEDC !important;
+  border: 1px solid #E8D6B2 !important;
+  color: #1A1714 !important;
 }
 
 html[data-theme="light"] .camper-card__spec-label {
   color: #5A5248 !important;
 }
 
+html[data-theme="light"] .camper-card__spec-val {
+  color: #1F1B17 !important;
+}
+
 html[data-theme="light"] .camper-card__footer {
   border-top: 1px solid #EAE5DD !important;
 }
 
-html[data-theme="light"] .camper-card__price-value {
+html[data-theme="light"] .camper-card__price-from,
+html[data-theme="light"] .camper-card__price-unit {
+  color: #5A5248 !important;
+}
+
+html[data-theme="light"] .camper-card__price-value,
+html[data-theme="light"] .camper-card__price-amount {
   color: #1F1B17 !important;
 }
 
-html[data-theme="light"] .camper-card__cta {
+html[data-theme="light"] .camper-card__cta,
+html[data-theme="light"] .camper-card__btn {
   background: #1A1714 !important;
   color: #F6EBD3 !important;
+  border-color: #1A1714 !important;
 }
 
-html[data-theme="light"] .camper-card__cta:hover {
+html[data-theme="light"] .camper-card__cta:hover,
+html[data-theme="light"] .camper-card__btn:hover {
   background: #2E2822 !important;
 }
 
@@ -1192,6 +1212,7 @@ html[data-theme="light"] .footer .footer__legal-link:hover {
 /* ── 9. CATÁLOGO / PÁGINA CAMPERS (/campers) ── */
 html[data-theme="light"] .catalog-page {
   background: #F2F0EC !important;
+  color: #1F1B17 !important;
 }
 
 html[data-theme="light"] .catalog-hero {
@@ -1216,8 +1237,49 @@ html[data-theme="light"] .catalog-hero__eyebrow {
   font-weight: 700 !important;
 }
 
+html[data-theme="light"] .catalog__filter-btn {
+  background: #FFFFFF !important;
+  border: 1px solid #EAE5DD !important;
+  color: #5A5248 !important;
+}
+
+html[data-theme="light"] .catalog__filter-btn:hover {
+  border-color: #B8893A !important;
+  color: #1F1B17 !important;
+}
+
+html[data-theme="light"] .catalog__filter-btn--active {
+  background: #1A1714 !important;
+  border-color: #1A1714 !important;
+  color: #F6EBD3 !important;
+}
+
+html[data-theme="light"] .catalog__search-info {
+  color: #5A5248 !important;
+}
+
+html[data-theme="light"] .catalog__search-info strong {
+  color: #1A1714 !important;
+}
+
+html[data-theme="light"] .catalog__pillar-item {
+  background: #FFFFFF !important;
+  border: 1px solid #EAE5DD !important;
+  box-shadow: 0 2px 8px rgba(40, 30, 15, 0.04) !important;
+}
+
+html[data-theme="light"] .catalog__pillar-icon {
+  background: #F7EEDC !important;
+  color: #1A1714 !important;
+}
+
+html[data-theme="light"] .catalog__pillar-text {
+  color: #1F1B17 !important;
+}
+
 /* ── 10. DETALLE DE CAMPER (/campers/[slug]) ── */
-html[data-theme="light"] .camper-detail-page {
+html[data-theme="light"] .camper-detail-page,
+html[data-theme="light"] .camper-detail-v2 {
   background: #F2F0EC !important;
   color: #1F1B17 !important;
 }
@@ -1302,8 +1364,24 @@ html[data-theme="light"] .feature-card__desc {
   color: #5A5248 !important;
 }
 
+html[data-theme="light"] .feature-expand-btn {
+  background: #FFFFFF !important;
+  border: 1px solid #D9D1C4 !important;
+  color: #1F1B17 !important;
+}
+
+html[data-theme="light"] .feature-expand-btn:hover {
+  background: #F7EEDC !important;
+  border-color: #B8893A !important;
+  color: #1A1714 !important;
+}
+
 html[data-theme="light"] .description-paragraph {
   color: #3E3730 !important;
+}
+
+html[data-theme="light"] .description-fade {
+  background: linear-gradient(transparent, #F2F0EC) !important;
 }
 
 html[data-theme="light"] .expand-toggle-btn {
@@ -1326,6 +1404,10 @@ html[data-theme="light"] .floorplan-card {
   border: 1px solid #EAE5DD !important;
 }
 
+html[data-theme="light"] .floorplan-img {
+  background: #FFFFFF !important;
+}
+
 html[data-theme="light"] .floorplan-label {
   background: #F7EEDC !important;
   border: 1px solid #E8D6B2 !important;
@@ -1346,7 +1428,8 @@ html[data-theme="light"] .included-check {
 }
 
 html[data-theme="light"] .sidebar-card,
-html[data-theme="light"] .booking-sidebar-card {
+html[data-theme="light"] .booking-sidebar-card,
+html[data-theme="light"] .calculator-card {
   background: #FFFFFF !important;
   border: 1px solid #EAE5DD !important;
   box-shadow: 0 8px 30px rgba(40, 30, 15, 0.08) !important;
@@ -1362,8 +1445,17 @@ html[data-theme="light"] .sidebar-price-amount {
 
 html[data-theme="light"] .sidebar-price-label,
 html[data-theme="light"] .sidebar-price-unit,
-html[data-theme="light"] .sidebar-trust-row {
+html[data-theme="light"] .sidebar-trust-row,
+html[data-theme="light"] .sidebar-response-row {
   color: #5A5248 !important;
+}
+
+html[data-theme="light"] .sidebar-separator {
+  background: #EAE5DD !important;
+}
+
+html[data-theme="light"] .sidebar-include-item {
+  color: #1F1B17 !important;
 }
 
 html[data-theme="light"] .sidebar-cta-btn {

@@ -22,8 +22,8 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
 const DEMO_CAMPERS: Record<string, any> = {
     neo: {
         id: 'demo-1', slug: 'neo', name: 'NEO',
-        description_es: 'La camper más polivalente y con 2.230L de maletero. Separación total de cabina, 540Ah litio Victron y aire acondicionado 12V.',
-        specs: { beds: 3, seats: 3, length_m: 5.99, width_m: 2.05, height_m: 2.58, year: 2025, engine: 'Diésel 2.2L Multijet (140 CV)', transmission: 'Manual / Automático' },
+        description_es: 'No es sólo una camper. La NEO ofrece más espacio, más capacidad y más libertad, gracias a su gran maletero de 2.230 litros, ideal para llevar todo lo que forma parte de tu aventura: desde equipo deportivo hasta escapadas más largas sin renunciar a nada. Equipada con uno de los sistemas eléctricos más top del mercado (540Ah litio Victron, 400W solares e inversor Multiplus 2.000W) para ofrecer autonomía real. Camper ideal para dos personas, que se adapta de forma perfecta para 3.',
+        specs: { beds: 3, seats: 3, length_m: 5.99, width_m: 2.05, height_m: 2.58, year: 2025, engine: 'Motor diésel 8L/100 km', transmission: 'Cambio manual 140 CV' },
         deposit_amount: 1000,
         images: [
             '/images/campers/neo/neo-ext.png',
@@ -34,8 +34,8 @@ const DEMO_CAMPERS: Record<string, any> = {
     },
     space: {
         id: 'demo-2', slug: 'space', name: 'SPACE',
-        description_es: 'SPACE redefine el confort con distribución abierta de 7m², cama elevable eléctrica sobre salón en U y 160L de agua limpia.',
-        specs: { beds: 2, seats: 2, length_m: 5.99, width_m: 2.05, height_m: 2.58, year: 2025, engine: 'Diésel 2.2L Multijet (140 CV)', transmission: 'Manual / Automático' },
+        description_es: 'Máximo confort en una camper. Gracias a su cama elevable, durante el día disfrutas de todo el espacio interior, como si estuvieras en una autocaravana… pero con la libertad de una camper. Menos maletero. Más calidad de vida en el día a día. Camper diseñada para dos personas, primando el máximo confort en todo momento.',
+        specs: { beds: 2, seats: 2, length_m: 5.99, width_m: 2.05, height_m: 2.58, year: 2025, engine: 'Motor diésel 8L/100 km', transmission: 'Cambio manual 140 CV' },
         deposit_amount: 1000,
         images: [
             '/images/campers/uploads/1790382530493-2k_space_landscape_door_closed.jpeg',
@@ -130,8 +130,8 @@ export default async function CamperDetailPage({ params, searchParams }: PagePro
     return (
         <>
             <Navbar />
-            <main style={{ paddingTop: 72 }}>
-                <Suspense fallback={<div style={{ height: '50vh' }} />}>
+            <main className="camper-detail-main">
+                <Suspense fallback={<div className="camper-detail-fallback" />}>
                     <CamperDetailClient
                         camper={effectiveCamper}
                         seasons={seasons}

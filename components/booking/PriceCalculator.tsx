@@ -287,8 +287,8 @@ export default function PriceCalculator({
             {/* Pax (travellers max based on camper capacity) */}
             <div className="form-group">
                 <div className="price-calc__pax-header">
-                    <label className="form-label" style={{ marginBottom: 0 }}>
-                        <Users size={12} style={{ display: 'inline', marginRight: 5 }} />
+                    <label className="form-label price-calc__pax-label">
+                        <Users size={12} className="price-calc__pax-icon" />
                         Viajeros
                     </label>
                     <span className="price-calc__pax-badge">Máx. {maxPax} {maxPax === 1 ? 'plaza' : 'plazas'}</span>
@@ -414,7 +414,7 @@ export default function PriceCalculator({
                         </div>
                     ))}
                     {breakdown.totalDays > breakdown.numNights && (
-                        <div className="price-calc__row" style={{ color: 'var(--forest-green)', fontStyle: 'italic' }}>
+                        <div className="price-calc__row price-calc__row--half-day">
                             <span>Suplemento medio día ({breakdown.totalDays - breakdown.numNights} día adicional)</span>
                             <span>+{formatPrice(breakdown.baseTotal - breakdown.nightsPerSeason.reduce((acc, curr) => acc + curr.subtotal, 0))}</span>
                         </div>
@@ -463,7 +463,7 @@ export default function PriceCalculator({
                     if (!nextTier) return null
                     return (
                         <div className="price-calc__discount-hint">
-                            <Info size={14} style={{ flexShrink: 0, marginTop: 1 }} />
+                            <Info size={14} className="price-calc__hint-icon" />
                             <span>Reserva {nextTier.min_days} días o más y obtén un descuento automático del {nextTier.discount_pct}% en tu alquiler.</span>
                         </div>
                     )
@@ -478,8 +478,7 @@ export default function PriceCalculator({
             )}
 
             <button
-                className="btn btn-forest btn-lg"
-                style={{ width: '100%' }}
+                className="btn btn-forest btn-lg price-calc__submit-btn"
                 disabled={!breakdown || breakdown.numNights === 0 || isBelowMinNights}
                 onClick={handleReserve}
             >
@@ -958,6 +957,157 @@ export default function PriceCalculator({
           color: #92400E;
           font-size: 0.78rem;
           font-weight: 500;
+        }
+
+        .price-calc__pax-label {
+          margin-bottom: 0;
+        }
+        .price-calc__pax-label :global(.price-calc__pax-icon) {
+          display: inline;
+          margin-right: 5px;
+        }
+        .price-calc__row--half-day {
+          color: var(--forest-green);
+          font-style: italic;
+        }
+        .price-calc__discount-hint :global(.price-calc__hint-icon) {
+          flex-shrink: 0;
+          margin-top: 1px;
+        }
+        .price-calc__submit-btn {
+          width: 100%;
+        }
+
+        /* Dark mode theming (default html without data-theme="light") */
+        :global(html:not([data-theme="light"])) .price-calc {
+          background: #131518;
+          border-color: rgba(255, 255, 255, 0.08);
+          color: #F4F1EA;
+        }
+        :global(html:not([data-theme="light"])) .price-calc__header {
+          border-bottom-color: rgba(255, 255, 255, 0.08);
+        }
+        :global(html:not([data-theme="light"])) .price-calc__amount {
+          color: #E6CA65;
+        }
+        :global(html:not([data-theme="light"])) .price-calc__nights,
+        :global(html:not([data-theme="light"])) .price-calc__subtext-fianza {
+          color: rgba(255, 255, 255, 0.6);
+        }
+        :global(html:not([data-theme="light"])) .price-calc__dates-card {
+          background: #181B20;
+          border-color: rgba(255, 255, 255, 0.12);
+        }
+        :global(html:not([data-theme="light"])) .price-calc__dates-card:hover,
+        :global(html:not([data-theme="light"])) .price-calc__dates-card--open {
+          background: #1D2127;
+          border-color: rgba(230, 202, 101, 0.55);
+          box-shadow: 0 0 0 1px rgba(230, 202, 101, 0.35);
+        }
+        :global(html:not([data-theme="light"])) .price-calc__date-label {
+          color: rgba(255, 255, 255, 0.55);
+        }
+        :global(html:not([data-theme="light"])) .price-calc__date-val {
+          color: #FFFFFF;
+        }
+        :global(html:not([data-theme="light"])) .price-calc__date-val--placeholder {
+          color: rgba(255, 255, 255, 0.45);
+        }
+        :global(html:not([data-theme="light"])) .price-calc__date-separator {
+          background: rgba(255, 255, 255, 0.1);
+        }
+        :global(html:not([data-theme="light"])) .price-calc__dates-caret {
+          color: rgba(255, 255, 255, 0.6);
+        }
+        :global(html:not([data-theme="light"])) .price-calc__schedule-badge {
+          background: rgba(230, 202, 101, 0.1);
+          border-color: rgba(230, 202, 101, 0.25);
+          color: #E6CA65;
+        }
+        :global(html:not([data-theme="light"])) .price-calc__pax-label,
+        :global(html:not([data-theme="light"])) .price-calc__pax-num {
+          color: #F4F1EA;
+        }
+        :global(html:not([data-theme="light"])) .price-calc__pax-badge {
+          background: rgba(230, 202, 101, 0.12);
+          color: #E6CA65;
+        }
+        :global(html:not([data-theme="light"])) .price-calc__extras-toggle {
+          background: #181B20;
+          border-color: rgba(255, 255, 255, 0.1);
+        }
+        :global(html:not([data-theme="light"])) .price-calc__extras-toggle:hover,
+        :global(html:not([data-theme="light"])) .price-calc__extras-toggle--open {
+          background: #1D2127;
+          border-color: rgba(230, 202, 101, 0.45);
+          box-shadow: none;
+        }
+        :global(html:not([data-theme="light"])) .price-calc__extras-title {
+          color: #FFFFFF;
+        }
+        :global(html:not([data-theme="light"])) .price-calc__extras-hint,
+        :global(html:not([data-theme="light"])) .price-calc__extras-chevron {
+          color: rgba(255, 255, 255, 0.55);
+        }
+        :global(html:not([data-theme="light"])) .price-calc__extra-card {
+          background: #181B20;
+          border-color: rgba(255, 255, 255, 0.08);
+        }
+        :global(html:not([data-theme="light"])) .price-calc__extra-card:hover {
+          background: #1D2127;
+          border-color: rgba(230, 202, 101, 0.35);
+        }
+        :global(html:not([data-theme="light"])) .price-calc__extra-card--selected {
+          background: rgba(230, 202, 101, 0.1);
+          border-color: rgba(230, 202, 101, 0.5);
+        }
+        :global(html:not([data-theme="light"])) .price-calc__extra-checkbox {
+          background: #131518;
+          border-color: rgba(255, 255, 255, 0.3);
+        }
+        :global(html:not([data-theme="light"])) .price-calc__extra-checkbox--checked {
+          background: #E6CA65;
+          border-color: #E6CA65;
+          color: #0B0C0E;
+        }
+        :global(html:not([data-theme="light"])) .price-calc__extra-name {
+          color: #F4F1EA;
+        }
+        :global(html:not([data-theme="light"])) .price-calc__extra-price {
+          color: #E6CA65;
+        }
+        :global(html:not([data-theme="light"])) .price-calc__breakdown {
+          background: #181B20;
+          border-color: rgba(255, 255, 255, 0.08);
+        }
+        :global(html:not([data-theme="light"])) .price-calc__row {
+          color: rgba(255, 255, 255, 0.78);
+        }
+        :global(html:not([data-theme="light"])) .price-calc__row--half-day {
+          color: #E6CA65;
+        }
+        :global(html:not([data-theme="light"])) .price-calc__row--discount {
+          background: rgba(52, 211, 153, 0.12);
+          color: #6EE7B7;
+        }
+        :global(html:not([data-theme="light"])) .price-calc__discount-amount {
+          color: #6EE7B7;
+        }
+        :global(html:not([data-theme="light"])) .price-calc__row--total {
+          color: #E6CA65;
+        }
+        :global(html:not([data-theme="light"])) .price-calc__divider {
+          background: rgba(255, 255, 255, 0.1);
+        }
+        :global(html:not([data-theme="light"])) .price-calc__discount-banner {
+          background: rgba(52, 211, 153, 0.12);
+          border-color: rgba(52, 211, 153, 0.3);
+          color: #A7F3D0;
+        }
+        :global(html:not([data-theme="light"])) .price-calc__discount-hint {
+          background: rgba(255, 255, 255, 0.04);
+          border-color: rgba(255, 255, 255, 0.1);
+          color: rgba(255, 255, 255, 0.7);
         }
       `}</style>
         </div>

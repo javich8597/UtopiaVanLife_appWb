@@ -16,9 +16,9 @@ const CAMPER_IMAGES = [
 const demoCampers = [
     {
         id: '1', slug: 'neo', name: 'NEO',
-        description_es: 'La camper más polivalente y con mayor almacenaje. 2.230L de maletero, separación de cabina, 540Ah litio Victron y aire acondicionado 12V.',
+        description_es: 'Camper ideal para dos personas, que se adapta de forma perfecta para 3. Gran maletero, cama doble fija + auxiliar, sistema eléctrico Pro (540Ah litio, 400W solar, Victron 2.000W) y aire acondicionado 12V Dometic.',
         thumbnail_url: CAMPER_IMAGES[0],
-        specs: { beds: 3, seats: 3, length_m: 6.0 },
+        specs: { beds: 3, seats: 3, length_m: 5.99 },
         deposit_amount: 1000,
         pricePerNight: 120,
         seasonName: 'Temporada Media',
@@ -26,9 +26,9 @@ const demoCampers = [
     },
     {
         id: '2', slug: 'space', name: 'SPACE',
-        description_es: 'Máximo confort y amplitud diáfana (7m² Open Concept). Cama elevable eléctrica sobre salón en U, 160L de agua limpia y Pack Cine con proyector.',
+        description_es: 'Camper diseñada para dos personas, primando el máximo confort en todo momento. Cama elevable + interbanco, sistema eléctrico Pro (540Ah litio, 400W solar, Victron 2.000W) y aire acondicionado 12V Dometic.',
         thumbnail_url: CAMPER_IMAGES[1],
-        specs: { beds: 2, seats: 2, length_m: 6.0 },
+        specs: { beds: 2, seats: 2, length_m: 5.99 },
         deposit_amount: 1000,
         pricePerNight: 140,
         seasonName: 'Temporada Media',

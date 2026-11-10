@@ -49,27 +49,26 @@ interface CamperContent {
 
 const CAMPER_CONTENT: Record<string, CamperContent> = {
   space: {
-    tagline: 'Suite diáfana de 2 plazas, salón panorámico en «U» con mesa 360°, cama eléctrica de techo y Pack Cine HD.',
+    tagline: 'Lo esencial, bien hecho. Espacio, diseño y libertad en su forma más simple. Camper diseñada para dos personas, primando el máximo confort en todo momento.',
     pills: [
-      { icon: 'users', label: '2 Plazas Suite Diáfana' },
-      { icon: 'bed', label: 'Cama eléctrica de techo' },
-      { icon: 'droplets', label: 'Ducha Interior + WC' },
-      { icon: 'zap', label: 'Victron 540Ah + Pack Cine' },
+      { icon: 'users', label: '2 Plazas viaje / 2 dormir' },
+      { icon: 'bed', label: 'Cama elevable + interbanco' },
+      { icon: 'droplets', label: 'Ducha interior + WC' },
+      { icon: 'zap', label: 'Sistema eléctrico Pro 540Ah' },
     ],
     galleryImages: [
       { src: '/images/campers/space/exterior/space-vehicle-hero-lanzarote.webp', tag: 'Exterior SPACE' },
       { src: '/images/campers/space/interior/space-dining-lounge-frontview.jpg', tag: 'Salón comedor con luz natural' },
       { src: '/images/campers/space/interior/space-electric-drop-down-bed.jpg', tag: 'Cama eléctrica suspendida' },
-      { src: '/images/campers/space/interior/space-cinema-projector-lounge.jpg', tag: 'Cine con proyector HD' },
-      { src: '/images/campers/space/interior/space-kitchen-counter-cabin.jpg', tag: 'Cocina nórdica' },
-      { src: '/images/campers/space/interior/space-bathroom-shower.webp', tag: 'Ducha interior de agua caliente' },
+      { src: '/images/campers/space/interior/space-cinema-projector-lounge.jpg', tag: 'Salón amplio SPACE' },
+      { src: '/images/campers/space/interior/space-kitchen-counter-cabin.jpg', tag: 'Cocina equipada con nevera 86L y 2 fogones' },
+      { src: '/images/campers/space/interior/space-bathroom-shower.webp', tag: 'Baño completo con ducha interior y WC' },
     ],
     description: [
-      'SPACE redefine el concepto de viaje nómada: una suite diáfana concebida para 2 plazas donde el salón panorámico en «U» y su distribución open concept de 7m² convierten la furgoneta camper en un santuario privado luminoso frente al mar.',
-      'Su cama eléctrica escamoteable de techo desciende suavemente sobre el salón pulsando un interruptor, ofreciendo un descanso de máxima gama de noche sin restar ni un solo centímetro de espacio útil durante el día para cocinar, trabajar o relajarte.',
-      'El salón panorámico en «U» cuenta con mesa de diseño rotatoria 360°, ideal para cenas inolvidables con vistas, jornadas de trabajo remoto o para disfrutar del proyector en gran formato incluido en el Pack Cine HD.',
-      'Autonomía energética extrema de grado expedición: sistema Victron PRO con 540Ah en baterías LiFePO4, inversor cargador Victron MultiPlus de 2.000W de onda pura y 400W de paneles solares MPPT SmartSolar, alimentando el aire acondicionado Dometic 12V 100% autónomo sin necesidad de tomas externas ni conexión a red de camping.',
-      'Confort y privacidad absolutos: depósito de 113L de agua limpia, baño completo interior con ducha de agua caliente instantánea presurizada, WC portátil, cocina nórdica con 2 fogones, nevera compresor de 86L y calefacción estacionaria diésel digital.',
+      'Máximo confort en una camper. Gracias a su cama elevable, durante el día disfrutas de todo el espacio interior, como si estuvieras en una autocaravana… pero con la libertad de una camper. Menos maletero. Más calidad de vida en el día a día. Camper diseñada para dos personas, primando el máximo confort en todo momento.',
+      'Más espacio. Más comodidad. Más libertad. La SPACE está diseñada para quienes quieren viajar sin renunciar a nada. Una camper amplia, equipada y preparada para convertir cualquier destino en tu propio lugar. Cocina completa, baño con ducha, climatización y un sistema eléctrico que te permite desconectar… sin dejar de tenerlo todo.',
+      'Diseño en cada detalle: amplitud real con espacios abiertos que aportan libertad de movimiento; confort superior con cada zona pensada para disfrutar sin renunciar a nada; y funcionalidad total con todo organizado para un uso práctico y sencillo. Perfecta para viajes largos, rutas sin prisa y planes que simplemente surgen. Si la NEO es libertad, la SPACE es dar un paso más allá.',
+      'El corazón de la camper incorpora el sistema electrónico más avanzado: dos baterías de litio (540Ah), doble placa solar monocristalina (400W), inversor Multiplus 2.000W Victron, centralita Cerbo GX, cargador de batería Orion XS 12/12-50A y regulador SmartSolar MPPT 100/30.',
     ],
     descriptionInlineImage: {
       src: '/images/campers/space/interior/space-lounge-spacious-daylight.jpg',
@@ -78,91 +77,91 @@ const CAMPER_CONTENT: Record<string, CamperContent> = {
     floorplanDay: '/images/campers/space/exterior/space-vehicle-dimensions-top.webp',
     floorplanNight: '/images/campers/space/exterior/space-vehicle-dimensions-side.webp',
     features: [
-      { icon: 'battery', label: 'Batería Victron PRO', value: '2 × LiFePO4 · 540Ah' },
-      { icon: 'zap', label: 'Inversor 230V', value: 'Victron MultiPlus 2.000W onda pura' },
-      { icon: 'snowflake', label: 'Aire acondicionado', value: 'Dometic 12V autónomo sin red' },
-      { icon: 'tv', label: 'Pack Cine HD', value: 'Proyector integrado + pantalla en salón' },
-      { icon: 'bed', label: 'Cama escamoteable', value: 'Eléctrica de techo (sin restar espacio de día)' },
-      { icon: 'gauge', label: 'Salón panorámico «U»', value: 'Mesa giratoria 360° · 7m² diáfanos' },
-      { icon: 'droplets', label: 'Aguas limpias', value: '113 litros presurizados' },
-      { icon: 'thermometer', label: 'Baño interior', value: 'Ducha agua caliente instantánea' },
-      { icon: 'wind', label: 'Calefacción', value: 'Estacionaria diésel digital' },
-      { icon: 'sun', label: 'Placas solares', value: '400W monocristalinas · MPPT SmartSolar' },
-      { icon: 'plug', label: 'Control integral', value: 'Centralita Victron Cerbo GX + táctil' },
-      { icon: 'utensils', label: 'Cocina nórdica', value: '2 fogones + nevera compresor 86 L' },
-      { icon: 'shield', label: 'WC interior', value: 'Portátil de fácil acceso y vaciado' },
-      { icon: 'shield', label: 'Aislamiento Kaiflex', value: '360° térmico y acústico' },
-      { icon: 'gauge', label: 'Aguas grises', value: '90 litros con descarga asistida' },
-      { icon: 'folder', label: 'Oscurecedores y mosquiteras', value: 'Remis integrados en cabina y claraboya' },
+      { icon: 'users', label: 'Plazas de viaje', value: '2 personas homologadas' },
+      { icon: 'bed', label: 'Plazas para dormir', value: '2 personas en máximo confort' },
+      { icon: 'bed', label: 'Tipo de cama', value: 'Cama elevable + cama interbanco' },
+      { icon: 'utensils', label: 'Cocina equipada', value: 'Nevera 86L y dos fogones a gas GLP' },
+      { icon: 'droplets', label: 'Baño completo', value: 'Ducha interior, WC químico/portátil y ducha exterior' },
+      { icon: 'ruler', label: 'Longitud del vehículo', value: '5,99 m (Fiat Ducato · Mayor amplitud interior)' },
+      { icon: 'battery', label: 'Sistema eléctrico Pro', value: '2 baterías de litio (540Ah) + Centralita Cerbo GX' },
+      { icon: 'sun', label: 'Placas solares', value: 'Doble placa solar monocristalina (400W) · SmartSolar MPPT 100/30' },
+      { icon: 'zap', label: 'Inversor y cargador', value: 'Inversor Multiplus 2.000W Victron + Cargador Orion XS 12/12-50A' },
+      { icon: 'snowflake', label: 'Aire acondicionado', value: '12 V Dometic integrado' },
+      { icon: 'droplets', label: 'Depósitos de agua', value: 'Aguas limpias 113L y aguas grises 90L' },
+      { icon: 'wind', label: 'Calefacción y aislamiento', value: 'Calefacción diésel y aislamiento completo 360º' },
+      { icon: 'thermometer', label: 'Gas GLP y seguridad', value: 'Gas GLP para cocina y agua caliente + alarma de gases' },
+      { icon: 'sun', label: 'Ventanas y luz', value: 'Claraboya panorámica, mosquiteras y oscurecedores' },
+      { icon: 'shield', label: 'Seguridad en ruta', value: 'Rueda de repuesto y mini extintor' },
+      { icon: 'gauge', label: 'Motor y cambio', value: 'Motor diésel 8L/100 km · Cambio manual 140 CV' },
     ],
     included: [
-      'Seguro a todo riesgo con asistencia en carretera 24/7',
-      '150 km/día incluidos (ampliable a kilometraje ilimitado)',
-      'Pack Cine HD con proyector y pantalla panorámica',
-      'Menaje completo gourmet (vajilla, cafetera italiana, set chef)',
-      'Ropa de cama premium con sábanas de lino y toallas de baño',
-      'Kit de esnórquel completo para descubrir calas secretas',
-      'Mesa y 2 sillas de exterior confort para acampada',
-      'Check-in y entrega personalizada en aeropuerto / Son Oms',
-      'Asistencia nómada telefónica 24/7 durante todo tu viaje',
+      'Seguro a todo riesgo con asistencia en viaje (al recoger el vehículo se deberá depositar una fianza de 1.000 €)',
+      '150 km al día incluidos',
+      'Asistencia telefónica durante el viaje (16 h)',
+      'Almohadas, sábanas y toallas',
+      'Menaje completo premium',
+      'Dos sillas de camping para exterior',
+      '2 máscaras de snorkel',
+      'Set de limpieza',
+      'Gastos de gestión',
     ],
   },
   neo: {
-    tagline: '3 plazas de viaje y descanso, dormitorio posterior independiente y maletero XXL de 2.230 L para material deportivo.',
+    tagline: 'Lo esencial, bien hecho. Espacio, diseño y libertad en su forma más simple. Camper ideal para dos personas, que se adapta de forma perfecta para 3.',
     pills: [
-      { icon: 'users', label: '3 Viaje / 3 Descanso' },
-      { icon: 'bed', label: 'Dormitorio independiente' },
-      { icon: 'droplets', label: 'Maletero XXL 2.230 L' },
-      { icon: 'zap', label: 'Victron 540Ah + Clima 12V' },
+      { icon: 'users', label: '3 Plazas viaje / 3 dormir' },
+      { icon: 'bed', label: 'Cama doble fija + auxiliar' },
+      { icon: 'droplets', label: 'Ducha interior + WC' },
+      { icon: 'zap', label: 'Sistema eléctrico Pro 540Ah' },
     ],
     galleryImages: [
       { src: '/images/campers/neo/exterior/neo-exterior-front-three-quarter.jpg', tag: 'Exterior NEO' },
       { src: '/images/campers/neo/interior/neo-dining-room-daylight.jpg', tag: 'Salón comedor NEO' },
-      { src: '/images/campers/neo/interior/neo-interior-hero-anthracite.webp', tag: 'Interior antracita' },
-      { src: '/images/campers/neo/details/neo-garage-bike-storage.jpg', tag: 'Garaje trasero con bicis' },
-      { src: '/images/campers/neo/details/solar-tech.webp', tag: 'Placa solar 400W' },
-      { src: '/images/campers/neo/interior/neo-bathroom-shower.webp', tag: 'Baño con ducha interior' },
+      { src: '/images/campers/neo/interior/neo-interior-hero-anthracite.webp', tag: 'Interior NEO' },
+      { src: '/images/campers/neo/details/neo-garage-bike-storage.jpg', tag: 'Gran maletero trasero' },
+      { src: '/images/campers/neo/details/solar-tech.webp', tag: 'Doble placa solar 400W' },
+      { src: '/images/campers/neo/interior/neo-bathroom-shower.webp', tag: 'Baño completo con ducha interior y WC' },
     ],
     description: [
-      'NEO es la furgoneta camper definitiva para aventureros que viajan con todo: homologada para 3 plazas de viaje y descanso, une la calidez de un hogar nómada con un maletero garaje colosal de 2.230 L concebido para tablas de surf, bicicletas, material deportivo y equipaje voluminoso.',
-      'Su dormitorio posterior independiente cuenta con una cama doble fija de 192×130 cm con colchón viscoelástico de alta densidad y una cama auxiliar para una tercera persona, complementado con separación total de cabina para aislar térmica y acústicamente el habitáculo.',
-      'El garaje posterior bajo la cama fija de 2.230 litros es accesible cómodamente tanto desde las puertas traseras de 270° como desde el interior, permitiéndote organizar y proteger todo tu equipo sin restar habitabilidad.',
-      'Autonomía energética extrema de grado expedición: sistema Victron PRO con 540Ah en baterías LiFePO4, inversor cargador Victron MultiPlus de 2.000W de onda pura y 400W solares monocristalinos MPPT SmartSolar, alimentando el aire acondicionado Dometic 12V autónomo sin necesidad de cables ni conexión a camping.',
-      'Equipamiento de viaje completo: 113L de agua limpia, baño completo interior con ducha de agua caliente instantánea presurizada y WC químico, cocina completa con 2 fogones, nevera compresor de 86L y calefacción estacionaria diésel digital.',
+      'No es sólo una camper. La NEO ofrece más espacio, más capacidad y más libertad, gracias a su gran maletero, ideal para llevar todo lo que forma parte de tu aventura: desde equipo deportivo hasta escapadas más largas sin renunciar a nada. Equipada con uno de los sistemas eléctricos más top del mercado para ofrecer autonomía real. Camper ideal para dos personas, que se adapta de forma perfecta para 3.',
+      'La NEO no es solo una camper. Es libertad. Diseñada para viajar sin depender de nada ni de nadie, combina autonomía total, confort y un equipamiento que marca la diferencia desde el primer kilómetro. Sistema eléctrico completo, aire acondicionado, baño con ducha interior, cocina equipada y una distribución pensada para disfrutar de verdad cada viaje.',
+      'Diseño en cada detalle: materiales de calidad resistentes a los golpes, a las manchas y a las humedades; uso del espacio con una distribución interior compensada para sacar el máximo partido; y máximo confort en cada estancia preparada para que puedas disfrutar de la máxima comodidad.',
+      'El corazón de la camper incorpora el sistema electrónico PRO más avanzado: dos baterías de litio (540Ah), doble placa solar monocristalina (400W), inversor Multiplus 2.000W Victron, centralita Cerbo GX, cargador de batería Orion XS 12/12-50A y regulador SmartSolar MPPT 100/30. Compacta, potente y preparada para cualquier plan. Sube, arranca… y olvídate de todo lo demás.',
     ],
     descriptionInlineImage: {
       src: '/images/campers/neo/details/neo-garage-bike-storage.jpg',
-      alt: 'Garaje trasero NEO con bicicletas',
+      alt: 'Gran maletero trasero NEO para equipamiento deportivo',
     },
     floorplanDay: '/images/campers/neo/blueprints/day-layout.webp',
     floorplanNight: '/images/campers/neo/blueprints/night-layout.webp',
     features: [
-      { icon: 'battery', label: 'Batería Victron PRO', value: '2 × LiFePO4 · 540Ah' },
-      { icon: 'zap', label: 'Inversor 230V', value: 'Victron MultiPlus 2.000W onda pura' },
-      { icon: 'snowflake', label: 'Aire acondicionado', value: 'Dometic 12V autónomo sin red' },
-      { icon: 'wind', label: 'Calefacción', value: 'Estacionaria diésel digital' },
-      { icon: 'droplets', label: 'Aguas limpias', value: '113 litros presurizados' },
-      { icon: 'thermometer', label: 'Baño interior', value: 'Ducha agua caliente instantánea' },
-      { icon: 'gauge', label: 'Maletero de gran capacidad', value: '2.230 L para material deportivo y equipaje' },
-      { icon: 'bed', label: 'Dormitorio independiente', value: '3 plazas (cama fija 192×130 + cama auxiliar)' },
-      { icon: 'sun', label: 'Placas solares', value: '400W monocristalinas · MPPT SmartSolar' },
-      { icon: 'plug', label: 'Control integral', value: 'Victron Cerbo GX + táctil' },
-      { icon: 'utensils', label: 'Cocina nórdica', value: '2 fogones + nevera compresor 86 L' },
-      { icon: 'shield', label: 'WC interior', value: 'Químico dedicado de fácil extracción' },
-      { icon: 'folder', label: 'Separación de cabina', value: 'Privacidad e intimidad acústica' },
-      { icon: 'shield', label: 'Aislamiento Kaiflex', value: '360° térmico y acústico' },
-      { icon: 'gauge', label: 'Aguas grises', value: '90 litros con vaciado asistido' },
-      { icon: 'folder', label: 'Oscurecedores y mosquiteras', value: 'Remis integrados en cabina y ventanas' },
+      { icon: 'users', label: 'Plazas de viaje', value: '3 personas homologadas' },
+      { icon: 'bed', label: 'Plazas para dormir', value: '3 personas (ideal para 2, adaptable a 3)' },
+      { icon: 'bed', label: 'Tipo de cama', value: 'Cama doble fija + cama auxiliar (interbanco)' },
+      { icon: 'utensils', label: 'Cocina equipada', value: 'Nevera 86L y dos fogones a gas GLP' },
+      { icon: 'droplets', label: 'Baño completo', value: 'Ducha interior, WC químico y ducha exterior' },
+      { icon: 'ruler', label: 'Longitud del vehículo', value: '5,99 m (Fiat Ducato · Gran maletero 2.230L)' },
+      { icon: 'battery', label: 'Sistema eléctrico Pro', value: '2 baterías de litio (540Ah) + Centralita Cerbo GX' },
+      { icon: 'sun', label: 'Placas solares', value: 'Doble placa solar monocristalina (400W) · SmartSolar MPPT 100/30' },
+      { icon: 'zap', label: 'Inversor y cargador', value: 'Inversor Multiplus 2.000W Victron + Cargador Orion XS 12/12-50A' },
+      { icon: 'snowflake', label: 'Aire acondicionado', value: '12 V Dometic integrado' },
+      { icon: 'droplets', label: 'Depósitos de agua', value: 'Aguas limpias 113L y aguas grises 90L' },
+      { icon: 'wind', label: 'Calefacción y aislamiento', value: 'Calefacción diésel y aislamiento completo 360º' },
+      { icon: 'thermometer', label: 'Gas GLP y seguridad', value: 'Gas GLP para cocina y agua caliente + alarma de gases' },
+      { icon: 'sun', label: 'Ventanas y luz', value: 'Claraboya panorámica, mosquiteras y oscurecedores' },
+      { icon: 'shield', label: 'Seguridad en ruta', value: 'Rueda de repuesto y mini extintor' },
+      { icon: 'gauge', label: 'Motor y cambio', value: 'Motor diésel 8L/100 km · Cambio manual 140 CV' },
     ],
     included: [
-      'Seguro a todo riesgo con asistencia en carretera 24/7',
-      '150 km/día incluidos (ampliable a kilometraje ilimitado)',
-      'Menaje completo gourmet (vajilla, cafetera italiana, set chef)',
-      'Ropa de cama premium con sábanas de lino y toallas de baño',
-      'Kit de esnórquel completo para descubrir calas secretas',
-      'Mesa y 3 sillas de exterior confort para acampada',
-      'Check-in y entrega personalizada en aeropuerto / Son Oms',
-      'Asistencia nómada telefónica 24/7 durante todo tu viaje',
+      'Seguro a todo riesgo con asistencia en viaje (al recoger el vehículo se deberá depositar una fianza de 1.000 €)',
+      '150 km al día incluidos',
+      'Asistencia telefónica durante el viaje (16 h)',
+      'Almohadas, sábanas y toallas',
+      'Menaje completo premium',
+      'Dos sillas de camping para exterior',
+      '2 máscaras de snorkel',
+      'Set de limpieza',
+      'Gastos de gestión',
     ],
   },
 }
@@ -366,6 +365,13 @@ export default function CamperDetailClient({
       />
 
       <style jsx>{`
+        :global(.camper-detail-main) {
+          padding-top: 72px;
+        }
+        :global(.camper-detail-fallback) {
+          height: 50vh;
+        }
+
         /* ── Page Root ── */
         .camper-detail-v2 {
           background-color: #0b0c0e;
@@ -373,6 +379,7 @@ export default function CamperDetailClient({
           min-height: 100vh;
           padding-bottom: calc(100px + env(safe-area-inset-bottom, 16px));
           overflow-x: hidden;
+          transition: background-color 240ms ease, color 240ms ease;
         }
 
         /* ── Header ── */
@@ -432,11 +439,11 @@ export default function CamperDetailClient({
         }
         .camper-tagline {
           font-size: 16px;
-          font-weight: 300;
-          color: rgba(255, 255, 255, 0.6);
-          line-height: 1.5;
+          font-weight: 400;
+          color: rgba(255, 255, 255, 0.65);
+          line-height: 1.55;
           margin: 0;
-          max-width: 620px;
+          max-width: 680px;
         }
 
         /* ── Two-Column Layout ── */
@@ -479,7 +486,7 @@ export default function CamperDetailClient({
           border-radius: 1px;
         }
         .calculator-card {
-          background: #ffffff;
+          background: #131518;
           border-radius: 20px;
           overflow: hidden;
           box-shadow: 0 16px 40px -8px rgba(0, 0, 0, 0.6);
@@ -498,6 +505,7 @@ export default function CamperDetailClient({
           background: #131518;
           padding: 24px;
           overflow: hidden;
+          transition: background-color 240ms ease, border-color 240ms ease, box-shadow 240ms ease;
         }
         .sidebar-card-accent {
           position: absolute;
@@ -512,12 +520,12 @@ export default function CamperDetailClient({
           align-items: center;
           gap: 8px;
           font-size: 11px;
-          color: rgba(255, 255, 255, 0.45);
+          color: rgba(255, 255, 255, 0.55);
           margin-bottom: 16px;
           margin-top: 4px;
         }
         :global(.sidebar-icon-muted) {
-          color: rgba(255, 255, 255, 0.35);
+          color: rgba(255, 255, 255, 0.45);
         }
         .sidebar-price-block {
           display: flex;
@@ -526,7 +534,7 @@ export default function CamperDetailClient({
         }
         .sidebar-price-label {
           font-size: 11px;
-          color: rgba(255, 255, 255, 0.45);
+          color: rgba(255, 255, 255, 0.5);
           font-weight: 500;
           text-transform: lowercase;
           margin-right: 9px;
@@ -538,7 +546,7 @@ export default function CamperDetailClient({
         }
         .sidebar-price-unit {
           font-size: 14px;
-          color: rgba(255, 255, 255, 0.5);
+          color: rgba(255, 255, 255, 0.55);
           margin-left: 2.5px;
         }
         :global(.sidebar-cta-btn) {
@@ -582,8 +590,8 @@ export default function CamperDetailClient({
           align-items: flex-start;
           gap: 8px;
           font-size: 12px;
-          color: rgba(255, 255, 255, 0.65);
-          line-height: 1.4;
+          color: rgba(255, 255, 255, 0.72);
+          line-height: 1.45;
         }
         :global(.sidebar-check-icon) {
           color: #e6ca65;
@@ -595,14 +603,95 @@ export default function CamperDetailClient({
           align-items: center;
           gap: 8px;
           font-size: 11px;
-          color: rgba(255, 255, 255, 0.4);
+          color: rgba(255, 255, 255, 0.5);
           margin-bottom: 20px;
         }
         .sidebar-calculator-wrap {
-          background: #ffffff;
+          background: #0b0c0e;
           border-radius: 16px;
           overflow: hidden;
           box-shadow: 0 8px 24px -6px rgba(0, 0, 0, 0.4);
+        }
+
+        /* ── Light Mode Support ── */
+        :global(html[data-theme="light"]) .camper-detail-v2 {
+          background-color: #F2F0EC;
+          color: #1F1B17;
+        }
+        :global(html[data-theme="light"]) :global(.back-link) {
+          color: #5A5248;
+        }
+        :global(html[data-theme="light"]) :global(.back-link:hover) {
+          color: #1F1B17;
+        }
+        :global(html[data-theme="light"]) .header-hero-block {
+          border-bottom-color: #EAE5DD;
+        }
+        :global(html[data-theme="light"]) .hero-eyebrow {
+          color: #B8893A;
+          font-weight: 800;
+        }
+        :global(html[data-theme="light"]) .camper-title {
+          color: #1F1B17;
+        }
+        :global(html[data-theme="light"]) .camper-tagline {
+          color: #5A5248;
+        }
+        :global(html[data-theme="light"]) .section-divider-title {
+          color: #1A1714;
+        }
+        :global(html[data-theme="light"]) .section-divider-line {
+          background: linear-gradient(90deg, #D9D1C4, #EAE5DD);
+        }
+        :global(html[data-theme="light"]) .calculator-card {
+          background: #FFFFFF;
+          box-shadow: 0 12px 32px rgba(40, 30, 15, 0.08);
+        }
+        :global(html[data-theme="light"]) .sidebar-card {
+          background: #FFFFFF;
+          border-color: #EAE5DD;
+          box-shadow: 0 8px 30px rgba(40, 30, 15, 0.08);
+        }
+        :global(html[data-theme="light"]) .sidebar-card-accent {
+          background: linear-gradient(90deg, #CCA053, #E8D6B2);
+        }
+        :global(html[data-theme="light"]) .sidebar-trust-row {
+          color: #5A5248;
+        }
+        :global(html[data-theme="light"]) :global(.sidebar-icon-muted) {
+          color: #857B6F;
+        }
+        :global(html[data-theme="light"]) .sidebar-price-label,
+        :global(html[data-theme="light"]) .sidebar-price-unit {
+          color: #5A5248;
+        }
+        :global(html[data-theme="light"]) .sidebar-price-amount {
+          color: #1F1B17;
+        }
+        :global(html[data-theme="light"]) :global(.sidebar-cta-btn) {
+          background: #1A1714;
+          color: #F6EBD3;
+          box-shadow: 0 6px 20px rgba(26, 23, 20, 0.16);
+        }
+        :global(html[data-theme="light"]) :global(.sidebar-cta-btn:hover) {
+          background: #2E2822;
+          box-shadow: 0 8px 24px rgba(26, 23, 20, 0.24);
+        }
+        :global(html[data-theme="light"]) .sidebar-separator {
+          background: #EAE5DD;
+        }
+        :global(html[data-theme="light"]) .sidebar-include-item {
+          color: #3E3730;
+        }
+        :global(html[data-theme="light"]) :global(.sidebar-check-icon) {
+          color: #B8893A;
+        }
+        :global(html[data-theme="light"]) .sidebar-response-row {
+          color: #5A5248;
+        }
+        :global(html[data-theme="light"]) .sidebar-calculator-wrap {
+          background: #FAF8F5;
+          box-shadow: 0 4px 16px rgba(40, 30, 15, 0.05);
         }
 
         /* ── Responsive ── */

@@ -109,6 +109,17 @@ export default function CamperGalleryGrid({ images, onOpenLightbox }: Props) {
           pointer-events: none;
         }
 
+        :global(html[data-theme="light"]) .gallery-hero-cell,
+        :global(html[data-theme="light"]) .gallery-side-cell {
+          background: #E8E3DA;
+        }
+        :global(html[data-theme="light"]) .gallery-count-badge {
+          background: rgba(250, 250, 247, 0.92);
+          border: 1px solid rgba(26, 23, 20, 0.16);
+          color: #1A1714;
+          box-shadow: 0 4px 14px rgba(26, 23, 20, 0.15);
+        }
+
         @media (max-width: 640px) {
           .gallery-grid {
             grid-template-columns: 1fr 1fr;

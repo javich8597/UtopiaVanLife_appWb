@@ -37,7 +37,7 @@ function CatalogContent() {
             name: tCampers('space.name'),
             description_es: tCampers('space.description'),
             thumbnail_url: '/images/campers/uploads/1790382530493-2k_space_landscape_door_closed.jpeg',
-            specs: { beds: 2, seats: 2, length_m: 6.0 },
+            specs: { beds: 2, seats: 2, length_m: 5.99 },
             deposit_amount: 1000,
             pricePerNight: 150,
             seasonName: 'Temporada Media',
@@ -49,7 +49,7 @@ function CatalogContent() {
             name: tCampers('neo.name'),
             description_es: tCampers('neo.description'),
             thumbnail_url: '/images/campers/neo/neo-ext.png',
-            specs: { beds: 3, seats: 3, length_m: 6.0 },
+            specs: { beds: 3, seats: 3, length_m: 5.99 },
             deposit_amount: 1000,
             pricePerNight: 130,
             seasonName: 'Temporada Media',
@@ -115,14 +115,14 @@ function CatalogContent() {
                     onClick={() => setFilterModel('space')}
                     className={`catalog__filter-btn ${filterModel === 'space' ? 'catalog__filter-btn--active' : ''}`}
                 >
-                    <span>SPACE · Suite Diáfana & Cine (2 Pax)</span>
+                    <span>SPACE · Máximo Confort & Cama Elevable (2 Pax)</span>
                 </button>
                 <button
                     type="button"
                     onClick={() => setFilterModel('neo')}
                     className={`catalog__filter-btn ${filterModel === 'neo' ? 'catalog__filter-btn--active' : ''}`}
                 >
-                    <span>NEO · Gran Maletero & Polivalencia (3 Pax)</span>
+                    <span>NEO · Gran Maletero & Polivalencia (2-3 Pax)</span>
                 </button>
             </div>
 

@@ -77,21 +77,21 @@
   "Campers": {
     "neo": {
       "name": "NEO",
-      "description": "No es sólo una camper. La NEO ofrece más espacio, más capacidad y más libertad gracias a su gran maletero de 2.230 litros, ideal para llevar todo lo que forma parte de tu aventura: desde equipo deportivo hasta escapadas más largas sin renunciar a nada. Equipada con el sistema eléctrico PRO Victron más avanzado del mercado (540Ah de litio, 400W solares e inversor Multiplus 2000W) y aire acondicionado 12V Dometic. Habitáculo con separación total de cabina para máximo aislamiento térmico, acústico e intimidad. Ideal para 2 personas, adaptable a 3.",
-      "beds": "2-3 camas",
-      "seats": "3 plazas",
-      "length": "5.99m",
-      "engine": "Diésel 2.2L Multijet (140 CV)",
-      "transmission": "Manual 6 vel."
+      "description": "No es sólo una camper. La NEO ofrece más espacio, más capacidad y más libertad gracias a su gran maletero, ideal para llevar todo lo que forma parte de tu aventura: desde equipo deportivo hasta escapadas más largas sin renunciar a nada. Equipada con el sistema eléctrico PRO más avanzado del mercado (2 baterías de litio 540Ah, 2 placas solares 400W, inversor Multiplus 2.000W Victron, Cerbo GX) y aire acondicionado 12V Dometic integrado. Camper ideal para dos personas, que se adapta de forma perfecta para 3.",
+      "beds": "3 plazas dormir",
+      "seats": "3 plazas viajar",
+      "length": "5,99 m",
+      "engine": "Motor diésel 8L/100 km",
+      "transmission": "Cambio manual 140 CV"
     },
     "space": {
       "name": "SPACE",
-      "description": "Máximo confort en una camper. Gracias a su cama elevable eléctrica de techo, durante el día disfrutas de todo el espacio interior con un amplio salón panorámico en U y mesa giratoria 360°, como si estuvieras en una autocaravana… pero con la libertad y agilidad de una camper. Menos maletero. Más calidad de vida en el día a día. Diseñada para dos personas, primando el máximo confort y habitabilidad en todo momento. Equipada con sistema eléctrico PRO Victron con 540Ah de litio, 400W solares, aire acondicionado 12V Dometic y baño con ducha interior y WC químico.",
-      "beds": "2 camas",
-      "seats": "2 plazas",
-      "length": "5.99m",
-      "engine": "Diésel 2.2L Multijet (140 CV)",
-      "transmission": "Manual 6 vel."
+      "description": "Máximo confort en una camper. Gracias a su cama elevable, durante el día disfrutas de todo el espacio interior, como si estuvieras en una autocaravana… pero con la libertad de una camper. Menos maletero. Más calidad de vida en el día a día. Camper diseñada para dos personas, primando el máximo confort en todo momento. Equipada con sistema eléctrico PRO (2 baterías de litio 540Ah, 2 placas solares 400W, inversor Multiplus 2.000W Victron, Cerbo GX), aire acondicionado 12V Dometic y baño con ducha interior y WC químico.",
+      "beds": "2 plazas dormir",
+      "seats": "2 plazas viajar",
+      "length": "5,99 m",
+      "engine": "Motor diésel 8L/100 km",
+      "transmission": "Cambio manual 140 CV"
     }
   },
   "CamperDetail": {

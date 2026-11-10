@@ -74,9 +74,7 @@ export default function Step5Checkout({
     const maxPax = camper.specs?.seats || (camper.slug === 'space' ? 2 : 3)
     const currentTravelersCount = customer.travelersCount || step1.pax || 1
     const additionalPaxCount = Math.max(0, currentTravelersCount - 1)
-    const currentDeposit: DepositOption = customer.depositOption || step3.depositOption || 'standard_2000'
-    /** El bloque del 2º conductor "solo" (y su validación en validateStep5) solo existe con 1 viajero y Flex */
-    const soloSecondDriverVisible = currentTravelersCount === 1 && currentDeposit === 'flex_1000'
+    const currentDeposit: DepositOption = 'standard_2000'
 
     // Helpers reactivos para cálculo de edad y antigüedad
     const calculateAge = (birthDate?: string | null): number | null => {
@@ -237,8 +235,14 @@ export default function Step5Checkout({
         e.preventDefault()
         setSubmitError(null)
 
-        // Validar todos los campos del paso 5
-        const validation = validateStep5(customer, maxPax)
+        // Validar todos los campos del paso 7 (con fianza incluida sin 2º conductor)
+        const normalizedCustomerForValidation: Step5Customer = {
+            ...customer,
+            depositOption: 'standard_2000',
+            secondDriverSoloEnabled: false,
+            passengers: (customer.passengers || []).map((p) => ({ ...p, isSecondDriver: false })),
+        }
+        const validation = validateStep5(normalizedCustomerForValidation, maxPax)
         if (!validation.isValid) {
             setFieldErrors(validation.errors)
             const firstErrorKey = Object.keys(validation.errors)[0]
@@ -265,6 +269,7 @@ export default function Step5Checkout({
                 kmPackage: step2.kmPackage,
                 cancellationPolicy: step3.cancellationPolicy,
                 depositOption: currentDeposit,
+                depositAmount: 1000,
                 extrasSelected: step4.selectedExtras.map((e) => ({
                     id: e.id,
                     name: e.name_es,
@@ -285,13 +290,11 @@ export default function Step5Checkout({
                     postalCode: customer.postalCode.trim(),
                     country: customer.country.trim(),
                     travelersCount: currentTravelersCount,
-                    // Solo las fichas que se ven: un borrador antiguo puede guardar más.
-                    // Con fianza Estándar no hay 2º conductor (su casilla no se ve ni se valida)
-                    passengers: (customer.passengers || []).slice(0, Math.max(0, currentTravelersCount - 1)).map((p) => (currentDeposit === 'flex_1000' ? p : { ...p, isSecondDriver: false })),
-                    // El 2º conductor "solo" se envía únicamente si su bloque está visible (y por tanto validado):
-                    // el borrador de sessionStorage lo conserva aunque se cambie de viajeros o de fianza
-                    secondDriverSoloEnabled: soloSecondDriverVisible && Boolean(customer.secondDriverSoloEnabled),
-                    secondDriverSolo: soloSecondDriverVisible && customer.secondDriverSoloEnabled ? customer.secondDriverSolo : undefined,
+                    passengers: (customer.passengers || [])
+                        .slice(0, Math.max(0, currentTravelersCount - 1))
+                        .map((p) => ({ ...p, isSecondDriver: false })),
+                    secondDriverSoloEnabled: false,
+                    secondDriverSolo: undefined,
                     notes: customer.specialNotes || '',
                 },
             }
@@ -357,11 +360,8 @@ export default function Step5Checkout({
         <div className="step-checkout">
             {/* Header */}
             <div className="step-header">
-                <span className="step-header__tag">PASO 5 DE 5</span>
-                <h2 className="step-header__title">Datos de los viajeros y confirmación</h2>
-                <p className="step-header__desc">
-                    Formaliza tu contrato oficial y seguro a todo riesgo. Tras confirmar, serás redirigido a la pasarela bancaria de CaixaBank Redsys para abonar el viaje con máxima seguridad.
-                </p>
+                <span className="step-header__tag">PASO 7 DE 7</span>
+                <h2 className="step-header__title">Datos de los viajeros y pago</h2>
             </div>
 
             {submitError && (
@@ -563,82 +563,13 @@ export default function Step5Checkout({
                             {fieldErrors.phone ? (
                                 <span className="field-error-text">{fieldErrors.phone}</span>
                             ) : (
-                                <span className="field-hint">Coordinación de entrega y asistencia en ruta 24h</span>
+                                <span className="field-hint">Coordinación de entrega y asistencia en ruta 16h</span>
                             )}
                         </div>
                     </div>
                 </div>
 
-                {/* ── 2. RECAPITULACIÓN DE FIANZA SELECCIONADA ── */}
-                <div className="form-group-card">
-                    <div className="form-group-card__header">
-                        <ShieldCheck size={18} className="text-forest" />
-                        <h4 className="form-group-card__title">Modalidad de Fianza Seleccionada</h4>
-                    </div>
-                    <p className="deposit-section-intro">
-                        Puedes revisar o modificar tu modalidad de fianza aquí. Recuerda que no se abona hoy: se retiene temporalmente en tu tarjeta bancaria en Mallorca y se libera al 100% al devolver la camper.
-                    </p>
-
-                    <div className="deposit-options-grid">
-                        {/* Opción 1: Fianza Estándar 2.000 € */}
-                        <div
-                            className={`deposit-card ${currentDeposit === 'standard_2000' ? 'deposit-card--selected' : ''}`}
-                            onClick={() => handleDepositToggle('standard_2000')}
-                            role="radio"
-                            aria-checked={currentDeposit === 'standard_2000'}
-                            tabIndex={0}
-                            onKeyDown={(e) => {
-                                if (e.key === ' ' || e.key === 'Enter') handleDepositToggle('standard_2000')
-                            }}
-                        >
-                            <div className="deposit-card-top">
-                                <div className="deposit-radio-circle">
-                                    {currentDeposit === 'standard_2000' && <span className="deposit-radio-inner" />}
-                                </div>
-                                <div className="deposit-card-headings">
-                                    <div className="deposit-title-row">
-                                        <span className="deposit-title">Fianza Estándar · 2.000 €</span>
-                                        <span className="deposit-badge deposit-badge--standard">Sin recargo</span>
-                                    </div>
-                                    <span className="deposit-subtitle">1 conductor principal incluido</span>
-                                </div>
-                            </div>
-                            <p className="deposit-desc">
-                                Retención temporal de 2.000 € en tarjeta. Se libera íntegramente tras el check-out del vehículo.
-                            </p>
-                        </div>
-
-                        {/* Opción 2: Fianza Flex 1.000 € */}
-                        <div
-                            className={`deposit-card deposit-card--flex ${currentDeposit === 'flex_1000' ? 'deposit-card--selected' : ''}`}
-                            onClick={() => handleDepositToggle('flex_1000')}
-                            role="radio"
-                            aria-checked={currentDeposit === 'flex_1000'}
-                            tabIndex={0}
-                            onKeyDown={(e) => {
-                                if (e.key === ' ' || e.key === 'Enter') handleDepositToggle('flex_1000')
-                            }}
-                        >
-                            <div className="deposit-card-top">
-                                <div className="deposit-radio-circle">
-                                    {currentDeposit === 'flex_1000' && <span className="deposit-radio-inner" />}
-                                </div>
-                                <div className="deposit-card-headings">
-                                    <div className="deposit-title-row">
-                                        <span className="deposit-title">Fianza Flex · 1.000 €</span>
-                                        <span className="deposit-badge deposit-badge--gold">Recomendado · +10 €/día</span>
-                                    </div>
-                                    <span className="deposit-subtitle">Depósito al 50% y 2º conductor gratis</span>
-                                </div>
-                            </div>
-                            <p className="deposit-desc">
-                                Menor bloqueo en tu tarjeta (solo 1.000 €) e incluye la cobertura para un 2º conductor gratis.
-                            </p>
-                        </div>
-                    </div>
-                </div>
-
-                {/* ── 3. DATOS DE CADA PASAJERO ACOMPAÑANTE ── */}
+                {/* ── 2. DATOS DE CADA PASAJERO ACOMPAÑANTE ── */}
                 {additionalPaxCount > 0 && (
                     <div className="passengers-section">
                         <div className="passengers-section__header">
@@ -662,22 +593,14 @@ export default function Step5Checkout({
                                     licenseDate: '',
                                 }
                                 const pAge = calculateAge(passenger.birthDate)
-                                const pLicenseYears = calculateLicenseYears(passenger.licenseDate)
-                                const is2ndDriver = Boolean(passenger.isSecondDriver)
 
                                 return (
-                                    <div key={idx} className={`passenger-card ${is2ndDriver ? 'passenger-card--second-driver' : ''}`}>
+                                    <div key={idx} className="passenger-card">
                                         <div className="passenger-card__header">
                                             <div className="passenger-card__tag">
                                                 <User size={15} />
                                                 <span>Pasajero {pNum} (Acompañante)</span>
                                             </div>
-                                            {is2ndDriver && (
-                                                <span className="passenger-driver-badge">
-                                                    <UserCheck size={13} />
-                                                    2º Conductor Autorizado
-                                                </span>
-                                            )}
                                         </div>
 
                                         <div className="form-grid">
@@ -745,75 +668,6 @@ export default function Step5Checkout({
                                                 ) : null}
                                             </div>
                                         </div>
-
-                                        {/* Fianza Flex: Casilla destacada para habilitar 2º conductor */}
-                                        {currentDeposit === 'flex_1000' && (
-                                            <div className="second-driver-toggle-box">
-                                                <label className="driver-toggle-label" htmlFor={`checkbox-second-driver-${pNum}`}>
-                                                    <input
-                                                        id={`checkbox-second-driver-${pNum}`}
-                                                        type="checkbox"
-                                                        className="driver-toggle-checkbox"
-                                                        checked={is2ndDriver}
-                                                        onChange={(e) => handlePassengerChange(idx, 'isSecondDriver', e.target.checked)}
-                                                        disabled={isSubmitting}
-                                                    />
-                                                    <div className="driver-toggle-text">
-                                                        <span className="driver-toggle-title">
-                                                            Habilitar a Pasajero {pNum} como 2º conductor autorizado
-                                                        </span>
-                                                        <span className="driver-toggle-sub">
-                                                            Incluido sin recargo en tu Fianza Flex. Solo un acompañante puede ser 2º conductor.
-                                                        </span>
-                                                    </div>
-                                                </label>
-
-                                                {/* Campos adicionales de carnet B para el 2º conductor */}
-                                                {is2ndDriver && (
-                                                    <div className="second-driver-license-block">
-                                                        <div className="form-field">
-                                                            <label htmlFor={`input-passenger_${pNum}_licenseDate`} className="field-label">
-                                                                Fecha expedición carnet de conducir B (Pasajero {pNum}) *
-                                                            </label>
-                                                            <div className="input-with-icon">
-                                                                <Award size={16} className="input-icon" />
-                                                                <input
-                                                                    id={`input-passenger_${pNum}_licenseDate`}
-                                                                    type="date"
-                                                                    className={`field-input field-input--has-icon ${fieldErrors[`passenger_${pNum}_licenseDate`] ? 'field-input--error' : ''}`}
-                                                                    value={passenger.licenseDate || ''}
-                                                                    onChange={(e) => handlePassengerChange(idx, 'licenseDate', e.target.value)}
-                                                                    disabled={isSubmitting}
-                                                                    required
-                                                                />
-                                                            </div>
-                                                            {fieldErrors[`passenger_${pNum}_licenseDate`] && (
-                                                                <span className="field-error-text">{fieldErrors[`passenger_${pNum}_licenseDate`]}</span>
-                                                            )}
-                                                        </div>
-
-                                                        {/* Real-time verification badge */}
-                                                        <div className="driver-verification-status">
-                                                            {pAge !== null && pAge < 25 && (
-                                                                <span className="verification-pill verification-pill--error">
-                                                                    ⚠️ Edad: {pAge} años (Se requieren al menos 25 años para conducir)
-                                                                </span>
-                                                            )}
-                                                            {pLicenseYears !== null && pLicenseYears < 2 && (
-                                                                <span className="verification-pill verification-pill--error">
-                                                                    ⚠️ Carnet B: {pLicenseYears} {pLicenseYears === 1 ? 'año' : 'años'} (Se requieren mínimo 2 años de experiencia)
-                                                                </span>
-                                                            )}
-                                                            {pAge !== null && pAge >= 25 && pLicenseYears !== null && pLicenseYears >= 2 && (
-                                                                <span className="verification-pill verification-pill--success">
-                                                                    ✓ 2º conductor verificado: {pAge} años y {pLicenseYears} años de experiencia
-                                                                </span>
-                                                            )}
-                                                        </div>
-                                                    </div>
-                                                )}
-                                            </div>
-                                        )}
                                     </div>
                                 )
                             })}
@@ -821,146 +675,7 @@ export default function Step5Checkout({
                     </div>
                 )}
 
-                {/* ── Si viaja 1 solo pasajero pero tiene Fianza Flex: Opción de 2º conductor ── */}
-                {soloSecondDriverVisible && (
-                    <div className="form-group-card form-group-card--solo-second-driver">
-                        <div className="form-group-card__header">
-                            <UserCheck size={18} className="text-forest" />
-                            <h4 className="form-group-card__title">2º Conductor Autorizado Opcional (Fianza Flex)</h4>
-                        </div>
-                        <p className="deposit-section-intro">
-                            Tu tarifa Fianza Flex incluye la posibilidad de registrar un segundo conductor gratis. Si alguien más va a conducir la camper durante tu viaje, puedes añadir sus datos ahora:
-                        </p>
-
-                        <div className="second-driver-toggle-box">
-                            <label className="driver-toggle-label" htmlFor="checkbox-solo-second-driver">
-                                <input
-                                    id="checkbox-solo-second-driver"
-                                    type="checkbox"
-                                    className="driver-toggle-checkbox"
-                                    checked={Boolean(customer.secondDriverSoloEnabled)}
-                                    onChange={(e) => handleInputChange('secondDriverSoloEnabled', e.target.checked)}
-                                    disabled={isSubmitting}
-                                />
-                                <div className="driver-toggle-text">
-                                    <span className="driver-toggle-title">
-                                        Añadir datos de un 2º conductor autorizado (opcional)
-                                    </span>
-                                    <span className="driver-toggle-sub">
-                                        Habilita a otra persona para alternarse al volante con cobertura total del seguro.
-                                    </span>
-                                </div>
-                            </label>
-
-                            {customer.secondDriverSoloEnabled && (
-                                <div className="solo-second-driver-fields">
-                                    <div className="form-grid">
-                                        <div className="form-field form-field--span-2">
-                                            <label htmlFor="input-secondDriverSolo_fullName" className="field-label">
-                                                Nombre y Apellidos completos (2º Conductor) *
-                                            </label>
-                                            <input
-                                                id="input-secondDriverSolo_fullName"
-                                                type="text"
-                                                className={`field-input ${fieldErrors.secondDriverSolo_fullName ? 'field-input--error' : ''}`}
-                                                placeholder="Ej. María Sánchez Romero"
-                                                value={customer.secondDriverSolo?.fullName || ''}
-                                                onChange={(e) => handleSoloSecondDriverChange('fullName', e.target.value)}
-                                                disabled={isSubmitting}
-                                                required
-                                            />
-                                            {fieldErrors.secondDriverSolo_fullName && (
-                                                <span className="field-error-text">{fieldErrors.secondDriverSolo_fullName}</span>
-                                            )}
-                                        </div>
-
-                                        <div className="form-field">
-                                            <label htmlFor="input-secondDriverSolo_dniNie" className="field-label">
-                                                DNI / NIE / Pasaporte *
-                                            </label>
-                                            <input
-                                                id="input-secondDriverSolo_dniNie"
-                                                type="text"
-                                                className={`field-input ${fieldErrors.secondDriverSolo_dniNie ? 'field-input--error' : ''}`}
-                                                placeholder="Documento de identidad"
-                                                value={customer.secondDriverSolo?.dniNie || ''}
-                                                onChange={(e) => handleSoloSecondDriverChange('dniNie', e.target.value.toUpperCase())}
-                                                disabled={isSubmitting}
-                                                required
-                                            />
-                                            {fieldErrors.secondDriverSolo_dniNie && (
-                                                <span className="field-error-text">{fieldErrors.secondDriverSolo_dniNie}</span>
-                                            )}
-                                        </div>
-
-                                        <div className="form-field">
-                                            <label htmlFor="input-secondDriverSolo_birthDate" className="field-label">
-                                                Fecha de nacimiento (2º Conductor) *
-                                            </label>
-                                            <div className="input-with-icon">
-                                                <Calendar size={16} className="input-icon" />
-                                                <input
-                                                    id="input-secondDriverSolo_birthDate"
-                                                    type="date"
-                                                    className={`field-input field-input--has-icon ${fieldErrors.secondDriverSolo_birthDate ? 'field-input--error' : ''}`}
-                                                    value={customer.secondDriverSolo?.birthDate || ''}
-                                                    onChange={(e) => handleSoloSecondDriverChange('birthDate', e.target.value)}
-                                                    disabled={isSubmitting}
-                                                    required
-                                                />
-                                            </div>
-                                            {fieldErrors.secondDriverSolo_birthDate && (
-                                                <span className="field-error-text">{fieldErrors.secondDriverSolo_birthDate}</span>
-                                            )}
-                                        </div>
-
-                                        <div className="form-field form-field--span-2">
-                                            <label htmlFor="input-secondDriverSolo_licenseDate" className="field-label">
-                                                Fecha expedición carnet B (2º Conductor) *
-                                            </label>
-                                            <div className="input-with-icon">
-                                                <Award size={16} className="input-icon" />
-                                                <input
-                                                    id="input-secondDriverSolo_licenseDate"
-                                                    type="date"
-                                                    className={`field-input field-input--has-icon ${fieldErrors.secondDriverSolo_licenseDate ? 'field-input--error' : ''}`}
-                                                    value={customer.secondDriverSolo?.licenseDate || ''}
-                                                    onChange={(e) => handleSoloSecondDriverChange('licenseDate', e.target.value)}
-                                                    disabled={isSubmitting}
-                                                    required
-                                                />
-                                            </div>
-                                            {fieldErrors.secondDriverSolo_licenseDate && (
-                                                <span className="field-error-text">{fieldErrors.secondDriverSolo_licenseDate}</span>
-                                            )}
-                                        </div>
-                                    </div>
-
-                                    {/* Verification pills */}
-                                    <div className="driver-verification-status">
-                                        {calculateAge(customer.secondDriverSolo?.birthDate) !== null && (calculateAge(customer.secondDriverSolo?.birthDate) as number) < 25 && (
-                                            <span className="verification-pill verification-pill--error">
-                                                ⚠️ Edad: {calculateAge(customer.secondDriverSolo?.birthDate)} años (Mínimo 25 años requeridos)
-                                            </span>
-                                        )}
-                                        {calculateLicenseYears(customer.secondDriverSolo?.licenseDate) !== null && (calculateLicenseYears(customer.secondDriverSolo?.licenseDate) as number) < 2 && (
-                                            <span className="verification-pill verification-pill--error">
-                                                ⚠️ Carnet B: {calculateLicenseYears(customer.secondDriverSolo?.licenseDate)} años (Mínimo 2 años requeridos)
-                                            </span>
-                                        )}
-                                        {calculateAge(customer.secondDriverSolo?.birthDate) !== null && (calculateAge(customer.secondDriverSolo?.birthDate) as number) >= 25 && calculateLicenseYears(customer.secondDriverSolo?.licenseDate) !== null && (calculateLicenseYears(customer.secondDriverSolo?.licenseDate) as number) >= 2 && (
-                                            <span className="verification-pill verification-pill--success">
-                                                ✓ 2º conductor apto: edad y antigüedad válidas
-                                            </span>
-                                        )}
-                                    </div>
-                                </div>
-                            )}
-                        </div>
-                    </div>
-                )}
-
-                {/* ── 4. Dirección de Facturación y Contrato ── */}
+                {/* ── 3. Dirección de Facturación y Contrato ── */}
                 <div className="form-group-card">
                     <div className="form-group-card__header">
                         <MapPin size={18} className="text-forest" />
@@ -1204,8 +919,9 @@ export default function Step5Checkout({
                     font-size: 11px;
                     font-weight: 700;
                     letter-spacing: 0.08em;
-                    color: var(--forest-green, #cca053);
-                    background: rgba(204, 160, 83, 0.08);
+                    color: var(--wz-pill-text);
+                    background: var(--wz-pill-bg);
+                    border: 1px solid var(--wz-pill-border);
                     padding: 3px 8px;
                     border-radius: var(--radius-sm, 6px);
                     margin-bottom: var(--space-2, 8px);
@@ -1215,14 +931,14 @@ export default function Step5Checkout({
                     font-family: var(--font-display, inherit);
                     font-size: var(--text-2xl, 24px);
                     font-weight: 700;
-                    color: var(--black-matte, #f5f5f7);
+                    color: var(--black-matte);
                     margin-bottom: var(--space-2, 8px);
                     line-height: 1.25;
                 }
 
                 .step-header__desc {
                     font-size: var(--text-sm, 14px);
-                    color: var(--gray-600, #a1a1aa);
+                    color: var(--gray-600);
                     line-height: 1.6;
                 }
 
@@ -1242,6 +958,12 @@ export default function Step5Checkout({
                     color: #ef4444;
                 }
 
+                :global(html[data-theme="light"]) .alert-box--error {
+                    background: #FEE2E2;
+                    border: 1px solid #FECACA;
+                    color: #991B1B;
+                }
+
                 .checkout-form {
                     display: flex;
                     flex-direction: column;
@@ -1249,11 +971,10 @@ export default function Step5Checkout({
                 }
 
                 .form-group-card {
-                    background: var(--wz-surface, #131518);
-                    border: 1px solid var(--gray-200, rgba(255, 255, 255, 0.08));
+                    background: var(--wz-surface);
+                    border: 1px solid var(--gray-200);
                     border-radius: var(--radius-xl, 16px);
                     padding: var(--space-5, 20px);
-                    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
                 }
 
                 .form-group-card__header {
@@ -1262,19 +983,19 @@ export default function Step5Checkout({
                     gap: 10px;
                     margin-bottom: var(--space-4, 16px);
                     padding-bottom: var(--space-3, 12px);
-                    border-bottom: 1px solid var(--gray-100, rgba(255, 255, 255, 0.06));
+                    border-bottom: 1px solid var(--gray-100);
                 }
 
                 .form-group-card__title {
                     font-size: var(--text-sm, 14px);
                     font-weight: 700;
-                    color: var(--black-matte, #f5f5f7);
+                    color: var(--black-matte);
                     margin: 0;
                 }
 
                 .deposit-section-intro {
                     font-size: 13px;
-                    color: var(--gray-600, #a1a1aa);
+                    color: var(--gray-600);
                     line-height: 1.5;
                     margin-bottom: 16px;
                 }
@@ -1293,8 +1014,8 @@ export default function Step5Checkout({
                     gap: 8px;
                     padding: 16px;
                     border-radius: 12px;
-                    background: rgba(255, 255, 255, 0.02);
-                    border: 1.5px solid rgba(255, 255, 255, 0.08);
+                    background: var(--wz-chip-bg);
+                    border: 1.5px solid var(--wz-chip-border);
                     cursor: pointer;
                     transition: all 0.2s ease;
                     min-height: 44px;
@@ -1302,14 +1023,12 @@ export default function Step5Checkout({
                 }
 
                 .deposit-card:hover {
-                    border-color: rgba(230, 202, 101, 0.4);
-                    background: rgba(230, 202, 101, 0.02);
+                    border-color: var(--forest-green);
                 }
 
                 .deposit-card--selected {
-                    border-color: #cca053;
-                    background: rgba(204, 160, 83, 0.06);
-                    box-shadow: 0 0 16px -2px rgba(204, 160, 83, 0.15);
+                    border-color: var(--forest-green);
+                    background: var(--wz-pill-bg);
                 }
 
                 .deposit-card-top {
@@ -1322,7 +1041,7 @@ export default function Step5Checkout({
                     width: 20px;
                     height: 20px;
                     border-radius: 9999px;
-                    border: 2px solid rgba(255, 255, 255, 0.3);
+                    border: 2px solid var(--gray-400);
                     display: flex;
                     align-items: center;
                     justify-content: center;
@@ -1332,14 +1051,14 @@ export default function Step5Checkout({
                 }
 
                 .deposit-card--selected .deposit-radio-circle {
-                    border-color: #cca053;
+                    border-color: var(--forest-green);
                 }
 
                 .deposit-radio-inner {
                     width: 10px;
                     height: 10px;
                     border-radius: 9999px;
-                    background: #cca053;
+                    background: var(--forest-green);
                 }
 
                 .deposit-card-headings {
@@ -1360,12 +1079,12 @@ export default function Step5Checkout({
                 .deposit-title {
                     font-size: 14px;
                     font-weight: 700;
-                    color: #f5f5f7;
+                    color: var(--black-matte);
                 }
 
                 .deposit-subtitle {
                     font-size: 11px;
-                    color: rgba(255, 255, 255, 0.6);
+                    color: var(--gray-600);
                     font-weight: 500;
                 }
 
@@ -1379,19 +1098,20 @@ export default function Step5Checkout({
                 }
 
                 .deposit-badge--standard {
-                    background: rgba(255, 255, 255, 0.08);
-                    color: rgba(255, 255, 255, 0.7);
+                    background: var(--wz-chip-bg);
+                    border: 1px solid var(--wz-chip-border);
+                    color: var(--gray-600);
                 }
 
                 .deposit-badge--gold {
-                    background: rgba(204, 160, 83, 0.18);
-                    color: #cca053;
-                    border: 1px solid rgba(204, 160, 83, 0.3);
+                    background: var(--wz-pill-bg);
+                    color: var(--wz-pill-text);
+                    border: 1px solid var(--wz-pill-border);
                 }
 
                 .deposit-desc {
                     font-size: 12px;
-                    color: rgba(255, 255, 255, 0.65);
+                    color: var(--gray-600);
                     line-height: 1.45;
                     margin: 0;
                     padding-left: 32px;
@@ -1399,8 +1119,8 @@ export default function Step5Checkout({
 
                 /* Passengers Section */
                 .passengers-section {
-                    background: var(--wz-surface, #131518);
-                    border: 1px solid var(--gray-200, rgba(255, 255, 255, 0.08));
+                    background: var(--wz-surface);
+                    border: 1px solid var(--gray-200);
                     border-radius: var(--radius-xl, 16px);
                     padding: var(--space-5, 20px);
                     display: flex;
@@ -1417,13 +1137,13 @@ export default function Step5Checkout({
                 .passengers-section__title {
                     font-size: var(--text-sm, 14px);
                     font-weight: 700;
-                    color: var(--black-matte, #f5f5f7);
+                    color: var(--black-matte);
                     margin: 0;
                 }
 
                 .passengers-section__desc {
                     font-size: 13px;
-                    color: var(--gray-600, #a1a1aa);
+                    color: var(--gray-600);
                     line-height: 1.5;
                     margin: 0;
                 }
@@ -1435,8 +1155,8 @@ export default function Step5Checkout({
                 }
 
                 .passenger-card {
-                    background: rgba(255, 255, 255, 0.02);
-                    border: 1px solid rgba(255, 255, 255, 0.07);
+                    background: var(--wz-chip-bg);
+                    border: 1px solid var(--wz-chip-border);
                     border-radius: 12px;
                     padding: 16px;
                     display: flex;
@@ -1446,8 +1166,7 @@ export default function Step5Checkout({
                 }
 
                 .passenger-card--second-driver {
-                    border-color: rgba(204, 160, 83, 0.35);
-                    background: rgba(204, 160, 83, 0.03);
+                    border-color: var(--forest-green);
                 }
 
                 .passenger-card__header {
@@ -1457,7 +1176,7 @@ export default function Step5Checkout({
                     gap: 10px;
                     flex-wrap: wrap;
                     padding-bottom: 8px;
-                    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+                    border-bottom: 1px solid var(--gray-200);
                 }
 
                 .passenger-card__tag {
@@ -1466,7 +1185,7 @@ export default function Step5Checkout({
                     gap: 6px;
                     font-size: 13px;
                     font-weight: 700;
-                    color: #f5f5f7;
+                    color: var(--black-matte);
                 }
 
                 .passenger-driver-badge {
@@ -1475,17 +1194,17 @@ export default function Step5Checkout({
                     gap: 5px;
                     font-size: 11px;
                     font-weight: 700;
-                    color: #cca053;
-                    background: rgba(204, 160, 83, 0.14);
+                    color: var(--wz-pill-text);
+                    background: var(--wz-pill-bg);
                     padding: 3px 10px;
                     border-radius: 9999px;
-                    border: 1px solid rgba(204, 160, 83, 0.3);
+                    border: 1px solid var(--wz-pill-border);
                 }
 
                 /* Second Driver Toggle Box */
                 .second-driver-toggle-box {
-                    background: rgba(0, 0, 0, 0.25);
-                    border: 1px solid rgba(204, 160, 83, 0.25);
+                    background: var(--wz-chip-bg);
+                    border: 1px solid var(--wz-pill-border);
                     border-radius: 10px;
                     padding: 12px 14px;
                     display: flex;
@@ -1506,7 +1225,7 @@ export default function Step5Checkout({
                     margin-top: 3px;
                     width: 18px;
                     height: 18px;
-                    accent-color: #cca053;
+                    accent-color: var(--forest-green);
                     cursor: pointer;
                     flex-shrink: 0;
                 }
@@ -1520,12 +1239,12 @@ export default function Step5Checkout({
                 .driver-toggle-title {
                     font-size: 13px;
                     font-weight: 700;
-                    color: #f5f5f7;
+                    color: var(--black-matte);
                 }
 
                 .driver-toggle-sub {
                     font-size: 11px;
-                    color: rgba(255, 255, 255, 0.6);
+                    color: var(--gray-600);
                     line-height: 1.4;
                 }
 
@@ -1534,7 +1253,7 @@ export default function Step5Checkout({
                     flex-direction: column;
                     gap: 10px;
                     padding-top: 10px;
-                    border-top: 1px solid rgba(255, 255, 255, 0.08);
+                    border-top: 1px solid var(--gray-200);
                 }
 
                 .solo-second-driver-fields {
@@ -1542,7 +1261,7 @@ export default function Step5Checkout({
                     flex-direction: column;
                     gap: 12px;
                     padding-top: 10px;
-                    border-top: 1px solid rgba(255, 255, 255, 0.08);
+                    border-top: 1px solid var(--gray-200);
                 }
 
                 .driver-verification-status {
@@ -1564,10 +1283,22 @@ export default function Step5Checkout({
                     border: 1px solid rgba(52, 211, 153, 0.3);
                 }
 
+                :global(html[data-theme="light"]) .verification-pill--success {
+                    background: #E7EFE5;
+                    color: #2D5233;
+                    border: 1px solid #CFE2D2;
+                }
+
                 .verification-pill--error {
                     background: rgba(239, 68, 68, 0.15);
                     color: #ef4444;
                     border: 1px solid rgba(239, 68, 68, 0.3);
+                }
+
+                :global(html[data-theme="light"]) .verification-pill--error {
+                    background: #FEE2E2;
+                    color: #991B1B;
+                    border: 1px solid #FECACA;
                 }
 
                 /* Form Grid */
@@ -1590,25 +1321,25 @@ export default function Step5Checkout({
                 .field-label {
                     font-size: 12px;
                     font-weight: 600;
-                    color: var(--black-matte, #f5f5f7);
+                    color: var(--black-matte);
                 }
 
                 .field-input {
                     height: 44px;
                     padding: 0 var(--space-3, 12px);
-                    border: 1.5px solid var(--gray-200, rgba(255, 255, 255, 0.1));
+                    border: 1.5px solid var(--gray-200);
                     border-radius: var(--radius-md, 8px);
                     font-size: var(--text-sm, 14px);
-                    color: var(--black-matte, #f5f5f7);
-                    background: var(--wz-bg, #0b0c0e);
+                    color: var(--black-matte);
+                    background: var(--wz-chip-bg);
                     transition: all 0.2s ease;
                     outline: none;
                 }
 
                 .field-input:focus {
-                    border-color: var(--forest-green, #cca053);
-                    background: var(--wz-surface, #131518);
-                    box-shadow: 0 0 0 3px rgba(204, 160, 83, 0.15);
+                    border-color: var(--forest-green);
+                    background: var(--wz-surface);
+                    box-shadow: 0 0 0 3px var(--wz-pill-bg);
                 }
 
                 .field-input--error {
@@ -1618,20 +1349,20 @@ export default function Step5Checkout({
 
                 .field-textarea {
                     padding: var(--space-3, 12px);
-                    border: 1.5px solid var(--gray-200, rgba(255, 255, 255, 0.1));
+                    border: 1.5px solid var(--gray-200);
                     border-radius: var(--radius-md, 8px);
                     font-size: var(--text-sm, 14px);
-                    color: var(--black-matte, #f5f5f7);
-                    background: var(--wz-bg, #0b0c0e);
+                    color: var(--black-matte);
+                    background: var(--wz-chip-bg);
                     font-family: inherit;
                     resize: vertical;
                     outline: none;
                 }
 
                 .field-textarea:focus {
-                    border-color: var(--forest-green, #cca053);
-                    background: var(--wz-surface, #131518);
-                    box-shadow: 0 0 0 3px rgba(204, 160, 83, 0.15);
+                    border-color: var(--forest-green);
+                    background: var(--wz-surface);
+                    box-shadow: 0 0 0 3px var(--wz-pill-bg);
                 }
 
                 .input-with-icon {
@@ -1643,7 +1374,7 @@ export default function Step5Checkout({
                 .input-icon {
                     position: absolute;
                     left: 12px;
-                    color: var(--gray-400, #71717a);
+                    color: var(--gray-400);
                     pointer-events: none;
                 }
 
@@ -1662,10 +1393,10 @@ export default function Step5Checkout({
                 .phone-prefix-select {
                     height: 44px;
                     padding: 0 10px;
-                    border: 1.5px solid var(--gray-200, rgba(255, 255, 255, 0.1));
+                    border: 1.5px solid var(--gray-200);
                     border-radius: var(--radius-md, 8px);
-                    background: var(--wz-bg, #0b0c0e);
-                    color: var(--black-matte, #f5f5f7);
+                    background: var(--wz-chip-bg);
+                    color: var(--black-matte);
                     font-size: 13px;
                     font-weight: 500;
                     outline: none;
@@ -1675,7 +1406,7 @@ export default function Step5Checkout({
                 }
 
                 .phone-prefix-select:focus {
-                    border-color: var(--forest-green, #cca053);
+                    border-color: var(--forest-green);
                 }
 
                 .phone-number-wrap {
@@ -1684,13 +1415,17 @@ export default function Step5Checkout({
 
                 .field-hint {
                     font-size: 11px;
-                    color: var(--gray-500, #71717a);
+                    color: var(--gray-500);
                 }
 
                 .field-success-hint {
                     font-size: 11px;
                     color: #34d399;
                     font-weight: 600;
+                }
+
+                :global(html[data-theme="light"]) .field-success-hint {
+                    color: #2D5233;
                 }
 
                 .field-error-text {
@@ -1706,8 +1441,8 @@ export default function Step5Checkout({
 
                 /* Legal Consent Card */
                 .legal-consent-card {
-                    background: var(--wz-surface, #131518);
-                    border: 1px solid var(--gray-200, rgba(255, 255, 255, 0.08));
+                    background: var(--wz-surface);
+                    border: 1px solid var(--gray-200);
                     border-radius: var(--radius-lg, 12px);
                     padding: 18px 20px;
                     display: flex;
@@ -1720,13 +1455,13 @@ export default function Step5Checkout({
                     align-items: center;
                     gap: 8px;
                     padding-bottom: 10px;
-                    border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+                    border-bottom: 1px solid var(--gray-100);
                 }
 
                 .legal-consent-title {
                     font-size: 13px;
                     font-weight: 700;
-                    color: #f5f5f7;
+                    color: var(--black-matte);
                 }
 
                 .checkbox-block {
@@ -1749,25 +1484,25 @@ export default function Step5Checkout({
                     margin-top: 3px;
                     width: 18px;
                     height: 18px;
-                    accent-color: #cca053;
+                    accent-color: var(--forest-green);
                     cursor: pointer;
                     flex-shrink: 0;
                 }
 
                 .checkbox-label {
                     font-size: 12px;
-                    color: var(--gray-600, #d4d4d8);
+                    color: var(--gray-600);
                     line-height: 1.5;
                 }
 
                 .legal-link {
-                    color: var(--forest-green, #cca053);
+                    color: var(--forest-green);
                     font-weight: 600;
                     text-decoration: underline;
                 }
 
                 .text-strong-gold {
-                    color: #cca053;
+                    color: var(--forest-green);
                     font-weight: 700;
                 }
 
@@ -1782,8 +1517,8 @@ export default function Step5Checkout({
                     height: 54px;
                     min-height: 44px;
                     border: none;
-                    background: var(--forest-green, #cca053);
-                    color: #0b0c0e;
+                    background: var(--forest-green);
+                    color: var(--wz-on-accent);
                     font-size: var(--text-base, 16px);
                     font-weight: 800;
                     letter-spacing: 0.02em;
@@ -1793,14 +1528,13 @@ export default function Step5Checkout({
                     align-items: center;
                     justify-content: center;
                     gap: 10px;
-                    box-shadow: 0 4px 14px rgba(204, 160, 83, 0.25);
+                    box-shadow: 0 4px 14px rgba(204, 160, 83, 0.2);
                     transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
                 }
 
                 .btn-pay-redsys:hover:not(:disabled) {
-                    background: #d8bc59;
+                    background: var(--forest-green-light);
                     transform: translateY(-1px);
-                    box-shadow: 0 6px 20px rgba(204, 160, 83, 0.35);
                 }
 
                 .btn-pay-redsys:disabled {
@@ -1830,12 +1564,12 @@ export default function Step5Checkout({
                     align-items: center;
                     gap: 6px;
                     font-size: 11px;
-                    color: var(--gray-600, #a1a1aa);
+                    color: var(--gray-600);
                     font-weight: 500;
                 }
 
                 :global(.text-forest) {
-                    color: #cca053;
+                    color: var(--forest-green);
                 }
 
                 /* Responsive Rules per AGENTS.md */

@@ -41,7 +41,8 @@ html[data-theme="light"] {
   /* Dorado de marca y tonos arena */
   --site-gold: #B8893A;
   --site-gold-fill: #CCA053;
-  --site-gold-text: #1A1714; /* Texto negro en acentos arena/dorados para alto contraste */
+  --site-gold-text: #1A1714;
+  /* Texto negro en acentos arena/dorados para alto contraste */
   --site-gold-soft: #F7EEDC;
   --site-gold-line: #E8D6B2;
 
@@ -60,7 +61,8 @@ html[data-theme="light"] {
   --forest-green-accent: #B8893A;
   --sand: #E8D6B2;
   --sand-light: #F7EEDC;
-  --sand-dark: #1A1714; /* Negro para cualquier texto en partes beige */
+  --sand-dark: #1A1714;
+  /* Negro para cualquier texto en partes beige */
   --gray-50: #F7F5F1;
   --gray-100: #F7F5F1;
   --gray-200: #EAE5DD;
@@ -235,7 +237,8 @@ html[data-theme="light"] .lang-dropdown-btn:hover {
 
 html[data-theme="light"] .lang-dropdown-btn--selected {
   background: #F7EEDC !important;
-  color: #1A1714 !important; /* TEXTO NEGRO EN BEIGE */
+  color: #1A1714 !important;
+  /* TEXTO NEGRO EN BEIGE */
   font-weight: 700 !important;
 }
 
@@ -316,7 +319,8 @@ html[data-theme="light"] .mobile-menu__links .mobile-menu__link--reservar {
 html[data-theme="light"] .mobile-menu__links .mobile-menu__link--admin {
   background: #F7EEDC !important;
   border-color: #E8D6B2 !important;
-  color: #1A1714 !important; /* TEXTO NEGRO EN BEIGE */
+  color: #1A1714 !important;
+  /* TEXTO NEGRO EN BEIGE */
   font-weight: 700 !important;
 }
 
@@ -476,7 +480,8 @@ html[data-theme="light"] .booking-cal__day-number {
 /* Hover en días válidos: respuesta inmediata interactiva idéntica a modo oscuro */
 html[data-theme="light"] .booking-cal__day:hover:not(.booking-cal__day--disabled):not(.booking-cal__day--start):not(.booking-cal__day--end) .booking-cal__day-number {
   background: #CCA053 !important;
-  color: #1A1714 !important; /* TEXTO NEGRO EN BEIGE */
+  color: #1A1714 !important;
+  /* TEXTO NEGRO EN BEIGE */
   font-weight: 800 !important;
   transform: scale(1.08) !important;
 }
@@ -579,14 +584,16 @@ html[data-theme="light"] .booking-cal__slot-pill--active .booking-cal__slot-badg
 
 html[data-theme="light"] .booking-cal__slot-badge {
   background: #E2DBD3 !important;
-  color: #1A1714 !important; /* TEXTO NEGRO EN BEIGE */
+  color: #1A1714 !important;
+  /* TEXTO NEGRO EN BEIGE */
   font-weight: 700 !important;
 }
 
 /* Banner de pasos informativos */
 html[data-theme="light"] .booking-cal__step-banner {
   background: #F7EEDC !important;
-  color: #1A1714 !important; /* TEXTO NEGRO EN BEIGE */
+  color: #1A1714 !important;
+  /* TEXTO NEGRO EN BEIGE */
   border: 1px solid #E8D6B2 !important;
   font-weight: 700 !important;
 }
@@ -648,6 +655,16 @@ html[data-theme="light"] .booking-cal__legend {
   color: #5A5248 !important;
 }
 
+html[data-theme="light"] .booking-cal__legend-icon--am {
+  background: linear-gradient(135deg, rgba(248, 113, 113, 0.35) 50%, #FAF8F5 50%) !important;
+  border-color: #D9D1C4 !important;
+}
+
+html[data-theme="light"] .booking-cal__legend-icon--pm {
+  background: linear-gradient(135deg, #FAF8F5 50%, rgba(248, 113, 113, 0.35) 50%) !important;
+  border-color: #D9D1C4 !important;
+}
+
 /* ── 7. SECCIONES DE LA HOME (CAMPERS, 3D, WHY, EXPERIENCIAS, FAQ) ── */
 html[data-theme="light"] .featured {
   background: #F2F0EC !important;
@@ -664,7 +681,8 @@ html[data-theme="light"] .featured__subtitle {
 html[data-theme="light"] .featured__eyebrow-pill {
   background: #F7EEDC !important;
   border: 1px solid #E8D6B2 !important;
-  color: #1A1714 !important; /* TEXTO NEGRO EN BEIGE */
+  color: #1A1714 !important;
+  /* TEXTO NEGRO EN BEIGE */
   font-weight: 700 !important;
 }
 
@@ -738,7 +756,8 @@ html[data-theme="light"] .showcase-section {
 html[data-theme="light"] .showcase-eyebrow {
   background: #F7EEDC !important;
   border: 1px solid #E8D6B2 !important;
-  color: #1A1714 !important; /* TEXTO NEGRO EN BEIGE */
+  color: #1A1714 !important;
+  /* TEXTO NEGRO EN BEIGE */
   font-weight: 700 !important;
 }
 
@@ -790,7 +809,8 @@ html[data-theme="light"] .why-section {
 html[data-theme="light"] .why__eyebrow-badge {
   background: #F7EEDC !important;
   border: 1px solid #E8D6B2 !important;
-  color: #1A1714 !important; /* TEXTO NEGRO EN BEIGE */
+  color: #1A1714 !important;
+  /* TEXTO NEGRO EN BEIGE */
   font-weight: 700 !important;
 }
 
@@ -840,7 +860,8 @@ html[data-theme="light"] .why__card-tag,
 html[data-theme="light"] .why-card__tag {
   background: #F7EEDC !important;
   border: 1px solid #E8D6B2 !important;
-  color: #1A1714 !important; /* TEXTO NEGRO EN BEIGE */
+  color: #1A1714 !important;
+  /* TEXTO NEGRO EN BEIGE */
   font-weight: 700 !important;
   padding: 4px 10px !important;
   border-radius: 999px !important;
@@ -865,18 +886,17 @@ html[data-theme="light"] .experiences-section {
 }
 
 html[data-theme="light"] .experiences__ambient-bg {
-  background: radial-gradient(
-    circle at 80% 20%,
-    rgba(204, 160, 83, 0.10) 0%,
-    rgba(247, 245, 241, 0.85) 60%,
-    #F7F5F1 100%
-  ) !important;
+  background: radial-gradient(circle at 80% 20%,
+      rgba(204, 160, 83, 0.10) 0%,
+      rgba(247, 245, 241, 0.85) 60%,
+      #F7F5F1 100%) !important;
 }
 
 html[data-theme="light"] .experiences__eyebrow-badge {
   background: #F7EEDC !important;
   border: 1px solid #E8D6B2 !important;
-  color: #1A1714 !important; /* TEXTO NEGRO EN BEIGE */
+  color: #1A1714 !important;
+  /* TEXTO NEGRO EN BEIGE */
   font-weight: 700 !important;
 }
 
@@ -917,12 +937,10 @@ html[data-theme="light"] .exp-card__media-wrap {
 }
 
 html[data-theme="light"] .exp-card__media-scrim {
-  background: linear-gradient(
-    to bottom,
-    rgba(0, 0, 0, 0.08) 0%,
-    transparent 60%,
-    rgba(26, 23, 20, 0.28) 100%
-  ) !important;
+  background: linear-gradient(to bottom,
+      rgba(0, 0, 0, 0.08) 0%,
+      transparent 60%,
+      rgba(26, 23, 20, 0.28) 100%) !important;
 }
 
 html[data-theme="light"] .exp-card__highlight-pill {
@@ -948,7 +966,8 @@ html[data-theme="light"] .exp-card__tag,
 html[data-theme="light"] .experience-card__tag {
   background: #F7EEDC !important;
   border: 1px solid #E8D6B2 !important;
-  color: #1A1714 !important; /* TEXTO NEGRO EN BEIGE */
+  color: #1A1714 !important;
+  /* TEXTO NEGRO EN BEIGE */
   font-weight: 700 !important;
   padding: 4px 10px !important;
   border-radius: 999px !important;
@@ -980,7 +999,8 @@ html[data-theme="light"] .faq-page-main {
 html[data-theme="light"] .faq-eyebrow-pill {
   background: #F7EEDC !important;
   border: 1px solid #E8D6B2 !important;
-  color: #1A1714 !important; /* TEXTO NEGRO EN BEIGE */
+  color: #1A1714 !important;
+  /* TEXTO NEGRO EN BEIGE */
   font-weight: 700 !important;
 }
 
@@ -1023,7 +1043,8 @@ html[data-theme="light"] .faq-card__category-chip,
 html[data-theme="light"] .faq-experience--dark .faq-card__category-chip {
   background: #F7EEDC !important;
   border: 1px solid #E8D6B2 !important;
-  color: #1A1714 !important; /* TEXTO NEGRO EN BEIGE */
+  color: #1A1714 !important;
+  /* TEXTO NEGRO EN BEIGE */
   font-weight: 700 !important;
 }
 
@@ -1041,7 +1062,8 @@ html[data-theme="light"] .faq-contact-card__glow {
 html[data-theme="light"] .faq-contact-badge {
   background: #F7EEDC !important;
   border: 1px solid #E8D6B2 !important;
-  color: #1A1714 !important; /* TEXTO NEGRO EN BEIGE */
+  color: #1A1714 !important;
+  /* TEXTO NEGRO EN BEIGE */
   font-weight: 700 !important;
   padding: 5px 12px !important;
   border-radius: 999px !important;
@@ -1132,7 +1154,8 @@ html[data-theme="light"] .footer .footer__social-btn {
 html[data-theme="light"] .footer .footer__social-btn:hover {
   border-color: #D9D1C4 !important;
   background: #F7EEDC !important;
-  color: #1A1714 !important; /* TEXTO NEGRO EN BEIGE */
+  color: #1A1714 !important;
+  /* TEXTO NEGRO EN BEIGE */
 }
 
 html[data-theme="light"] .footer .footer__instagram {
@@ -1188,7 +1211,8 @@ html[data-theme="light"] .catalog-hero__subtitle {
 html[data-theme="light"] .catalog-hero__eyebrow {
   background: #F7EEDC !important;
   border: 1px solid #E8D6B2 !important;
-  color: #1A1714 !important; /* TEXTO NEGRO EN BEIGE */
+  color: #1A1714 !important;
+  /* TEXTO NEGRO EN BEIGE */
   font-weight: 700 !important;
 }
 
@@ -1305,7 +1329,8 @@ html[data-theme="light"] .floorplan-card {
 html[data-theme="light"] .floorplan-label {
   background: #F7EEDC !important;
   border: 1px solid #E8D6B2 !important;
-  color: #1A1714 !important; /* TEXTO NEGRO EN BEIGE */
+  color: #1A1714 !important;
+  /* TEXTO NEGRO EN BEIGE */
   font-weight: 700 !important;
 }
 
@@ -1365,7 +1390,8 @@ html[data-theme="light"] .price-unit {
 html[data-theme="light"] .cancellation-badge {
   background: #F7EEDC !important;
   border: 1px solid #E8D6B2 !important;
-  color: #1A1714 !important; /* TEXTO NEGRO EN BEIGE */
+  color: #1A1714 !important;
+  /* TEXTO NEGRO EN BEIGE */
   font-weight: 700 !important;
 }
 
@@ -1424,7 +1450,8 @@ html[data-theme="light"] .price-calc__date-val--placeholder {
 
 html[data-theme="light"] .price-calc__schedule-badge {
   background: #F7EEDC !important;
-  color: #1A1714 !important; /* TEXTO NEGRO EN BEIGE */
+  color: #1A1714 !important;
+  /* TEXTO NEGRO EN BEIGE */
   border: 1px solid #E8D6B2 !important;
   font-weight: 700 !important;
 }
@@ -1442,7 +1469,8 @@ html[data-theme="light"] .reservar-hero {
 html[data-theme="light"] .reservar-hero__eyebrow {
   background: #F7EEDC !important;
   border: 1px solid #E8D6B2 !important;
-  color: #1A1714 !important; /* TEXTO NEGRO EN BEIGE */
+  color: #1A1714 !important;
+  /* TEXTO NEGRO EN BEIGE */
   font-weight: 700 !important;
 }
 
@@ -1516,7 +1544,8 @@ html[data-theme="light"] .reservar-status-banner__reset-btn {
 html[data-theme="light"] .reservar-prompt-banner {
   background: #F7EEDC !important;
   border: 1px solid #E8D6B2 !important;
-  color: #1A1714 !important; /* TEXTO NEGRO EN BEIGE */
+  color: #1A1714 !important;
+  /* TEXTO NEGRO EN BEIGE */
   font-weight: 600 !important;
 }
 
@@ -1540,7 +1569,29 @@ html[data-theme="light"] .reservar__filter-btn--active {
 /* ── 12. WIZARD DE RESERVA COMPLETO (/reserva/[slug]) ── */
 html[data-theme="light"] .booking-wizard-root,
 html[data-theme="light"] .wizard-page {
+  --wz-bg: #F2F0EC !important;
+  --wz-surface: #FFFFFF !important;
+  --wz-surface-soft: #FAF8F5 !important;
+  --wz-border: #EAE5DD !important;
+  --wz-chip-bg: #F7F5F1 !important;
+  --wz-chip-border: #EAE5DD !important;
+  --wz-pill-bg: #F7EEDC !important;
+  --wz-pill-border: #E8D6B2 !important;
+  --wz-pill-text: #1A1714 !important;
+  --wz-on-accent: #F6EBD3 !important;
+  --forest-green: #1A1714 !important;
+  --black-matte: #1F1B17 !important;
+  --white: #FFFFFF !important;
+  --gray-50: #F7F5F1 !important;
+  --gray-100: #EFECE6 !important;
+  --gray-200: #EAE5DD !important;
+  --gray-300: #D9D1C4 !important;
+  --gray-400: #8E8477 !important;
+  --gray-500: #5A5248 !important;
+  --gray-600: #3E3730 !important;
   background: #F2F0EC !important;
+  color: #1F1B17 !important;
+  color-scheme: light !important;
 }
 
 /* Wizard Header */
@@ -1581,7 +1632,8 @@ html[data-theme="light"] .wizard-header__camper-sub {
 html[data-theme="light"] .wizard-header__trust-pill {
   background: #F7EEDC !important;
   border: 1px solid #E8D6B2 !important;
-  color: #1A1714 !important; /* TEXTO NEGRO EN BEIGE */
+  color: #1A1714 !important;
+  /* TEXTO NEGRO EN BEIGE */
   font-weight: 700 !important;
 }
 
@@ -1623,7 +1675,8 @@ html[data-theme="light"] .wizard-step-node__title {
 html[data-theme="light"] .step-header__tag {
   background: #F7EEDC !important;
   border: 1px solid #E8D6B2 !important;
-  color: #1A1714 !important; /* TEXTO NEGRO EN BEIGE */
+  color: #1A1714 !important;
+  /* TEXTO NEGRO EN BEIGE */
   font-weight: 700 !important;
 }
 
@@ -1653,7 +1706,8 @@ html[data-theme="light"] .pax-card__desc {
 html[data-theme="light"] .pax-card__icon-box {
   background: #F7EEDC !important;
   border: 1px solid #E8D6B2 !important;
-  color: #1A1714 !important; /* TEXTO / ICONO NEGRO EN BEIGE */
+  color: #1A1714 !important;
+  /* TEXTO / ICONO NEGRO EN BEIGE */
 }
 
 html[data-theme="light"] .pax-btn {
@@ -1674,7 +1728,8 @@ html[data-theme="light"] .pax-value {
 }
 
 html[data-theme="light"] .calendar-section {
-  background: #FAF8F5 !important; /* Arena marfil suave, nunca blanco plano */
+  background: #FAF8F5 !important;
+  /* Arena marfil suave, nunca blanco plano */
   border: 1px solid #E2DBD3 !important;
   box-shadow: 0 4px 16px rgba(40, 30, 15, 0.04) !important;
 }
@@ -1691,7 +1746,8 @@ html[data-theme="light"] .calendar-section__dates-badge {
 html[data-theme="light"] .calendar-section__nights-pill {
   background: #F7EEDC !important;
   border: 1px solid #E8D6B2 !important;
-  color: #1A1714 !important; /* TEXTO NEGRO EN BEIGE */
+  color: #1A1714 !important;
+  /* TEXTO NEGRO EN BEIGE */
   font-weight: 800 !important;
 }
 
@@ -1740,7 +1796,8 @@ html[data-theme="light"] .slot-option-btn__time {
 
 html[data-theme="light"] .slot-option-btn__tag {
   background: #E2DBD3 !important;
-  color: #1A1714 !important; /* TEXTO NEGRO EN BEIGE */
+  color: #1A1714 !important;
+  /* TEXTO NEGRO EN BEIGE */
   font-weight: 700 !important;
 }
 
@@ -1815,7 +1872,8 @@ html[data-theme="light"] .km-card__badge--highlight,
 html[data-theme="light"] .km-card__badge {
   background: #F7EEDC !important;
   border: 1px solid #E8D6B2 !important;
-  color: #1A1714 !important; /* TEXTO NEGRO EN BEIGE */
+  color: #1A1714 !important;
+  /* TEXTO NEGRO EN BEIGE */
   font-weight: 700 !important;
 }
 
@@ -1875,7 +1933,8 @@ html[data-theme="light"] .policy-card__badge--highlight,
 html[data-theme="light"] .policy-card__badge {
   background: #F7EEDC !important;
   border: 1px solid #E8D6B2 !important;
-  color: #1A1714 !important; /* TEXTO NEGRO EN BEIGE */
+  color: #1A1714 !important;
+  /* TEXTO NEGRO EN BEIGE */
   font-weight: 700 !important;
 }
 
@@ -1900,7 +1959,8 @@ html[data-theme="light"] .policy-card__description {
 html[data-theme="light"] .timeline-item__badge--highlight {
   background: #F7EEDC !important;
   border: 1px solid #E8D6B2 !important;
-  color: #1A1714 !important; /* TEXTO NEGRO EN BEIGE */
+  color: #1A1714 !important;
+  /* TEXTO NEGRO EN BEIGE */
   font-weight: 700 !important;
 }
 
@@ -1911,7 +1971,8 @@ html[data-theme="light"] .timeline-item__badge--green {
 
 html[data-theme="light"] .timeline-item__badge--gray {
   background: #EAE5DD !important;
-  color: #1A1714 !important; /* TEXTO NEGRO EN BEIGE */
+  color: #1A1714 !important;
+  /* TEXTO NEGRO EN BEIGE */
   font-weight: 700 !important;
 }
 
@@ -1960,7 +2021,8 @@ html[data-theme="light"] .extra-card--active {
 html[data-theme="light"] .extra-card__badge {
   background: #F7EEDC !important;
   border: 1px solid #E8D6B2 !important;
-  color: #1A1714 !important; /* TEXTO NEGRO EN BEIGE */
+  color: #1A1714 !important;
+  /* TEXTO NEGRO EN BEIGE */
   font-weight: 700 !important;
 }
 
@@ -1994,7 +2056,8 @@ html[data-theme="light"] .qty-val {
 html[data-theme="light"] .btn-add-extra {
   background: #F7EEDC !important;
   border: 1px solid #E8D6B2 !important;
-  color: #1A1714 !important; /* TEXTO NEGRO EN BEIGE */
+  color: #1A1714 !important;
+  /* TEXTO NEGRO EN BEIGE */
   font-weight: 700 !important;
 }
 
@@ -2066,7 +2129,8 @@ html[data-theme="light"] .btn-pay-redsys:hover {
 html[data-theme="light"] .security-badge {
   background: #F7EEDC !important;
   border: 1px solid #E8D6B2 !important;
-  color: #1A1714 !important; /* TEXTO NEGRO EN BEIGE */
+  color: #1A1714 !important;
+  /* TEXTO NEGRO EN BEIGE */
   font-weight: 700 !important;
 }
 
@@ -2084,7 +2148,8 @@ html[data-theme="light"] .summary-heading {
 html[data-theme="light"] .summary-live-indicator {
   background: #F7EEDC !important;
   border: 1px solid #E8D6B2 !important;
-  color: #1A1714 !important; /* TEXTO NEGRO EN BEIGE */
+  color: #1A1714 !important;
+  /* TEXTO NEGRO EN BEIGE */
   font-weight: 700 !important;
 }
 
@@ -2099,14 +2164,16 @@ html[data-theme="light"] .summary-camper-name {
 }
 
 html[data-theme="light"] .summary-brand-tag {
-  color: #1A1714 !important; /* TEXTO NEGRO EN BEIGE */
+  color: #1A1714 !important;
+  /* TEXTO NEGRO EN BEIGE */
   font-weight: 800 !important;
 }
 
 html[data-theme="light"] .stats-pill {
   background: #F7EEDC !important;
   border: 1px solid #E8D6B2 !important;
-  color: #1A1714 !important; /* TEXTO NEGRO EN BEIGE */
+  color: #1A1714 !important;
+  /* TEXTO NEGRO EN BEIGE */
   font-weight: 700 !important;
 }
 
@@ -2152,21 +2219,25 @@ html[data-theme="light"] .summary-price-total {
 html[data-theme="light"] .summary-deposit-box {
   background: #F7EEDC !important;
   border: 1px solid #E8D6B2 !important;
-  color: #1A1714 !important; /* TEXTO NEGRO EN BEIGE */
+  color: #1A1714 !important;
+  /* TEXTO NEGRO EN BEIGE */
 }
 
 html[data-theme="light"] .deposit-box__title {
-  color: #1A1714 !important; /* TEXTO NEGRO EN BEIGE */
+  color: #1A1714 !important;
+  /* TEXTO NEGRO EN BEIGE */
   font-weight: 700 !important;
 }
 
 html[data-theme="light"] .deposit-box__amount {
-  color: #1A1714 !important; /* TEXTO NEGRO EN BEIGE */
+  color: #1A1714 !important;
+  /* TEXTO NEGRO EN BEIGE */
   font-weight: 800 !important;
 }
 
 html[data-theme="light"] .deposit-box__text {
-  color: #1A1714 !important; /* TEXTO NEGRO EN BEIGE */
+  color: #1A1714 !important;
+  /* TEXTO NEGRO EN BEIGE */
 }
 
 html[data-theme="light"] .deposit-box__text strong {
@@ -2190,7 +2261,8 @@ html[data-theme="light"] .summary-included-item {
 html[data-theme="light"] .trust-badge {
   background: #F7EEDC !important;
   border: 1px solid #E8D6B2 !important;
-  color: #1A1714 !important; /* TEXTO NEGRO EN BEIGE */
+  color: #1A1714 !important;
+  /* TEXTO NEGRO EN BEIGE */
   font-weight: 700 !important;
 }
 
@@ -2234,6 +2306,45 @@ html[data-theme="light"] .mobile-price-sub {
   font-weight: 700 !important;
 }
 
+/* Tarjetas adicionales de los 7 pasos (Modelos, Seguro, Extras compactos, Pasajeros, Resumen) */
+html[data-theme="light"] .model-card,
+html[data-theme="light"] .insurance-card,
+html[data-theme="light"] .included-block {
+  background: #FFFFFF !important;
+  border-color: #EAE5DD !important;
+  color: #1F1B17 !important;
+}
+
+html[data-theme="light"] .model-card--selected,
+html[data-theme="light"] .insurance-card {
+  border-color: #1A1714 !important;
+}
+
+html[data-theme="light"] .extra-row {
+  background: #FFFFFF !important;
+  border-color: #EAE5DD !important;
+}
+
+html[data-theme="light"] .extra-row--active {
+  border-color: #1A1714 !important;
+  background: #FAF8F5 !important;
+}
+
+html[data-theme="light"] .included-chip,
+html[data-theme="light"] .insurance-feature,
+html[data-theme="light"] .passenger-card,
+html[data-theme="light"] .summary-item-box {
+  background: #F7F5F1 !important;
+  border-color: #EAE5DD !important;
+  color: #1F1B17 !important;
+}
+
+html[data-theme="light"] .summary-total-box {
+  background: #F7EEDC !important;
+  border-color: #E8D6B2 !important;
+  color: #1A1714 !important;
+}
+
 /* ── 13. CONÓCENOS / ABOUT (/conocenos) ── */
 html[data-theme="light"] .about-page {
   background: #F2F0EC !important;
@@ -2246,7 +2357,8 @@ html[data-theme="light"] .about-who-section {
 html[data-theme="light"] .about-pill-label {
   background: #F7EEDC !important;
   border: 1px solid #E8D6B2 !important;
-  color: #1A1714 !important; /* TEXTO NEGRO EN BEIGE */
+  color: #1A1714 !important;
+  /* TEXTO NEGRO EN BEIGE */
   font-weight: 700 !important;
 }
 
@@ -2278,7 +2390,8 @@ html[data-theme="light"] .about-manifesto-box {
 }
 
 html[data-theme="light"] .about-manifesto-item {
-  color: #1A1714 !important; /* TEXTO NEGRO EN BEIGE */
+  color: #1A1714 !important;
+  /* TEXTO NEGRO EN BEIGE */
   font-weight: 600 !important;
 }
 
@@ -2295,7 +2408,8 @@ html[data-theme="light"] .about-image-card {
 html[data-theme="light"] .about-img-glass-badge {
   background: rgba(247, 245, 241, 0.94) !important;
   border: 1px solid #E8D6B2 !important;
-  color: #1A1714 !important; /* TEXTO NEGRO EN BEIGE */
+  color: #1A1714 !important;
+  /* TEXTO NEGRO EN BEIGE */
   font-weight: 700 !important;
 }
 
@@ -2323,7 +2437,8 @@ html[data-theme="light"] .about-gallery-item {
 html[data-theme="light"] .about-gallery-badge {
   background: #F7EEDC !important;
   border: 1px solid #E8D6B2 !important;
-  color: #1A1714 !important; /* TEXTO NEGRO EN BEIGE */
+  color: #1A1714 !important;
+  /* TEXTO NEGRO EN BEIGE */
   font-weight: 700 !important;
 }
 
@@ -2393,7 +2508,8 @@ html[data-theme="light"] .about-cta-card {
 html[data-theme="light"] .about-cta-badge {
   background: #F7EEDC !important;
   border: 1px solid #E8D6B2 !important;
-  color: #1A1714 !important; /* TEXTO NEGRO EN BEIGE */
+  color: #1A1714 !important;
+  /* TEXTO NEGRO EN BEIGE */
   font-weight: 700 !important;
 }
 
@@ -2425,7 +2541,8 @@ html[data-theme="light"] .hero-kicker-wrap,
 html[data-theme="light"] .hero-kicker {
   background: #F7EEDC !important;
   border: 1px solid #E8D6B2 !important;
-  color: #1A1714 !important; /* TEXTO NEGRO EN BEIGE */
+  color: #1A1714 !important;
+  /* TEXTO NEGRO EN BEIGE */
   font-weight: 700 !important;
 }
 
@@ -2453,7 +2570,8 @@ html[data-theme="light"] .info-card-sub {
 
 html[data-theme="light"] .info-icon-box {
   background: #F7EEDC !important;
-  color: #1A1714 !important; /* ICONO NEGRO EN BEIGE */
+  color: #1A1714 !important;
+  /* ICONO NEGRO EN BEIGE */
 }
 
 html[data-theme="light"] .info-item-label {
@@ -2472,7 +2590,8 @@ html[data-theme="light"] .info-item-sublink {
 html[data-theme="light"] .info-item-tag {
   background: #F7EEDC !important;
   border: 1px solid #E8D6B2 !important;
-  color: #1A1714 !important; /* TEXTO NEGRO EN BEIGE */
+  color: #1A1714 !important;
+  /* TEXTO NEGRO EN BEIGE */
   font-weight: 700 !important;
 }
 
@@ -2574,7 +2693,8 @@ html[data-theme="light"] .map-frame-wrapper {
 }
 
 html[data-theme="light"] .map-iframe {
-  filter: none !important; /* Mapa Google Maps nítido en modo claro */
+  filter: none !important;
+  /* Mapa Google Maps nítido en modo claro */
 }
 
 html[data-theme="light"] .newsletter-card {
@@ -2617,7 +2737,8 @@ html[data-theme="light"] .venta-hero {
 html[data-theme="light"] .venta-hero__badge {
   background: #F7EEDC !important;
   border: 1px solid #E8D6B2 !important;
-  color: #1A1714 !important; /* TEXTO NEGRO EN BEIGE */
+  color: #1A1714 !important;
+  /* TEXTO NEGRO EN BEIGE */
   font-weight: 700 !important;
   box-shadow: 0 2px 8px rgba(40, 30, 15, 0.06) !important;
 }
@@ -2737,7 +2858,8 @@ html[data-theme="light"] .payment-card {
 html[data-theme="light"] .summary-badge {
   background: #F7EEDC !important;
   border: 1px solid #E8D6B2 !important;
-  color: #1A1714 !important; /* TEXTO NEGRO EN BEIGE */
+  color: #1A1714 !important;
+  /* TEXTO NEGRO EN BEIGE */
   font-weight: 700 !important;
 }
 
@@ -2772,11 +2894,13 @@ html[data-theme="light"] .summary-total__amount {
 html[data-theme="light"] .summary-safety-notice {
   background: #F7EEDC !important;
   border: 1px solid #E8D6B2 !important;
-  color: #1A1714 !important; /* TEXTO NEGRO EN BEIGE */
+  color: #1A1714 !important;
+  /* TEXTO NEGRO EN BEIGE */
 }
 
 html[data-theme="light"] .summary-safety-title {
-  color: #1A1714 !important; /* TEXTO NEGRO EN BEIGE */
+  color: #1A1714 !important;
+  /* TEXTO NEGRO EN BEIGE */
   font-weight: 700 !important;
 }
 
@@ -2815,7 +2939,8 @@ html[data-theme="light"] .success-title {
 html[data-theme="light"] .success-badge {
   background: #F7EEDC !important;
   border: 1px solid #E8D6B2 !important;
-  color: #1A1714 !important; /* TEXTO NEGRO EN BEIGE */
+  color: #1A1714 !important;
+  /* TEXTO NEGRO EN BEIGE */
   font-weight: 700 !important;
 }
 
@@ -2987,7 +3112,8 @@ html[data-theme="light"] .legal-back-btn {
 html[data-theme="light"] .legal-card__icon-wrap {
   background: #F7EEDC !important;
   border: 1px solid #E8D6B2 !important;
-  color: #1A1714 !important; /* ICONO NEGRO EN BEIGE */
+  color: #1A1714 !important;
+  /* ICONO NEGRO EN BEIGE */
 }
 
 html[data-theme="light"] .legal-card__title,
@@ -3142,7 +3268,8 @@ html[data-theme="light"] .reservar-status-banner__reset-btn:hover {
 html[data-theme="light"] .reservar-prompt-banner {
   background: #F7EEDC !important;
   border: 1px solid #E8D6B2 !important;
-  color: #1A1714 !important; /* TEXTO NEGRO EN BEIGE */
+  color: #1A1714 !important;
+  /* TEXTO NEGRO EN BEIGE */
 }
 
 /* Filtros de modelo en /reservar */
@@ -3191,4 +3318,3 @@ html[data-theme="light"] .reservar__pillar-text h4 {
 html[data-theme="light"] .reservar__pillar-text p {
   color: #5A5248 !important;
 }
-

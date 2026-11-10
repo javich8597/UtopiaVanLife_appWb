@@ -2,6 +2,7 @@ import { describe, it } from 'node:test'
 import assert from 'node:assert/strict'
 import { WizardStep, Step1Data, Step2Data, Step3Data, Step4Data, Step5Customer } from '../app/[locale]/reserva/[slug]/types'
 import { WIZARD_STEPS } from '../app/[locale]/reserva/[slug]/WizardBottomBar'
+import { calculatePriceV2 } from '../lib/pricing/engine'
 
 // Helpers mimicking the draft serialization and rehydration logic in BookingWizardClient
 const DRAFT_TTL_MS = 24 * 60 * 60 * 1000
@@ -34,7 +35,7 @@ function rehydrateWizardState(
     if (!rawDraft || isDraftExpired(rawDraft.timestamp)) {
         return {
             ...defaultState,
-            currentStep: (searchParams.step && searchParams.step >= 1 && searchParams.step <= 5)
+            currentStep: (searchParams.step && searchParams.step >= 1 && searchParams.step <= 7)
                 ? (searchParams.step as WizardStep)
                 : defaultState.currentStep,
         }
@@ -50,7 +51,7 @@ function rehydrateWizardState(
         pax: searchParams.pax || rawDraft.step1.pax || defaultState.step1.pax,
     }
 
-    const currentStep = (searchParams.step && searchParams.step >= 1 && searchParams.step <= 5)
+    const currentStep = (searchParams.step && searchParams.step >= 1 && searchParams.step <= 7)
         ? (searchParams.step as WizardStep)
         : rawDraft.currentStep
 
@@ -66,43 +67,48 @@ function rehydrateWizardState(
 }
 
 describe('Wizard Unified Bottom Bar & Step Navigation', () => {
-    it('defines the canonical 5 steps in correct order', () => {
-        assert.equal(WIZARD_STEPS.length, 5)
+    it('defines the canonical 7 steps in correct order', () => {
+        assert.equal(WIZARD_STEPS.length, 7)
         assert.deepEqual(
             WIZARD_STEPS.map((s) => s.number),
-            [1, 2, 3, 4, 5]
+            [1, 2, 3, 4, 5, 6, 7]
         )
         assert.equal(WIZARD_STEPS[0].label, 'Fechas')
-        assert.equal(WIZARD_STEPS[1].label, 'KM')
-        assert.equal(WIZARD_STEPS[2].label, 'Fianza')
-        assert.equal(WIZARD_STEPS[3].label, 'Extras')
-        assert.equal(WIZARD_STEPS[4].label, 'Pago')
+        assert.equal(WIZARD_STEPS[1].label, 'Modelo')
+        assert.equal(WIZARD_STEPS[2].label, 'KM')
+        assert.equal(WIZARD_STEPS[3].label, 'Seguro')
+        assert.equal(WIZARD_STEPS[4].label, 'Cancelación')
+        assert.equal(WIZARD_STEPS[5].label, 'Extras')
+        assert.equal(WIZARD_STEPS[6].label, 'Pago')
     })
 
     it('allows clicking backwards to any previous step without restriction', () => {
-        const currentStep = 4
-        const maxCompletedStep = 3
-
-        // Previous steps (1, 2, 3) must always be clickable
-        assert.equal(isStepClickable(1, currentStep, maxCompletedStep), true)
-        assert.equal(isStepClickable(2, currentStep, maxCompletedStep), true)
-        assert.equal(isStepClickable(3, currentStep, maxCompletedStep), true)
-
-        // Current step is reachable
-        assert.equal(isStepClickable(4, currentStep, maxCompletedStep), true)
-
-        // Step 5 has not been reached yet and is not completed
-        assert.equal(isStepClickable(5, currentStep, maxCompletedStep), false)
-    })
-
-    it('allows jumping directly to step 1 from step 5', () => {
         const currentStep = 5
         const maxCompletedStep = 4
 
+        // Previous steps (1..4) must always be clickable
         assert.equal(isStepClickable(1, currentStep, maxCompletedStep), true)
         assert.equal(isStepClickable(2, currentStep, maxCompletedStep), true)
         assert.equal(isStepClickable(3, currentStep, maxCompletedStep), true)
         assert.equal(isStepClickable(4, currentStep, maxCompletedStep), true)
+
+        // Current step is reachable
+        assert.equal(isStepClickable(5, currentStep, maxCompletedStep), true)
+
+        // Step 7 has not been reached yet and is not completed
+        assert.equal(isStepClickable(7, currentStep, maxCompletedStep), false)
+    })
+
+    it('allows jumping directly to step 1 from step 7', () => {
+        const currentStep = 7
+        const maxCompletedStep = 6
+
+        assert.equal(isStepClickable(1, currentStep, maxCompletedStep), true)
+        assert.equal(isStepClickable(2, currentStep, maxCompletedStep), true)
+        assert.equal(isStepClickable(3, currentStep, maxCompletedStep), true)
+        assert.equal(isStepClickable(4, currentStep, maxCompletedStep), true)
+        assert.equal(isStepClickable(5, currentStep, maxCompletedStep), true)
+        assert.equal(isStepClickable(6, currentStep, maxCompletedStep), true)
     })
 })
 
@@ -275,5 +281,59 @@ describe('Wizard Draft Persistence & Data Preservation', () => {
 
         const freshTimestamp = Date.now() - (2 * 60 * 60 * 1000)
         assert.equal(isDraftExpired(freshTimestamp), false)
+    })
+
+    it('preserves selected dates and morning/afternoon slot supplements when switching model and adapts prices', () => {
+        const selectedStep1: Step1Data = {
+            startDate: '2026-06-10',
+            startSlot: 'morning', // Recogida con suplemento de medio día
+            endDate: '2026-06-14', // 4 noches + 0.5 día = 4.5 días
+            endSlot: 'morning',
+            pax: 2,
+        }
+
+        // 1. Cálculo con NEO (110 €/noche base -> suplemento mañana = 55 €)
+        const neoPrice = calculatePriceV2({
+            startDate: new Date(selectedStep1.startDate),
+            pickupSlot: selectedStep1.startSlot,
+            endDate: new Date(selectedStep1.endDate),
+            dropoffSlot: selectedStep1.endSlot,
+            camperBasePrice: 110,
+            camperId: 'demo-1',
+            seasons: [],
+            periods: [],
+            discounts: [],
+            kmPackage: 'included_150',
+            cancellationPolicy: 'standard',
+            depositOption: 'standard_2000',
+            depositAmount: 1000,
+        })
+
+        // 2. Cambio a SPACE (135 €/noche base -> suplemento mañana = 67,50 €), manteniendo las mismas fechas y franjas
+        const spacePrice = calculatePriceV2({
+            startDate: new Date(selectedStep1.startDate),
+            pickupSlot: selectedStep1.startSlot,
+            endDate: new Date(selectedStep1.endDate),
+            dropoffSlot: selectedStep1.endSlot,
+            camperBasePrice: 135,
+            camperId: 'demo-2',
+            seasons: [],
+            periods: [],
+            discounts: [],
+            kmPackage: 'included_150',
+            cancellationPolicy: 'standard',
+            depositOption: 'standard_2000',
+            depositAmount: 1000,
+        })
+
+        assert.equal(neoPrice.numNights, 4)
+        assert.equal(neoPrice.totalDays, 4.5)
+        assert.equal(neoPrice.slotSupplement, 55)
+        assert.equal(neoPrice.payableTotal, 4 * 110 + 55)
+
+        assert.equal(spacePrice.numNights, 4)
+        assert.equal(spacePrice.totalDays, 4.5)
+        assert.equal(spacePrice.slotSupplement, 67.5)
+        assert.equal(spacePrice.payableTotal, 4 * 135 + 67.5)
     })
 })

@@ -24,11 +24,13 @@ import {
     DurationDiscount,
     getMinNightsForDateV2,
 } from '@/lib/pricing/engine'
-import WizardHeader from './WizardHeader'
+import Navbar from '@/components/layout/Navbar'
 import Step1Dates from './Step1Dates'
+import Step2Model from './Step2Model'
 import Step2Mileage from './Step2Mileage'
+import Step4Insurance from './Step4Insurance'
 import Step3Cancellation from './Step3Cancellation'
-import Step4Extras from './Step4Extras'
+import Step4Extras, { ALLOWED_EXTRAS_CATALOG } from './Step4Extras'
 import Step5Checkout from './Step5Checkout'
 import StickyTripSummary from './StickyTripSummary'
 import WizardBottomBar from './WizardBottomBar'
@@ -36,6 +38,7 @@ import { AnimatePresence, motion } from 'framer-motion'
 
 interface BookingWizardClientProps {
     camper: WizardCamper
+    allCampers?: WizardCamper[]
     availableExtras: WizardExtraItem[]
     seasonsV2: SeasonV2[]
     seasonPeriods: SeasonPeriod[]
@@ -56,6 +59,7 @@ const DRAFT_TTL_MS = 24 * 60 * 60 * 1000 // 24 hours
 
 export default function BookingWizardClient({
     camper,
+    allCampers = [],
     availableExtras = [],
     seasonsV2 = [],
     seasonPeriods = [],
@@ -70,12 +74,13 @@ export default function BookingWizardClient({
     initialExtraIds = [],
     locale = 'es',
 }: BookingWizardClientProps) {
-    const maxPax = camper.specs?.seats || (camper.slug === 'space' ? 2 : 3)
+    const [activeCamper, setActiveCamper] = useState<WizardCamper>(camper)
+    const maxPax = activeCamper.specs?.seats || (activeCamper.slug === 'space' ? 2 : 3)
     const containerRef = useRef<HTMLDivElement>(null)
     const isHydratedRef = useRef(false)
     const historyPushesRef = useRef(0)
 
-    // Wizard Step State
+    // Wizard Step State (1 to 7)
     const [currentStep, setCurrentStep] = useState<WizardStep>(1)
     const [maxCompletedStep, setMaxCompletedStep] = useState<number>(0)
     const [isMobileSummaryOpen, setIsMobileSummaryOpen] = useState(false)
@@ -89,20 +94,20 @@ export default function BookingWizardClient({
         pax: Math.min(maxPax, Math.max(1, Number(initialPax) || 2)),
     })
 
-    // Step 2 State: Mileage Package
+    // Step 3 State: Mileage Package
     const [step2, setStep2] = useState<Step2Data>({
         kmPackage: initialKmPackage,
     })
 
-    // Step 3 State: Cancellation Policy & Deposit Option
+    // Step 5 State: Cancellation Policy
     const [step3, setStep3] = useState<Step3Data>({
         cancellationPolicy: initialCancellationPolicy,
         depositOption: 'standard_2000',
     })
 
-    // Step 4 State: Selected Extras
+    // Step 6 State: Selected Extras
     const [step4, setStep4] = useState<Step4Data>({
-        selectedExtras: availableExtras
+        selectedExtras: ALLOWED_EXTRAS_CATALOG
             .filter((extra) => initialExtraIds.includes(extra.id))
             .map((extra) => ({
                 id: extra.id,
@@ -114,7 +119,7 @@ export default function BookingWizardClient({
             })),
     })
 
-    // Step 5 State: Personal & Billing Customer Details + Passengers
+    // Step 7 State: Personal & Billing Customer Details + Passengers
     const initialPaxCount = Math.min(maxPax, Math.max(1, Number(initialPax) || 2))
     const [step5, setStep5] = useState<Step5Customer>({
         fullName: '',
@@ -150,12 +155,19 @@ export default function BookingWizardClient({
         acceptPrivacy: false,
     })
 
-    // 1. Rehidratar borrador de sessionStorage en cliente
+    // 1. Rehidratar borrador de sessionStorage en cliente (solo una vez al montar)
     useEffect(() => {
-        if (typeof window === 'undefined') return
+        if (typeof window === 'undefined' || isHydratedRef.current) return
 
         try {
-            const storageKey = `${DRAFT_STORAGE_PREFIX}${camper.slug}`
+            const params = new URLSearchParams(window.location.search)
+            const urlFrom = params.get('from') || ''
+            const urlTo = params.get('to') || ''
+            const hasUrlStartSlot = params.has('startSlot') || params.has('pickup_time')
+            const hasUrlEndSlot = params.has('endSlot') || params.has('dropoff_time')
+            const hasUrlPax = params.has('pax')
+
+            const storageKey = `${DRAFT_STORAGE_PREFIX}${activeCamper.slug}`
             const rawDraft = sessionStorage.getItem(storageKey)
             if (rawDraft) {
                 const draft = JSON.parse(rawDraft)
@@ -165,42 +177,50 @@ export default function BookingWizardClient({
                     setStep1((prev) => ({
                         ...prev,
                         ...draft.step1,
-                        // Si la URL traía explícitamente parámetros iniciales, preservarlos con prioridad
-                        startDate: initialFrom || draft.step1.startDate || prev.startDate,
-                        endDate: initialTo || draft.step1.endDate || prev.endDate,
-                        startSlot: initialStartSlot || draft.step1.startSlot || prev.startSlot,
-                        endSlot: initialEndSlot || draft.step1.endSlot || prev.endSlot,
-                        pax: initialPax
+                        startDate: urlFrom || draft.step1.startDate || prev.startDate,
+                        endDate: urlTo || draft.step1.endDate || prev.endDate,
+                        startSlot: hasUrlStartSlot
+                            ? initialStartSlot
+                            : draft.step1.startSlot || prev.startSlot,
+                        endSlot: hasUrlEndSlot
+                            ? initialEndSlot
+                            : draft.step1.endSlot || prev.endSlot,
+                        pax: hasUrlPax
                             ? Math.min(maxPax, Math.max(1, Number(initialPax)))
-                            : draft.step1.pax || prev.pax,
+                            : Math.min(maxPax, draft.step1.pax || prev.pax),
                     }))
 
                     if (draft.step2) setStep2(draft.step2)
-                    if (draft.step3) setStep3(draft.step3)
+                    if (draft.step3) setStep3({ ...draft.step3, depositOption: 'standard_2000' })
                     if (draft.step4 && Array.isArray(draft.step4.selectedExtras)) {
-                        setStep4(draft.step4)
+                        const allowedIds = new Set(ALLOWED_EXTRAS_CATALOG.map((e) => e.id))
+                        setStep4({
+                            selectedExtras: draft.step4.selectedExtras.filter((e: any) => e && allowedIds.has(e.id)),
+                        })
                     }
-                    if (draft.step5) setStep5(draft.step5)
+                    if (draft.step5) {
+                        setStep5({
+                            ...draft.step5,
+                            depositOption: 'standard_2000',
+                            secondDriverSoloEnabled: false,
+                        })
+                    }
                     if (typeof draft.maxCompletedStep === 'number') {
                         setMaxCompletedStep(draft.maxCompletedStep)
                     }
 
-                    // Restaurar paso si la URL no tenía parámetro específico
-                    const params = new URLSearchParams(window.location.search)
                     const urlStep = parseInt(params.get('step') || '', 10)
-                    if (urlStep >= 1 && urlStep <= 5) {
+                    if (urlStep >= 1 && urlStep <= 7) {
                         setCurrentStep(urlStep as WizardStep)
-                    } else if (draft.currentStep && draft.currentStep >= 1 && draft.currentStep <= 5) {
+                    } else if (draft.currentStep && draft.currentStep >= 1 && draft.currentStep <= 7) {
                         setCurrentStep(draft.currentStep as WizardStep)
                     }
                 } else if (isExpired) {
                     sessionStorage.removeItem(storageKey)
                 }
             } else {
-                // Sin borrador, comprobar URL por si se entra directamente a ?step=
-                const params = new URLSearchParams(window.location.search)
                 const urlStep = parseInt(params.get('step') || '', 10)
-                if (urlStep >= 1 && urlStep <= 5) {
+                if (urlStep >= 1 && urlStep <= 7) {
                     setCurrentStep(urlStep as WizardStep)
                 }
             }
@@ -209,7 +229,8 @@ export default function BookingWizardClient({
         } finally {
             isHydratedRef.current = true
         }
-    }, [camper.slug, initialFrom, initialTo, initialStartSlot, initialEndSlot, initialPax, maxPax])
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [])
 
     // 2. Sincronización con el Historial del Navegador (popstate y pushState)
     useEffect(() => {
@@ -218,7 +239,7 @@ export default function BookingWizardClient({
         const url = new URL(window.location.href)
         const currentUrlStep = parseInt(url.searchParams.get('step') || '', 10)
         const initialStep =
-            currentUrlStep >= 1 && currentUrlStep <= 5 ? (currentUrlStep as WizardStep) : currentStep
+            currentUrlStep >= 1 && currentUrlStep <= 7 ? (currentUrlStep as WizardStep) : currentStep
 
         if (!url.searchParams.has('step')) {
             url.searchParams.set('step', String(initialStep))
@@ -229,13 +250,13 @@ export default function BookingWizardClient({
 
         const handlePopState = (event: PopStateEvent) => {
             const stateStep = event.state?.step
-            if (typeof stateStep === 'number' && stateStep >= 1 && stateStep <= 5) {
+            if (typeof stateStep === 'number' && stateStep >= 1 && stateStep <= 7) {
                 setCurrentStep(stateStep as WizardStep)
                 scrollToTop()
             } else {
                 const params = new URLSearchParams(window.location.search)
                 const fallbackStep = parseInt(params.get('step') || '1', 10)
-                if (fallbackStep >= 1 && fallbackStep <= 5) {
+                if (fallbackStep >= 1 && fallbackStep <= 7) {
                     setCurrentStep(fallbackStep as WizardStep)
                     scrollToTop()
                 }
@@ -249,15 +270,15 @@ export default function BookingWizardClient({
         return () => window.removeEventListener('popstate', handlePopState)
     }, [])
 
-    // 3. Guardado automático del borrador en sessionStorage (debounced)
+    // 3. Guardado automático del borrador en sessionStorage y sincronización de URL (debounced)
     useEffect(() => {
         if (!isHydratedRef.current || typeof window === 'undefined') return
 
         const timer = setTimeout(() => {
             try {
-                const storageKey = `${DRAFT_STORAGE_PREFIX}${camper.slug}`
+                const storageKey = `${DRAFT_STORAGE_PREFIX}${activeCamper.slug}`
                 const draft = {
-                    version: 1,
+                    version: 2,
                     timestamp: Date.now(),
                     currentStep,
                     maxCompletedStep,
@@ -268,18 +289,32 @@ export default function BookingWizardClient({
                     step5,
                 }
                 sessionStorage.setItem(storageKey, JSON.stringify(draft))
+
+                const url = new URL(window.location.href)
+                if (step1.startDate) url.searchParams.set('from', step1.startDate)
+                if (step1.endDate) url.searchParams.set('to', step1.endDate)
+                url.searchParams.set('startSlot', step1.startSlot)
+                url.searchParams.set('endSlot', step1.endSlot)
+                url.searchParams.set('step', String(currentStep))
+                window.history.replaceState({ step: currentStep, utopiaWizard: true }, '', url.toString())
             } catch (e) {
                 // Manejar posibles excepciones de quota o navegación privada
             }
-        }, 350)
+        }, 250)
 
         return () => clearTimeout(timer)
-    }, [camper.slug, currentStep, maxCompletedStep, step1, step2, step3, step4, step5])
+    }, [activeCamper.slug, currentStep, maxCompletedStep, step1, step2, step3, step4, step5])
 
-    // Sincronizar número de viajeros si cambia en paso 1
+    // Sincronizar número de viajeros si cambia en paso 1 o al cambiar modelo (maxPax)
     useEffect(() => {
+        const clampedPax = Math.min(maxPax, Math.max(1, step1.pax))
+        if (clampedPax !== step1.pax) {
+            setStep1((prev) => ({ ...prev, pax: clampedPax }))
+            return
+        }
+
         setStep5((prev) => {
-            const count = step1.pax
+            const count = clampedPax
             const currentPassengers = prev.passengers || []
             const needed = Math.max(0, count - 1)
             let updatedPassengers = [...currentPassengers]
@@ -302,7 +337,41 @@ export default function BookingWizardClient({
                 passengers: updatedPassengers,
             }
         })
-    }, [step1.pax])
+    }, [step1.pax, maxPax])
+
+    // Cambio de modelo en el Paso 2
+    const handleSelectModel = (newCamper: WizardCamper) => {
+        if (newCamper.slug === activeCamper.slug) return
+
+        const newMaxPax = newCamper.specs?.seats || (newCamper.slug === 'space' ? 2 : 3)
+        setActiveCamper(newCamper)
+        if (step1.pax > newMaxPax) {
+            setStep1((prev) => ({ ...prev, pax: newMaxPax }))
+        }
+
+        if (typeof window !== 'undefined') {
+            try {
+                // Copiar borrador actual a la nueva clave de modelo para mantener continuidad
+                const newStorageKey = `${DRAFT_STORAGE_PREFIX}${newCamper.slug}`
+                const draft = {
+                    version: 2,
+                    timestamp: Date.now(),
+                    currentStep,
+                    maxCompletedStep,
+                    step1: { ...step1, pax: Math.min(newMaxPax, step1.pax) },
+                    step2,
+                    step3,
+                    step4,
+                    step5,
+                }
+                sessionStorage.setItem(newStorageKey, JSON.stringify(draft))
+
+                const url = new URL(window.location.href)
+                url.pathname = url.pathname.replace(/\/reserva\/[^/]+/, `/reserva/${newCamper.slug}`)
+                window.history.replaceState({ step: currentStep, utopiaWizard: true }, '', url.toString())
+            } catch (e) { }
+        }
+    }
 
     // Calcular estancia mínima para Step 1
     const activeMinNights =
@@ -310,7 +379,7 @@ export default function BookingWizardClient({
             ? getMinNightsForDateV2(new Date(step1.startDate), seasonsV2, seasonPeriods)
             : 3
 
-    // Recálculo en tiempo real con calculatePriceV2
+    // Recálculo en tiempo real con calculatePriceV2 (Fianza de 1.000 € incluida sin recargo)
     const breakdown: PricingBreakdown | null = useMemo(() => {
         if (!step1.startDate || !step1.endDate) return null
 
@@ -318,8 +387,7 @@ export default function BookingWizardClient({
         const end = new Date(step1.endDate)
         if (end <= start) return null
 
-        const basePrice = Number(camper.base_price_per_night || camper.price_per_night || 110)
-        const activeDepositOption = step3.depositOption || step5.depositOption || 'standard_2000'
+        const basePrice = Number(activeCamper.base_price_per_night || activeCamper.price_per_night || 110)
 
         return calculatePriceV2({
             startDate: start,
@@ -327,7 +395,7 @@ export default function BookingWizardClient({
             endDate: end,
             dropoffSlot: step1.endSlot,
             camperBasePrice: basePrice,
-            camperId: camper.id,
+            camperId: activeCamper.id,
             seasons: seasonsV2,
             periods: seasonPeriods,
             discounts: durationDiscounts,
@@ -342,28 +410,40 @@ export default function BookingWizardClient({
                 quantity: e.quantity,
                 category: e.category,
             })),
-            depositOption: activeDepositOption,
-            depositAmount: activeDepositOption === 'flex_1000' ? 1000 : 2000,
+            depositOption: 'standard_2000',
+            depositAmount: 1000,
         })
-    }, [camper, step1, step2, step3, step4, step5.depositOption, seasonsV2, seasonPeriods, durationDiscounts])
+    }, [activeCamper, step1, step2, step3, step4, seasonsV2, seasonPeriods, durationDiscounts])
 
-    // Validación de cada paso
+    // Validación de cada uno de los 7 pasos
     const isCurrentStepValid = useMemo(() => {
         switch (currentStep) {
             case 1:
                 return validateStep1(step1, [], activeMinNights).isValid
             case 2:
-                return validateStep2(step2).isValid
+                return Boolean(activeCamper && activeCamper.slug)
             case 3:
-                return validateStep3(step3).isValid
+                return validateStep2(step2).isValid
             case 4:
-                return validateStep4(step4).isValid
+                return true
             case 5:
-                return validateStep5(step5, maxPax).isValid
+                return validateStep3(step3).isValid
+            case 6:
+                return validateStep4(step4).isValid
+            case 7:
+                return validateStep5(
+                    {
+                        ...step5,
+                        depositOption: 'standard_2000',
+                        secondDriverSoloEnabled: false,
+                        passengers: (step5.passengers || []).map((p) => ({ ...p, isSecondDriver: false })),
+                    },
+                    maxPax
+                ).isValid
             default:
                 return false
         }
-    }, [currentStep, step1, step2, step3, step4, step5, activeMinNights, maxPax])
+    }, [currentStep, step1, activeCamper, step2, step3, step4, step5, activeMinNights, maxPax])
 
     const scrollToTop = () => {
         window.scrollTo({ top: 0, behavior: 'smooth' })
@@ -387,17 +467,11 @@ export default function BookingWizardClient({
     }
 
     const handleStep3Change = (newStep3: Step3Data) => {
-        setStep3(newStep3)
-        if (newStep3.depositOption && newStep3.depositOption !== step5.depositOption) {
-            setStep5((prev) => ({ ...prev, depositOption: newStep3.depositOption }))
-        }
+        setStep3({ ...newStep3, depositOption: 'standard_2000' })
     }
 
     const handleStep5Change = (newCustomer: Step5Customer) => {
-        setStep5(newCustomer)
-        if (newCustomer.depositOption && newCustomer.depositOption !== step3.depositOption) {
-            setStep3((prev) => ({ ...prev, depositOption: newCustomer.depositOption }))
-        }
+        setStep5({ ...newCustomer, depositOption: 'standard_2000' })
         if (newCustomer.travelersCount && newCustomer.travelersCount !== step1.pax) {
             setStep1((prev) => ({ ...prev, pax: newCustomer.travelersCount }))
         }
@@ -406,7 +480,7 @@ export default function BookingWizardClient({
     const handleNext = () => {
         if (!isCurrentStepValid) return
         setMaxCompletedStep((prev) => Math.max(prev, currentStep))
-        if (currentStep < 5) {
+        if (currentStep < 7) {
             navigateToStep((currentStep + 1) as WizardStep, 'push')
         }
     }
@@ -433,12 +507,11 @@ export default function BookingWizardClient({
     const handleClearDraft = () => {
         if (typeof window === 'undefined') return
         try {
-            sessionStorage.removeItem(`${DRAFT_STORAGE_PREFIX}${camper.slug}`)
-        } catch (e) {}
+            sessionStorage.removeItem(`${DRAFT_STORAGE_PREFIX}${activeCamper.slug}`)
+        } catch (e) { }
     }
 
     const handleTriggerStep5Submit = () => {
-        // En el paso 5, el submit button de Step5Checkout se encarga de la llamada
         const formSubmitBtn = document.querySelector<HTMLButtonElement>('.btn-pay-redsys')
         if (formSubmitBtn) {
             formSubmitBtn.click()
@@ -450,12 +523,8 @@ export default function BookingWizardClient({
 
     return (
         <div className="booking-wizard-root" ref={containerRef}>
-            {/* Slim, Minimalist Wizard Header without bulky stepper */}
-            <WizardHeader
-                camper={camper}
-                currentStep={currentStep}
-                locale={locale}
-            />
+            {/* Barra superior fija persistente sin ocultarse al hacer scroll */}
+            <Navbar alwaysVisible />
 
             {/* Main Content Layout */}
             <main className="wizard-main-layout">
@@ -464,16 +533,17 @@ export default function BookingWizardClient({
                     <div className="wizard-step-column">
                         <AnimatePresence mode="wait">
                             <motion.div
-                                key={currentStep}
+                                key={`${currentStep}-${activeCamper.slug}`}
                                 initial={{ opacity: 0, x: 14 }}
                                 animate={{ opacity: 1, x: 0 }}
                                 exit={{ opacity: 0, x: -14 }}
                                 transition={{ duration: 0.24, ease: 'easeOut' }}
                                 className="wizard-step-card"
                             >
+                                {/* Paso 1: Fechas y Franjas Horarias */}
                                 {currentStep === 1 && (
                                     <Step1Dates
-                                        camper={camper}
+                                        camper={activeCamper}
                                         data={step1}
                                         onChange={setStep1}
                                         seasonsV2={seasonsV2}
@@ -481,7 +551,21 @@ export default function BookingWizardClient({
                                     />
                                 )}
 
+                                {/* Paso 2: Modelo Seleccionado (con cambio según disponibilidad) */}
                                 {currentStep === 2 && (
+                                    <Step2Model
+                                        selectedCamper={activeCamper}
+                                        allCampers={allCampers}
+                                        step1={step1}
+                                        seasonsV2={seasonsV2}
+                                        seasonPeriods={seasonPeriods}
+                                        durationDiscounts={durationDiscounts}
+                                        onSelectCamper={handleSelectModel}
+                                    />
+                                )}
+
+                                {/* Paso 3: Kilometraje */}
+                                {currentStep === 3 && (
                                     <Step2Mileage
                                         data={step2}
                                         totalDays={totalDays}
@@ -489,7 +573,11 @@ export default function BookingWizardClient({
                                     />
                                 )}
 
-                                {currentStep === 3 && (
+                                {/* Paso 4: Seguro a Todo Riesgo y Fianza de 1.000 € (Incluido) */}
+                                {currentStep === 4 && <Step4Insurance />}
+
+                                {/* Paso 5: Política de Cancelación */}
+                                {currentStep === 5 && (
                                     <Step3Cancellation
                                         data={step3}
                                         totalDays={totalDays}
@@ -497,7 +585,8 @@ export default function BookingWizardClient({
                                     />
                                 )}
 
-                                {currentStep === 4 && (
+                                {/* Paso 6: Extras */}
+                                {currentStep === 6 && (
                                     <Step4Extras
                                         data={step4}
                                         availableExtras={availableExtras}
@@ -506,9 +595,10 @@ export default function BookingWizardClient({
                                     />
                                 )}
 
-                                {currentStep === 5 && (
+                                {/* Paso 7: Pago */}
+                                {currentStep === 7 && (
                                     <Step5Checkout
-                                        camper={camper}
+                                        camper={activeCamper}
                                         step1={step1}
                                         step2={step2}
                                         step3={step3}
@@ -526,7 +616,7 @@ export default function BookingWizardClient({
                     {/* Sticky Trip Summary Sidebar (Right column) */}
                     <div className="wizard-summary-column">
                         <StickyTripSummary
-                            camper={camper}
+                            camper={activeCamper}
                             breakdown={breakdown}
                             step1={step1}
                             step2={step2}
@@ -539,7 +629,7 @@ export default function BookingWizardClient({
                 </div>
             </main>
 
-            {/* Sticky Bottom Navigation Bar with integrated 5-step stepper */}
+            {/* Sticky Bottom Navigation Bar with integrated 7-step stepper */}
             <WizardBottomBar
                 currentStep={currentStep}
                 maxCompletedStep={maxCompletedStep}
@@ -553,11 +643,15 @@ export default function BookingWizardClient({
             />
 
             <style jsx>{`
-                /* Black & Gold: el asistente reutiliza los tokens antiguos (forest-green,
-                   black-matte, gray-*) y aquí se remapean a la paleta oscura de la web. */
                 .booking-wizard-root {
                     --wz-bg: #0B0C0E;
                     --wz-surface: #131518;
+                    --wz-surface-soft: #181B20;
+                    --wz-chip-bg: rgba(255, 255, 255, 0.035);
+                    --wz-chip-border: rgba(255, 255, 255, 0.09);
+                    --wz-pill-bg: rgba(204, 160, 83, 0.14);
+                    --wz-pill-border: rgba(204, 160, 83, 0.28);
+                    --wz-pill-text: #E8CA7C;
                     --wz-on-accent: #0B0C0E;
                     --forest-green: #CCA053;
                     --forest-green-light: #E8CA7C;
@@ -572,11 +666,37 @@ export default function BookingWizardClient({
                     --gray-700: #CBD5E1;
                     --gray-800: #E2E8F0;
                     min-height: 100vh;
+                    padding-top: 72px; /* Espacio para la barra superior fija */
                     display: flex;
                     flex-direction: column;
                     background: var(--wz-bg);
                     color: var(--black-matte);
                     color-scheme: dark;
+                }
+
+                :global(html[data-theme="light"]) .booking-wizard-root {
+                    --wz-bg: #F2F0EC;
+                    --wz-surface: #FFFFFF;
+                    --wz-surface-soft: #FAF8F5;
+                    --wz-chip-bg: #F7F5F1;
+                    --wz-chip-border: #EAE5DD;
+                    --wz-pill-bg: #F7EEDC;
+                    --wz-pill-border: #E8D6B2;
+                    --wz-pill-text: #1A1714;
+                    --wz-on-accent: #F6EBD3;
+                    --forest-green: #1A1714;
+                    --forest-green-light: #2E2822;
+                    --black-matte: #1F1B17;
+                    --white-broken: #F2F0EC;
+                    --gray-100: #EAE5DD;
+                    --gray-200: #E2DBD3;
+                    --gray-300: #D9D1C4;
+                    --gray-400: #857B6F;
+                    --gray-500: #6E655A;
+                    --gray-600: #5A5248;
+                    --gray-700: #3E3730;
+                    --gray-800: #1F1B17;
+                    color-scheme: light;
                 }
 
                 .wizard-main-layout {
@@ -604,7 +724,13 @@ export default function BookingWizardClient({
 
                 .wizard-summary-column {
                     position: sticky;
-                    top: 80px;
+                    top: 90px;
+                }
+
+                @media (max-width: 1024px) {
+                    .booking-wizard-root {
+                        padding-top: 68px;
+                    }
                 }
 
                 @media (max-width: 960px) {
@@ -620,6 +746,12 @@ export default function BookingWizardClient({
                 @media (max-width: 860px) {
                     .wizard-main-layout {
                         padding-bottom: calc(110px + env(safe-area-inset-bottom, 16px));
+                    }
+                }
+
+                @media (max-width: 768px) {
+                    .booking-wizard-root {
+                        padding-top: 64px;
                     }
                 }
             `}</style>

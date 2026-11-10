@@ -1,11 +1,18 @@
 'use client'
 
 import React, { useState, useEffect } from 'react'
-import { Calendar as CalendarIcon, Clock, Users, Plus, Minus, AlertCircle, CheckCircle2, Info } from 'lucide-react'
+import { Calendar as CalendarIcon, Clock, AlertCircle, Sun, Sunset, Info } from 'lucide-react'
 import BookingCalendar, { BlockedRange } from '@/components/booking/BookingCalendar'
 import { BlockedSlot } from '@/lib/booking/availability'
+import { isSlotSelectableAsPickup, isSlotSelectableAsReturn } from '@/lib/booking/calendarLogic'
 import { DaySlot, Step1Data, WizardCamper } from './types'
-import { getMinNightsForDateV2, SeasonV2, SeasonPeriod } from '@/lib/pricing/engine'
+import {
+    getMinNightsForDateV2,
+    resolveSeasonForDate,
+    formatPrice,
+    SeasonV2,
+    SeasonPeriod,
+} from '@/lib/pricing/engine'
 import { format, parseISO } from 'date-fns'
 import { es } from 'date-fns/locale'
 
@@ -15,6 +22,7 @@ interface Step1DatesProps {
     onChange: (data: Step1Data) => void
     seasonsV2: SeasonV2[]
     seasonPeriods: SeasonPeriod[]
+    onBlockedSlotsChange?: (slots: BlockedSlot[]) => void
 }
 
 export default function Step1Dates({
@@ -23,14 +31,11 @@ export default function Step1Dates({
     onChange,
     seasonsV2,
     seasonPeriods,
+    onBlockedSlotsChange,
 }: Step1DatesProps) {
     const [blockedSlots, setBlockedSlots] = useState<BlockedSlot[]>([])
     const [blockedRanges, setBlockedRanges] = useState<BlockedRange[]>([])
-    const [isLoadingAvailability, setIsLoadingAvailability] = useState(true)
 
-    const maxPax = camper.specs?.seats || (camper.slug === 'space' ? 2 : 3)
-
-    // Cargar disponibilidad en tiempo real
     useEffect(() => {
         let isMounted = true
         async function fetchAvailability() {
@@ -39,14 +44,15 @@ export default function Step1Dates({
                 if (res.ok) {
                     const json = await res.json()
                     if (isMounted) {
-                        if (json.blockedSlots) setBlockedSlots(json.blockedSlots)
-                        if (json.blockedRanges) setBlockedRanges(json.blockedRanges)
+                        const slots = json.blockedSlots || []
+                        const ranges = json.blockedRanges || []
+                        setBlockedSlots(slots)
+                        setBlockedRanges(ranges)
+                        onBlockedSlotsChange?.(slots)
                     }
                 }
             } catch (err) {
                 console.error('Error fetching camper availability:', err)
-            } finally {
-                if (isMounted) setIsLoadingAvailability(false)
             }
         }
         fetchAvailability()
@@ -55,12 +61,27 @@ export default function Step1Dates({
         }
     }, [camper.slug])
 
-    // Calcular estancia mínima según la temporada de la fecha de inicio
-    const activeMinNights = data.startDate && seasonsV2.length > 0 && seasonPeriods.length > 0
-        ? getMinNightsForDateV2(new Date(data.startDate), seasonsV2, seasonPeriods)
-        : 3
+    const activeMinNights =
+        data.startDate && seasonsV2.length > 0 && seasonPeriods.length > 0
+            ? getMinNightsForDateV2(new Date(data.startDate), seasonsV2, seasonPeriods)
+            : 3
 
-    // Manejar cambio de fechas desde BookingCalendar
+    const baseCamperPrice = Number(camper.base_price_per_night || camper.price_per_night || 110)
+
+    const pickupHalfDayCost =
+        data.startDate && seasonsV2.length > 0
+            ? (baseCamperPrice +
+                Number(resolveSeasonForDate(new Date(data.startDate), seasonsV2, seasonPeriods).supplement_per_night || 0)) *
+            0.5
+            : baseCamperPrice * 0.5
+
+    const returnHalfDayCost =
+        data.endDate && seasonsV2.length > 0
+            ? (baseCamperPrice +
+                Number(resolveSeasonForDate(new Date(data.endDate), seasonsV2, seasonPeriods).supplement_per_night || 0)) *
+            0.5
+            : baseCamperPrice * 0.5
+
     const handleCalendarChange = (
         start: string,
         newStartSlot: DaySlot,
@@ -76,91 +97,63 @@ export default function Step1Dates({
         })
     }
 
+    const canPickupMorning = data.startDate
+        ? isSlotSelectableAsPickup(data.startDate, 'morning', blockedSlots)
+        : true
+    const canPickupAfternoon = data.startDate
+        ? isSlotSelectableAsPickup(data.startDate, 'afternoon', blockedSlots)
+        : true
+    const canReturnMorning = data.endDate
+        ? isSlotSelectableAsReturn(data.endDate, 'morning', blockedSlots)
+        : true
+    const canReturnAfternoon = data.endDate
+        ? isSlotSelectableAsReturn(data.endDate, 'afternoon', blockedSlots)
+        : true
+
     const handleStartSlotSelect = (slot: DaySlot) => {
+        if (slot === 'morning' && !canPickupMorning) return
+        if (slot === 'afternoon' && !canPickupAfternoon) return
         onChange({ ...data, startSlot: slot })
     }
 
     const handleEndSlotSelect = (slot: DaySlot) => {
+        if (slot === 'morning' && !canReturnMorning) return
+        if (slot === 'afternoon' && !canReturnAfternoon) return
         onChange({ ...data, endSlot: slot })
     }
 
-    const handlePaxChange = (delta: number) => {
-        const next = Math.max(1, Math.min(maxPax, data.pax + delta))
-        onChange({ ...data, pax: next })
-    }
-
-    // Calcular noches entre fechas seleccionadas
-    const nights = data.startDate && data.endDate
-        ? Math.round((new Date(data.endDate).getTime() - new Date(data.startDate).getTime()) / (1000 * 60 * 60 * 24))
-        : 0
+    const nights =
+        data.startDate && data.endDate
+            ? Math.round(
+                (new Date(data.endDate).getTime() - new Date(data.startDate).getTime()) /
+                (1000 * 60 * 60 * 24)
+            )
+            : 0
 
     const isBelowMin = Boolean(data.startDate && data.endDate && nights > 0 && nights < activeMinNights)
 
     return (
         <div className="step-dates">
-            {/* Step Introduction */}
             <div className="step-header">
-                <span className="step-header__tag">PASO 1 DE 5</span>
-                <h2 className="step-header__title">Elige tus fechas y horarios en Mallorca</h2>
-                <p className="step-header__desc">
-                    Selecciona el rango de viaje y ajusta tus turnos de recogida y devolución. Los horarios te permiten optimizar el alquiler según la llegada de tu vuelo.
-                </p>
+                <span className="step-header__tag">PASO 1 DE 7</span>
+                <h2 className="step-header__title">Fechas y horario</h2>
             </div>
 
-            {/* Passenger Selector Bar */}
-            <div className="pax-card">
-                <div className="pax-card__info">
-                    <div className="pax-card__icon-box">
-                        <Users size={18} className="text-forest" />
-                    </div>
-                    <div>
-                        <h4 className="pax-card__title">Número de viajeros</h4>
-                        <p className="pax-card__desc">
-                            Capacidad homologada de {camper.name}: hasta {maxPax} plazas con cinturones y descanso
-                        </p>
-                    </div>
-                </div>
-
-                <div className="pax-counter">
-                    <button
-                        type="button"
-                        className="pax-btn"
-                        onClick={() => handlePaxChange(-1)}
-                        disabled={data.pax <= 1}
-                        aria-label="Disminuir viajeros"
-                    >
-                        <Minus size={14} />
-                    </button>
-                    <span className="pax-value">
-                        {data.pax} {data.pax === 1 ? 'viajero' : 'viajeros'}
-                    </span>
-                    <button
-                        type="button"
-                        className="pax-btn"
-                        onClick={() => handlePaxChange(1)}
-                        disabled={data.pax >= maxPax}
-                        aria-label="Aumentar viajeros"
-                    >
-                        <Plus size={14} />
-                    </button>
-                </div>
-            </div>
-
-            {/* Interactive Calendar Section */}
+            {/* 1. Interactive Calendar Section */}
             <div className="calendar-section">
                 <div className="calendar-section__header">
                     <div className="calendar-section__dates-badge">
-                        <CalendarIcon size={16} className="text-forest" />
+                        <CalendarIcon size={15} className="text-forest" />
                         <span>
                             {data.startDate
-                                ? format(parseISO(data.startDate), "d 'de' MMMM", { locale: es })
-                                : 'Selecciona salida'}
+                                ? format(parseISO(data.startDate), "d MMM yyyy", { locale: es })
+                                : 'Recogida'}
                         </span>
                         <span className="calendar-section__arrow">→</span>
                         <span>
                             {data.endDate
-                                ? format(parseISO(data.endDate), "d 'de' MMMM", { locale: es })
-                                : 'Selecciona regreso'}
+                                ? format(parseISO(data.endDate), "d MMM yyyy", { locale: es })
+                                : 'Devolución'}
                         </span>
                         {nights > 0 && (
                             <span className="calendar-section__nights-pill">
@@ -171,7 +164,7 @@ export default function Step1Dates({
 
                     <div className="calendar-section__min-stay-note">
                         <Info size={13} />
-                        <span>Estancia mínima: <strong>{activeMinNights} noches</strong></span>
+                        <span>Mínimo {activeMinNights} noches</span>
                     </div>
                 </div>
 
@@ -186,30 +179,28 @@ export default function Step1Dates({
                         blockedRanges={blockedRanges}
                         minNights={activeMinNights}
                         showSlots={false}
+                        monthsCount={2}
                         variant="default"
                     />
                 </div>
 
                 {isBelowMin && (
                     <div className="alert-box alert-box--warning">
-                        <AlertCircle size={16} />
+                        <AlertCircle size={15} />
                         <span>
-                            Has seleccionado {nights} {nights === 1 ? 'noche' : 'noches'}. Para este periodo la estancia mínima requerida es de <strong>{activeMinNights} noches</strong>. Por favor, amplía el rango en el calendario.
+                            Estancia mínima de <strong>{activeMinNights} noches</strong> en estas fechas.
                         </span>
                     </div>
                 )}
             </div>
 
-            {/* Slots Selector (Pickup & Return) */}
+            {/* 2. Compact Slots Selector Below Calendar */}
             <div className="slots-grid">
                 {/* Pickup Slot Card */}
                 <div className="slot-box">
                     <div className="slot-box__header">
-                        <Clock size={16} className="text-forest" />
-                        <div>
-                            <h4 className="slot-box__title">Franja de Recogida</h4>
-                            <p className="slot-box__subtitle">Aeropuerto de Palma / Base Utopia</p>
-                        </div>
+                        <Clock size={15} className="text-forest" />
+                        <h4 className="slot-box__title">Recogida</h4>
                     </div>
 
                     <div className="slot-options">
@@ -217,30 +208,36 @@ export default function Step1Dates({
                             type="button"
                             className={`slot-option-btn ${data.startSlot === 'morning' ? 'slot-option-btn--active' : ''}`}
                             onClick={() => handleStartSlotSelect('morning')}
+                            disabled={!canPickupMorning}
                         >
                             <div className="slot-option-btn__top">
-                                <span className="slot-option-btn__time">09:00 – 12:00</span>
-                                <span className="slot-option-btn__tag slot-option-btn__tag--extra">+0.5 día</span>
+                                <span className="slot-option-btn__label-group">
+                                    <Sun size={14} className="text-forest" />
+                                    <span className="slot-option-btn__name">Mañana</span>
+                                </span>
+                                <span className="slot-option-btn__price-pill">
+                                    {canPickupMorning ? `+${formatPrice(pickupHalfDayCost)}` : 'Ocupado'}
+                                </span>
                             </div>
-                            <span className="slot-option-btn__name">Mañana temprano</span>
-                            <span className="slot-option-btn__detail">
-                                Zarpa a primera hora y aprovecha el día completo explorando la costa
-                            </span>
+                            <span className="slot-option-btn__time">09:00 – 12:00 h</span>
                         </button>
 
                         <button
                             type="button"
                             className={`slot-option-btn ${data.startSlot === 'afternoon' ? 'slot-option-btn--active' : ''}`}
                             onClick={() => handleStartSlotSelect('afternoon')}
+                            disabled={!canPickupAfternoon}
                         >
                             <div className="slot-option-btn__top">
-                                <span className="slot-option-btn__time">15:00 – 19:00</span>
-                                <span className="slot-option-btn__tag">Estándar</span>
+                                <span className="slot-option-btn__label-group">
+                                    <Sunset size={14} className="text-forest" />
+                                    <span className="slot-option-btn__name">Tarde</span>
+                                </span>
+                                <span className="slot-option-btn__price-pill">
+                                    {canPickupAfternoon ? 'Incluido' : 'Ocupado'}
+                                </span>
                             </div>
-                            <span className="slot-option-btn__name">Tarde</span>
-                            <span className="slot-option-btn__detail">
-                                Recogida a partir de las 15:00h, ideal si aterrizas en vuelo de mediodía o tarde
-                            </span>
+                            <span className="slot-option-btn__time">15:00 – 19:00 h</span>
                         </button>
                     </div>
                 </div>
@@ -248,11 +245,8 @@ export default function Step1Dates({
                 {/* Return Slot Card */}
                 <div className="slot-box">
                     <div className="slot-box__header">
-                        <Clock size={16} className="text-forest" />
-                        <div>
-                            <h4 className="slot-box__title">Franja de Devolución</h4>
-                            <p className="slot-box__subtitle">Entrega y revisión de la camper</p>
-                        </div>
+                        <Clock size={15} className="text-forest" />
+                        <h4 className="slot-box__title">Devolución</h4>
                     </div>
 
                     <div className="slot-options">
@@ -260,30 +254,36 @@ export default function Step1Dates({
                             type="button"
                             className={`slot-option-btn ${data.endSlot === 'morning' ? 'slot-option-btn--active' : ''}`}
                             onClick={() => handleEndSlotSelect('morning')}
+                            disabled={!canReturnMorning}
                         >
                             <div className="slot-option-btn__top">
-                                <span className="slot-option-btn__time">09:00 – 12:00</span>
-                                <span className="slot-option-btn__tag">Estándar</span>
+                                <span className="slot-option-btn__label-group">
+                                    <Sun size={14} className="text-forest" />
+                                    <span className="slot-option-btn__name">Mañana</span>
+                                </span>
+                                <span className="slot-option-btn__price-pill">
+                                    {canReturnMorning ? 'Incluido' : 'Ocupado'}
+                                </span>
                             </div>
-                            <span className="slot-option-btn__name">Mañana</span>
-                            <span className="slot-option-btn__detail">
-                                Devolución antes de las 12:00h para vuelos matinales o de mediodía
-                            </span>
+                            <span className="slot-option-btn__time">09:00 – 12:00 h</span>
                         </button>
 
                         <button
                             type="button"
                             className={`slot-option-btn ${data.endSlot === 'afternoon' ? 'slot-option-btn--active' : ''}`}
                             onClick={() => handleEndSlotSelect('afternoon')}
+                            disabled={!canReturnAfternoon}
                         >
                             <div className="slot-option-btn__top">
-                                <span className="slot-option-btn__time">15:00 – 19:00</span>
-                                <span className="slot-option-btn__tag slot-option-btn__tag--extra">+0.5 día</span>
+                                <span className="slot-option-btn__label-group">
+                                    <Sunset size={14} className="text-forest" />
+                                    <span className="slot-option-btn__name">Tarde</span>
+                                </span>
+                                <span className="slot-option-btn__price-pill">
+                                    {canReturnAfternoon ? `+${formatPrice(returnHalfDayCost)}` : 'Ocupado'}
+                                </span>
                             </div>
-                            <span className="slot-option-btn__name">Tarde</span>
-                            <span className="slot-option-btn__detail">
-                                Alarga tu aventura hasta las 19:00h para ver un último atardecer en Mallorca
-                            </span>
+                            <span className="slot-option-btn__time">15:00 – 19:00 h</span>
                         </button>
                     </div>
                 </div>
@@ -293,131 +293,43 @@ export default function Step1Dates({
                 .step-dates {
                     display: flex;
                     flex-direction: column;
-                    gap: var(--space-6);
+                    gap: var(--space-4, 16px);
                 }
 
                 .step-header {
-                    margin-bottom: var(--space-2);
+                    margin-bottom: 2px;
                 }
 
                 .step-header__tag {
                     display: inline-block;
-                    font-size: 11px;
+                    font-size: 10px;
                     font-weight: 700;
                     letter-spacing: 0.08em;
-                    color: var(--forest-green);
-                    background: rgba(204, 160, 83, 0.08);
-                    padding: 3px 8px;
+                    color: var(--wz-pill-text);
+                    background: var(--wz-pill-bg);
+                    border: 1px solid var(--wz-pill-border);
+                    padding: 2px 8px;
                     border-radius: var(--radius-sm);
-                    margin-bottom: var(--space-2);
+                    margin-bottom: 4px;
                 }
 
                 .step-header__title {
                     font-family: var(--font-display);
-                    font-size: var(--text-2xl);
+                    font-size: var(--text-xl, 20px);
                     font-weight: 700;
                     color: var(--black-matte);
-                    margin-bottom: var(--space-2);
-                    line-height: 1.25;
+                    margin: 0;
+                    line-height: 1.2;
                 }
 
-                .step-header__desc {
-                    font-size: var(--text-sm);
-                    color: var(--gray-600);
-                    line-height: 1.6;
-                }
-
-                /* Pax Selector */
-                .pax-card {
-                    display: flex;
-                    align-items: center;
-                    justify-content: space-between;
-                    background: var(--wz-surface);
-                    border: 1px solid var(--gray-200);
-                    border-radius: var(--radius-lg);
-                    padding: var(--space-4) var(--space-5);
-                    box-shadow: 0 2px 8px rgba(255, 255, 255, 0.02);
-                }
-
-                .pax-card__info {
-                    display: flex;
-                    align-items: center;
-                    gap: var(--space-3);
-                }
-
-                .pax-card__icon-box {
-                    width: 38px;
-                    height: 38px;
-                    border-radius: var(--radius-md);
-                    background: rgba(204, 160, 83, 0.06);
-                    display: flex;
-                    align-items: center;
-                    justify-content: center;
-                    flex-shrink: 0;
-                }
-
-                .pax-card__title {
-                    font-size: var(--text-sm);
-                    font-weight: 700;
-                    color: var(--black-matte);
-                    margin-bottom: 2px;
-                }
-
-                .pax-card__desc {
-                    font-size: var(--text-xs);
-                    color: var(--gray-600);
-                }
-
-                .pax-counter {
-                    display: flex;
-                    align-items: center;
-                    gap: var(--space-3);
-                    background: var(--wz-bg);
-                    border: 1px solid var(--gray-200);
-                    padding: 4px;
-                    border-radius: var(--radius-full);
-                }
-
-                .pax-btn {
-                    width: 28px;
-                    height: 28px;
-                    border-radius: 50%;
-                    border: none;
-                    background: var(--wz-surface);
-                    color: var(--black-matte);
-                    display: flex;
-                    align-items: center;
-                    justify-content: center;
-                    cursor: pointer;
-                    box-shadow: 0 1px 3px rgba(255, 255, 255, 0.08);
-                    transition: all 0.2s ease;
-                }
-
-                .pax-btn:hover:not(:disabled) {
-                    background: var(--forest-green);
-                    color: var(--wz-on-accent);
-                }
-
-                .pax-btn:disabled {
-                    opacity: 0.35;
-                    cursor: not-allowed;
-                }
-
-                .pax-value {
-                    font-size: var(--text-xs);
-                    font-weight: 700;
-                    color: var(--black-matte);
-                    min-width: 75px;
-                    text-align: center;
-                }
-
-                /* Calendar section */
                 .calendar-section {
                     background: var(--wz-surface);
                     border: 1px solid var(--gray-200);
                     border-radius: var(--radius-xl);
-                    padding: var(--space-5);
-                    box-shadow: 0 4px 16px rgba(255, 255, 255, 0.02);
+                    padding: var(--space-4, 16px);
+                    display: flex;
+                    flex-direction: column;
+                    gap: var(--space-3, 12px);
                 }
 
                 .calendar-section__header {
@@ -425,179 +337,186 @@ export default function Step1Dates({
                     flex-wrap: wrap;
                     align-items: center;
                     justify-content: space-between;
-                    gap: var(--space-3);
-                    margin-bottom: var(--space-4);
-                    padding-bottom: var(--space-3);
+                    gap: 8px;
+                    padding-bottom: 10px;
                     border-bottom: 1px solid var(--gray-100);
                 }
 
                 .calendar-section__dates-badge {
-                    display: flex;
+                    display: inline-flex;
+                    flex-wrap: wrap;
                     align-items: center;
                     gap: 8px;
-                    font-size: var(--text-sm);
+                    font-size: 13px;
                     font-weight: 600;
                     color: var(--black-matte);
                 }
 
                 .calendar-section__arrow {
-                    color: var(--gray-400);
-                    font-weight: 400;
+                    color: var(--forest-green);
+                    font-weight: 700;
                 }
 
                 .calendar-section__nights-pill {
                     font-size: 11px;
                     font-weight: 700;
-                    background: var(--forest-green);
-                    color: var(--wz-on-accent);
-                    padding: 2px 8px;
-                    border-radius: var(--radius-full);
+                    color: var(--wz-pill-text);
+                    background: var(--wz-pill-bg);
+                    border: 1px solid var(--wz-pill-border);
+                    padding: 2px 9px;
+                    border-radius: 999px;
                 }
 
                 .calendar-section__min-stay-note {
-                    display: flex;
+                    display: inline-flex;
                     align-items: center;
                     gap: 5px;
-                    font-size: 12px;
+                    font-size: 11px;
                     color: var(--gray-600);
+                    background: var(--wz-chip-bg);
+                    border: 1px solid var(--wz-chip-border);
+                    padding: 3px 9px;
+                    border-radius: 999px;
                 }
 
                 .calendar-embed-wrap {
-                    margin-bottom: var(--space-3);
+                    width: 100%;
                 }
 
                 .alert-box {
                     display: flex;
-                    align-items: flex-start;
-                    gap: 10px;
-                    padding: var(--space-3) var(--space-4);
+                    align-items: center;
+                    gap: 8px;
+                    padding: 10px 12px;
                     border-radius: var(--radius-md);
-                    font-size: var(--text-xs);
-                    line-height: 1.5;
-                    margin-top: var(--space-3);
+                    font-size: 12px;
                 }
 
                 .alert-box--warning {
-                    background: rgba(204, 160, 83, 0.08);
-                    border: 1px solid rgba(204, 160, 83, 0.3);
-                    color: #E8CA7C;
+                    background: rgba(245, 158, 11, 0.1);
+                    border: 1px solid rgba(245, 158, 11, 0.35);
+                    color: #fcd34d;
+                }
+
+                :global(html[data-theme="light"]) .alert-box--warning {
+                    background: #FEF7EE;
+                    border: 1px solid #E8C99B;
+                    color: #78350F;
                 }
 
                 /* Slots Grid */
                 .slots-grid {
                     display: grid;
                     grid-template-columns: 1fr 1fr;
-                    gap: var(--space-4);
+                    gap: var(--space-3, 12px);
                 }
 
                 .slot-box {
                     background: var(--wz-surface);
                     border: 1px solid var(--gray-200);
-                    border-radius: var(--radius-lg);
-                    padding: var(--space-4);
+                    border-radius: var(--radius-lg, 14px);
+                    padding: 12px 14px;
+                    display: flex;
+                    flex-direction: column;
+                    gap: 10px;
                 }
 
                 .slot-box__header {
                     display: flex;
                     align-items: center;
-                    gap: 10px;
-                    margin-bottom: var(--space-3);
+                    gap: 8px;
                 }
 
                 .slot-box__title {
-                    font-size: var(--text-sm);
+                    font-size: 13px;
                     font-weight: 700;
                     color: var(--black-matte);
                     margin: 0;
                 }
 
-                .slot-box__subtitle {
-                    font-size: 11px;
-                    color: var(--gray-600);
-                    margin: 0;
-                }
-
                 .slot-options {
-                    display: flex;
-                    flex-direction: column;
-                    gap: var(--space-2);
+                    display: grid;
+                    grid-template-columns: 1fr 1fr;
+                    gap: 8px;
                 }
 
                 .slot-option-btn {
-                    text-align: left;
-                    background: var(--wz-bg);
                     border: 1.5px solid var(--gray-200);
-                    border-radius: var(--radius-md);
-                    padding: var(--space-3);
+                    background: var(--wz-chip-bg);
+                    border-radius: var(--radius-md, 10px);
+                    padding: 10px 12px;
+                    text-align: left;
                     cursor: pointer;
                     display: flex;
                     flex-direction: column;
-                    gap: 3px;
-                    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+                    gap: 4px;
+                    transition: all 0.2s ease;
+                    min-height: 44px;
                 }
 
-                .slot-option-btn:hover {
-                    border-color: var(--forest-green-light);
-                    background: var(--wz-surface);
+                .slot-option-btn:hover:not(:disabled) {
+                    border-color: var(--forest-green);
                 }
 
                 .slot-option-btn--active {
-                    background: var(--wz-surface);
                     border-color: var(--forest-green);
-                    box-shadow: 0 0 0 2px rgba(204, 160, 83, 0.12);
+                    background: var(--wz-pill-bg);
+                    box-shadow: 0 0 0 1px var(--wz-pill-border);
+                }
+
+                .slot-option-btn:disabled {
+                    opacity: 0.4;
+                    cursor: not-allowed;
                 }
 
                 .slot-option-btn__top {
                     display: flex;
                     align-items: center;
                     justify-content: space-between;
+                    gap: 6px;
                 }
 
-                .slot-option-btn__time {
-                    font-size: 12px;
+                .slot-option-btn__label-group {
+                    display: inline-flex;
+                    align-items: center;
+                    gap: 5px;
+                }
+
+                .slot-option-btn__name {
+                    font-size: 13px;
                     font-weight: 700;
                     color: var(--black-matte);
                 }
 
-                .slot-option-btn__tag {
-                    font-size: 10px;
-                    font-weight: 600;
-                    color: var(--gray-600);
-                    background: rgba(255, 255, 255, 0.05);
-                    padding: 1px 6px;
-                    border-radius: var(--radius-sm);
-                }
-
-                .slot-option-btn__tag--extra {
-                    background: rgba(204, 160, 83, 0.1);
-                    color: var(--forest-green);
+                .slot-option-btn__price-pill {
+                    font-size: 11px;
                     font-weight: 700;
+                    padding: 2px 8px;
+                    border-radius: var(--radius-full);
+                    background: var(--wz-pill-bg);
+                    color: var(--wz-pill-text);
+                    border: 1px solid var(--wz-pill-border);
+                    white-space: nowrap;
                 }
 
-                .slot-option-btn__name {
+                .slot-option-btn__time {
                     font-size: 12px;
                     font-weight: 600;
-                    color: var(--forest-green);
+                    color: var(--gray-500);
                 }
 
-                .slot-option-btn__detail {
-                    font-size: 11px;
-                    color: var(--gray-600);
-                    line-height: 1.4;
-                }
-
-                @media (max-width: 768px) {
+                @media (max-width: 860px) {
                     .slots-grid {
                         grid-template-columns: 1fr;
                     }
-                    .pax-card {
-                        flex-direction: column;
-                        align-items: flex-start;
-                        gap: var(--space-3);
+                }
+
+                @media (max-width: 640px) {
+                    .calendar-section {
+                        padding: var(--space-3);
                     }
-                    .pax-counter {
-                        width: 100%;
-                        justify-content: space-between;
+                    .slot-options {
+                        grid-template-columns: 1fr 1fr;
                     }
                 }
             `}</style>

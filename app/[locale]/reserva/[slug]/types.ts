@@ -18,9 +18,14 @@ import { BlockedSlot } from '@/lib/booking/availability'
 import { validateBookingRange } from '@/lib/booking/calendarLogic'
 import { isValidEmail, MAX_BOOKING_NIGHTS, normalizeEmail } from '@/lib/booking/checkoutRules'
 
-export type WizardStep = 1 | 2 | 3 | 4 | 5
+export type WizardStep = 1 | 2 | 3 | 4 | 5 | 6 | 7
 
 export type { DaySlot, KmPackage, CancellationPolicy, DepositOption }
+
+export interface CamperGalleryPhoto {
+    src: string
+    tag: string
+}
 
 export interface WizardCamper {
     id: string
@@ -41,6 +46,40 @@ export interface WizardCamper {
     base_price_per_night?: number
     deposit_amount?: number
     images?: string[]
+}
+
+const DEFAULT_MODEL_GALLERIES: Record<string, CamperGalleryPhoto[]> = {
+    neo: [
+        { src: '/images/campers/neo/exterior/neo-exterior-front-three-quarter.jpg', tag: 'Exterior NEO' },
+        { src: '/images/campers/neo/interior/neo-dining-room-daylight.jpg', tag: 'Salón comedor NEO' },
+        { src: '/images/campers/neo/interior/neo-interior-hero-anthracite.webp', tag: 'Interior antracita' },
+        { src: '/images/campers/neo/details/neo-garage-bike-storage.jpg', tag: 'Garaje trasero 2.230L' },
+        { src: '/images/campers/neo/details/solar-tech.webp', tag: 'Placa solar 400W' },
+        { src: '/images/campers/neo/interior/neo-bathroom-shower.webp', tag: 'Baño con ducha interior' },
+    ],
+    space: [
+        { src: '/images/campers/space/exterior/space-vehicle-hero-lanzarote.webp', tag: 'Exterior SPACE' },
+        { src: '/images/campers/space/interior/space-dining-lounge-frontview.jpg', tag: 'Salón panorámico en U' },
+        { src: '/images/campers/space/interior/space-electric-drop-down-bed.jpg', tag: 'Cama eléctrica suspendida' },
+        { src: '/images/campers/space/interior/space-cinema-projector-lounge.jpg', tag: 'Cine con proyector HD' },
+        { src: '/images/campers/space/interior/space-kitchen-counter-cabin.jpg', tag: 'Cocina nórdica' },
+        { src: '/images/campers/space/interior/space-bathroom-shower.webp', tag: 'Ducha interior de agua caliente' },
+    ],
+}
+
+export function getCamperGalleryImages(camper: WizardCamper): CamperGalleryPhoto[] {
+    const slugKey = (camper.slug || '').toLowerCase()
+    const curated = DEFAULT_MODEL_GALLERIES[slugKey]
+    if (curated && curated.length > 0) {
+        return curated
+    }
+    if (Array.isArray(camper.images) && camper.images.length > 0) {
+        return camper.images.map((src, idx) => ({
+            src,
+            tag: `${camper.name} — Foto ${idx + 1}`,
+        }))
+    }
+    return DEFAULT_MODEL_GALLERIES.neo
 }
 
 export interface WizardExtraItem {

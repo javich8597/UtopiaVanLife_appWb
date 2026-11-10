@@ -4,3 +4,4 @@
 - [Mutar para validar tests](mutar-para-validar-tests.md) — receta de mutación en copia (copiar los `??`, CRLF, reloj fijo) y las mutaciones que sobrevivieron en verde
 - [Regla y pantalla del 2º conductor](regla-y-pantalla-segundo-conductor.md) — las dos listas que deciden el plazo de subida, ya alineadas; orden de la regla y trampa del fixture compartido
 - [Suite con un test inestable](suite-con-test-inestable.md) — el `Set-Cookie` con `Expires` de checkoutRoute falla por el reloj: un rojo puede no ser del cambio
+- [Política de conservación de documentación](politica-conservacion-documentacion.md) — 100 días / 3 años: borrado a medias sin traza, tope sin orden, nadie llama a la ruta, el atajo `bookingId`

@@ -182,6 +182,10 @@ describe('N3: UPDATE y DELETE en bookings', () => {
       'app/api/admin/bookings/second-driver/route.ts',
       'app/api/admin/handovers/route.ts',
       'app/api/admin/refund/route.ts',
+      // Purga de conservación (decisión de Javier, 2026-11-10): borra los datos de identidad del
+      // RD 933/2021 a los 3 años y deja constancia. requireAdmin(), exige la clave de servicio
+      // válida (503 sin ella), filtra por `id` y por defecto SIMULA sin escribir nada
+      'app/api/admin/retention/documents/route.ts',
       'app/api/admin/ses-hospedajes/transmit/route.ts',
       'app/api/bookings/[id]/pay/route.ts',
       'app/api/contracts/sign/route.ts',

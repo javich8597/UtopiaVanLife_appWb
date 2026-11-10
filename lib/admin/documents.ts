@@ -51,9 +51,31 @@ function uploadTime(file: StoredFile, legacyDigits: string | undefined): number 
   return legacyDigits ? Number(legacyDigits) : -1
 }
 
+/**
+ * Patrones de nombre guardado para esos prefijos. Un `includes()` mezclaría el carnet con el DNI o
+ * con el del segundo conductor, así que el prefijo tiene que coincidir exacto y el resto del nombre
+ * ser un UUID (subidas de hoy) o un timestamp (subidas antiguas).
+ */
+export function documentNamePatterns(prefixes: string[]): RegExp[] {
+  return prefixes.map(p => new RegExp(`^${p}_(?:(\\d+)|${UUID})\\.[a-z0-9]+$`, 'i'))
+}
+
+/**
+ * TODOS los nombres de archivo que son uno de esos documentos, no solo el más reciente.
+ *
+ * `latestDocument` se queda con la última copia porque es la que hay que enseñar; para conservar o
+ * borrar hacen falta todas, porque cada reenvío del formulario dejó otra copia en la carpeta.
+ */
+export function documentsMatching(files: StoredFile[], prefixes: string[]): string[] {
+  const patterns = documentNamePatterns(prefixes)
+  return (files || [])
+    .filter(f => typeof f?.name === 'string' && patterns.some(re => re.test(f.name)))
+    .map(f => f.name)
+}
+
 /** Nombre del archivo más reciente que empieza exactamente por uno de los prefijos */
 export function latestDocument(files: StoredFile[], prefixes: string[]): string | null {
-  const patterns = prefixes.map(p => new RegExp(`^${p}_(?:(\\d+)|${UUID})\\.[a-z0-9]+$`, 'i'))
+  const patterns = documentNamePatterns(prefixes)
   let best: string | null = null
   let bestTime = -Infinity
   for (const f of files) {

@@ -24,4 +24,13 @@ Segunda ronda del **2026-11-10** (plazo = día de la devolución), 19 mutaciones
 
 Mutar un texto con `from` de una sola línea funciona aunque el `to` tenga varias; y la copia hay que **refrescarla** (volver a copiar el test) después de cada cambio en el árbol real, o el barrido mide el archivo viejo.
 
+Tercera ronda del **2026-11-10** (política de conservación), 44 mutaciones; cuatro arreglos más de la receta:
+
+- **Una línea que aparece dos veces no es una mutación, es un `AMBIGUA`.** `holderImagePurgeDecision` y `accountLegalPurgeDecision` son casi copias, así que seis `from` encajaban dos veces y el barrido las saltó en silencio. Hay que contar las ocurrencias y, si son varias, mutar **todas** (`split().join()`), no la primera.
+- **Mutar el primer tramo de una cadena `&&` no la desactiva.** Cambiar `!value.includes('/')` dentro de `isSafeSegment` dejó vivo el `&& !value.includes('..')` que venía detrás, así que el valor del test (`…/..`) seguía siendo rechazado y la mutación parecía muerta por el motivo equivocado. Elegir el valor del test contra la condición que queda, no contra la que se mutó.
+- **Añadir un `.filter(f => true)` delante de un filtro real no muta nada**: es un no-op y el «SOBREVIVE» no significa nada.
+- **Un guarda redundante sobrevive y debe sobrevivir.** Cuatro mutaciones de `route.ts` sobrevivieron porque otra condición ya tapaba el caso (una reserva bloqueada nunca es `due`; una carpeta ilegible siempre sale con `files: []`). Antes de escribir un test para matar una mutación, comprobar que cambia algo observable; si no, anotarla como defensa en profundidad.
+
+Lo que **sí** destapó el barrido: dos comprobaciones de plazo de la ruta (`plan.imageDue` en los pasos 2 y 3) y los dos `.eq('id', …)` de los `UPDATE` no tenían ningún test, porque todos los casos usaban UNA sola reserva y ninguno usaba el atajo `{ bookingId }`, que **se salta el filtro de fechas**. Regla nueva: **todo `UPDATE` con filtro se prueba con DOS filas**, una que debe cambiar y otra que no.
+
 **How to apply:** un tope numérico se escribe en el test (`assert.equal(MAX, 10)` y un bucle de 10), nunca se recorre la constante. Un valor por defecto se prueba con la clave AUSENTE, no con `false`. Un filtro por estado se prueba con una fila que pase el filtro por fecha, y al revés. Una comprobación que hace la ruta se prueba por la ruta, no solo por la función. Ver también [[tests-que-copian-el-paso-5]] y [[verificar-arbol-en-movimiento]].

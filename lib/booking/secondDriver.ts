@@ -62,7 +62,8 @@ export interface BookingSecondDriver {
 
 const text = (value: unknown): string => (typeof value === 'string' ? value.trim() : '')
 
-const dateOrNull = (value: unknown): string | null =>
+/** `YYYY-MM-DD` o null. Las fechas de reserva son cadenas: nunca se pasan por `Date` para leerlas */
+export const dateOrNull = (value: unknown): string | null =>
     typeof value === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(value.trim()) ? value.trim() : null
 
 /**
@@ -163,12 +164,20 @@ export function madridDay(now: Date = new Date()): string {
     return `${get('year')}-${get('month')}-${get('day')}`
 }
 
-/** Día de devolución de la reserva (`end_date`, o la recogida si no consta) */
-function returnDay(booking: unknown): string {
+/**
+ * Día de devolución de la reserva (`end_date`, o la recogida si no consta).
+ *
+ * Es el día desde el que se cuentan los plazos del dominio: el de subida de documentación (aquí) y
+ * los de conservación (`lib/booking/dataRetention.ts`). Devuelve '' si la reserva no se puede situar.
+ */
+export function bookingReturnDay(booking: unknown): string {
     const row = asRow(booking)
     if (!row) return ''
     return dateOrNull(row.end_date) || dateOrNull(row.start_date) || ''
 }
+
+/** Alias interno histórico de `bookingReturnDay` */
+const returnDay = bookingReturnDay
 
 /**
  * Último día en que el cliente puede subir documentación, o '' si la reserva no se puede situar.

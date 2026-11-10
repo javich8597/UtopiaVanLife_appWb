@@ -83,6 +83,8 @@ export function installFakeSupabase(initial: Record<string, Row[]> = {}) {
         ...initial,
     }
     const authUsers: Row[] = []
+    /** Storage en memoria: bucket -> rutas completas con su fecha de creación */
+    const storageObjects: Record<string, Array<{ path: string; created_at: string }>> = {}
     let nextAuthId = 0
     const requests: RecordedRequest[] = []
     const failures: { table?: string; method?: string } = {}
@@ -187,6 +189,61 @@ export function installFakeSupabase(initial: Record<string, Row[]> = {}) {
         throw new Error(`Auth no simulado: ${req.method} ${req.path}`)
     }
 
+    /**
+     * Storage en memoria: `list` de una carpeta, `remove` de rutas concretas y el registro de las
+     * subidas. Devuelve null para lo que no simula (crear el bucket, firmar una URL…), que sigue
+     * respondiendo como antes. No prueba las políticas de storage.objects ni nada de Storage real.
+     */
+    function storage(req: RecordedRequest, pathname: string): Response | null {
+        const listed = pathname.match(/^\/storage\/v1\/object\/list\/([^/]+)$/)
+        if (listed && req.method === 'POST') {
+            const bucket = listed[1]
+            const body = (req.body || {}) as Row
+            const prefix = typeof body.prefix === 'string' ? body.prefix.replace(/\/+$/, '') : ''
+            const head = prefix ? `${prefix}/` : ''
+            const seen = new Map<string, Row>()
+            for (const object of storageObjects[bucket] || []) {
+                if (!object.path.startsWith(head)) continue
+                const rest = object.path.slice(head.length)
+                if (!rest) continue
+                const slash = rest.indexOf('/')
+                if (slash === -1) seen.set(rest, { name: rest, id: `id-${rest}`, created_at: object.created_at, updated_at: object.created_at })
+                // Una subcarpeta: Storage la lista como una entrada sin extensión, sin id y sin fecha
+                else if (!seen.has(rest.slice(0, slash))) seen.set(rest.slice(0, slash), { name: rest.slice(0, slash), id: null, created_at: null })
+            }
+            const rows = [...seen.values()]
+            const order = (body.sortBy as Row | undefined)?.order
+            rows.sort((a, b) => String(b.created_at || '').localeCompare(String(a.created_at || '')))
+            if (order === 'asc') rows.reverse()
+            return json(rows)
+        }
+
+        const removed = pathname.match(/^\/storage\/v1\/object\/([^/]+)$/)
+        if (removed && req.method === 'DELETE') {
+            const bucket = removed[1]
+            const prefixes = ((req.body || {}) as Row).prefixes
+            const wanted = new Set(Array.isArray(prefixes) ? prefixes.map(String) : [])
+            const kept: Array<{ path: string; created_at: string }> = []
+            const gone: Row[] = []
+            for (const object of storageObjects[bucket] || []) {
+                if (wanted.has(object.path)) gone.push({ name: object.path })
+                else kept.push(object)
+            }
+            storageObjects[bucket] = kept
+            return json(gone)
+        }
+
+        const uploaded = pathname.match(/^\/storage\/v1\/object\/([^/]+)\/(.+)$/)
+        if (uploaded && (req.method === 'POST' || req.method === 'PUT')) {
+            const [, bucket, path] = uploaded
+            const objects = (storageObjects[bucket] ??= [])
+            if (!objects.some(o => o.path === path)) objects.push({ path, created_at: new Date().toISOString() })
+            return json({ Id: 'id', Key: `${bucket}/${path}`, name: path })
+        }
+
+        return null
+    }
+
     globalThis.fetch = (async (input: RequestInfo | URL, init?: RequestInit) => {
         const request = input instanceof Request ? input : new Request(input, init)
         const url = new URL(request.url)
@@ -208,6 +265,8 @@ export function installFakeSupabase(initial: Record<string, Row[]> = {}) {
         if (url.pathname.startsWith('/storage/v1/object/') && failures.table === 'storage') {
             return json({ statusCode: '500', error: 'fallo', message: 'fallo simulado' }, 500)
         }
+        const storageReply = storage(recorded, url.pathname)
+        if (storageReply) return storageReply
         if (url.pathname.startsWith('/storage/v1/')) return json({ Id: 'id', Key: 'key', name: 'documents' })
         throw new Error(`Ruta no simulada: ${url.pathname}`)
     }) as typeof fetch
@@ -217,6 +276,19 @@ export function installFakeSupabase(initial: Record<string, Row[]> = {}) {
         authUsers,
         requests,
         failures,
+        storageObjects,
+        /** Siembra archivos en un bucket: rutas completas dentro del bucket */
+        seedStorage(bucket: string, paths: readonly string[], createdAt = '2026-01-01T10:00:00.000Z') {
+            const objects = (storageObjects[bucket] ??= [])
+            paths.forEach((path, index) => {
+                if (objects.some(o => o.path === path)) return
+                // Fechas distintas y crecientes: así `latestDocument` tiene un orden que comprobar
+                const stamp = new Date(Date.parse(createdAt) + index * 1000).toISOString()
+                objects.push({ path, created_at: stamp })
+            })
+        },
+        /** Rutas que siguen en el bucket */
+        storagePaths: (bucket: string) => (storageObjects[bucket] || []).map(o => o.path).sort(),
         /** Se ejecuta justo antes de la siguiente escritura en esa tabla */
         onBeforeWrite(table: string, run: () => void) { beforeWrite = { table, run } },
         setSession(user: Row | null) { sessionUser = user },

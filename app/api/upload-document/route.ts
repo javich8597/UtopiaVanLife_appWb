@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server'
 import { createClient as createServerClient } from '@/lib/supabase/server'
 import { getSupabaseAdmin } from '@/lib/supabase/admin'
 import { detectDocumentType, DocumentType } from '@/lib/driverDocuments'
+import { clientIp, documentUploadBucketKey, registerDocumentUploadAttempt } from '@/lib/booking/checkoutRateLimit'
 
 const MAX_DOCUMENT_BYTES = 10 * 1024 * 1024
 // Dos documentos, más margen para el resto del formulario
@@ -30,6 +31,17 @@ export async function POST(request: Request) {
         }
         if (declaredBytes > MAX_REQUEST_BYTES) {
             return NextResponse.json({ error: 'Cada archivo puede pesar como máximo 10 MB.' }, { status: 413 })
+        }
+
+        // El mismo cupo que /api/upload-driver-docs, y por el mismo motivo: aquí cada envío admite
+        // 21 MB y se sube con la clave de service role, así que la ruta no puede quedarse sin
+        // contador (hallazgo N7). Se apunta con el titular ya resuelto —un 401 no gasta cupo— y
+        // antes de leer el cuerpo. Sin cabecera `x-forwarded-for` no hay límite
+        if (!registerDocumentUploadAttempt(documentUploadBucketKey(clientIp(request.headers), user.id))) {
+            return NextResponse.json(
+                { error: 'Demasiados envíos de documentación desde esta conexión. Espera unos minutos y vuelve a intentarlo.' },
+                { status: 429 }
+            )
         }
 
         const formData = await request.formData()

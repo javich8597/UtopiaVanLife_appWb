@@ -205,3 +205,40 @@ export function calculateLicenseSeniorityYears(issueDate: Date, referenceDate: D
     }
     return Math.max(0, years)
 }
+
+const DNI_LETTERS = 'TRWAGMYFPDXBNJZSQVHLCKE'
+
+/**
+ * DNI, NIE o pasaporte, con la letra de control comprobada. Vivía exportado desde la ruta
+ * `app/api/bookings/checkout/route.ts`, y por eso el backoffice tuvo que hacerse una copia
+ * (`lib/admin/secondDriverRecord.ts`) con un test de paridad: importar una ruta de Next desde el
+ * panel arrastra la ruta entera. Aquí la comparten las dos puntas.
+ */
+export function isValidDniNieOrPassport(value: string): { isValid: boolean; error?: string } {
+    if (!value || typeof value !== 'string') {
+        return { isValid: false, error: 'Documento de identidad requerido' }
+    }
+    const clean = value.trim().toUpperCase()
+
+    // 1. DNI español: 8 dígitos + 1 letra de control
+    const dniMatch = clean.match(/^(\d{8})([A-Z])$/)
+    if (dniMatch) {
+        const expectedLetter = DNI_LETTERS[parseInt(dniMatch[1], 10) % 23]
+        if (dniMatch[2] === expectedLetter) return { isValid: true }
+        return { isValid: false, error: `Letra de DNI incorrecta. Para el número ${dniMatch[1]}, la letra debe ser ${expectedLetter}` }
+    }
+
+    // 2. NIE español: X, Y, Z + 7 dígitos + 1 letra de control
+    const nieMatch = clean.match(/^([XYZ])(\d{7})([A-Z])$/)
+    if (nieMatch) {
+        const prefixMap: Record<string, string> = { X: '0', Y: '1', Z: '2' }
+        const expectedLetter = DNI_LETTERS[parseInt(prefixMap[nieMatch[1]] + nieMatch[2], 10) % 23]
+        if (nieMatch[3] === expectedLetter) return { isValid: true }
+        return { isValid: false, error: `Letra de NIE incorrecta. Se esperaba ${expectedLetter}` }
+    }
+
+    // 3. Pasaporte internacional: 6-15 caracteres alfanuméricos
+    if (/^[A-Z0-9]{6,15}$/.test(clean)) return { isValid: true }
+
+    return { isValid: false, error: 'Formato de DNI, NIE o Pasaporte no válido' }
+}

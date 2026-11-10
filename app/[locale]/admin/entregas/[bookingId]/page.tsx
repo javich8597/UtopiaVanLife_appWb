@@ -2,6 +2,14 @@ import { notFound } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
 import { getAdminClientOrSession } from '@/lib/admin/auth'
 import { DOCUMENT_LIST_OPTIONS, latestLicensePhotoNames } from '@/lib/admin/documents'
+import {
+  buildSecondDriverGroups,
+  handoverSecondDriverDocs,
+  resolveSecondDriverDocuments,
+  secondDriverDocsNotices,
+  secondDriverPhotoPresence,
+} from '@/lib/admin/secondDriverDocuments'
+import { secondDriverStepInput } from '@/lib/handover/secondDriverStep'
 import { signHandoverMedia } from '@/lib/handover/signedMedia'
 import HandoverClient from './HandoverClient'
 
@@ -22,12 +30,26 @@ export default async function HandoverPage({
   const supabase = await createClient()
   const db = getAdminClientOrSession(supabase)
 
-  const { data: booking } = await db
+  // `*` porque las columnas second_driver_* de bookings pueden no estar aplicadas todavía; al cliente
+  // solo se le pasa lo que la hoja de entrega necesita (más abajo)
+  const { data: bookingRow } = await db
     .from('bookings')
-    .select('id, user_id, start_date, end_date, status, customer_name, customer_email, num_nights, km_package, campers (name, slug)')
+    .select('*, campers (name, slug)')
     .eq('id', bookingId)
     .maybeSingle()
-  if (!booking) notFound()
+  if (!bookingRow) notFound()
+  const booking = {
+    id: bookingRow.id,
+    user_id: bookingRow.user_id,
+    start_date: bookingRow.start_date,
+    end_date: bookingRow.end_date,
+    status: bookingRow.status,
+    customer_name: bookingRow.customer_name,
+    customer_email: bookingRow.customer_email,
+    num_nights: bookingRow.num_nights,
+    km_package: bookingRow.km_package,
+    campers: bookingRow.campers,
+  }
 
   const [{ data: handovers }, { data: customer }] = await Promise.all([
     db.from('handovers').select('*').eq('booking_id', bookingId),
@@ -47,6 +69,26 @@ export default async function HandoverPage({
     }
   }
 
+  // Segundo conductor de ESTA reserva y sus fotos (documents/<cliente>/<reserva>/second_*), junto a las del titular.
+  // Las fotos sueltas de una subida anterior NO son de esta reserva (pueden ser de otra persona): van aparte
+  const secondDriverDocs = booking.user_id
+    ? await resolveSecondDriverDocuments(db, booking.user_id, [bookingRow], { onlyBookingId: booking.id })
+    : null
+  const { thisBooking: secondDriverGroups, earlierUpload: earlierSecondDriverUpload } = secondDriverDocs
+    ? handoverSecondDriverDocs(secondDriverDocs.folders, bookingRow)
+    : { thisBooking: [], earlierUpload: null }
+  const secondDriverNotices = secondDriverDocs ? secondDriverDocsNotices(secondDriverDocs) : []
+
+  // Paso «Segundo conductor» de la entrega de recogida: solo si ESTA reserva lleva uno. La ficha y
+  // las fotos se leen con las mismas funciones que usa la ruta que cierra la entrega
+  const hasSecondDriver = kind === 'pickup' && secondDriverStepInput(bookingRow, null) !== null
+  const secondDriverStep = hasSecondDriver
+    ? secondDriverStepInput(
+        bookingRow,
+        booking.user_id ? await secondDriverPhotoPresence(db, booking.user_id, booking.id) : null
+      )
+    : null
+
   const current = (handovers || []).find((h: any) => h.kind === kind) || null
   const pickup = (handovers || []).find((h: any) => h.kind === 'pickup') || null
 
@@ -56,6 +98,10 @@ export default async function HandoverPage({
       booking={booking}
       customer={customer}
       licensePhotos={licensePhotos.slice(0, 2)}
+      secondDriverGroups={secondDriverGroups}
+      earlierSecondDriverUpload={earlierSecondDriverUpload}
+      secondDriverNotices={secondDriverNotices}
+      secondDriverStep={secondDriverStep}
       initial={await signHandoverMedia(db, current)}
       pickupKm={pickup?.km ?? null}
     />

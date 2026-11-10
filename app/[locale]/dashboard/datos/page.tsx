@@ -2,7 +2,8 @@ import { createClient } from '@/lib/supabase/server'
 import { redirect } from '@/i18n/routing'
 import DriverDataClient from './DriverDataClient'
 import { getAdminClientOrSession } from '@/lib/admin/auth'
-import { bookingSecondDriver, LIVE_BOOKING_STATUSES } from '@/lib/booking/secondDriver'
+import { LIVE_BOOKING_STATUSES } from '@/lib/booking/secondDriver'
+import { upcomingSecondDriverBookings } from '@/lib/user/secondDriverBookings'
 
 export const metadata = {
     title: 'Datos y carnet | Utopia Van Life',
@@ -43,37 +44,27 @@ export default async function DriverDataPage({
         rejectionReason = lastRejection?.rejected_reason || null
     }
 
-    // El 2º conductor pertenece a la RESERVA, no al perfil: el formulario refleja la reserva viva y
-    // pagada que lo lleva. Antes el interruptor salía de `users.has_second_driver`, y un cliente con
-    // ese dato antiguo recibía un 400 en cualquier guardado, también en el de sus propios documentos
+    // El 2º conductor pertenece a la RESERVA, no al perfil: el formulario refleja las reservas pagadas
+    // y con viaje por delante que lo llevan. Antes se tomaba la más antigua que lo llevara, y un viaje
+    // ya terminado tapaba a la reserva próxima: su documentación no se podía subir por ninguna pantalla.
+    // Aquí solo se consulta; cuál se ofrece y en qué orden lo decide `upcomingSecondDriverBookings`.
+    // `select('*')` como la ruta de subida: las columnas second_driver_* de bookings pueden no estar
+    // aplicadas todavía, y a la pantalla solo llegan los campos que elige esa función
     const { data: liveBookings } = await supabase
         .from('bookings')
-        .select('id, status, payment_status, start_date, passengers, pricing_breakdown')
+        .select('*')
         .eq('user_id', user.id)
         .eq('payment_status', 'paid')
         .in('status', LIVE_BOOKING_STATUSES as unknown as string[])
-        .order('start_date', { ascending: true })
 
-    const authorized = (liveBookings || [])
-        .map(booking => ({ booking, driver: bookingSecondDriver(booking) }))
-        .find(({ driver }) => Boolean(driver?.document))
-
-    const secondDriverBooking = authorized
-        ? {
-            bookingId: authorized.booking.id as string,
-            startDate: (authorized.booking.start_date as string) || '',
-            fullName: authorized.driver!.fullName,
-            dniNie: authorized.driver!.document,
-            licenseId: authorized.driver!.licenseId,
-        }
-        : null
+    const secondDriverBookings = upcomingSecondDriverBookings(liveBookings || [])
 
     return (
         <DriverDataClient
             user={user}
             profile={profile}
             rejectionReason={rejectionReason}
-            secondDriverBooking={secondDriverBooking}
+            secondDriverBookings={secondDriverBookings}
         />
     )
 }

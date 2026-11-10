@@ -20,10 +20,17 @@ const BOOKING_ID = 'aaaaaaaa-1111-4111-8111-aaaaaaaaaaaa'
 const OTHER_BOOKING_ID = 'bbbbbbbb-2222-4222-8222-bbbbbbbbbbbb'
 const JPEG = Uint8Array.from([0xff, 0xd8, 0xff, 0xe0, 0, 0, 0, 0])
 
-/** Ficha del 2º conductor tal y como la guarda el checkout: 25 años y carnet de más de 2 */
+/**
+ * Ficha del 2º conductor tal y como la guarda el checkout: 25 años y carnet de más de 2.
+ *
+ * Lleva también su nº de carnet: desde la decisión del 2026-11-09 los tres datos de esa persona
+ * (nombre, documento y carnet) solo pueden salir de la ficha, así que un formulario que mande un
+ * carnet que la ficha no trae se rechaza (lo comprueba `segundoConductorIdentidad.test.ts`)
+ */
 const AUTHORIZED = {
     fullName: 'Luis Pérez',
     dniNie: 'AB123456',
+    driverLicenseId: 'B-99',
     isSecondDriver: true,
     birthDate: '1985-01-01',
     licenseDate: '2010-01-01',
@@ -208,7 +215,10 @@ describe('Subida: el 2º conductor de la reserva manda', () => {
         assert.match(json.error, /segundo conductor/i)
     })
 
-    it('exige los tres datos del 2º conductor en lugar de vaciar lo guardado', async () => {
+    // El nombre y el carnet ya no se exigen al formulario (los manda de solo lectura desde la ficha
+    // y en blanco lo que la ficha no trae), pero sin el documento no se sabe a quién autoriza la
+    // reserva: eso se rechaza en lugar de vaciar lo que ya constaba
+    it('exige el documento del 2º conductor en lugar de vaciar lo guardado', async () => {
         Object.assign(fake.tables.users[0], {
             has_second_driver: true,
             second_driver_name: 'Luis Pérez',
@@ -221,7 +231,7 @@ describe('Subida: el 2º conductor de la reserva manda', () => {
         assert.equal(status, 400)
         assert.deepEqual(fake.writesTo('users'), [])
         assert.equal(fake.tables.users[0].second_driver_dni, 'AB123456', 'no se borra lo que ya constaba')
-        assert.match(json.error, /nombre completo/i)
+        assert.match(json.error, /DNI\/NIE o pasaporte/i)
     })
 
     it('sin sesión y sin clave de service role válida responde 503, no un 400 que culpa al cliente', async () => {

@@ -427,6 +427,10 @@ export default function BookingsClient({ initialBookings }: Props) {
         <BookingDetailModal
           booking={selectedBooking}
           onClose={() => setSelectedBooking(null)}
+          onSecondDriverSaved={patch => {
+            setSelectedBooking((prev: any) => (prev ? { ...prev, ...patch } : prev))
+            router.refresh()
+          }}
           onAlertsReviewed={notes => {
             setSelectedBooking((prev: any) => (prev ? { ...prev, notes } : prev))
             router.refresh()

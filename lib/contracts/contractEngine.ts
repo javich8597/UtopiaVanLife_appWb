@@ -1,4 +1,4 @@
-import { bookingSecondDriver } from '../booking/secondDriver'
+import { bookingSecondDriver, sameDocument } from '../booking/secondDriver'
 import type { DepositOption } from '../pricing/types'
 import { validateDriverLicense } from './licenseValidator'
 
@@ -636,10 +636,17 @@ export function generateContractData(
       ? null
       : Math.max(0, Math.floor((Date.now() - licenseMs) / (1000 * 60 * 60 * 24 * 365.25)))
 
+    // El perfil NO puede nombrar a nadie: solo completa el nº de carnet de la persona que ESTA
+    // reserva ya identifica por documento. Una reserva que cobró el suplemento sin guardar la ficha
+    // (`source: 'pricing_only'`) sale "Pendiente de verificación": poner ahí el 2º conductor del
+    // perfil facultaba por contrato a quien esta reserva nunca registró (hallazgo QA-SD-9)
+    const profileCompletesLicense = sameDocument(reservedSecondDriver.document, userProfile?.second_driver_dni)
     secondDriver = {
-      fullName: reservedSecondDriver.fullName || userProfile?.second_driver_name || 'Pendiente de verificación',
-      dniNie: reservedSecondDriver.document || userProfile?.second_driver_dni || 'Pendiente',
-      driverLicenseId: reservedSecondDriver.licenseId || userProfile?.second_driver_license || 'Pendiente',
+      fullName: reservedSecondDriver.fullName || 'Pendiente de verificación',
+      dniNie: reservedSecondDriver.document || 'Pendiente',
+      driverLicenseId: reservedSecondDriver.licenseId
+        || (profileCompletesLicense ? userProfile?.second_driver_license : '')
+        || 'Pendiente',
       yearsHeld: secondDriverYearsHeld,
       ratePerDay: Number(bookingBreakdown.secondDriverRatePerDay) || 0,
       supplement: Number(bookingBreakdown.secondDriverSupplement) || 0,

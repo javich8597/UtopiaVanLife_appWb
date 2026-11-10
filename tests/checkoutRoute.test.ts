@@ -91,7 +91,15 @@ describe('Ruta de checkout', () => {
             assert.deepEqual(Object.keys(known.json), Object.keys(unknown.json))
             assert.ok(known.cookieValue && unknown.cookieValue)
             assert.equal(known.cookieValue.length, unknown.cookieValue.length)
-            const attributes = (setCookie: string) => setCookie.split(';').slice(1).join(';')
+            // `Expires` es una fecha absoluta: dos peticiones a distinto lado de un segundo daban
+            // atributos distintos sin que la respuesta revelara nada (el test fallaba a ratos). Que
+            // la cookie caduque se compara por `Max-Age`, que sí es el mismo en las dos
+            const attributes = (setCookie: string) =>
+                setCookie.split(';').slice(1).map(part => part.trim()).filter(part => !/^expires=/i.test(part)).join('; ')
+
+            assert.match(known.setCookie, /Expires=/i)
+            assert.match(unknown.setCookie, /Expires=/i)
+            assert.match(known.setCookie, /Max-Age=\d/i)
             assert.equal(attributes(known.setCookie), attributes(unknown.setCookie))
         })
 

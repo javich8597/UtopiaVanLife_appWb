@@ -273,7 +273,7 @@ describe('Paso 5: nombres de acompañantes y segundo conductor con la regla del 
 describe('Checkout: segundo conductor y viajeros', () => {
     let flows: ReturnType<typeof installFlows>
     const silenced = { error: console.error, warn: console.warn }
-    const SOLO = { fullName: 'Luis Ruiz', dniNie: 'X1234567L', birthDate: '1980-01-01', licenseDate: '2000-01-01' }
+    const SOLO = { fullName: 'Luis Ruiz', dniNie: 'X1234567L', birthDate: '1980-01-01', licenseDate: '2000-01-01', driverLicenseId: 'B-0099001' }
 
     beforeEach(() => {
         flows = installFlows()

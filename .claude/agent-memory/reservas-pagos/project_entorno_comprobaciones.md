@@ -5,7 +5,7 @@ metadata:
   type: project
 ---
 
-`npm run lint` completo no termina: entra en `.claude/worktrees/**/.next`. Ejecuta `npx eslint <archivos>` solo sobre lo tocado (`-f json` si hace falta listar; el formato `unix` ya no viene con ESLint). `npm run build` no se ha ejecutado porque cargaría `.env.local`, que apunta a la base real. `npx tsc --noEmit` da 2 errores conocidos en `.next/**/validator.ts` por la ruta borrada `create-order`.
+`npm run lint` completo no termina: entra en `.claude/worktrees/**/.next`. Ejecuta `npx eslint <archivos>` solo sobre lo tocado (`-f json` si hace falta listar; el formato `unix` ya no viene con ESLint). `npm run build` no se ha ejecutado porque cargaría `.env.local`, que apunta a la base real. `npx tsc --noEmit` tardaba y daba 2 errores en `.next/**/validator.ts` por la ruta borrada `create-order`; con `.next` limpio (2026-11-09) sale limpio en ~1 min. Varios especialistas trabajan a la vez en la misma carpeta: `git status` enseña cambios que no son tuyos, así que no uses `git stash`, `git checkout --` ni commits que arrastren archivos ajenos, y mira de quién es cada archivo antes de tocarlo.
 
 **Why:** varios especialistas comparten la carpeta y las reglas prohíben peticiones a Supabase real.
 

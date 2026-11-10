@@ -366,7 +366,7 @@ describe('Paso 5 → checkout → subida: lo que se guarda', () => {
 
     /** Acompañantes y segundo conductor tal como los deja el asistente */
     const companion = (fullName: string, dniNie: string): Row => ({ fullName, dniNie, birthDate: '', isSecondDriver: false, licenseDate: '' })
-    const SECOND_DRIVER: Row = { fullName: 'Luis Pérez', dniNie: 'AB123456', birthDate: '1985-01-01', licenseDate: '2010-01-01' }
+    const SECOND_DRIVER: Row = { fullName: 'Luis Pérez', dniNie: 'AB123456', birthDate: '1985-01-01', licenseDate: '2010-01-01', driverLicenseId: 'B-4455667' }
 
     it('reservas válidas con acompañantes y documentos extranjeros siguen pasando en el checkout', async () => {
         const cases: Array<[Row, Parameters<typeof stepFiveImpliesCheckout>[1]]> = [
@@ -453,7 +453,7 @@ describe('Paso 5 → checkout → subida: lo que se guarda', () => {
                     for (const withDriver of [false, true]) {
                         if (withDriver && deposit !== 'flex_1000') continue
                         const passengers = people.slice(0, travelers - 1).map(p => ({ ...p }))
-                        if (withDriver && travelers > 1) Object.assign(passengers[0], { isSecondDriver: true, birthDate: '1985-01-01', licenseDate: '2010-01-01' })
+                        if (withDriver && travelers > 1) Object.assign(passengers[0], { isSecondDriver: true, birthDate: '1985-01-01', licenseDate: '2010-01-01', driverLicenseId: 'B-4455667' })
                         const raw = {
                             ...RAW_CUSTOMER, travelersCount: travelers, depositOption: deposit, passengers,
                             secondDriverSoloEnabled: withDriver && travelers === 1, secondDriverSolo: SECOND_DRIVER,
@@ -483,7 +483,7 @@ describe('Paso 5 → checkout → subida: lo que se guarda', () => {
     // Al pasar de Flex a Estándar la ficha marcada se conserva y el suplemento entra en el cobro;
     // si le faltan sus fechas obligatorias (edad >= 25 y carnet B >= 2 años), el paso 5 y el checkout lo rechazan
     it('QA-C10 un acompañante marcado como 2º conductor se cobra a 5 €/día al pasar de Flex a Estándar', async () => {
-        const driver = { ...companion('Luis Pérez', 'AB123456'), isSecondDriver: true, birthDate: '1985-01-01', licenseDate: '2010-01-01' }
+        const driver = { ...companion('Luis Pérez', 'AB123456'), isSecondDriver: true, birthDate: '1985-01-01', licenseDate: '2010-01-01', driverLicenseId: 'B-4455667' }
         const stale = { travelersCount: 2, depositOption: 'standard_2000', passengers: [driver] }
         assert.equal(validateStep5({ ...RAW_CUSTOMER, ...stale } as never).isValid, true, 'el paso 5 lo acepta')
 
@@ -674,12 +674,17 @@ describe('Subida: multipart real contra la ruta', () => {
 
     beforeEach(() => {
         fake = installFakeSupabase({
-            // `worstForm` envía hasSecondDriver=true: la reserva tiene que estar viva, pagada y
-            // llevar como 2º conductor justamente a esa persona (el documento se compara)
+            // `worstForm` envía hasSecondDriver=true: la reserva tiene que estar viva, pagada, con
+            // el viaje por delante y llevar como 2º conductor justamente a esa persona. Se comparan
+            // el documento y el nombre, y la ficha necesita sus dos fechas (validadas al reservar)
             bookings: [{
                 id: 'b1', user_id: 'u1', payment_intent_id: ORDER, payment_status: 'paid',
-                status: 'confirmed', start_date: '2099-06-01',
-                passengers: [{ fullName: 'Luis Pérez', dniNie: 'A'.repeat(20), isSecondDriver: true }],
+                status: 'confirmed', start_date: '2099-06-01', end_date: '2099-06-08',
+                passengers: [{
+                    fullName: 'Á'.repeat(120), dniNie: 'A'.repeat(20), isSecondDriver: true,
+                    // El nº de carnet también sale solo de la ficha (hallazgo N2, 2026-11-09)
+                    driverLicenseId: 'B'.repeat(30), birthDate: '1985-01-01', licenseDate: '2010-01-01',
+                }],
             }],
             users: [{ id: 'u1', verification_status: 'not_submitted', full_name: 'Ana' }],
         })

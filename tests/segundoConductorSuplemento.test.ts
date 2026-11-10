@@ -135,7 +135,7 @@ describe('Motor de precios: línea del 2º conductor', () => {
 // ============================================================
 
 const companion = (fullName: string, dniNie: string): Row => ({ fullName, dniNie, birthDate: '', isSecondDriver: false, licenseDate: '' })
-const DRIVER: Row = { fullName: 'Luis Pérez', dniNie: 'AB123456', birthDate: '1985-01-01', licenseDate: '2010-01-01' }
+const DRIVER: Row = { fullName: 'Luis Pérez', dniNie: 'AB123456', birthDate: '1985-01-01', licenseDate: '2010-01-01', driverLicenseId: 'B-4455667' }
 
 describe('Checkout: regla única del 2º conductor', () => {
     let flows: ReturnType<typeof installFlows>

@@ -133,6 +133,7 @@ export default function BookingWizardClient({
             birthDate: '',
             isSecondDriver: false,
             licenseDate: '',
+            driverLicenseId: '',
         })),
         secondDriverSoloEnabled: false,
         secondDriverSolo: {
@@ -140,6 +141,7 @@ export default function BookingWizardClient({
             dniNie: '',
             birthDate: '',
             licenseDate: '',
+            driverLicenseId: '',
         },
         address: '',
         city: '',
@@ -295,6 +297,7 @@ export default function BookingWizardClient({
                         birthDate: '',
                         isSecondDriver: false,
                         licenseDate: '',
+                        driverLicenseId: '',
                     })
                 }
             } else if (updatedPassengers.length > needed) {

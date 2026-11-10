@@ -178,6 +178,8 @@ describe('N3: UPDATE y DELETE en bookings', () => {
       'app/api/admin/approve-booking/route.ts',
       'app/api/admin/bookings/expire/route.ts',
       'app/api/admin/bookings/resolve-payment-alert/route.ts',
+      // Completa la ficha del segundo conductor de UNA reserva: requireAdmin(), exige la clave de servicio válida y filtra por `id`
+      'app/api/admin/bookings/second-driver/route.ts',
       'app/api/admin/handovers/route.ts',
       'app/api/admin/refund/route.ts',
       'app/api/admin/ses-hospedajes/transmit/route.ts',

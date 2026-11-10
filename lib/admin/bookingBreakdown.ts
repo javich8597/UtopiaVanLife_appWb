@@ -1,4 +1,4 @@
-import { isSecondDriverFlag, personDocument } from '../booking/checkoutRules'
+import { bookingSecondDriver } from '../booking/secondDriver'
 
 /**
  * Desglose económico de una reserva tal y como lo enseña el backoffice.
@@ -57,31 +57,28 @@ export interface AdminSecondDriver {
     supplement: number
 }
 
-function passengerSecondDriver(passengers: unknown): Row | null {
-    if (!Array.isArray(passengers)) return null
-    return asRow(passengers.find(isSecondDriverFlag))
-}
-
 /**
  * Segundo conductor DE LA RESERVA, o null si no lleva ninguno.
  *
- * La persona sale de `passengers` (el acompañante con `isSecondDriver`), nunca del perfil del
- * cliente: una cuenta tiene varias reservas y solo algunas llevan segundo conductor. El importe sale
- * de `pricing_breakdown`.
+ * Quién es lo decide `bookingSecondDriver` (lib/booking/secondDriver.ts), la MISMA regla que usan el
+ * contrato y la subida de documentos: columnas `second_driver_*` de la reserva, luego `passengers`,
+ * luego el desglose cobrado. Nunca el perfil del cliente: una cuenta tiene varias reservas y solo
+ * algunas llevan segundo conductor. El importe sale de `pricing_breakdown`.
+ *
+ * Si se cobró suplemento pero no consta quién (ni columnas, ni ficha, ni bandera), la línea se
+ * enseña igualmente sin nombre: ocultarla dejaría el desglose por debajo del Total Abonado.
  */
 export function adminBookingSecondDriver(booking: unknown): AdminSecondDriver | null {
-    const row = asRow(booking)
-    if (!row) return null
+    if (!asRow(booking)) return null
     const b = breakdownOf(booking)
-
-    const ficha = passengerSecondDriver(row.passengers) ?? passengerSecondDriver(b.passengers)
-    if (!ficha && b.secondDriver !== true) return null
-
     const supplement = cents(money(b.secondDriverSupplement))
-    const rawName = ficha?.fullName ?? ficha?.full_name ?? ficha?.name
+
+    const driver = bookingSecondDriver(booking)
+    if (!driver && supplement <= 0) return null
+
     return {
-        fullName: typeof rawName === 'string' ? rawName.trim() : '',
-        document: ficha ? personDocument(ficha) : '',
+        fullName: driver?.fullName ?? '',
+        document: driver?.document ?? '',
         included: supplement === 0,
         ratePerDay: money(b.secondDriverRatePerDay),
         supplement,

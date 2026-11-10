@@ -1,3 +1,4 @@
 - [Comprobaciones del entorno](project_entorno_comprobaciones.md) — lint por archivos, sin build contra la base real, mutar en copia aislada
 - [Segundo conductor](project_segundo_conductor.md) — 5 €/día con Estándar, incluido con Flex, máximo uno; ya no es solo de Flex
-- [El 2º conductor es de la reserva](project_segundo_conductor_reserva.md) — la reserva manda sobre el perfil: contrato, subida y columnas nuevas (migración sin aplicar)
+- [El 2º conductor es de la reserva](project_segundo_conductor_reserva.md) — nombre, documento y carnet solo de la ficha de la reserva; contrato, subida y columnas nuevas (migración sin aplicar)
+- [La entrega cierra los plazos](feedback_entrega_cierra_plazos.md) — ata los cierres a un hecho real, no a días inventados; «entrega cerrada» es `completed_at`

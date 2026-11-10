@@ -1,5 +1,6 @@
 import {
     formatPhoneWithPrefix,
+    isValidLicenseIdText,
     isValidPersonName,
     isValidPhoneText,
     isValidTypedAddress,
@@ -92,6 +93,12 @@ export interface BookingPassenger {
     birthDate?: string // YYYY-MM-DD (con cálculo reactivo de edad)
     isSecondDriver?: boolean
     licenseDate?: string // YYYY-MM-DD (requerido si isSecondDriver)
+    /**
+     * Número del permiso de conducir, obligatorio si `isSecondDriver` (decisión de Javier,
+     * 2026-11-09). Los tres datos de esa persona (nombre, documento y nº de carnet) salen de la
+     * ficha de la reserva: si el asistente no lo pide, el contrato imprime siempre «Pendiente».
+     */
+    driverLicenseId?: string
 }
 
 export interface Step5Customer {
@@ -390,6 +397,24 @@ export function normalizeStep5Draft<T extends Partial<Step5Customer>>(
     return { ...draft, travelersCount: Math.max(1, Math.floor(travelers)) }
 }
 
+/**
+ * Número de permiso de conducir del 2º conductor: obligatorio desde el paso 5 (decisión de Javier,
+ * 2026-11-09) y con la misma regla que la subida de documentación (`isValidLicenseIdText`).
+ *
+ * Los tres datos de esa persona (nombre, documento y nº de carnet) salen de la ficha de la reserva:
+ * si el asistente no lo pide, ninguna ficha lo trae y el contrato imprime siempre «Pendiente».
+ */
+export function validateSecondDriverLicenseId(value: string | undefined | null): { isValid: boolean; error?: string } {
+    const sent = typeof value === 'string' ? value.trim() : ''
+    if (!sent) {
+        return { isValid: false, error: 'Número del permiso de conducir obligatorio: es el que se autoriza en el contrato' }
+    }
+    if (!isValidLicenseIdText(sent)) {
+        return { isValid: false, error: 'El número del permiso de conducir solo puede tener letras, números y los signos . / - (entre 3 y 30 caracteres)' }
+    }
+    return { isValid: true }
+}
+
 export function validateStep5(
     data: Step5Customer,
     maxCamperBerths: number = 4
@@ -504,6 +529,11 @@ export function validateStep5(
                         errors[`passenger_${pNum}_licenseDate`] = `2º Conductor (Pasajero ${pNum}): ${licCheck.error}`
                     }
                 }
+                // Nº de carnet: tan obligatorio como las fechas, y es lo que imprime el contrato
+                const licIdCheck = validateSecondDriverLicenseId(passenger.driverLicenseId)
+                if (!licIdCheck.isValid) {
+                    errors[`passenger_${pNum}_driverLicenseId`] = `2º Conductor (Pasajero ${pNum}): ${licIdCheck.error}`
+                }
             }
         })
     }
@@ -540,6 +570,11 @@ export function validateStep5(
             if (!licCheck.isValid) {
                 errors.secondDriverSolo_licenseDate = `2º Conductor: ${licCheck.error}`
             }
+        }
+        // Nº de carnet: tan obligatorio como las fechas, y es lo que imprime el contrato
+        const soloLicIdCheck = validateSecondDriverLicenseId(sec.driverLicenseId)
+        if (!soloLicIdCheck.isValid) {
+            errors.secondDriverSolo_driverLicenseId = `2º Conductor: ${soloLicIdCheck.error}`
         }
     }
 

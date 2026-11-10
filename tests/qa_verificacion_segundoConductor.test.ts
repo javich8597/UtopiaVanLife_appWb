@@ -33,7 +33,7 @@ const RAW_CUSTOMER: Row = {
 const sentCustomer = (raw: Row): Row => ({ ...raw, phone: formatPhoneWithPrefix(String(raw.phone), String(raw.phoneCountryCode)) })
 const companion = (fullName: string, dniNie: string): Row => ({ fullName, dniNie, birthDate: '', licenseDate: '', isSecondDriver: false })
 /** Ficha completa de 2º conductor: 25 años cumplidos y carnet B de más de 2 años */
-const DRIVER: Row = { fullName: 'Luis Pérez', dniNie: 'AB123456', birthDate: '1985-01-01', licenseDate: '2010-01-01' }
+const DRIVER: Row = { fullName: 'Luis Pérez', dniNie: 'AB123456', birthDate: '1985-01-01', licenseDate: '2010-01-01', driverLicenseId: 'B-4455667' }
 
 /** step5Payload: 2099-06-01 tarde → 2099-06-08 mañana = 7 noches y 7 días */
 const DAYS = 7
@@ -331,12 +331,20 @@ describe('Subida: la reserva que autoriza al 2º conductor', () => {
     let flows: ReturnType<typeof installFlows>
     const silenced = { error: console.error, warn: console.warn }
 
+    // Las fechas del viaje y las de la ficha son las que guarda el checkout: sin ellas la subida ya
+    // no autoriza nada (un viaje devuelto no admite documentación y los 25 años se recomprueban
+    // contra la recogida). Lo que cada test comprueba no cambia
     const bookingRow = (overrides: Row = {}): Row => ({
         id: 'b1', user_id: 'u1', payment_intent_id: '1234abcd5678', payment_status: 'paid',
-        status: 'confirmed', passengers: [], ...overrides,
+        status: 'confirmed', start_date: '2099-06-01', end_date: '2099-06-08', passengers: [], ...overrides,
     })
     const withDriver = (overrides: Row = {}) => bookingRow({
-        passengers: [{ fullName: 'Luis Pérez', dniNie: 'AB123456', isSecondDriver: true }], ...overrides,
+        passengers: [{
+            fullName: 'Luis Pérez', dniNie: 'AB123456', isSecondDriver: true,
+            // El nº de carnet también sale solo de la ficha (decisión del 2026-11-09, hallazgo N2)
+            driverLicenseId: 'B-99', birthDate: '1985-01-01', licenseDate: '2010-01-01',
+        }],
+        ...overrides,
     })
 
     const uploadForm = () => {

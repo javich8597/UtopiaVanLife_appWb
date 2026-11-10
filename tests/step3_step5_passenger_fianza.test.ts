@@ -109,6 +109,7 @@ describe('Wizard Step 3 & Step 5 — Fianza Selection & Passengers Suite', () =>
                         birthDate: '1996-04-12', // 30 years old >= 25
                         isSecondDriver: true,
                         licenseDate: '2018-02-10', // 8 years experience >= 2
+                        driverLicenseId: 'B-7001234',
                     },
                 ],
             }
@@ -168,6 +169,7 @@ describe('Wizard Step 3 & Step 5 — Fianza Selection & Passengers Suite', () =>
                     dniNie: '87654321X',
                     birthDate: '1992-07-22',
                     licenseDate: '2014-09-15',
+                    driverLicenseId: 'B-7001234',
                 },
             }
             const res = validateStep5(customer, 4)

@@ -7,7 +7,8 @@ const allChecked = (kind: 'pickup' | 'return') => Object.fromEntries(CHECKLIST[k
 describe('Entrega de la camper: pasos obligatorios', () => {
   it('una entrega vacía tiene todos los pasos pendientes, empezando por el carnet', () => {
     const missing = missingSteps({ kind: 'pickup' })
-    assert.equal(missing[0], 'Carnet comprobado')
+    // El paso del carnet es del titular: el del segundo conductor tiene el suyo (solo si la reserva lleva uno)
+    assert.equal(missing[0], 'Carnet del titular comprobado')
     assert.equal(missing.length, 6)
   })
 

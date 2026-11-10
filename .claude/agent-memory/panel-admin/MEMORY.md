@@ -1,2 +1,4 @@
 - [Convención de avisos de pago](project_payment_alert_convention.md) — `[PAGO A REVISAR]` en notes, cómo se apaga y de dónde sale el rol admin
 - [Editar archivos CRLF](feedback_edit_crlf_files.md) — evitar heredocs/node -e con cadenas multilínea; usar scripts con Write
+- [Segundo conductor en el panel](project_second_driver_docs_admin.md) — fotos por reserva, recorte, subida anterior, avisos desde Storage
+- [Paso del segundo conductor en la entrega](project_second_driver_handover_step.md) — casillas en checklist jsonb, ficha editable por admin, migraciones sin aplicar

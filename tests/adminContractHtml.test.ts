@@ -74,8 +74,8 @@ describe('Contrato imprimible del admin: segundo conductor', () => {
 
     it('usa las mismas frases que el PDF del cliente', () => {
         const pdf = readFileSync(new URL('../lib/contracts/pdfGenerator.ts', import.meta.url), 'utf8')
-        const withCost = secondDriverSupplementText({ supplement: 35, ratePerDay: 5 })
-        const included = secondDriverSupplementText({ supplement: 0, ratePerDay: 0 })
+        const withCost = secondDriverSupplementText({ supplement: 35, ratePerDay: 5, included: false })
+        const included = secondDriverSupplementText({ supplement: 0, ratePerDay: 0, included: true })
         assert.ok(pdf.includes('Suplemento de segundo conductor contratado:'), 'el PDF cambió la frase del suplemento')
         assert.ok(pdf.includes(included), 'el PDF cambió la frase del segundo conductor incluido')
         assert.ok(withCost.startsWith('Suplemento de segundo conductor contratado:'))

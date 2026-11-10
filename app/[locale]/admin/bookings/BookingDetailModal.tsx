@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { useBodyScrollLock } from '@/lib/ui/useBodyScrollLock'
 import {
   X,
@@ -34,15 +34,20 @@ import {
 import { formatPrice } from '@/lib/pricing/engine'
 import { activePaymentAlerts } from '@/lib/admin/bookingStatus'
 import { adminBookingSecondDriver, bookingFlexDeposit, buildBreakdownLines, resolveBasePrice } from '@/lib/admin/bookingBreakdown'
+import { secondDriverAlerts } from '@/lib/admin/secondDriverAlerts'
+import type { SecondDriverPhotoPresence } from '@/lib/admin/secondDriverDocuments'
 import { buildSesHospedajesReference } from '@/lib/sesHospedajes/xmlGenerator'
 import ApproveActionClient from './ApproveActionClient'
 import RefundActionClient from './RefundActionClient'
+import SecondDriverRecordEditor from './SecondDriverRecordEditor'
 
 interface Props {
   booking: any
   onClose: () => void
   /** Se llama con las notas nuevas cuando el admin marca los avisos de pago como revisados */
   onAlertsReviewed?: (notes: string) => void
+  /** Se llama con las columnas guardadas cuando el admin completa o corrige la ficha del segundo conductor */
+  onSecondDriverSaved?: (patch: Record<string, unknown>) => void
 }
 
 export interface SesSentInfo {
@@ -100,12 +105,26 @@ interface NormalizedExtra {
   price_type?: string
 }
 
-export default function BookingDetailModal({ booking, onClose, onAlertsReviewed }: Props) {
+export default function BookingDetailModal({ booking, onClose, onAlertsReviewed, onSecondDriverSaved }: Props) {
   useBodyScrollLock()
   const [showContractPreview, setShowContractPreview] = useState(false)
   const [copiedRef, setCopiedRef] = useState(false)
   const [reviewing, setReviewing] = useState(false)
   const [reviewError, setReviewError] = useState<string | null>(null)
+
+  // Fotos del segundo conductor que hay de verdad en Storage (null mientras carga o si no se pudo leer)
+  const [secondDriverPhotos, setSecondDriverPhotos] = useState<SecondDriverPhotoPresence | null>(null)
+  const watchedBookingId: string | null = booking?.id && adminBookingSecondDriver(booking) ? String(booking.id) : null
+  useEffect(() => {
+    setSecondDriverPhotos(null)
+    if (!watchedBookingId) return
+    let cancelled = false
+    fetch(`/api/admin/bookings/second-driver-docs?bookingId=${encodeURIComponent(watchedBookingId)}`)
+      .then(res => (res.ok ? res.json() : null))
+      .then(data => { if (!cancelled) setSecondDriverPhotos(data?.photos ?? null) })
+      .catch(() => { if (!cancelled) setSecondDriverPhotos(null) })
+    return () => { cancelled = true }
+  }, [watchedBookingId])
 
   // SES.HOSPEDAJES Estados reactivos
   const [sesSentState, setSesSentState] = useState<SesSentInfo | null>(() =>
@@ -382,6 +401,7 @@ export default function BookingDetailModal({ booking, onClose, onAlertsReviewed 
   const basePrice = resolveBasePrice(booking, { kmSupplement, cancellationSupplement, extrasSubtotal, discountAmount })
   const flexDeposit = bookingFlexDeposit(booking)
   const secondDriver = adminBookingSecondDriver(booking)
+  const secondDriverWarnings = secondDriverAlerts(booking, new Date(), secondDriverPhotos)
   const breakdownLines = buildBreakdownLines(booking, {
     basePrice,
     nights,
@@ -450,6 +470,23 @@ export default function BookingDetailModal({ booking, onClose, onAlertsReviewed 
                 {reviewing ? <Loader2 size={14} className="bm-alert__spin" /> : <Check size={14} />}
                 Marcar como revisado
               </button>
+            </div>
+          )}
+
+          {secondDriverWarnings.length > 0 && (
+            <div className="adm-note adm-note--alert bm-alert" role="alert">
+              <AlertTriangle size={18} aria-hidden="true" />
+              <div className="adm-note__text">
+                <strong>Segundo conductor a revisar</strong>
+                <ul className="bm-alert__list">
+                  {secondDriverWarnings.map(alert => (
+                    <li key={alert.code}>
+                      {alert.severity === 'danger' && <strong>Actuar antes de la entrega: </strong>}
+                      {alert.text}
+                    </li>
+                  ))}
+                </ul>
+              </div>
             </div>
           )}
 
@@ -592,6 +629,7 @@ export default function BookingDetailModal({ booking, onClose, onAlertsReviewed 
                       {secondDriver.fullName || 'Consta segundo conductor, pero faltan sus datos'}
                     </strong>
                     {secondDriver.document && <div className="bm-val bm-val--mono">{secondDriver.document}</div>}
+                    <SecondDriverRecordEditor booking={booking} onSaved={patch => onSecondDriverSaved?.(patch)} />
                     <div className="bm-val-sub">
                       {secondDriver.included
                         ? (flexDeposit.isFlex ? 'Incluido sin coste con la fianza Flex.' : 'Sin suplemento registrado en esta reserva.')

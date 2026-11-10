@@ -172,6 +172,7 @@ export default function Step5Checkout({
                     birthDate: '',
                     isSecondDriver: false,
                     licenseDate: '',
+                    driverLicenseId: '',
                 })
             }
         } else if (updatedPassengers.length > needed) {
@@ -193,6 +194,7 @@ export default function Step5Checkout({
                 birthDate: '',
                 isSecondDriver: false,
                 licenseDate: '',
+                driverLicenseId: '',
             })
         }
 
@@ -223,7 +225,7 @@ export default function Step5Checkout({
     }
 
     const handleSoloSecondDriverChange = (field: keyof BookingPassenger, value: any) => {
-        const currentSec = customer.secondDriverSolo || { fullName: '', dniNie: '', birthDate: '', licenseDate: '' }
+        const currentSec = customer.secondDriverSolo || { fullName: '', dniNie: '', birthDate: '', licenseDate: '', driverLicenseId: '' }
         const nextSec = { ...currentSec, [field]: value }
         const next = { ...customer, secondDriverSolo: nextSec }
         onChange(next)
@@ -665,6 +667,7 @@ export default function Step5Checkout({
                                     birthDate: '',
                                     isSecondDriver: false,
                                     licenseDate: '',
+                                    driverLicenseId: '',
                                 }
                                 const pAge = calculateAge(passenger.birthDate)
                                 const pLicenseYears = calculateLicenseYears(passenger.licenseDate)
@@ -778,6 +781,30 @@ export default function Step5Checkout({
                                             {/* Campos adicionales de carnet B para el 2º conductor */}
                                             {is2ndDriver && (
                                                 <div className="second-driver-license-block">
+                                                    {/* Nº de carnet: es el que se autoriza en el contrato, así que sale de aquí */}
+                                                    <div className="form-field">
+                                                        <label htmlFor={`input-passenger_${pNum}_driverLicenseId`} className="field-label">
+                                                            Número del permiso de conducir (Pasajero {pNum}) *
+                                                        </label>
+                                                        <div className="input-with-icon">
+                                                            <CreditCard size={16} className="input-icon" />
+                                                            <input
+                                                                id={`input-passenger_${pNum}_driverLicenseId`}
+                                                                type="text"
+                                                                className={`field-input field-input--has-icon ${fieldErrors[`passenger_${pNum}_driverLicenseId`] ? 'field-input--error' : ''}`}
+                                                                placeholder="Ej. 12345678-Z"
+                                                                value={passenger.driverLicenseId || ''}
+                                                                onChange={(e) => handlePassengerChange(idx, 'driverLicenseId', e.target.value)}
+                                                                disabled={isSubmitting}
+                                                                required
+                                                            />
+                                                        </div>
+                                                        {fieldErrors[`passenger_${pNum}_driverLicenseId`] ? (
+                                                            <span className="field-error-text">{fieldErrors[`passenger_${pNum}_driverLicenseId`]}</span>
+                                                        ) : (
+                                                            <span className="field-hint">El número que figura en su carnet: es el que autoriza el contrato.</span>
+                                                        )}
+                                                    </div>
                                                     <div className="form-field">
                                                         <label htmlFor={`input-passenger_${pNum}_licenseDate`} className="field-label">
                                                             Fecha expedición carnet de conducir B (Pasajero {pNum}) *
@@ -925,7 +952,32 @@ export default function Step5Checkout({
                                             )}
                                         </div>
 
-                                        <div className="form-field form-field--span-2">
+                                        {/* Nº de carnet: es el que se autoriza en el contrato, así que sale de aquí */}
+                                        <div className="form-field">
+                                            <label htmlFor="input-secondDriverSolo_driverLicenseId" className="field-label">
+                                                Número del permiso de conducir (2º Conductor) *
+                                            </label>
+                                            <div className="input-with-icon">
+                                                <CreditCard size={16} className="input-icon" />
+                                                <input
+                                                    id="input-secondDriverSolo_driverLicenseId"
+                                                    type="text"
+                                                    className={`field-input field-input--has-icon ${fieldErrors.secondDriverSolo_driverLicenseId ? 'field-input--error' : ''}`}
+                                                    placeholder="Ej. 12345678-Z"
+                                                    value={customer.secondDriverSolo?.driverLicenseId || ''}
+                                                    onChange={(e) => handleSoloSecondDriverChange('driverLicenseId', e.target.value)}
+                                                    disabled={isSubmitting}
+                                                    required
+                                                />
+                                            </div>
+                                            {fieldErrors.secondDriverSolo_driverLicenseId ? (
+                                                <span className="field-error-text">{fieldErrors.secondDriverSolo_driverLicenseId}</span>
+                                            ) : (
+                                                <span className="field-hint">El número que figura en su carnet: es el que autoriza el contrato.</span>
+                                            )}
+                                        </div>
+
+                                        <div className="form-field">
                                             <label htmlFor="input-secondDriverSolo_licenseDate" className="field-label">
                                                 Fecha expedición carnet B (2º Conductor) *
                                             </label>

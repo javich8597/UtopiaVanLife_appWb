@@ -2,6 +2,7 @@ import { describe, it } from 'node:test'
 import assert from 'node:assert/strict'
 import { readFileSync } from 'node:fs'
 import { calculatePriceV2, SECOND_DRIVER_RATE_PER_DAY } from '../lib/pricing/engine'
+import { bookingSecondDriver } from '../lib/booking/secondDriver'
 import {
     adminBookingSecondDriver,
     bookingFlexDeposit,
@@ -232,5 +233,105 @@ describe('BookingDetailModal usa el desglose compartido', () => {
 
     it('el segundo conductor no se lee del perfil del cliente', () => {
         assert.doesNotMatch(source, /users\??\.second_driver/)
+    })
+})
+
+/**
+ * QA-SD-10: el panel y el contrato resolvían el segundo conductor con dos reglas distintas. El panel
+ * solo miraba `passengers` y el desglose; el contrato (lib/booking/secondDriver.ts) mira también las
+ * columnas `second_driver_*` de la reserva y `has_second_driver`. Una reserva con el dato solo en
+ * las columnas enseñaba al admin «sin segundo conductor» mientras el contrato nombraba a alguien.
+ */
+describe('QA-SD-10: el panel usa la misma regla que el contrato para el segundo conductor', () => {
+    /** Reserva con segundo conductor cobrado, pero sin ficha en `passengers` ni bandera en el desglose */
+    function onlyColumnsRow(extra: Record<string, unknown> = {}): Record<string, any> {
+        const row = bookingRow({ secondDriver: true, passengers: [LUIS] })
+        row.pricing_breakdown = { ...row.pricing_breakdown, secondDriver: false, passengers: [LUIS] }
+        return { ...row, second_driver_name: 'Marta Peña', second_driver_dni: '99999999R', second_driver_license: 'B-777', ...extra }
+    }
+
+    it('con el dato solo en las columnas second_driver_* de la reserva, el panel lo muestra', () => {
+        const row = onlyColumnsRow()
+        assert.ok(bookingSecondDriver(row), 'precondición: el contrato sí lo ve')
+        const sd = adminBookingSecondDriver(row)
+        assert.ok(sd, 'el panel no ve al segundo conductor que el contrato nombra')
+        assert.equal(sd.fullName, 'Marta Peña')
+        assert.equal(sd.document, '99999999R')
+    })
+
+    it('las columnas de la reserva mandan sobre la ficha de passengers, como en el contrato', () => {
+        const row = onlyColumnsRow({ passengers: [ANA, LUIS] })
+        assert.equal(bookingSecondDriver(row)?.fullName, 'Marta Peña')
+        assert.equal(adminBookingSecondDriver(row)?.fullName, 'Marta Peña')
+    })
+
+    it('has_second_driver sin ficha: consta el segundo conductor aunque no se sepa quién', () => {
+        const row = bookingRow({ secondDriver: true, passengers: [LUIS] })
+        row.pricing_breakdown = { ...row.pricing_breakdown, secondDriver: false, passengers: [LUIS] }
+        row.has_second_driver = true
+        const sd = adminBookingSecondDriver(row)
+        assert.ok(sd)
+        assert.equal(sd.fullName, '')
+        assert.equal(sd.supplement, SECOND_DRIVER_RATE_PER_DAY * NIGHTS)
+    })
+
+    it('la línea del desglose cuadra con el total cuando el dato solo está en las columnas', () => {
+        const row = onlyColumnsRow()
+        const lines = linesFor(row)
+        const line = lines.find(l => l.kind === 'secondDriver')
+        assert.ok(line, 'falta la línea del segundo conductor')
+        assert.match(line.label, /Marta Peña/)
+        assert.equal(sumBreakdownLines(lines), row.total_price)
+    })
+
+    it('el alquiler base de respaldo resta el suplemento aunque la persona solo conste en las columnas', () => {
+        const row = onlyColumnsRow()
+        const stored = row.base_price
+        delete row.base_price
+        delete row.pricing_breakdown.baseRentalTotal
+        delete row.pricing_breakdown.baseTotal
+        const lines = linesFor(row)
+        assert.equal(lines.find(l => l.kind === 'base')?.amount, stored)
+        assert.equal(sumBreakdownLines(lines), row.total_price)
+    })
+
+    it('un suplemento cobrado sin ninguna marca de quién no deja el desglose por debajo del total', () => {
+        const row = bookingRow({ secondDriver: true, passengers: [LUIS] })
+        row.pricing_breakdown = { ...row.pricing_breakdown, secondDriver: false, passengers: [LUIS] }
+        assert.equal(bookingSecondDriver(row), null, 'precondición: el contrato no identifica a nadie')
+        const lines = linesFor(row)
+        assert.ok(lines.some(l => l.kind === 'secondDriver' && l.amount > 0), 'falta la línea con el suplemento cobrado')
+        assert.equal(sumBreakdownLines(lines), row.total_price)
+    })
+
+    it('misma respuesta que el contrato en cada origen del dato (columnas, passengers, desglose, bandera)', () => {
+        const base = () => {
+            const r = bookingRow({ secondDriver: true, passengers: [LUIS] })
+            r.pricing_breakdown = { ...r.pricing_breakdown, secondDriver: false, passengers: [LUIS] }
+            return r
+        }
+        const rows: Array<[string, Record<string, any>]> = [
+            ['columnas', onlyColumnsRow()],
+            ['passengers', bookingRow({ secondDriver: true })],
+            ['passengers del desglose', { ...base(), pricing_breakdown: { ...base().pricing_breakdown, passengers: [ANA, LUIS] } }],
+            ['bandera del desglose', { ...base(), pricing_breakdown: { ...base().pricing_breakdown, secondDriver: true } }],
+            ['has_second_driver', { ...base(), has_second_driver: true }],
+            ['sin segundo conductor', bookingRow()],
+        ]
+        for (const [name, row] of rows) {
+            const contract = bookingSecondDriver(row)
+            const panel = adminBookingSecondDriver(row)
+            assert.equal(Boolean(panel), Boolean(contract), `${name}: el panel y el contrato discrepan en si hay segundo conductor`)
+            if (contract && panel) {
+                assert.equal(panel.fullName, contract.fullName, `${name}: nombre distinto`)
+                assert.equal(panel.document, contract.document, `${name}: documento distinto`)
+            }
+        }
+    })
+
+    it('el desglose no resuelve el segundo conductor por su cuenta: delega en bookingSecondDriver', () => {
+        const src = readFileSync(new URL('../lib/admin/bookingBreakdown.ts', import.meta.url), 'utf8')
+        assert.match(src, /bookingSecondDriver\(/)
+        assert.doesNotMatch(src, /isSecondDriverFlag/)
     })
 })

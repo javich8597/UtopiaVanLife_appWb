@@ -48,7 +48,6 @@ export async function GET(request: Request) {
             id: user.id,
             email: user.email,
             role: profile?.role,
-            user_metadata: user.user_metadata,
             app_metadata: user.app_metadata
           })
 
@@ -96,7 +95,8 @@ export async function GET(request: Request) {
     })
 
   } catch (error: any) {
+    // El detalle va al registro del servidor; al navegador nunca (puede llegar a quien aún no ha demostrado ser admin)
     console.error('Contract API Error:', error)
-    return NextResponse.json({ error: error.message || 'Error interno' }, { status: 500 })
+    return NextResponse.json({ error: 'Error interno' }, { status: 500 })
   }
 }

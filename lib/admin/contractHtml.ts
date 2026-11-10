@@ -1,4 +1,8 @@
 import type { ContractData } from '../contracts/contractEngine'
+import { secondDriverSupplementText } from '../contracts/pdfGenerator'
+
+// La frase del suplemento es la del PDF del cliente: una sola función, no una copia que se desincronice
+export { secondDriverSupplementText }
 
 /**
  * Contrato imprimible del backoffice (`/api/admin/contract`).
@@ -15,21 +19,6 @@ export function escapeHtml(value: unknown): string {
         .replace(/>/g, '&gt;')
         .replace(/"/g, '&quot;')
         .replace(/'/g, '&#39;')
-}
-
-/**
- * Frase del suplemento del segundo conductor, con las mismas palabras que el PDF del cliente.
- * `included` solo lo informa el motor del contrato cuando el desglose cobrado decía «incluido»: un
- * suplemento de 0 € con `included === false` es una reserva sin dato, no una promesa de gratuidad.
- */
-export function secondDriverSupplementText(
-    secondDriver: Pick<NonNullable<ContractData['secondDriver']>, 'supplement' | 'ratePerDay'> & { included?: boolean }
-): string {
-    if (secondDriver.supplement > 0) {
-        return `Suplemento de segundo conductor contratado: ${secondDriver.supplement.toFixed(2)} €${secondDriver.ratePerDay > 0 ? ` (${secondDriver.ratePerDay.toFixed(2)} €/día)` : ''}, ya incluido en el precio total del arrendamiento.`
-    }
-    if (secondDriver.included === false) return 'No consta suplemento de segundo conductor en esta reserva.'
-    return 'Segundo conductor incluido sin coste adicional en la modalidad de fianza contratada.'
 }
 
 export function renderContractHtml(contract: ContractData): string {

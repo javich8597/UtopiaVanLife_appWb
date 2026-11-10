@@ -23,10 +23,15 @@ const NEARBY = 'cccccccc-3333-4333-8333-cccccccccccc'
 const THEIRS = 'dddddddd-4444-4444-8444-dddddddddddd'
 const JPEG = Uint8Array.from([0xff, 0xd8, 0xff, 0xe0, 0, 0, 0, 0])
 
-/** Ficha del 2º conductor tal y como la guarda el checkout en `bookings.passengers` */
+/**
+ * Ficha del 2º conductor tal y como la guarda el checkout en `bookings.passengers`, con su nº de
+ * carnet: desde el 2026-11-09 los tres datos de esa persona solo salen de la ficha, así que un
+ * carnet del formulario que la ficha no trae se rechaza
+ */
 const AUTHORIZED = {
     fullName: 'Luis Pérez',
     dniNie: 'AB123456',
+    driverLicenseId: 'B-99',
     isSecondDriver: true,
     birthDate: '1985-01-01',
     licenseDate: '2010-01-01',
@@ -142,29 +147,76 @@ describe('Subida: de quién es la reserva que autoriza', () => {
         assert.deepEqual(storageUploads(), [])
     })
 
-    // QA-SD-11: el documento se compara contra la ficha de la reserva, pero el NOMBRE que se guarda
-    // en la reserva sale del formulario (`second_driver_name: secondDriverFullName || ...`,
+    // QA-SD-11: el documento se compara contra la ficha de la reserva, pero el NOMBRE que se guardaba
+    // en la reserva salía del formulario (`second_driver_name: secondDriverFullName || ...`,
     // route.ts:331). Con la migración 20261108 aplicada, `bookingSecondDriver` lee las columnas
-    // primero, así que el contrato firmado faculta al nombre que haya teclado el titular con el DNI
-    // de la ficha. El nombre lo validó el checkout: no debería poder reescribirse aquí
-    it('QA-SD-11 el nombre de la ficha de la reserva no debería poder reescribirse desde el formulario', { todo: 'QA-SD-11' }, async () => {
+    // primero, así que el contrato firmado facultaba al nombre que hubiera teclado el titular con el
+    // DNI de la ficha. El nombre lo validó el checkout: ya no puede reescribirse aquí.
+    //
+    // La corrección rechaza el envío (400) en lugar de guardarlo en silencio: el titular tiene que
+    // ver que ese nombre no es el de su reserva. La aserción original esperaba el 200 de entonces
+    it('QA-SD-11 el nombre de la ficha de la reserva no puede reescribirse desde el formulario', async () => {
         fake.tables.bookings = [paidBooking()]
 
         const { status, json } = await upload(form({ secondDriverFullName: 'Pedro Falso' }))
 
-        assert.equal(status, 200, json.error)
-        const [write] = fake.writesTo('bookings')
-        assert.equal(
-            (write.body as Row).second_driver_name,
-            'Luis Pérez',
-            'la reserva pasa a nombrar a otra persona con el DNI de la ficha'
-        )
+        assert.equal(status, 400, 'la reserva pasaba a nombrar a otra persona con el DNI de la ficha')
+        assert.match(json.error, /no coincide/i)
+        assert.deepEqual(fake.writesTo('bookings'), [], 'no se reescribe el nombre de la ficha')
+        assert.deepEqual(fake.writesTo('users'), [])
     })
 
-    // `LIVE_BOOKING_STATUSES` incluye 'completed': un viaje ya terminado sigue autorizando subidas.
-    // Queda pinchado aquí porque es lo que hace hoy, no porque sea evidente que deba ser así
-    it('un viaje ya completado sigue autorizando la subida', async () => {
+    // `LIVE_BOOKING_STATUSES` incluye 'completed': un viaje terminado hace años seguía autorizando
+    // subidas, y los 25 años se comprobaban contra aquella fecha de recogida. Desde el 2026-11-09 lo
+    // decide la ENTREGA (decisión de Javier): con la camper ya entregada no se admite su
+    // documentación, y las fotos no llegan a Storage
+    it('con la entrega de recogida cerrada ya no se admite la subida', async () => {
         fake.tables.bookings = [paidBooking({ status: 'completed', start_date: '2020-06-01', end_date: '2020-06-08' })]
+        fake.tables.handovers = [{
+            id: 'h1', booking_id: fake.tables.bookings[0].id, kind: 'pickup', completed_at: '2020-06-01T15:00:00Z',
+        }]
+
+        const { status, json } = await upload(form({ second_dni_front: new File([JPEG], 'dni.jpg') }))
+
+        assert.equal(status, 400)
+        assert.match(json.error, /ya está entregada/i)
+        assert.deepEqual(storageUploads(), [])
+        assert.deepEqual(bookingPatches(), [])
+    })
+
+    // Regla del 2026-11-09 con el cierre del 2026-11-10: sin ninguna entrega registrada la subida
+    // sigue abierta hasta el día de la devolución, incluido, y ni un día más
+    it('el día de la devolución, sin entrega registrada, sigue autorizando la subida', async () => {
+        fake.tables.bookings = [paidBooking({ status: 'active', start_date: daysAgo(7), end_date: daysAgo(0) })]
+        fake.tables.handovers = []
+
+        const { status, json } = await upload(form())
+
+        assert.equal(status, 200, json.error)
+    })
+
+    it('un viaje ya devuelto sin entrega registrada ya no la autoriza', async () => {
+        fake.tables.bookings = [paidBooking({ status: 'completed', start_date: daysAgo(8), end_date: daysAgo(1) })]
+        fake.tables.handovers = []
+
+        const { status, json } = await upload(form())
+
+        assert.equal(status, 400)
+        assert.match(json.error, /el día de la devolución/i)
+        assert.deepEqual(storageUploads(), [])
+        assert.deepEqual(bookingPatches(), [])
+    })
+/** Día de hace `days` días, para situar un viaje dentro o fuera del plazo */
+function daysAgo(days: number): string {
+    const date = new Date()
+    date.setDate(date.getDate() - days)
+    return date.toISOString().slice(0, 10)
+}
+
+
+    it('un viaje en curso sigue autorizando la subida', async () => {
+        const today = new Date().toISOString().slice(0, 10)
+        fake.tables.bookings = [paidBooking({ status: 'active', start_date: today, end_date: today })]
 
         const { status, json } = await upload(form())
 
@@ -236,7 +288,7 @@ describe('Subida: varias reservas con el mismo 2º conductor', () => {
     // QA-SD-7: sin bookingId ni pedido, la consulta de app/api/upload-driver-docs/route.ts:165-173 no
     // ordena, así que gana la primera fila que devuelva Postgres. Con dos reservas de la misma
     // persona, la ficha y las fotos pueden acabar en la que no toca (y la próxima se queda sin ellas)
-    it('QA-SD-7 sin bookingId debería elegir la reserva de start_date más próxima', { todo: 'QA-SD-7' }, async () => {
+    it('QA-SD-7 sin bookingId elige la reserva de start_date más próxima', async () => {
         const { status, json } = await upload(form({ second_dni_front: new File([JPEG], 'dni.jpg') }))
 
         assert.equal(status, 200, json.error)
@@ -247,7 +299,7 @@ describe('Subida: varias reservas con el mismo 2º conductor', () => {
         )
     })
 
-    it('QA-SD-7 las fotos deberían ir a la carpeta de la reserva próxima', { todo: 'QA-SD-7' }, async () => {
+    it('QA-SD-7 las fotos van a la carpeta de la reserva próxima', async () => {
         await upload(form({ second_dni_front: new File([JPEG], 'dni.jpg') }))
 
         const [sent] = fake.requests.filter(r => r.path.startsWith('/storage/v1/object/documents/'))
@@ -279,7 +331,7 @@ describe('/dashboard/datos: la reserva que enseña el interruptor', () => {
     // 2º conductor (page.tsx:49-69). `LIVE_BOOKING_STATUSES` incluye 'completed', así que un viaje
     // pasado gana a la próxima reserva: el cliente ve al 2º conductor del viaje antiguo y no puede
     // subir la documentación del de la reserva que viene
-    it('QA-SD-8 debería enseñar la reserva próxima, no la más antigua', { todo: 'QA-SD-8' }, () => {
+    it('QA-SD-8 debería enseñar la reserva próxima, no la más antigua', () => {
         const order = PAGE_SOURCE.match(/\.order\('start_date'[^)]*\)/)?.[0] || '(sin orden)'
         assert.notEqual(
             order,
@@ -323,7 +375,7 @@ describe('Contrato: a quién nombra el bloque del 2º conductor', () => {
     // reservas anteriores al cambio) cae en el perfil: contractEngine.ts:640-642 pone el nombre y el
     // DNI de `users.second_driver_*`. El contrato firmado faculta así a una persona que ESTA reserva
     // no registró nunca (puede ser la 2ª conductora de otra reserva del mismo cliente)
-    it('QA-SD-9 no debería nombrar al 2º conductor del perfil en una reserva que no lo registró', { todo: 'QA-SD-9' }, () => {
+    it('QA-SD-9 no nombra al 2º conductor del perfil en una reserva que no lo registró', () => {
         const data = generateContractData(
             booking({ secondDriver: true, secondDriverRatePerDay: 5, secondDriverSupplement: 35 }),
             PROFILE_WITH
@@ -396,7 +448,7 @@ describe('El 2º conductor de la reserva: contrato y admin deberían leer lo mis
     // QA-SD-10: adminBookingSecondDriver solo mira `passengers` y `pricing_breakdown.passengers`
     // (bookingBreakdown.ts:77-78). Con la ficha en las columnas de la reserva, el panel no enseña al
     // 2º conductor que el contrato sí nombra, y su línea desaparece del desglose
-    it('QA-SD-10 el desglose de admin debería ver la ficha de las columnas de la reserva', { todo: 'QA-SD-10' }, () => {
+    it('QA-SD-10 el desglose de admin debería ver la ficha de las columnas de la reserva', () => {
         assert.ok(
             adminBookingSecondDriver(byColumns),
             'el panel no ve al 2º conductor que el contrato nombra: dos resolutores con reglas distintas'

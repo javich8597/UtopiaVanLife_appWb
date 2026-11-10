@@ -7,6 +7,7 @@ import { normalizeVerificationStatus, getAdminClientOrSession } from '@/lib/admi
 import VerificationsClient from './VerificationsClient'
 import VerificationHistory from './VerificationHistory'
 import { resolveCustomerDocumentUrls } from '@/lib/admin/documents'
+import { buildSecondDriverGroups, resolveSecondDriverDocuments, secondDriverDocsNotices } from '@/lib/admin/secondDriverDocuments'
 
 export default async function AdminVerificationsPage() {
     const supabase = await createClient()
@@ -52,8 +53,9 @@ export default async function AdminVerificationsPage() {
     // Próxima salida de cada cliente pendiente, para validar primero a quien sale antes
     const todayStr = new Date().toISOString().split('T')[0]
     const pendingIds = (pendingUsers || []).map((u: any) => u.id)
+    // Mismo acceso que el resto de lecturas de reservas: con la sesión, una política RLS lo dejaría vacío sin avisar
     const { data: upcoming } = pendingIds.length > 0
-        ? await supabase
+        ? await getAdminClientOrSession(supabase)
             .from('bookings')
             .select('user_id, start_date, status')
             .in('user_id', pendingIds)
@@ -65,13 +67,34 @@ export default async function AdminVerificationsPage() {
     const nextDepartureOf = (userId: string) =>
         (upcoming || []).find((b: any) => b.user_id === userId)?.start_date || null
 
-    // Resolve document URLs for each pending user
+    // El segundo conductor pertenece a la RESERVA: sus fotos están en documents/<cliente>/<reserva>/.
+    // `select('*')` porque las columnas second_driver_* de bookings pueden no estar aplicadas todavía.
+    // Con el mismo acceso que Storage y que el resto de pantallas del backoffice: con la sesión, una
+    // política que no deje al admin leer reservas ajenas devolvería vacío y todo saldría sin nombre
+    const { data: clientBookings, error: clientBookingsErr } = pendingIds.length > 0
+        ? await getAdminClientOrSession(supabase).from('bookings').select('*').in('user_id', pendingIds)
+        : { data: [] as any[], error: null }
+    if (clientBookingsErr) console.warn('No se pudieron leer las reservas de los clientes pendientes:', clientBookingsErr.message)
+    // Si la lectura falla se dice en la pantalla, no solo en el registro del servidor
+    const bookingsFailedNotice = clientBookingsErr
+        ? ['No se pudieron leer las reservas de este cliente: no se muestran las fotos ni los datos de su segundo conductor. No valides sin comprobarlos en la ficha del cliente.']
+        : null
+
+    // Resolve document URLs for each pending user (titular + segundo conductor de cada reserva)
     const usersWithDocs = await Promise.all(
-        (pendingUsers || []).map(async (user: any) => ({
-            ...user,
-            nextDepartureOn: nextDepartureOf(user.id),
-            ...(await resolveCustomerDocumentUrls(supabaseAdmin, user.id)),
-        }))
+        (pendingUsers || []).map(async (user: any) => {
+            const userBookings = (clientBookings || []).filter((b: any) => b.user_id === user.id)
+            const docs = bookingsFailedNotice
+                ? null
+                : await resolveSecondDriverDocuments(supabaseAdmin, user.id, userBookings)
+            return {
+                ...user,
+                nextDepartureOn: nextDepartureOf(user.id),
+                ...(await resolveCustomerDocumentUrls(supabaseAdmin, user.id)),
+                secondDriverGroups: docs ? buildSecondDriverGroups(docs.folders, userBookings) : [],
+                secondDriverNotices: docs ? secondDriverDocsNotices(docs) : bookingsFailedNotice,
+            }
+        })
     )
 
     const in7 = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString().split('T')[0]

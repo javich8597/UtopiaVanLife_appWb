@@ -9,18 +9,23 @@ import { ContractData } from './contractEngine'
  * basta: en una reserva anterior a este cambio significa "sin dato", y con la fianza Estándar el 2º
  * conductor se cobra, así que ahí no se afirma ni cobro ni gratuidad.
  *
+ * `included` es obligatorio y no tiene valor por defecto: con `supplement === 0` y la clave ausente,
+ * el contrato afirmaba una gratuidad que nadie había guardado.
+ *
  * `lib/admin/contractHtml.ts` toma la misma decisión con las mismas palabras para el contrato
  * imprimible del backoffice: los dos textos se comparan en tests/contracts/segundoConductorContrato.test.ts.
  */
 export function secondDriverSupplementText(
-  secondDriver: Pick<NonNullable<ContractData['secondDriver']>, 'supplement' | 'ratePerDay'> & { included?: boolean }
+  secondDriver: Pick<NonNullable<ContractData['secondDriver']>, 'supplement' | 'ratePerDay' | 'included'>
 ): string {
   if (secondDriver.supplement > 0) {
     const rate = secondDriver.ratePerDay > 0 ? ` (${secondDriver.ratePerDay.toFixed(2)} €/día)` : ''
     return `Suplemento de segundo conductor contratado: ${secondDriver.supplement.toFixed(2)} €${rate}, ya incluido en el precio total del arrendamiento.`
   }
-  if (secondDriver.included === false) return 'No consta suplemento de segundo conductor en esta reserva.'
-  return 'Segundo conductor incluido sin coste adicional en la modalidad de fianza contratada.'
+  if (secondDriver.included === true) {
+    return 'Segundo conductor incluido sin coste adicional en la modalidad de fianza contratada.'
+  }
+  return 'No consta suplemento de segundo conductor en esta reserva.'
 }
 
 /** Fila "Segundo Conductor" de las condiciones particulares */

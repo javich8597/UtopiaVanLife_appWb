@@ -27,7 +27,7 @@ function CatalogContent() {
 
     const [campers, setCampers] = useState<any[]>([])
     const [loading, setLoading] = useState(true)
-    const [filterModel, setFilterModel] = useState<'all' | 'space' | 'neo'>('all')
+    const [filterModel, setFilterModel] = useState<string>('all')
 
     const getDemoCampers = () => [
         {
@@ -62,7 +62,7 @@ function CatalogContent() {
         if (from) params.set('from', from)
         if (to) params.set('to', to)
 
-        fetch(`/api/availability?${params.toString()}`)
+        fetch(`/api/availability?${params.toString()}`, { cache: 'no-store' })
             .then(r => r.json())
             .then(data => {
                 if (!data.campers || data.campers.length === 0) {
@@ -107,22 +107,26 @@ function CatalogContent() {
                     onClick={() => setFilterModel('all')}
                     className={`catalog__filter-btn ${filterModel === 'all' ? 'catalog__filter-btn--active' : ''}`}
                 >
-                    <span>Toda la flota (2)</span>
+                    <span>Toda la flota ({campers.length || 2})</span>
                 </button>
-                <button
-                    type="button"
-                    onClick={() => setFilterModel('space')}
-                    className={`catalog__filter-btn ${filterModel === 'space' ? 'catalog__filter-btn--active' : ''}`}
-                >
-                    <span>SPACE · Máximo Confort & Cama Elevable (2 Pax)</span>
-                </button>
-                <button
-                    type="button"
-                    onClick={() => setFilterModel('neo')}
-                    className={`catalog__filter-btn ${filterModel === 'neo' ? 'catalog__filter-btn--active' : ''}`}
-                >
-                    <span>NEO · Gran Maletero & Polivalencia (2-3 Pax)</span>
-                </button>
+                {(campers.length > 0 ? campers : getDemoCampers()).map(c => {
+                    const seats = c.specs?.seats || (c.slug === 'space' ? 2 : 3)
+                    const labelSuffix = c.slug === 'space'
+                        ? `Máximo Confort & Cama Elevable (${seats} Pax)`
+                        : c.slug === 'neo'
+                            ? `Gran Maletero & Polivalencia (${seats} Pax)`
+                            : `${seats} Plazas`
+                    return (
+                        <button
+                            key={c.slug}
+                            type="button"
+                            onClick={() => setFilterModel(c.slug)}
+                            className={`catalog__filter-btn ${filterModel === c.slug ? 'catalog__filter-btn--active' : ''}`}
+                        >
+                            <span>{c.name} · {labelSuffix}</span>
+                        </button>
+                    )
+                })}
             </div>
 
             {/* Centered Grid Container */}

@@ -15,6 +15,7 @@ import {
     SeasonPeriod,
     DurationDiscount,
 } from '@/lib/pricing/engine'
+import { resolveCamperContent } from '@/lib/campers/camperCatalog'
 import CamperLightboxModal from '@/components/campers/CamperLightboxModal'
 
 interface Step2ModelProps {
@@ -25,19 +26,6 @@ interface Step2ModelProps {
     seasonPeriods: SeasonPeriod[]
     durationDiscounts?: DurationDiscount[]
     onSelectCamper: (camper: WizardCamper) => void
-}
-
-const MODEL_HIGHLIGHTS: Record<string, string[]> = {
-    neo: [
-        'Cama doble fija + cama auxiliar (3 plazas)',
-        'Gran maletero + Baño con WC y ducha',
-        'Sistema eléctrico Pro 540Ah + A/C 12V Dometic',
-    ],
-    space: [
-        'Cama elevable + cama interbanco (2 plazas)',
-        'Máximo espacio interior diurno + Baño con WC y ducha',
-        'Sistema eléctrico Pro 540Ah + A/C 12V Dometic',
-    ],
 }
 
 export default function Step2Model({
@@ -164,12 +152,13 @@ export default function Step2Model({
                     const status = availabilityMap[model.slug]
                     const isAvailable = status ? status.isAvailable : true
                     const canSelect = isSelected || isAvailable
-                    const gallery = getCamperGalleryImages(model)
+                    const resolved = resolveCamperContent(model)
+                    const gallery = resolved.galleryImages
                     const nightlyPrice = getNightlyPrice(model)
                     const rangeSubtotal = getModelRangeSubtotal(model)
                     const seats = model.specs?.seats || (model.slug === 'space' ? 2 : 3)
                     const beds = model.specs?.beds || (model.slug === 'space' ? 2 : 3)
-                    const highlights = MODEL_HIGHLIGHTS[model.slug.toLowerCase()] || MODEL_HIGHLIGHTS.neo
+                    const highlights = resolved.card.wizardHighlights
 
                     return (
                         <div

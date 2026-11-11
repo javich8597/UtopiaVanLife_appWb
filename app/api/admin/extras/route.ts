@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server'
+import { revalidatePath } from 'next/cache'
 import { createClient as createServerClient } from '@/lib/supabase/server'
 import { isAdminUser, getAdminClientOrSession } from '@/lib/admin/auth'
 
@@ -70,6 +71,7 @@ export async function POST(request: Request) {
       description_en,
       price,
       price_type,
+      category,
       icon,
       is_active,
     } = body
@@ -92,6 +94,7 @@ export async function POST(request: Request) {
       description_en: description_en?.trim() || null,
       price: parsedPrice,
       price_type: validPriceType,
+      category: typeof category === 'string' && category.trim() ? category.trim() : 'Equipamiento',
       icon: icon?.trim() || 'package',
       is_active: is_active !== undefined ? Boolean(is_active) : true,
     }
@@ -105,6 +108,10 @@ export async function POST(request: Request) {
     if (insertError) {
       throw new Error(`Error al crear el extra: ${insertError.message}`)
     }
+
+    try {
+      revalidatePath('/', 'layout')
+    } catch { /* Safe outside request context */ }
 
     return NextResponse.json({
       success: true,

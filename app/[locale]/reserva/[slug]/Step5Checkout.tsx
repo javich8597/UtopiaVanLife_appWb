@@ -34,6 +34,9 @@ interface Step5CheckoutProps {
     customer: Step5Customer
     onChange: (customer: Step5Customer) => void
     totalPayable: number
+    standardDepositAmount?: number
+    flexDepositAmount?: number
+    secondDriverRatePerDay?: number
     onSuccessfulSubmit?: () => void
 }
 
@@ -64,6 +67,9 @@ export default function Step5Checkout({
     customer,
     onChange,
     totalPayable,
+    standardDepositAmount = 2000,
+    flexDepositAmount = 1000,
+    secondDriverRatePerDay = SECOND_DRIVER_RATE_PER_DAY,
     onSuccessfulSubmit,
 }: Step5CheckoutProps) {
     const locale = useLocale()
@@ -77,11 +83,11 @@ export default function Step5Checkout({
     const currentDeposit: DepositOption = step3.depositOption || customer.depositOption || 'standard_2000'
     /** El bloque del 2º conductor "solo" (y su validación en validateStep5) solo existe con 1 viajero */
     const soloSecondDriverVisible = currentTravelersCount === 1
-    /** Con Flex el 2º conductor va incluido; con Estándar cuesta SECOND_DRIVER_RATE_PER_DAY */
+    /** Con Flex el 2º conductor va incluido; con Estándar cuesta secondDriverRatePerDay */
     const secondDriverIncluded = currentDeposit === 'flex_1000'
     const secondDriverPriceLabel = secondDriverIncluded
         ? 'Incluido sin recargo en tu Seguro Flex.'
-        : `Suplemento de ${SECOND_DRIVER_RATE_PER_DAY} €/día con el Seguro Estándar.`
+        : `Suplemento de ${secondDriverRatePerDay} €/día con el Seguro Estándar.`
 
     // Helpers reactivos para cálculo de edad y antigüedad
     const calculateAge = (birthDate?: string | null): number | null => {
@@ -276,7 +282,7 @@ export default function Step5Checkout({
                 kmPackage: step2.kmPackage,
                 cancellationPolicy: step3.cancellationPolicy,
                 depositOption: currentDeposit,
-                depositAmount: currentDeposit === 'flex_1000' ? 1000 : 2000,
+                depositAmount: currentDeposit === 'flex_1000' ? flexDepositAmount : standardDepositAmount,
                 extrasSelected: step4.selectedExtras.map((e) => ({
                     id: e.id,
                     name: e.name_es,
@@ -701,7 +707,7 @@ export default function Step5Checkout({
                                                         Habilitar a Pasajero {pNum} como 2º conductor autorizado
                                                         {secondDriverIncluded
                                                             ? <span className="driver-toggle-price">incluido</span>
-                                                            : <span className="driver-toggle-price driver-toggle-price--charged">+{SECOND_DRIVER_RATE_PER_DAY} €/día</span>}
+                                                            : <span className="driver-toggle-price driver-toggle-price--charged">+{secondDriverRatePerDay} €/día</span>}
                                                     </span>
                                                     <span className="driver-toggle-sub">
                                                         {secondDriverPriceLabel} Solo un acompañante puede ser 2º conductor.
@@ -791,7 +797,7 @@ export default function Step5Checkout({
                         <div className="form-group-card__header">
                             <UserCheck size={18} className="text-forest" />
                             <h4 className="form-group-card__title">
-                                2º Conductor Autorizado Opcional ({secondDriverIncluded ? 'incluido con Seguro Flex' : `+${SECOND_DRIVER_RATE_PER_DAY} €/día con Seguro Estándar`})
+                                2º Conductor Autorizado Opcional ({secondDriverIncluded ? 'incluido con Seguro Flex' : `+${secondDriverRatePerDay} €/día con Seguro Estándar`})
                             </h4>
                         </div>
                         <p className="deposit-section-intro">
@@ -813,7 +819,7 @@ export default function Step5Checkout({
                                         Añadir datos de un 2º conductor autorizado (opcional)
                                         {secondDriverIncluded
                                             ? <span className="driver-toggle-price">incluido</span>
-                                            : <span className="driver-toggle-price driver-toggle-price--charged">+{SECOND_DRIVER_RATE_PER_DAY} €/día</span>}
+                                            : <span className="driver-toggle-price driver-toggle-price--charged">+{secondDriverRatePerDay} €/día</span>}
                                     </span>
                                     <span className="driver-toggle-sub">
                                         Habilita a otra persona para alternarse al volante con cobertura total del seguro.

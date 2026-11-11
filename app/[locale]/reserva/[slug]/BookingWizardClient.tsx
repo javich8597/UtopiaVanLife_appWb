@@ -27,6 +27,7 @@ import {
     DurationDiscount,
     getMinNightsForDateV2,
 } from '@/lib/pricing/engine'
+import { resolveCamperContent } from '@/lib/campers/camperCatalog'
 import Navbar from '@/components/layout/Navbar'
 import Step1Dates from './Step1Dates'
 import Step2Model from './Step2Model'
@@ -80,6 +81,12 @@ export default function BookingWizardClient({
     locale = 'es',
 }: BookingWizardClientProps) {
     const [activeCamper, setActiveCamper] = useState<WizardCamper>(camper)
+    const resolvedCamper = useMemo(() => resolveCamperContent(activeCamper), [activeCamper])
+    const rentalConfig = resolvedCamper.rental
+    const effectiveAvailableExtras = useMemo(
+        () => (Array.isArray(availableExtras) && availableExtras.length > 0 ? availableExtras : ALLOWED_EXTRAS_CATALOG),
+        [availableExtras]
+    )
     const maxPax = activeCamper.specs?.seats || (activeCamper.slug === 'space' ? 2 : 3)
     const containerRef = useRef<HTMLDivElement>(null)
     const isHydratedRef = useRef(false)
@@ -110,9 +117,9 @@ export default function BookingWizardClient({
         depositOption: initialDepositOption,
     })
 
-    // Step 6 State: Selected Extras
+    // Step 6 State: Selected Extras (enlazado a extras de admin/BD)
     const [step4, setStep4] = useState<Step4Data>({
-        selectedExtras: ALLOWED_EXTRAS_CATALOG
+        selectedExtras: effectiveAvailableExtras
             .filter((extra) => initialExtraIds.includes(extra.id))
             .map((extra) => ({
                 id: extra.id,
@@ -203,9 +210,21 @@ export default function BookingWizardClient({
                         : 'standard_2000'
                     if (draft.step3) setStep3({ ...draft.step3, depositOption: draftDeposit })
                     if (draft.step4 && Array.isArray(draft.step4.selectedExtras)) {
-                        const allowedIds = new Set(ALLOWED_EXTRAS_CATALOG.map((e) => e.id))
+                        const extrasById = new Map(effectiveAvailableExtras.map((e) => [e.id, e]))
                         setStep4({
-                            selectedExtras: draft.step4.selectedExtras.filter((e: any) => e && allowedIds.has(e.id)),
+                            selectedExtras: draft.step4.selectedExtras
+                                .filter((e: any) => e && extrasById.has(e.id))
+                                .map((e: any) => {
+                                    const live = extrasById.get(e.id)!
+                                    return {
+                                        id: live.id,
+                                        name_es: live.name_es || live.name || 'Extra',
+                                        price: Number(live.price) || 0,
+                                        price_type: live.price_type === 'per_day' ? 'per_day' : 'per_rental',
+                                        quantity: Math.max(1, Math.floor(Number(e.quantity) || 1)),
+                                        category: live.category || 'Equipamiento',
+                                    }
+                                }),
                         })
                     }
                     if (draft.step5) {
@@ -424,9 +443,15 @@ export default function BookingWizardClient({
             })),
             depositOption: activeDepositOption,
             secondDriver: step5HasSecondDriver(step5, step5.travelersCount || step1.pax || 1),
-            depositAmount: activeDepositOption === 'flex_1000' ? 1000 : 2000,
+            standardDepositAmount: rentalConfig.standardDepositAmount,
+            flexDepositAmount: rentalConfig.flexDepositAmount,
+            flexDepositRatePerDay: rentalConfig.flexDepositRatePerDay,
+            secondDriverRatePerDay: rentalConfig.secondDriverRatePerDay,
+            depositAmount: activeDepositOption === 'flex_1000'
+                ? rentalConfig.flexDepositAmount
+                : rentalConfig.standardDepositAmount,
         })
-    }, [activeCamper, step1, step2, step3, step4, step5, activeDepositOption, seasonsV2, seasonPeriods, durationDiscounts])
+    }, [activeCamper, rentalConfig, step1, step2, step3, step4, step5, activeDepositOption, seasonsV2, seasonPeriods, durationDiscounts])
 
     // Validación de cada uno de los 7 pasos
     const isCurrentStepValid = useMemo(() => {
@@ -589,11 +614,15 @@ export default function BookingWizardClient({
                                     />
                                 )}
 
-                                {/* Paso 4: Seguro y Fianza (Estándar 2.000 € o Flex 1.000 €) */}
+                                {/* Paso 4: Seguro y Fianza (Estándar o Flex configurados en admin) */}
                                 {currentStep === 4 && (
                                     <Step4Insurance
                                         depositOption={activeDepositOption}
                                         totalDays={totalDays}
+                                        standardDepositAmount={rentalConfig.standardDepositAmount}
+                                        flexDepositAmount={rentalConfig.flexDepositAmount}
+                                        flexDepositRatePerDay={rentalConfig.flexDepositRatePerDay}
+                                        secondDriverRatePerDay={rentalConfig.secondDriverRatePerDay}
                                         onChange={handleDepositChange}
                                     />
                                 )}
@@ -611,8 +640,9 @@ export default function BookingWizardClient({
                                 {currentStep === 6 && (
                                     <Step4Extras
                                         data={step4}
-                                        availableExtras={availableExtras}
+                                        availableExtras={effectiveAvailableExtras}
                                         totalDays={totalDays}
+                                        includedItems={resolvedCamper.included}
                                         onChange={setStep4}
                                     />
                                 )}
@@ -628,6 +658,9 @@ export default function BookingWizardClient({
                                         customer={step5}
                                         onChange={handleStep5Change}
                                         totalPayable={totalPayable}
+                                        standardDepositAmount={rentalConfig.standardDepositAmount}
+                                        flexDepositAmount={rentalConfig.flexDepositAmount}
+                                        secondDriverRatePerDay={rentalConfig.secondDriverRatePerDay}
                                         onSuccessfulSubmit={handleClearDraft}
                                     />
                                 )}

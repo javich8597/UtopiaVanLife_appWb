@@ -120,6 +120,7 @@ export default async function ReservaWizardPage({ params, searchParams }: PagePr
         slug: c.slug || defaultSlug || 'neo',
         name: c.name || (c.slug || defaultSlug || 'NEO').toUpperCase(),
         description_es: c.description_es,
+        thumbnail_url: c.thumbnail_url,
         specs: c.specs,
         base_price_per_night: Number(c.base_price_per_night || c.price_per_night || 110),
         price_per_night: Number(c.price_per_night || c.base_price_per_night || 110),

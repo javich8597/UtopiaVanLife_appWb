@@ -24,7 +24,7 @@ describe('Calculadora de precio: fianza aparte', () => {
     })
 
     it('explica que la fianza no se cobra, con sus dos importes', () => {
-        assert.match(source, /Fianza aparte, no se cobra: retención de 2\.000 € en tarjeta al recoger la camper\. 1\.000 € con la opción Flex \(\+10 €\/día\)\./)
+        assert.match(source, /Fianza aparte, no se cobra: retención de \{formatDepositEuros\(safeDeposit\)\} en tarjeta al recoger la camper\. \{formatDepositEuros\(flexDepositAmount\)\} con la opción Flex \(\+\{flexDepositRatePerDay\} €\/día\)\./)
         assert.doesNotMatch(source, /Incluye \{formatPrice\(breakdown\.deposit\)\}/)
     })
 

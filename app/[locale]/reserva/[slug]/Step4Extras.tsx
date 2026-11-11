@@ -9,6 +9,7 @@ interface Step4ExtrasProps {
     data: Step4Data
     availableExtras: WizardExtraItem[]
     totalDays: number
+    includedItems?: string[]
     onChange: (data: Step4Data) => void
 }
 
@@ -90,13 +91,21 @@ export const ALLOWED_EXTRAS_CATALOG: WizardExtraItem[] = [
 
 export default function Step4Extras({
     data,
+    availableExtras,
     totalDays,
+    includedItems,
     onChange,
 }: Step4ExtrasProps) {
     const [openTooltipId, setOpenTooltipId] = useState<string | null>(null)
     const effectiveDays = Math.max(1, totalDays || 1)
 
-    const effectiveCatalog = ALLOWED_EXTRAS_CATALOG
+    // Usar extras configurados en la base de datos (panel de admin) y fallback al catálogo estático solo si no hay filas
+    const effectiveCatalog = Array.isArray(availableExtras) && availableExtras.length > 0
+        ? availableExtras
+        : ALLOWED_EXTRAS_CATALOG
+    const effectiveIncluded = Array.isArray(includedItems) && includedItems.length > 0
+        ? includedItems
+        : INCLUDED_EQUIPMENT
 
     const isSelected = (extraId: string) => {
         return data.selectedExtras.some((item) => item.id === extraId)
@@ -161,7 +170,7 @@ export default function Step4Extras({
                     <span className="included-block__badge">Incluido</span>
                 </div>
                 <div className="included-chips">
-                    {INCLUDED_EQUIPMENT.map((item, idx) => (
+                    {effectiveIncluded.map((item, idx) => (
                         <span key={idx} className="included-chip">
                             <Check size={12} className="text-forest" />
                             <span>{item}</span>
@@ -190,9 +199,9 @@ export default function Step4Extras({
                             >
                                 <div className="extra-row__info">
                                     <div className="extra-row__title-wrap">
-                                        <span className="extra-row__title">{extra.name_es}</span>
+                                        <span className="extra-row__title">{extra.name_es || extra.name}</span>
 
-                                        {extra.description && (
+                                        {(extra.description || (extra as any).description_es) && (
                                             <div
                                                 className="tooltip-wrapper"
                                                 onMouseEnter={() => setOpenTooltipId(extra.id)}
@@ -209,7 +218,7 @@ export default function Step4Extras({
                                                 <button
                                                     type="button"
                                                     className="info-icon-btn"
-                                                    aria-label={`Más información sobre ${extra.name_es}`}
+                                                    aria-label={`Más información sobre ${extra.name_es || extra.name}`}
                                                     aria-expanded={isTooltipOpen}
                                                 >
                                                     <Info size={13} />
@@ -217,7 +226,7 @@ export default function Step4Extras({
 
                                                 {isTooltipOpen && (
                                                     <div className="tooltip-bubble" role="tooltip">
-                                                        {extra.description}
+                                                        {extra.description || (extra as any).description_es}
                                                     </div>
                                                 )}
                                             </div>

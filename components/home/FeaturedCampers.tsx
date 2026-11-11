@@ -8,81 +8,81 @@ import { useTranslations } from 'next-intl'
 import { useSiteTheme } from '@/lib/theme/siteThemeContext'
 
 const CAMPER_IMAGES = [
-    '/images/campers/neo/neo-ext.png',
-    '/images/campers/uploads/1790382530493-2k_space_landscape_door_closed.jpeg',
+  '/images/campers/neo/neo-ext.png',
+  '/images/campers/uploads/1790382530493-2k_space_landscape_door_closed.jpeg',
 ]
 
 // Static fallback campers
 const demoCampers = [
-    {
-        id: '1', slug: 'neo', name: 'NEO',
-        description_es: 'Camper ideal para dos personas, que se adapta de forma perfecta para 3. Gran maletero, cama doble fija + auxiliar, sistema eléctrico Pro (540Ah litio, 400W solar, Victron 2.000W) y aire acondicionado 12V Dometic.',
-        thumbnail_url: CAMPER_IMAGES[0],
-        specs: { beds: 3, seats: 3, length_m: 5.99 },
-        deposit_amount: 1000,
-        pricePerNight: 120,
-        seasonName: 'Temporada Media',
-        isAvailable: true,
-    },
-    {
-        id: '2', slug: 'space', name: 'SPACE',
-        description_es: 'Camper diseñada para dos personas, primando el máximo confort en todo momento. Cama elevable + interbanco, sistema eléctrico Pro (540Ah litio, 400W solar, Victron 2.000W) y aire acondicionado 12V Dometic.',
-        thumbnail_url: CAMPER_IMAGES[1],
-        specs: { beds: 2, seats: 2, length_m: 5.99 },
-        deposit_amount: 1000,
-        pricePerNight: 140,
-        seasonName: 'Temporada Media',
-        isAvailable: true,
-    },
+  {
+    id: '1', slug: 'neo', name: 'NEO',
+    description_es: 'Camper ideal para dos personas, que se adapta de forma perfecta para 3. Gran maletero, cama doble fija + auxiliar, sistema eléctrico Pro (540Ah litio, 400W solar, Victron 2.000W) y aire acondicionado 12V Dometic.',
+    thumbnail_url: CAMPER_IMAGES[0],
+    specs: { beds: 3, seats: 3, length_m: 5.99 },
+    deposit_amount: 1000,
+    pricePerNight: 120,
+    seasonName: 'Temporada Media',
+    isAvailable: true,
+  },
+  {
+    id: '2', slug: 'space', name: 'SPACE',
+    description_es: 'Camper diseñada para dos personas, primando el máximo confort en todo momento. Cama elevable + interbanco, sistema eléctrico Pro (540Ah litio, 400W solar, Victron 2.000W) y aire acondicionado 12V Dometic.',
+    thumbnail_url: CAMPER_IMAGES[1],
+    specs: { beds: 2, seats: 2, length_m: 5.99 },
+    deposit_amount: 1000,
+    pricePerNight: 140,
+    seasonName: 'Temporada Media',
+    isAvailable: true,
+  },
 ]
 
 export default function FeaturedCampers() {
-    const t = useTranslations('HomePage.FeaturedCampers')
-    const { theme } = useSiteTheme()
-    const [campers, setCampers] = useState(demoCampers)
+  const t = useTranslations('HomePage.FeaturedCampers')
+  const { theme } = useSiteTheme()
+  const [campers, setCampers] = useState(demoCampers)
 
-    useEffect(() => {
-        fetch('/api/availability')
-            .then(r => r.json())
-            .then(data => { if (data.campers?.length > 0) setCampers(data.campers) })
-            .catch(() => { })
-    }, [])
+  useEffect(() => {
+    fetch('/api/availability', { cache: 'no-store' })
+      .then(r => r.json())
+      .then(data => { if (data.campers?.length > 0) setCampers(data.campers) })
+      .catch(() => { })
+  }, [])
 
-    return (
-        <section className="featured section" id="campers">
-            <div className="container">
-                {/* Centered Editorial Header */}
-                <div className="featured__header">
-                    <div className="featured__eyebrow-pill">
-                        <span>{t('eyebrow')}</span>
-                    </div>
-                    <h2 className="featured__title">
-                        {t('title')}
-                    </h2>
-                    <p className="featured__subtitle">
-                        {t('subtitle')}
-                    </p>
-                </div>
+  return (
+    <section className="featured section" id="campers">
+      <div className="container">
+        {/* Centered Editorial Header */}
+        <div className="featured__header">
+          <div className="featured__eyebrow-pill">
+            <span>{t('eyebrow')}</span>
+          </div>
+          <h2 className="featured__title">
+            {t('title')}
+          </h2>
+          <p className="featured__subtitle">
+            {t('subtitle')}
+          </p>
+        </div>
 
-                {/* Centered 2-Column Grid */}
-                <div className="featured__grid-container">
-                    <div className="featured__grid">
-                        {campers.map(c => (
-                            <CamperCard key={c.id} {...c as any} variant={theme === 'light' ? 'light' : 'dark'} />
-                        ))}
-                    </div>
-                </div>
+        {/* Centered 2-Column Grid */}
+        <div className="featured__grid-container">
+          <div className="featured__grid">
+            {campers.map(c => (
+              <CamperCard key={c.id} {...c as any} variant={theme === 'light' ? 'light' : 'dark'} />
+            ))}
+          </div>
+        </div>
 
-                {/* Bottom Centered Link */}
-                <div className="featured__cta">
-                    <Link href="/campers" className="featured__view-all-btn">
-                        <span>{t('viewAll')}</span>
-                        <ArrowRight size={16} className="featured__btn-arrow" />
-                    </Link>
-                </div>
-            </div>
+        {/* Bottom Centered Link */}
+        <div className="featured__cta">
+          <Link href="/campers" className="featured__view-all-btn">
+            <span>{t('viewAll')}</span>
+            <ArrowRight size={16} className="featured__btn-arrow" />
+          </Link>
+        </div>
+      </div>
 
-            <style jsx>{`
+      <style jsx>{`
         .featured {
           background-color: #0B0C0E;
           padding-block: 90px;
@@ -196,6 +196,6 @@ export default function FeaturedCampers() {
           }
         }
       `}</style>
-        </section>
-    )
+    </section>
+  )
 }

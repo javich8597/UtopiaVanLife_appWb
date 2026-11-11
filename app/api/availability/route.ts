@@ -3,6 +3,8 @@ import { createServerClient } from '@supabase/ssr'
 import { getSupabaseAdmin } from '@/lib/supabase/admin'
 import { resolveSeasonForDate, SeasonV2, SeasonPeriod } from '@/lib/pricing/engine'
 
+export const dynamic = 'force-dynamic'
+
 const DEMO_CAMPERS = [
     {
         id: '1', slug: 'neo', name: 'NEO',
@@ -76,7 +78,7 @@ export async function GET(request: Request) {
         })
 
         if (!from || !to) {
-            return NextResponse.json({ campers: campersWithPricing })
+            return NextResponse.json({ campers: campersWithPricing }, { headers: { 'Cache-Control': 'no-store' } })
         }
 
         // RLS oculta las reservas ajenas al visitante anónimo: se leen en servidor, solo el camper_id
@@ -104,7 +106,7 @@ export async function GET(request: Request) {
                 ...c,
                 isAvailable: !unavailableIds.has(c.id),
             })),
-        })
+        }, { headers: { 'Cache-Control': 'no-store' } })
     } catch {
         return NextResponse.json({ campers: DEMO_CAMPERS })
     }

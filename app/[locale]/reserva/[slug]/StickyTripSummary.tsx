@@ -17,8 +17,9 @@ import {
     Package,
     CarFront,
 } from 'lucide-react'
-import { WizardCamper, Step1Data, Step2Data, Step3Data, Step4Data, getCamperGalleryImages } from './types'
+import { WizardCamper, Step1Data, Step2Data, Step3Data, Step4Data } from './types'
 import { PricingBreakdown, formatPrice } from '@/lib/pricing/engine'
+import { resolveCamperContent, formatDepositEuros } from '@/lib/campers/camperCatalog'
 import { format, parseISO } from 'date-fns'
 import { es } from 'date-fns/locale'
 
@@ -33,16 +34,6 @@ interface StickyTripSummaryProps {
     onCloseMobile?: () => void
 }
 
-const INCLUDED_SERVICES = [
-    'Set de limpieza y menaje completo premium',
-    'Almohadas, sábanas y toallas',
-    'Dos sillas de camping para exterior y toldo',
-    '2 máscaras de snorkel',
-    '150 km al día incluidos y gastos de gestión',
-    'Asistencia telefónica durante el viaje (16 h)',
-    'Seguro a todo riesgo con asistencia en viaje (fianza 2.000 € o 1.000 € con Flex)',
-]
-
 export default function StickyTripSummary({
     camper,
     breakdown,
@@ -53,8 +44,14 @@ export default function StickyTripSummary({
     isOpenMobile = false,
     onCloseMobile,
 }: StickyTripSummaryProps) {
-    const gallery = getCamperGalleryImages(camper)
-    const mainImage = gallery[0]?.src || (camper.images && camper.images[0]) || '/images/campers/neo/neo-ext.png'
+    const resolved = resolveCamperContent(camper)
+    const mainImage = resolved.cardImages[0] || resolved.galleryImages[0]?.src || '/images/campers/neo/neo-ext.png'
+    const {
+        standardDepositAmount,
+        flexDepositAmount,
+        flexDepositRatePerDay,
+        included: includedServices,
+    } = resolved.rental
 
     // Bloquear scroll del body cuando el bottom sheet móvil está abierto (AGENTS.md Regla 5)
     useEffect(() => {
@@ -84,7 +81,9 @@ export default function StickyTripSummary({
     const totalPayable = breakdown ? breakdown.payableTotal : 0
     const totalDays = breakdown ? breakdown.totalDays : 0
     const numNights = breakdown ? breakdown.numNights : 0
-    const depositAmount = breakdown ? breakdown.depositAmount : (step3.depositOption === 'flex_1000' ? 1000 : 2000)
+    const depositAmount = breakdown
+        ? breakdown.depositAmount
+        : (step3.depositOption === 'flex_1000' ? flexDepositAmount : standardDepositAmount)
 
     const contentProps: TripSummaryContentProps = {
         camper,
@@ -96,6 +95,8 @@ export default function StickyTripSummary({
         breakdown,
         totalPayable,
         depositAmount,
+        flexDepositRatePerDay,
+        includedServices,
         totalDays,
         numNights,
         formatDateSlot,
@@ -289,6 +290,8 @@ interface TripSummaryContentProps {
     breakdown: PricingBreakdown | null
     totalPayable: number
     depositAmount: number
+    flexDepositRatePerDay: number
+    includedServices: string[]
     totalDays: number
     numNights: number
     formatDateSlot: (dateStr: string, slot: 'morning' | 'afternoon', isDropoff: boolean) => string
@@ -302,6 +305,8 @@ function TripSummaryContent({
     step3,
     breakdown,
     depositAmount,
+    flexDepositRatePerDay,
+    includedServices,
     totalDays,
     numNights,
     formatDateSlot,
@@ -445,7 +450,7 @@ function TripSummaryContent({
                             <ShieldCheck size={13} className="text-forest" />
                             <span>
                                 {step3.depositOption === 'flex_1000'
-                                    ? 'Seguro Flex (+10 €/día)'
+                                    ? `Seguro Flex (+${flexDepositRatePerDay} €/día)`
                                     : 'Seguro Estándar'}
                             </span>
                         </span>
@@ -453,7 +458,7 @@ function TripSummaryContent({
                             {step3.depositOption === 'flex_1000'
                                 ? (breakdown && breakdown.flexDepositSupplement > 0
                                     ? `+${formatPrice(breakdown.flexDepositSupplement)}`
-                                    : '+10 €/día')
+                                    : `+${flexDepositRatePerDay} €/día`)
                                 : 'Incluido'}
                         </span>
                     </div>
@@ -580,7 +585,7 @@ function TripSummaryContent({
             <div className="summary-included-box">
                 <span className="summary-included-title">Incluido en todos los alquileres Utopia:</span>
                 <ul className="summary-included-list">
-                    {INCLUDED_SERVICES.map((item, i) => (
+                    {includedServices.map((item, i) => (
                         <li key={i} className="summary-included-item">
                             <Check size={13} className="text-forest summary-included-icon" />
                             <span>{item}</span>

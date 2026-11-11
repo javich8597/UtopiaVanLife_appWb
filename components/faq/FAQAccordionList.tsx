@@ -15,15 +15,14 @@ import {
   HeartHandshake,
   HelpCircle,
   MessageCircle,
-  ArrowRight,
   Check,
   Zap,
+  type LucideIcon,
 } from 'lucide-react'
 import { useLocale } from 'next-intl'
-import { Link } from '@/i18n/routing'
-import { FAQ_CATEGORIES, FAQ_ITEMS, FAQItem } from '@/lib/data/faqs'
+import { FAQ_CATEGORIES, FAQ_ITEMS } from '@/lib/data/faqs'
 
-const CATEGORY_ICONS: Record<string, any> = {
+const CATEGORY_ICONS: Record<string, LucideIcon> = {
   all: HelpCircle,
   vehiculo: Truck,
   reserva: Calendar,
@@ -80,18 +79,6 @@ export default function FAQAccordionList({
     }))
   }
 
-  const expandAll = () => {
-    const allOpen: Record<string, boolean> = {}
-    displayItems.forEach(item => {
-      allOpen[item.id] = true
-    })
-    setOpenIds(allOpen)
-  }
-
-  const collapseAll = () => {
-    setOpenIds({})
-  }
-
   // Filter items by category and search query
   const filteredItems = useMemo(() => {
     let list = FAQ_ITEMS
@@ -132,6 +119,18 @@ export default function FAQAccordionList({
     const curated = FAQ_ITEMS.filter(item => CURATED_DEFAULT_IDS.includes(item.id))
     return curated.length > 0 ? curated : FAQ_ITEMS.slice(0, 4)
   }, [isSearching, showAll, activeCategory, filteredItems])
+
+  const expandAll = () => {
+    const allOpen: Record<string, boolean> = {}
+    displayItems.forEach(item => {
+      allOpen[item.id] = true
+    })
+    setOpenIds(allOpen)
+  }
+
+  const collapseAll = () => {
+    setOpenIds({})
+  }
 
   const renderFormattedAnswer = (text: string) => {
     const paragraphs = text.split('\n\n')
@@ -196,17 +195,11 @@ export default function FAQAccordionList({
     <div className={`faq-experience ${variant === 'dark' ? 'faq-experience--dark' : ''}`}>
       {/* Header */}
       <div className="faq-header">
-        <div className="faq-eyebrow-pill">
-          <HelpCircle size={13} className="text-forest" />
-          <span>{isEs ? 'PREGUNTAS FRECUENTES · TRANSPARENCIA' : 'FREQUENTLY ASKED QUESTIONS'}</span>
-        </div>
-        <Heading className="faq-title text-display">
-          {title || (isEs ? 'Todo lo que necesitas saber' : 'Everything You Need to Know')}
+        <Heading className="faq-title">
+          {title || (isEs ? 'Preguntas frecuentes' : 'Frequently Asked Questions')}
         </Heading>
-        <p className="faq-subtitle text-body-large">
-          {subtitle || (isEs
-            ? 'Busca cualquier duda sobre fianzas, seguro a todo riesgo, autonomía Victron o pernocta en Mallorca.'
-            : 'Search anything about deposits, full insurance, solar autonomy or traveling in Mallorca.')}
+        <p className="faq-subtitle">
+          {subtitle || (isEs ? 'Todo lo que necesitas saber' : 'Everything you need to know')}
         </p>
       </div>
 
@@ -436,40 +429,6 @@ export default function FAQAccordionList({
         </div>
       )}
 
-      {/* Support & Concierge CTA Card */}
-      <div className="faq-contact-card">
-        <div className="faq-contact-card__glow" />
-        <div className="faq-contact-card__content">
-          <div className="faq-contact-badge">
-            <MessageCircle size={14} />
-            <span>{isEs ? 'ATENCIÓN PERSONALIZADA' : 'DIRECT PERSONAL SUPPORT'}</span>
-          </div>
-          <h3 className="faq-contact-title">
-            {isEs ? '¿Tienes alguna duda que no encuentras?' : 'Have a question not listed here?'}
-          </h3>
-          <p className="faq-contact-desc">
-            {isEs
-              ? 'Respondemos en menos de 15 minutos por WhatsApp para asesorarte con las fechas, normativas de pernocta o detalles de la camper.'
-              : 'We reply in under 15 minutes on WhatsApp to assist you with dates, parking regulations or camper specs.'}
-          </p>
-          <div className="faq-contact-actions">
-            <a
-              href="https://wa.me/34600000000?text=Hola%20Utopia%20Van%20Life,%20tengo%20una%20consulta"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="btn btn-forest"
-            >
-              <MessageCircle size={16} />
-              <span>{isEs ? 'Hablar por WhatsApp' : 'Chat on WhatsApp'}</span>
-            </a>
-            <Link href="/contacto" className="btn btn-outline">
-              <span>{isEs ? 'Enviar email' : 'Send email'}</span>
-              <ArrowRight size={14} />
-            </Link>
-          </div>
-        </div>
-      </div>
-
       <style jsx>{`
         .faq-experience {
           max-width: 860px;
@@ -484,40 +443,43 @@ export default function FAQAccordionList({
           flex-direction: column;
           align-items: center;
           text-align: center;
-          gap: var(--space-3);
+          gap: 14px;
           max-width: 680px;
           margin-inline: auto;
+          margin-bottom: 12px;
         }
 
         .faq-eyebrow-pill {
           display: inline-flex;
           align-items: center;
           gap: 6px;
-          padding: 6px 14px;
-          border-radius: var(--radius-full);
-          background: rgba(45, 58, 45, 0.08);
-          border: 1px solid rgba(45, 58, 45, 0.15);
-          font-size: 0.72rem;
-          font-weight: 600;
-          letter-spacing: 0.08em;
-          color: var(--forest-green);
+          padding: 6px 16px;
+          border-radius: 999px;
+          background: #F7EEDC;
+          border: 1px solid #E8D6B2;
+          font-size: 0.76rem;
+          font-weight: 700;
+          letter-spacing: 0.1em;
+          color: #1A1714;
           text-transform: uppercase;
         }
 
-        .faq-title {
-          font-family: var(--font-serif, serif);
-          font-size: clamp(2rem, 3.8vw, 2.85rem);
-          font-weight: 400;
-          color: var(--black-matte);
-          letter-spacing: -0.02em;
-          line-height: 1.15;
+        :global(.faq-title) {
+          font-family: var(--font-display, inherit);
+          font-size: clamp(2.4rem, 4.5vw, 3.4rem);
+          font-weight: 800;
+          color: #1F1B17;
+          letter-spacing: -0.025em;
+          line-height: 1.12;
+          margin: 0;
         }
 
         .faq-subtitle {
-          color: var(--gray-600);
-          font-size: 1rem;
-          line-height: 1.6;
-          max-width: 580px;
+          color: #5A5248;
+          font-size: 1.05rem;
+          line-height: 1.68;
+          margin: 0;
+          text-wrap: balance;
         }
 
         /* Search Section */
@@ -941,76 +903,6 @@ export default function FAQAccordionList({
           margin-top: 8px;
         }
 
-        /* Concierge Contact Card */
-        .faq-contact-card {
-          position: relative;
-          background: #FFFFFF;
-          color: #1F1B17;
-          border-radius: var(--radius-xl);
-          padding: var(--space-8);
-          overflow: hidden;
-          border: 1px solid #EAE5DD;
-          box-shadow: 0 2px 8px rgba(40, 30, 15, 0.04), 0 12px 28px rgba(40, 30, 15, 0.06);
-          margin-top: var(--space-4);
-        }
-
-        .faq-contact-card__glow {
-          position: absolute;
-          top: -40px;
-          right: -40px;
-          width: 200px;
-          height: 200px;
-          background: radial-gradient(circle, rgba(204, 160, 83, 0.14) 0%, transparent 70%);
-          pointer-events: none;
-        }
-
-        .faq-contact-card__content {
-          position: relative;
-          z-index: 1;
-          display: flex;
-          flex-direction: column;
-          align-items: flex-start;
-          gap: 12px;
-        }
-
-        .faq-contact-badge {
-          display: inline-flex;
-          align-items: center;
-          gap: 6px;
-          font-size: 0.72rem;
-          font-weight: 700;
-          letter-spacing: 0.08em;
-          color: #1A1714;
-          background: #F7EEDC;
-          border: 1px solid #E8D6B2;
-          padding: 5px 12px;
-          border-radius: 999px;
-          text-transform: uppercase;
-        }
-
-        .faq-contact-title {
-          font-family: var(--font-display, inherit);
-          font-size: 1.45rem;
-          font-weight: 700;
-          color: #1F1B17;
-          margin: 0;
-        }
-
-        .faq-contact-desc {
-          color: #5A5248;
-          font-size: 0.92rem;
-          line-height: 1.55;
-          max-width: 600px;
-          margin: 0;
-        }
-
-        .faq-contact-actions {
-          display: flex;
-          flex-wrap: wrap;
-          gap: 12px;
-          margin-top: 8px;
-        }
-
         /* Mobile Responsive */
         @media (max-width: 640px) {
           .faq-card__header {
@@ -1023,35 +915,21 @@ export default function FAQAccordionList({
             flex-direction: column;
             align-items: flex-start;
           }
-          .faq-contact-card {
-            padding: var(--space-6);
-          }
-          .faq-contact-actions {
-            width: 100%;
-          }
-          .faq-contact-actions :global(.btn) {
-            width: 100%;
-            justify-content: center;
-          }
         }
 
         /* ── Dark Luxury Variant (matching Home & Camper Detail) ── */
         .faq-experience--dark .faq-eyebrow-pill {
           background: rgba(204, 160, 83, 0.12);
           border-color: rgba(204, 160, 83, 0.35);
-          color: #CCA053;
+          color: #E8CA7C;
         }
-        .faq-experience--dark .faq-eyebrow-pill :global(.text-forest) {
-          color: #CCA053;
-        }
-        .faq-experience--dark .faq-title {
+        .faq-experience--dark :global(.faq-title) {
           color: #FFFFFF;
-          font-family: var(--font-display, sans-serif);
+          font-family: var(--font-display, inherit);
           font-weight: 800;
-          text-transform: uppercase;
         }
         .faq-experience--dark .faq-subtitle {
-          color: rgba(255, 255, 255, 0.65);
+          color: #94A3B8;
         }
         .faq-experience--dark .faq-search-bar {
           background: #131518;
@@ -1165,29 +1043,6 @@ export default function FAQAccordionList({
         .faq-experience--dark .faq-view-all-btn:hover {
           background: #d8ad5e;
           box-shadow: 0 6px 20px rgba(204, 160, 83, 0.35);
-        }
-        .faq-experience--dark .faq-contact-card {
-          background: linear-gradient(135deg, #1b261e 0%, #111a13 100%);
-          color: #FFFFFF;
-          border-color: rgba(255, 255, 255, 0.08);
-          box-shadow: 0 16px 40px rgba(0, 0, 0, 0.5);
-        }
-        .faq-experience--dark .faq-contact-card__glow {
-          background: radial-gradient(circle, rgba(156, 209, 166, 0.25) 0%, transparent 70%);
-        }
-        .faq-experience--dark .faq-contact-badge {
-          background: transparent;
-          border: none;
-          padding: 0;
-          color: #9cd1a6;
-        }
-        .faq-experience--dark .faq-contact-title {
-          font-family: var(--font-serif, serif);
-          font-weight: 400;
-          color: #FFFFFF;
-        }
-        .faq-experience--dark .faq-contact-desc {
-          color: rgba(255, 255, 255, 0.75);
         }
       `}</style>
     </div>

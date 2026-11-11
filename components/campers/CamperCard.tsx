@@ -3,7 +3,39 @@
 import { useRef, useState } from 'react'
 import { Link } from '@/i18n/routing'
 import Image from 'next/image'
-import { BusFront, Moon, Ruler, ArrowRight, Utensils, ShowerHead, BedDouble, BatteryCharging } from 'lucide-react'
+import {
+  BusFront,
+  Moon,
+  Ruler,
+  ArrowRight,
+  Utensils,
+  ShowerHead,
+  BedDouble,
+  BatteryCharging,
+  Zap,
+  Snowflake,
+  Sun,
+  Shield,
+  Wind,
+} from 'lucide-react'
+import { resolveCamperContent } from '@/lib/campers/camperCatalog'
+
+const CARD_SPEC_ICONS: Record<string, any> = {
+  bus: BusFront,
+  users: BusFront,
+  moon: Moon,
+  utensils: Utensils,
+  shower: ShowerHead,
+  droplets: ShowerHead,
+  ruler: Ruler,
+  bed: BedDouble,
+  battery: BatteryCharging,
+  zap: Zap,
+  snowflake: Snowflake,
+  sun: Sun,
+  shield: Shield,
+  wind: Wind,
+}
 
 interface CamperCardProps {
   id: string
@@ -11,11 +43,13 @@ interface CamperCardProps {
   name: string
   description_es?: string
   thumbnail_url: string
+  images?: string[]
   specs: {
     beds?: number
     seats?: number
     length_m?: number
     year?: number
+    [key: string]: any
   }
   deposit_amount: number
   pricePerNight: number
@@ -32,7 +66,9 @@ export default function CamperCard({
   name,
   description_es,
   thumbnail_url,
+  images,
   specs,
+  deposit_amount,
   pricePerNight,
   seasonName,
   isAvailable = true,
@@ -52,49 +88,23 @@ export default function CamperCard({
       ? '/videos/campers/space/space-complete-tour.mp4'
       : null
 
-  const subtitleTagline = slug === 'neo'
-    ? 'La camper perfecta para quienes buscan equilibrio entre confort, autonomía y libertad.'
-    : slug === 'space'
-      ? 'Más espacio, más comodidad y una experiencia pensada para viajar sin límites.'
-      : (description_es ? (description_es.length > 90 ? `${description_es.slice(0, 87)}...` : description_es) : 'Camper de lujo totalmente equipada')
+  const resolved = resolveCamperContent({
+    slug,
+    name,
+    description_es,
+    thumbnail_url,
+    images,
+    specs,
+    deposit_amount,
+  })
 
-  const formattedLength = specs?.length_m ? `${String(specs.length_m).replace('.', ',')} m` : '5,99 m'
+  const subtitleTagline = resolved.card.tagline
 
-  const summarySpecs = [
-    {
-      icon: BusFront,
-      text: `Plazas de viaje: ${specs?.seats || (slug === 'neo' ? 3 : 2)}`,
-    },
-    {
-      icon: Moon,
-      text: `Plazas para dormir: ${specs?.beds || (slug === 'neo' ? 3 : 2)}`,
-    },
-    {
-      icon: Utensils,
-      text: 'Cocina + nevera 86L',
-    },
-    {
-      icon: ShowerHead,
-      text: 'WC químico y ducha',
-    },
-    {
-      icon: Ruler,
-      text: slug === 'neo' || slug === 'space' ? '5,99 m' : formattedLength,
-    },
-    {
-      icon: BedDouble,
-      text: slug === 'neo'
-        ? 'Doble fija + auxiliar'
-        : slug === 'space'
-          ? 'Elevable + interbanco'
-          : 'Doble confort',
-    },
-    {
-      icon: BatteryCharging,
-      text: 'Gran autonomía: baterías 540Ah y placas solares 400W',
-      wide: true,
-    },
-  ]
+  const summarySpecs = resolved.card.summarySpecs.map(item => ({
+    icon: CARD_SPEC_ICONS[item.icon] || Zap,
+    text: item.text,
+    wide: Boolean(item.wide),
+  }))
 
   const handleMouseEnter = () => {
     if (typeof window !== 'undefined' && !window.matchMedia('(hover: hover)').matches) {
@@ -116,26 +126,10 @@ export default function CamperCard({
 
   const [activeImgIndex, setActiveImgIndex] = useState(0)
 
-  // Curated high-res photo gallery per camper
-  const galleryImages: string[] = (() => {
-    if (slug === 'space') {
-      return [
-        thumbnail_url || '/images/campers/uploads/1790382530493-2k_space_landscape_door_closed.jpeg',
-        '/images/campers/space/interior/space-saloon-rear-doors-open.webp',
-        '/images/campers/space/interior/space-cinema-projector-lounge.webp',
-        '/images/campers/space/interior/space-electric-drop-down-bed.webp',
-      ]
-    }
-    if (slug === 'neo') {
-      return [
-        thumbnail_url || '/images/campers/neo/neo-ext.png',
-        '/images/campers/neo/interior/neo-salon-daylight.webp',
-        '/images/campers/neo/interior/neo-kitchen-wine-cooler.webp',
-        '/images/campers/neo/tech-details/neo-design-hero.webp',
-      ]
-    }
-    return [thumbnail_url || '/images/campers/neo/neo-ext.png']
-  })()
+  // Galería sincronizada desde el panel de administración (portada + galería)
+  const galleryImages: string[] = resolved.cardImages.length > 0
+    ? resolved.cardImages
+    : [thumbnail_url || '/images/campers/neo/neo-ext.png']
 
   const currentImg = galleryImages[activeImgIndex] || galleryImages[0]
 

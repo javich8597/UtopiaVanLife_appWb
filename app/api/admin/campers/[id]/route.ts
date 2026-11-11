@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server'
+import { revalidatePath } from 'next/cache'
 import { createClient as createServerClient } from '@/lib/supabase/server'
 import { isAdminUser, getAdminClientOrSession } from '@/lib/admin/auth'
 
@@ -63,7 +64,7 @@ export async function GET(request: Request, { params }: RouteParams) {
       camper: {
         ...camper,
         pricing: pricing || [],
-        price_per_night: pricing?.[0]?.price_per_night || 120,
+        price_per_night: camper.base_price_per_night || pricing?.[0]?.price_per_night || 120,
       }
     })
   } catch (error: any) {
@@ -132,6 +133,24 @@ export async function PATCH(request: Request, { params }: RouteParams) {
         return NextResponse.json({ error: 'La fianza debe ser un número positivo' }, { status: 400 })
       }
       updatePayload.deposit_amount = parsedDeposit
+    } else if (customSpecs?.rental?.standard_deposit_amount !== undefined) {
+      const parsedStdDeposit = parseFloat(customSpecs.rental.standard_deposit_amount)
+      if (isNaN(parsedStdDeposit) || parsedStdDeposit < 0) {
+        return NextResponse.json({ error: 'La fianza estándar debe ser un número positivo' }, { status: 400 })
+      }
+      updatePayload.deposit_amount = parsedStdDeposit
+    }
+
+    if (customSpecs?.rental && typeof customSpecs.rental === 'object') {
+      for (const field of ['standard_deposit_amount', 'flex_deposit_amount', 'flex_deposit_rate_per_day', 'second_driver_rate_per_day'] as const) {
+        if (customSpecs.rental[field] !== undefined) {
+          const val = parseFloat(customSpecs.rental[field])
+          if (isNaN(val) || val < 0) {
+            return NextResponse.json({ error: `El importe de ${field} debe ser mayor o igual a 0` }, { status: 400 })
+          }
+          customSpecs.rental[field] = val
+        }
+      }
     }
 
     if (is_active !== undefined) {
@@ -239,11 +258,15 @@ export async function PATCH(request: Request, { params }: RouteParams) {
       .eq('id', id)
       .single()
 
+    try {
+      revalidatePath('/', 'layout')
+    } catch { /* Safe outside request context */ }
+
     return NextResponse.json({
       success: true,
       camper: {
         ...finalCamper,
-        price_per_night: targetPrice ? parseFloat(targetPrice) : undefined,
+        price_per_night: finalCamper?.base_price_per_night ?? (targetPrice ? parseFloat(targetPrice) : undefined),
       },
       message: 'Camper actualizada correctamente',
     })
@@ -301,6 +324,10 @@ export async function DELETE(request: Request, { params }: RouteParams) {
         message: `La camper '${camper.name}' tiene reservas asociadas y ha sido archivada (desactivada) en lugar de eliminada.`,
       })
     }
+
+    try {
+      revalidatePath('/', 'layout')
+    } catch { /* Safe outside request context */ }
 
     return NextResponse.json({
       success: true,

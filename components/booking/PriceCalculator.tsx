@@ -5,6 +5,7 @@ import { useRouter } from '@/i18n/routing'
 import { Calendar as CalendarIcon, Users, Plus, Minus, CheckCircle, ChevronDown, AlertCircle, Tag, Check, Info } from 'lucide-react'
 import { calculatePrice, calculatePriceV2, formatPrice, getMinNightsForDate, getMinNightsForDateV2, DaySlot } from '@/lib/pricing/engine'
 import type { Season, SeasonV2, SeasonPeriod, DurationDiscount, Extra } from '@/lib/pricing/engine'
+import { formatDepositEuros } from '@/lib/campers/camperCatalog'
 import BookingCalendar, { BlockedRange } from './BookingCalendar'
 import { BlockedSlot } from '@/lib/booking/availability'
 import { motion, AnimatePresence } from 'framer-motion'
@@ -14,6 +15,9 @@ import { es } from 'date-fns/locale'
 interface PriceCalculatorProps {
   camperSlug: string
   depositAmount: number
+  flexDepositAmount?: number
+  flexDepositRatePerDay?: number
+  secondDriverRatePerDay?: number
   seasons: Season[]
   availableExtras: Extra[]
   initialFrom?: string
@@ -28,6 +32,9 @@ interface PriceCalculatorProps {
 export default function PriceCalculator({
   camperSlug,
   depositAmount,
+  flexDepositAmount = 1000,
+  flexDepositRatePerDay = 10,
+  secondDriverRatePerDay = 5,
   seasons,
   availableExtras,
   initialFrom,
@@ -137,6 +144,10 @@ export default function PriceCalculator({
         periods: seasonPeriods,
         discounts: durationDiscounts || [],
         selectedExtras,
+        standardDepositAmount: safeDeposit,
+        flexDepositAmount,
+        flexDepositRatePerDay,
+        secondDriverRatePerDay,
         depositAmount: safeDeposit
       })
       setBreakdown(result)
@@ -144,7 +155,7 @@ export default function PriceCalculator({
       const result = calculatePrice(start, startSlot, end, endSlot, seasons, selectedExtras, safeDeposit)
       setBreakdown(result)
     }
-  }, [startDate, startSlot, endDate, endSlot, selectedExtras, seasons, safeDeposit, seasonsV2, seasonPeriods, durationDiscounts, camperBasePrice])
+  }, [startDate, startSlot, endDate, endSlot, selectedExtras, seasons, safeDeposit, flexDepositAmount, flexDepositRatePerDay, secondDriverRatePerDay, seasonsV2, seasonPeriods, durationDiscounts, camperBasePrice])
 
   const toggleExtra = (extra: Extra) => {
     setSelectedExtras(prev =>
@@ -493,7 +504,7 @@ export default function PriceCalculator({
       {breakdown && breakdown.numNights > 0 && !isBelowMinNights && (
         <p className="price-calc__subtext-fianza">
           <Info size={13} className="text-forest" aria-hidden="true" />
-          <span>Fianza aparte, no se cobra: retención de 2.000 € en tarjeta al recoger la camper. 1.000 € con la opción Flex (+10 €/día).</span>
+          <span>Fianza aparte, no se cobra: retención de {formatDepositEuros(safeDeposit)} en tarjeta al recoger la camper. {formatDepositEuros(flexDepositAmount)} con la opción Flex (+{flexDepositRatePerDay} €/día).</span>
         </p>
       )}
 

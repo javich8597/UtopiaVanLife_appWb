@@ -156,6 +156,10 @@ export interface CalculatePriceV2Params {
     selectedExtras?: Extra[] | CategorizedExtra[]
     depositOption?: DepositOption
     depositAmount?: number
+    standardDepositAmount?: number
+    flexDepositAmount?: number
+    flexDepositRatePerDay?: number
+    secondDriverRatePerDay?: number
     /** La reserva lleva un 2º conductor autorizado (como máximo uno) */
     secondDriver?: boolean
 }

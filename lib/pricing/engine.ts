@@ -134,7 +134,7 @@ export function resolveDurationDiscount(
 
     const matchedTier = applicable.reduce((best, current) =>
         current.discount_pct > best.discount_pct ? current : best
-    , applicable[0])
+        , applicable[0])
 
     return {
         discountPct: matchedTier.discount_pct,
@@ -164,6 +164,10 @@ export function calculatePriceV2({
     selectedExtras = [],
     depositOption = 'standard_2000',
     depositAmount,
+    standardDepositAmount = 2000,
+    flexDepositAmount = 1000,
+    flexDepositRatePerDay: customFlexRatePerDay = 10,
+    secondDriverRatePerDay: customSecondDriverRatePerDay = SECOND_DRIVER_RATE_PER_DAY,
     secondDriver = false,
 }: CalculatePriceV2Params): PricingBreakdown {
     const sDate = typeof rawStartDate === 'string' ? new Date(rawStartDate) : rawStartDate
@@ -172,14 +176,19 @@ export function calculatePriceV2({
     const baseNights = Math.round((eDate.getTime() - sDate.getTime()) / msPerDay)
 
     const resolvedDepositOption: DepositOption = (depositOption === 'flex_1000' || (depositOption as any) === 'flex') ? 'flex_1000' : 'standard_2000'
+    const resolvedStandardDeposit = typeof standardDepositAmount === 'number' && !isNaN(standardDepositAmount) && standardDepositAmount >= 0 ? standardDepositAmount : 2000
+    const resolvedFlexDeposit = typeof flexDepositAmount === 'number' && !isNaN(flexDepositAmount) && flexDepositAmount >= 0 ? flexDepositAmount : 1000
+    const resolvedFlexRate = typeof customFlexRatePerDay === 'number' && !isNaN(customFlexRatePerDay) && customFlexRatePerDay >= 0 ? customFlexRatePerDay : 10
+    const resolvedSecondDriverRate = typeof customSecondDriverRatePerDay === 'number' && !isNaN(customSecondDriverRatePerDay) && customSecondDriverRatePerDay >= 0 ? customSecondDriverRatePerDay : SECOND_DRIVER_RATE_PER_DAY
+
     const finalDeposit = typeof depositAmount === 'number'
         ? depositAmount
-        : (resolvedDepositOption === 'flex_1000' ? 1000 : 2000)
+        : (resolvedDepositOption === 'flex_1000' ? resolvedFlexDeposit : resolvedStandardDeposit)
 
     const hasSecondDriver = Boolean(secondDriver)
 
     if (baseNights <= 0) {
-        return emptyBreakdown(finalDeposit, Number(camperBasePrice) || 0, resolvedDepositOption, hasSecondDriver)
+        return emptyBreakdown(finalDeposit, Number(camperBasePrice) || 0, resolvedDepositOption, hasSecondDriver, resolvedFlexRate)
     }
 
     const baseCamper = (typeof camperBasePrice === 'number' && !isNaN(camperBasePrice))
@@ -241,13 +250,13 @@ export function calculatePriceV2({
     const cancellationRatePerDay = cancellationPolicy === 'flexible' ? 8 : 0
     const cancellationSupplement = Math.round(cancellationRatePerDay * totalDays * 100) / 100
 
-    // 5. Suplemento Fianza Flex (Estándar 2.000 € fianza = 0 € | Flex 1.000 € fianza = 10.00 €/día * totalDays)
-    const flexDepositRatePerDay = resolvedDepositOption === 'flex_1000' ? 10 : 0
+    // 5. Suplemento Fianza Flex (Estándar vs Flex configurable desde admin)
+    const flexDepositRatePerDay = resolvedDepositOption === 'flex_1000' ? resolvedFlexRate : 0
     const flexDepositSupplement = Math.round(flexDepositRatePerDay * totalDays * 100) / 100
     const includesSecondDriver = resolvedDepositOption === 'flex_1000'
 
-    // 6. Segundo conductor (Flex: incluido, 0 € | Estándar: 5.00 €/día * totalDays)
-    const secondDriverRatePerDay = hasSecondDriver && !includesSecondDriver ? SECOND_DRIVER_RATE_PER_DAY : 0
+    // 6. Segundo conductor (Flex: incluido, 0 € | Estándar: tarifa configurada, por defecto 5 €/día * totalDays)
+    const secondDriverRatePerDay = hasSecondDriver && !includesSecondDriver ? resolvedSecondDriverRate : 0
     const secondDriverSupplement = Math.round(secondDriverRatePerDay * totalDays * 100) / 100
 
     // 7. Extras Categorizados
@@ -509,7 +518,8 @@ function emptyBreakdown(
     depositAmount: number,
     camperBasePrice: number = 0,
     depositOption: DepositOption = 'standard_2000',
-    secondDriver: boolean = false
+    secondDriver: boolean = false,
+    flexRate: number = 10
 ): PricingBreakdown {
     const isFlex = depositOption === 'flex_1000' || (depositOption as any) === 'flex'
     const resolvedOption: DepositOption = isFlex ? 'flex_1000' : 'standard_2000'
@@ -540,7 +550,7 @@ function emptyBreakdown(
         depositOption: resolvedOption,
         depositAmount: numDeposit,
         deposit: numDeposit,
-        flexDepositRatePerDay: isFlex ? 10 : 0,
+        flexDepositRatePerDay: isFlex ? flexRate : 0,
         flexDepositSupplement: 0,
         includesSecondDriver: isFlex,
         secondDriver,

@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server'
+import { revalidatePath } from 'next/cache'
 import { createClient as createServerClient } from '@/lib/supabase/server'
 import { isAdminUser, getAdminClientOrSession } from '@/lib/admin/auth'
 
@@ -77,6 +78,7 @@ export async function PATCH(request: Request, { params }: RouteParams) {
       description_en,
       price,
       price_type,
+      category,
       icon,
       is_active,
     } = body
@@ -117,6 +119,10 @@ export async function PATCH(request: Request, { params }: RouteParams) {
       updatePayload.price_type = price_type
     }
 
+    if (category !== undefined) {
+      updatePayload.category = typeof category === 'string' && category.trim() ? category.trim() : 'Equipamiento'
+    }
+
     if (icon !== undefined) {
       updatePayload.icon = icon
     }
@@ -139,6 +145,10 @@ export async function PATCH(request: Request, { params }: RouteParams) {
     if (updateError) {
       throw new Error(`Error al actualizar el extra: ${updateError.message}`)
     }
+
+    try {
+      revalidatePath('/', 'layout')
+    } catch { /* Safe outside request context */ }
 
     return NextResponse.json({
       success: true,
@@ -212,6 +222,10 @@ export async function DELETE(request: Request, { params }: RouteParams) {
       }
       throw new Error(`Error al eliminar el extra: ${deleteError.message}`)
     }
+
+    try {
+      revalidatePath('/', 'layout')
+    } catch { /* Safe outside request context */ }
 
     return NextResponse.json({
       success: true,

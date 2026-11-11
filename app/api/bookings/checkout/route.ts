@@ -4,6 +4,7 @@ import { NextResponse } from 'next/server'
 import { getSupabaseAdmin } from '@/lib/supabase/admin'
 import { createClient as createServerClient } from '@/lib/supabase/server'
 import { calculatePriceV2 } from '@/lib/pricing/engine'
+import { resolveCamperRentalConfig } from '@/lib/campers/camperCatalog'
 import { CategorizedExtra, KmPackage, CancellationPolicy, DepositOption } from '@/lib/pricing/types'
 import { generateRedsysOrderId, createRedsysPaymentForm, getRedsysConfig, isRedsysLocale } from '@/lib/redsys'
 import {
@@ -656,6 +657,7 @@ export async function POST(req: Request) {
 
         // 6. Cálculo verificado de precios en el servidor (Source of Truth)
         // Se calcula 100% de forma inmutable en el backend mediante calculatePriceV2
+        const rentalConfig = resolveCamperRentalConfig(camper)
         const breakdown = calculatePriceV2({
             startDate,
             pickupSlot,
@@ -671,7 +673,11 @@ export async function POST(req: Request) {
             depositOption,
             secondDriver: hasSecondDriver,
             extrasSelected: verifiedExtras,
-            depositAmount: depositOption === 'flex_1000' ? 1000 : 2000,
+            standardDepositAmount: rentalConfig.standardDepositAmount,
+            flexDepositAmount: rentalConfig.flexDepositAmount,
+            flexDepositRatePerDay: rentalConfig.flexDepositRatePerDay,
+            secondDriverRatePerDay: rentalConfig.secondDriverRatePerDay,
+            depositAmount: depositOption === 'flex_1000' ? rentalConfig.flexDepositAmount : rentalConfig.standardDepositAmount,
         })
 
         if (breakdown.numNights <= 0) {

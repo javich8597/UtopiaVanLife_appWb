@@ -24,7 +24,7 @@ export default async function AdminCampersPage() {
 
         return {
             ...camper,
-            price_per_night: Number(camper.price_per_night || basePrice),
+            price_per_night: Number(camper.base_price_per_night || camper.price_per_night || basePrice),
         }
     })
 
@@ -45,7 +45,7 @@ export default async function AdminCampersPage() {
     const docsByCamper: Record<string, any[]> = {}
     for (const d of docs || []) {
         const { data } = await db.storage.from('vehicle-docs').createSignedUrl(d.file_path, 3600)
-        ;(docsByCamper[d.camper_id] ||= []).push({ ...d, url: data?.signedUrl || null })
+            ; (docsByCamper[d.camper_id] ||= []).push({ ...d, url: data?.signedUrl || null })
     }
 
     return (

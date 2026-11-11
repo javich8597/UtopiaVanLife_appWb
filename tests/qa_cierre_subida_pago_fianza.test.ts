@@ -100,8 +100,8 @@ describe('Paso 5 → checkout → subida: lo que se guarda', () => {
 
     beforeEach(() => {
         flows = installFlows()
-        console.error = () => {}
-        console.warn = () => {}
+        console.error = () => { }
+        console.warn = () => { }
     })
     afterEach(() => { flows.fake.restore(); Object.assign(console, silenced) })
 
@@ -586,7 +586,7 @@ describe('Reintento de pago simultáneo', () => {
         fake.setSession({ id: 'u1', email: 'ana@example.com', aud: 'authenticated' })
     }
 
-    beforeEach(() => { console.error = () => {} })
+    beforeEach(() => { console.error = () => { } })
     afterEach(() => { fake.restore(); console.error = silenced })
 
     async function pay() {
@@ -688,8 +688,8 @@ describe('Subida: multipart real contra la ruta', () => {
             }],
             users: [{ id: 'u1', verification_status: 'not_submitted', full_name: 'Ana' }],
         })
-        console.error = () => {}
-        console.warn = () => {}
+        console.error = () => { }
+        console.warn = () => { }
     })
     afterEach(() => { fake.restore(); Object.assign(console, silenced) })
 
@@ -911,10 +911,10 @@ describe('Fianza', () => {
         assert.equal(breakdown.depositAmount, 2000)
     })
 
-    it('la ficha de la camper pasa 2.000 € en sus dos calculadoras y no lee la fianza de la camper', () => {
+    it('la ficha de la camper pasa la fianza estándar resuelta (2.000 € por defecto) en sus dos calculadoras y no lee camper.deposit_amount directamente', () => {
         const source = readFileSync('app/[locale]/campers/[slug]/CamperDetailClient.tsx', 'utf8')
 
-        assert.equal(source.match(/depositAmount=\{2000\}/g)?.length, 2)
+        assert.ok((source.match(/standardDepositAmount/g)?.length ?? 0) >= 2)
         assert.doesNotMatch(source, /camper\.deposit_amount/)
     })
 
@@ -924,8 +924,8 @@ describe('Fianza', () => {
 
         beforeEach(() => {
             flows = installFlows({ campers: [{ ...NEO, deposit_amount: 1000 }] })
-            console.error = () => {}
-            console.warn = () => {}
+            console.error = () => { }
+            console.warn = () => { }
         })
         afterEach(() => { flows.fake.restore(); Object.assign(console, silenced) })
 

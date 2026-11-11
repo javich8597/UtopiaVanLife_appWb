@@ -4,20 +4,29 @@ import React from 'react'
 import { ShieldCheck, Shield, Lock, PhoneCall, UserCheck, Sparkles } from 'lucide-react'
 import { DepositOption } from './types'
 import { formatPrice, SECOND_DRIVER_RATE_PER_DAY } from '@/lib/pricing/engine'
+import { formatDepositEuros } from '@/lib/campers/camperCatalog'
 
 interface Step4InsuranceProps {
     depositOption: DepositOption
     totalDays: number
+    standardDepositAmount?: number
+    flexDepositAmount?: number
+    flexDepositRatePerDay?: number
+    secondDriverRatePerDay?: number
     onChange: (depositOption: DepositOption) => void
 }
 
 export default function Step4Insurance({
     depositOption,
     totalDays,
+    standardDepositAmount = 2000,
+    flexDepositAmount = 1000,
+    flexDepositRatePerDay = 10,
+    secondDriverRatePerDay = SECOND_DRIVER_RATE_PER_DAY,
     onChange,
 }: Step4InsuranceProps) {
     const effectiveDays = Math.max(1, totalDays || 1)
-    const flexDepositCost = 10 * effectiveDays
+    const flexDepositCost = Math.round(flexDepositRatePerDay * effectiveDays * 100) / 100
     const currentDeposit: DepositOption = depositOption === 'flex_1000' ? 'flex_1000' : 'standard_2000'
 
     const handleSelect = (option: DepositOption) => {
@@ -66,7 +75,7 @@ export default function Step4Insurance({
                         <div className="feature-item">
                             <Lock size={14} className="text-forest" />
                             <div className="feature-item__text">
-                                <span className="feature-item__title">Fianza reembolsable 2.000 €</span>
+                                <span className="feature-item__title">Fianza reembolsable {formatDepositEuros(standardDepositAmount)}</span>
                                 <span className="feature-item__sub">Retención con tarjeta al recoger (no se cobra hoy)</span>
                             </div>
                         </div>
@@ -91,7 +100,7 @@ export default function Step4Insurance({
                             <UserCheck size={14} className="text-forest" />
                             <div className="feature-item__text">
                                 <span className="feature-item__title">1 conductor incluido</span>
-                                <span className="feature-item__sub">Mín. 25 años y 2 años carnet B · 2º conductor +{SECOND_DRIVER_RATE_PER_DAY} €/día</span>
+                                <span className="feature-item__sub">Mín. 25 años y 2 años carnet B · 2º conductor +{secondDriverRatePerDay} €/día</span>
                             </div>
                         </div>
                     </div>
@@ -123,7 +132,7 @@ export default function Step4Insurance({
                         </div>
 
                         <div className="policy-card__price-box">
-                            <span className="policy-card__price-amount">+{formatPrice(flexDepositCost)} (+10 €/día)</span>
+                            <span className="policy-card__price-amount">+{formatPrice(flexDepositCost)} (+{flexDepositRatePerDay} €/día)</span>
                         </div>
                     </div>
 
@@ -131,7 +140,7 @@ export default function Step4Insurance({
                         <div className="feature-item feature-item--highlight">
                             <Lock size={14} className="text-forest" />
                             <div className="feature-item__text">
-                                <span className="feature-item__title">Fianza reducida al 50% · 1.000 €</span>
+                                <span className="feature-item__title">Fianza reducida · {formatDepositEuros(flexDepositAmount)}</span>
                                 <span className="feature-item__sub">Menor retención con tarjeta al recoger</span>
                             </div>
                         </div>

@@ -1,10 +1,10 @@
 // components/campers/CamperFeaturePills.tsx
 'use client'
 
-import { Users, BedDouble, Droplets, Zap } from 'lucide-react'
+import { Users, BedDouble, Droplets, Zap, Sun, Shield, Wind, Snowflake, Utensils, BatteryCharging, Ruler } from 'lucide-react'
 
 interface PillData {
-  icon: 'users' | 'bed' | 'droplets' | 'zap'
+  icon: string
   label: string
 }
 
@@ -12,18 +12,25 @@ interface Props {
   pills: PillData[]
 }
 
-const ICON_MAP = {
+const ICON_MAP: Record<string, any> = {
   users: Users,
   bed: BedDouble,
   droplets: Droplets,
   zap: Zap,
+  sun: Sun,
+  shield: Shield,
+  wind: Wind,
+  snowflake: Snowflake,
+  utensils: Utensils,
+  battery: BatteryCharging,
+  ruler: Ruler,
 }
 
 export default function CamperFeaturePills({ pills }: Props) {
   return (
     <div className="feature-pills-row">
       {pills.map((pill, i) => {
-        const Icon = ICON_MAP[pill.icon]
+        const Icon = ICON_MAP[pill.icon] || Zap
         return (
           <span key={i} className="feature-pill">
             <Icon size={14} className="pill-icon-gold" />

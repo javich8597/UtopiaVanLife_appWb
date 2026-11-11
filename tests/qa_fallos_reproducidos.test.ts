@@ -23,8 +23,8 @@ describe('QA fallos reproducidos (rojo a propósito)', () => {
     beforeEach(() => {
         for (const key of ['REDSYS_ENVIRONMENT', 'REDSYS_ALLOW_TEST_MODE', 'REDSYS_SECRET_KEY', 'REDSYS_MERCHANT_CODE']) delete process.env[key]
         flows = installFlows()
-        console.error = () => {}
-        console.warn = () => {}
+        console.error = () => { }
+        console.warn = () => { }
     })
 
     afterEach(() => {
@@ -165,7 +165,7 @@ describe('QA fallos reproducidos (rojo a propósito)', () => {
 
         for (const file of ['BookingWizardClient.tsx', 'StickyTripSummary.tsx']) {
             const source = readFileSync(`app/[locale]/reserva/[slug]/${file}`, 'utf8')
-            assert.match(source, /'flex_1000' \? 1000 : 2000/)
+            assert.match(source, /'flex_1000'[\s\S]*flexDepositAmount/)
             assert.doesNotMatch(source, /Number\(camper\.deposit_amount\)/)
         }
     })

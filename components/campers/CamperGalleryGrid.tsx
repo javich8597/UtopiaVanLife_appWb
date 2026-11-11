@@ -9,9 +9,10 @@ interface Props {
 }
 
 export default function CamperGalleryGrid({ images, onOpenLightbox }: Props) {
+  if (!images || images.length === 0) return null
   const hero = images[0]
-  const side1 = images[1]
-  const side2 = images[2]
+  const side1 = images[1] || images[0]
+  const side2 = images[2] || images[1] || images[0]
   const totalCount = images.length
 
   return (

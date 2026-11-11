@@ -98,7 +98,7 @@ export default function Rotating3DShowcase() {
   const [rotationAngle, setRotationAngle] = useState(0)
   const [isDragging, setIsDragging] = useState(false)
   const [isHovered, setIsHovered] = useState(false)
-
+  
   const dragStartX = useRef(0)
   const dragStartAngle = useRef(0)
   const dragDistanceRef = useRef(0)
@@ -181,7 +181,7 @@ export default function Rotating3DShowcase() {
       </div>
 
       {/* 3D Scene Viewport */}
-      <div
+      <div 
         ref={containerRef}
         className="showcase-viewport"
         onPointerDown={handlePointerDown}
@@ -191,7 +191,7 @@ export default function Rotating3DShowcase() {
         onMouseEnter={() => setIsHovered(true)}
         onMouseLeave={() => setIsHovered(false)}
       >
-        <div
+        <div 
           className="showcase-cylinder"
           style={{
             transform: `rotateY(${rotationAngle}deg)`,

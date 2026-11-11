@@ -426,6 +426,13 @@ html[data-theme="light"] .price-calc__calendar-collapse .booking-cal {
   max-width: 100% !important;
 }
 
+html[data-theme="light"] .sidebar-calendar-wrap .booking-cal {
+  background: #FAF8F5 !important;
+  border: 1px solid #EAE5DD !important;
+  box-shadow: none !important;
+  max-width: 100% !important;
+}
+
 html[data-theme="light"] .reservar-search__calendar-popover {
   background: transparent !important;
   border: none !important;
@@ -729,9 +736,9 @@ html[data-theme="light"] .camper-card__spec {
 }
 
 html[data-theme="light"] .camper-card__spec-icon {
-  background: #F7EEDC !important;
-  border: 1px solid #E8D6B2 !important;
-  color: #1A1714 !important;
+  background: transparent !important;
+  border: none !important;
+  color: #82681A !important;
 }
 
 html[data-theme="light"] .camper-card__spec-label {
@@ -2408,7 +2415,8 @@ html[data-theme="light"] .included-block {
 }
 
 html[data-theme="light"] .model-card--selected,
-html[data-theme="light"] .insurance-card {
+html[data-theme="light"] .insurance-card--active,
+html[data-theme="light"] .passenger-card--second-driver {
   border-color: #1A1714 !important;
 }
 

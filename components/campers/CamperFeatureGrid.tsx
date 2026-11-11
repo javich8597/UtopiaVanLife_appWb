@@ -18,6 +18,7 @@ export interface FeatureItem {
 interface Props {
   features: FeatureItem[]
   initialVisible?: number
+  title?: string
 }
 
 const ICON_MAP: Record<string, any> = {
@@ -40,7 +41,7 @@ const ICON_MAP: Record<string, any> = {
   ruler: Ruler,
 }
 
-export default function CamperFeatureGrid({ features, initialVisible = 8 }: Props) {
+export default function CamperFeatureGrid({ features, initialVisible = 8, title = 'CARACTERÍSTICAS' }: Props) {
   const [expanded, setExpanded] = useState(false)
   const visible = expanded ? features : features.slice(0, initialVisible)
   const needsExpand = features.length > initialVisible
@@ -48,7 +49,7 @@ export default function CamperFeatureGrid({ features, initialVisible = 8 }: Prop
   return (
     <section className="feature-grid-section">
       <div className="section-divider-row">
-        <h3 className="section-divider-title">CARACTERÍSTICAS</h3>
+        <h3 className="section-divider-title">{title}</h3>
         <div className="section-divider-line" />
       </div>
 

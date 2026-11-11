@@ -671,7 +671,7 @@ export async function POST(req: Request) {
             depositOption,
             secondDriver: hasSecondDriver,
             extrasSelected: verifiedExtras,
-            depositAmount: body.depositAmount === 1000 ? 1000 : (depositOption === 'flex_1000' ? 1000 : 2000),
+            depositAmount: depositOption === 'flex_1000' ? 1000 : 2000,
         })
 
         if (breakdown.numNights <= 0) {

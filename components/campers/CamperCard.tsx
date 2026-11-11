@@ -3,7 +3,7 @@
 import { useRef, useState } from 'react'
 import { Link } from '@/i18n/routing'
 import Image from 'next/image'
-import { Users, Moon, Ruler, ArrowRight, Utensils, Droplets, BedDouble } from 'lucide-react'
+import { BusFront, Moon, Ruler, ArrowRight, Utensils, ShowerHead, BedDouble, BatteryCharging } from 'lucide-react'
 
 interface CamperCardProps {
   id: string
@@ -57,6 +57,44 @@ export default function CamperCard({
     : slug === 'space'
       ? 'Más espacio, más comodidad y una experiencia pensada para viajar sin límites.'
       : (description_es ? (description_es.length > 90 ? `${description_es.slice(0, 87)}...` : description_es) : 'Camper de lujo totalmente equipada')
+
+  const formattedLength = specs?.length_m ? `${String(specs.length_m).replace('.', ',')} m` : '5,99 m'
+
+  const summarySpecs = [
+    {
+      icon: BusFront,
+      text: `Plazas de viaje: ${specs?.seats || (slug === 'neo' ? 3 : 2)}`,
+    },
+    {
+      icon: Moon,
+      text: `Plazas para dormir: ${specs?.beds || (slug === 'neo' ? 3 : 2)}`,
+    },
+    {
+      icon: Utensils,
+      text: 'Cocina + nevera 86L',
+    },
+    {
+      icon: ShowerHead,
+      text: 'WC químico y ducha',
+    },
+    {
+      icon: Ruler,
+      text: slug === 'neo' || slug === 'space' ? '5,99 m' : formattedLength,
+    },
+    {
+      icon: BedDouble,
+      text: slug === 'neo'
+        ? 'Doble fija + auxiliar'
+        : slug === 'space'
+          ? 'Elevable + interbanco'
+          : 'Doble confort',
+    },
+    {
+      icon: BatteryCharging,
+      text: 'Gran autonomía: baterías 540Ah y placas solares 400W',
+      wide: true,
+    },
+  ]
 
   const handleMouseEnter = () => {
     if (typeof window !== 'undefined' && !window.matchMedia('(hover: hover)').matches) {
@@ -209,90 +247,14 @@ export default function CamperCard({
           </div>
         </div>
 
-        {/* Características clave del resumen */}
+        {/* Características clave en recuadro */}
         <div className="camper-card__specs">
-          {slug === 'neo' ? (
-            <>
-              <div className="camper-card__spec">
-                <Users size={13} className="camper-card__spec-icon" />
-                <span>Plazas de viaje: {specs?.seats || 3}</span>
-              </div>
-              <div className="camper-card__spec">
-                <Moon size={13} className="camper-card__spec-icon" />
-                <span>Plazas para dormir: {specs?.beds || 3}</span>
-              </div>
-              <div className="camper-card__spec">
-                <Utensils size={13} className="camper-card__spec-icon" />
-                <span>2 fogones + nevera 86L</span>
-              </div>
-              <div className="camper-card__spec">
-                <Droplets size={13} className="camper-card__spec-icon" />
-                <span>WC químico y ducha</span>
-              </div>
-              <div className="camper-card__spec">
-                <Ruler size={13} className="camper-card__spec-icon" />
-                <span>5,99 m</span>
-              </div>
-              <div className="camper-card__spec">
-                <BedDouble size={13} className="camper-card__spec-icon" />
-                <span>Doble fija + auxiliar</span>
-              </div>
-            </>
-          ) : slug === 'space' ? (
-            <>
-              <div className="camper-card__spec">
-                <Users size={13} className="camper-card__spec-icon" />
-                <span>Plazas de viaje: {specs?.seats || 2}</span>
-              </div>
-              <div className="camper-card__spec">
-                <Moon size={13} className="camper-card__spec-icon" />
-                <span>Plazas para dormir: {specs?.beds || 2}</span>
-              </div>
-              <div className="camper-card__spec">
-                <Utensils size={13} className="camper-card__spec-icon" />
-                <span>2 fogones + nevera 86L</span>
-              </div>
-              <div className="camper-card__spec">
-                <Droplets size={13} className="camper-card__spec-icon" />
-                <span>WC químico y ducha</span>
-              </div>
-              <div className="camper-card__spec">
-                <Ruler size={13} className="camper-card__spec-icon" />
-                <span>5,99 m</span>
-              </div>
-              <div className="camper-card__spec">
-                <BedDouble size={13} className="camper-card__spec-icon" />
-                <span>Elevable + interbanco</span>
-              </div>
-            </>
-          ) : (
-            <>
-              <div className="camper-card__spec">
-                <Users size={13} className="camper-card__spec-icon" />
-                <span>Plazas de viaje: {specs?.seats || 2}</span>
-              </div>
-              <div className="camper-card__spec">
-                <Moon size={13} className="camper-card__spec-icon" />
-                <span>Plazas para dormir: {specs?.beds || 2}</span>
-              </div>
-              <div className="camper-card__spec">
-                <Utensils size={13} className="camper-card__spec-icon" />
-                <span>2 fogones + nevera 86L</span>
-              </div>
-              <div className="camper-card__spec">
-                <Droplets size={13} className="camper-card__spec-icon" />
-                <span>WC químico y ducha</span>
-              </div>
-              <div className="camper-card__spec">
-                <Ruler size={13} className="camper-card__spec-icon" />
-                <span>{specs?.length_m ? `${String(specs.length_m).replace('.', ',')} m` : '5,99 m'}</span>
-              </div>
-              <div className="camper-card__spec">
-                <BedDouble size={13} className="camper-card__spec-icon" />
-                <span>Doble confort</span>
-              </div>
-            </>
-          )}
+          {summarySpecs.map(({ icon: Icon, text, wide }, idx) => (
+            <div key={idx} className={`camper-card__spec ${wide ? 'camper-card__spec--wide' : ''}`}>
+              <Icon size={14} strokeWidth={1.9} className="camper-card__spec-icon" />
+              <span>{text}</span>
+            </div>
+          ))}
         </div>
 
         {/* Interactive CTA */}
@@ -541,7 +503,7 @@ export default function CamperCard({
           margin-top: 0px;
         }
 
-        /* Specs */
+        /* Specs en recuadro */
         .camper-card__specs {
           display: grid;
           grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -561,10 +523,16 @@ export default function CamperCard({
           border-radius: 12px;
           min-width: 0;
         }
+        .camper-card__spec--wide {
+          grid-column: 1 / -1;
+        }
         .camper-card__spec span {
           white-space: nowrap;
           overflow: hidden;
           text-overflow: ellipsis;
+        }
+        .camper-card__spec--wide span {
+          white-space: normal;
         }
         :global(.camper-card__spec-icon) {
           color: var(--forest-green);

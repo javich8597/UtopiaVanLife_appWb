@@ -71,6 +71,7 @@ interface PageProps {
         pax?: string
         km?: 'included_150' | 'unlimited'
         cancellation?: 'standard' | 'flexible'
+        deposit?: string
         extras?: string
     }>
 }
@@ -202,6 +203,7 @@ export default async function ReservaWizardPage({ params, searchParams }: PagePr
                 initialPax={Number(search.pax) || 2}
                 initialKmPackage={search.km === 'unlimited' ? 'unlimited' : 'included_150'}
                 initialCancellationPolicy={search.cancellation === 'flexible' ? 'flexible' : 'standard'}
+                initialDepositOption={search.deposit === 'flex' || search.deposit === 'flex_1000' ? 'flex_1000' : 'standard_2000'}
                 initialExtraIds={search.extras ? search.extras.split(',').filter(Boolean) : []}
                 locale={locale}
             />

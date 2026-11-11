@@ -33,7 +33,7 @@ export default function Step3Cancellation({
                 <h2 className="step-header__title">Política de cancelación</h2>
             </div>
 
-            <div className="cards-grid">
+            <div className="cards-grid" role="radiogroup" aria-label="Modalidad de política de cancelación">
                 {/* Option 1: Standard Policy */}
                 <div
                     role="radio"
@@ -56,7 +56,7 @@ export default function Step3Cancellation({
                                 )}
                             </div>
                             <ShieldCheck size={18} className="text-forest" />
-                            <h4 className="policy-card__title">Política Estándar</h4>
+                            <h4 className="policy-card__title">Cancelación Estándar</h4>
                         </div>
                         <span className="policy-card__price-pill">Incluida</span>
                     </div>
@@ -96,7 +96,7 @@ export default function Step3Cancellation({
                                 )}
                             </div>
                             <RefreshCw size={18} className="text-forest" />
-                            <h4 className="policy-card__title">Política Flexible</h4>
+                            <h4 className="policy-card__title">Cancelación Flex</h4>
                         </div>
                         <span className="policy-card__price-pill">
                             +{formatPrice(flexibleCost)} (+8 €/día)

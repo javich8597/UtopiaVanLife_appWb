@@ -20,7 +20,9 @@ export default function CamperStickyBookingBar({
   onScrollToCalculator
 }: Props) {
   const locale = useLocale()
-  const datesQuery = initialFrom && initialTo ? `?from=${initialFrom}&to=${initialTo}` : ''
+  const datesQuery = initialFrom && initialTo
+    ? `?from=${initialFrom}&to=${initialTo}&step=1`
+    : '?step=1'
 
   return (
     <aside className="sticky-booking-bar" aria-label="Barra de reserva flotante">

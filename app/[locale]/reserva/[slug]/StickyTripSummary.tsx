@@ -40,7 +40,7 @@ const INCLUDED_SERVICES = [
     '2 máscaras de snorkel',
     '150 km al día incluidos y gastos de gestión',
     'Asistencia telefónica durante el viaje (16 h)',
-    'Seguro a todo riesgo con asistencia en viaje (fianza 1.000 € en recogida)',
+    'Seguro a todo riesgo con asistencia en viaje (fianza 2.000 € o 1.000 € con Flex)',
 ]
 
 export default function StickyTripSummary({
@@ -84,7 +84,7 @@ export default function StickyTripSummary({
     const totalPayable = breakdown ? breakdown.payableTotal : 0
     const totalDays = breakdown ? breakdown.totalDays : 0
     const numNights = breakdown ? breakdown.numNights : 0
-    const depositAmount = breakdown ? breakdown.depositAmount : 1000
+    const depositAmount = breakdown ? breakdown.depositAmount : (step3.depositOption === 'flex_1000' ? 1000 : 2000)
 
     const contentProps: TripSummaryContentProps = {
         camper,
@@ -443,14 +443,38 @@ function TripSummaryContent({
                     <div className="summary-breakdown-row">
                         <span className="summary-row-label summary-row-label--with-icon">
                             <ShieldCheck size={13} className="text-forest" />
-                            <span>Seguro a Todo Riesgo</span>
+                            <span>
+                                {step3.depositOption === 'flex_1000'
+                                    ? 'Seguro Flex (+10 €/día)'
+                                    : 'Seguro Estándar'}
+                            </span>
                         </span>
-                        <span className="summary-row-val">Incluido</span>
+                        <span className="summary-row-val">
+                            {step3.depositOption === 'flex_1000'
+                                ? (breakdown && breakdown.flexDepositSupplement > 0
+                                    ? `+${formatPrice(breakdown.flexDepositSupplement)}`
+                                    : '+10 €/día')
+                                : 'Incluido'}
+                        </span>
                     </div>
                     <div className="summary-breakdown-row summary-breakdown-row--muted">
                         <span className="summary-row-label">Fianza reembolsable (retención en entrega)</span>
                         <span className="summary-row-val">{formatPrice(depositAmount)}</span>
                     </div>
+                    {breakdown && breakdown.secondDriver && (
+                        <div className="summary-breakdown-row summary-breakdown-row--muted">
+                            <span className="summary-row-label">
+                                {breakdown.secondDriverRatePerDay > 0
+                                    ? `Segundo conductor (+${breakdown.secondDriverRatePerDay} €/día)`
+                                    : 'Segundo conductor'}
+                            </span>
+                            <span className="summary-row-val">
+                                {breakdown.secondDriverSupplement > 0
+                                    ? `+${formatPrice(breakdown.secondDriverSupplement)}`
+                                    : '0,00 € (Incluido)'}
+                            </span>
+                        </div>
+                    )}
                 </div>
             </div>
 
@@ -464,11 +488,13 @@ function TripSummaryContent({
                     <div className="summary-breakdown-row">
                         <span className="summary-row-label summary-row-label--with-icon">
                             <RefreshCw size={13} className="text-forest" />
-                            <span>Cancelación {step3.cancellationPolicy === 'flexible' ? 'Flexible' : 'Estándar'}</span>
+                            <span>Cancelación {step3.cancellationPolicy === 'flexible' ? 'Flex' : 'Estándar'}</span>
                         </span>
                         <span className="summary-row-val">
-                            {step3.cancellationPolicy === 'flexible' && breakdown
-                                ? `+${formatPrice(breakdown.cancellationSupplement)}`
+                            {step3.cancellationPolicy === 'flexible'
+                                ? (breakdown && breakdown.cancellationSupplement > 0
+                                    ? `+${formatPrice(breakdown.cancellationSupplement)}`
+                                    : '+8 €/día')
                                 : 'Incluida'}
                         </span>
                     </div>

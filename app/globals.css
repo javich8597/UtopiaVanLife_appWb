@@ -93,7 +93,7 @@ body {
   color: var(--black-matte);
   line-height: 1.6;
   font-size: 16px;
-  overflow-x: hidden;
+  overflow-x: clip;
   transition: background-color 240ms var(--ease-out), color 240ms var(--ease-out);
 }
 

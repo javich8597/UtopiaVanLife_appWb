@@ -23,7 +23,7 @@ import {
 import { Step5Customer, WizardCamper, Step1Data, Step2Data, Step3Data, Step4Data, BookingPassenger, DepositOption } from './types'
 import { validateStep5, validateDriverAge, validateDrivingLicense } from './types'
 import { formatPhoneWithPrefix } from '@/lib/driverDocuments'
-import { formatPrice } from '@/lib/pricing/engine'
+import { formatPrice, SECOND_DRIVER_RATE_PER_DAY } from '@/lib/pricing/engine'
 
 interface Step5CheckoutProps {
     camper: WizardCamper
@@ -74,7 +74,14 @@ export default function Step5Checkout({
     const maxPax = camper.specs?.seats || (camper.slug === 'space' ? 2 : 3)
     const currentTravelersCount = customer.travelersCount || step1.pax || 1
     const additionalPaxCount = Math.max(0, currentTravelersCount - 1)
-    const currentDeposit: DepositOption = 'standard_2000'
+    const currentDeposit: DepositOption = step3.depositOption || customer.depositOption || 'standard_2000'
+    /** El bloque del 2º conductor "solo" (y su validación en validateStep5) solo existe con 1 viajero */
+    const soloSecondDriverVisible = currentTravelersCount === 1
+    /** Con Flex el 2º conductor va incluido; con Estándar cuesta SECOND_DRIVER_RATE_PER_DAY */
+    const secondDriverIncluded = currentDeposit === 'flex_1000'
+    const secondDriverPriceLabel = secondDriverIncluded
+        ? 'Incluido sin recargo en tu Seguro Flex.'
+        : `Suplemento de ${SECOND_DRIVER_RATE_PER_DAY} €/día con el Seguro Estándar.`
 
     // Helpers reactivos para cálculo de edad y antigüedad
     const calculateAge = (birthDate?: string | null): number | null => {
@@ -237,12 +244,10 @@ export default function Step5Checkout({
         e.preventDefault()
         setSubmitError(null)
 
-        // Validar todos los campos del paso 7 (con fianza incluida sin 2º conductor)
+        // Validar todos los campos del paso 7 (con modalidad de seguro y fianza actual)
         const normalizedCustomerForValidation: Step5Customer = {
             ...customer,
-            depositOption: 'standard_2000',
-            secondDriverSoloEnabled: false,
-            passengers: (customer.passengers || []).map((p) => ({ ...p, isSecondDriver: false })),
+            depositOption: currentDeposit,
         }
         const validation = validateStep5(normalizedCustomerForValidation, maxPax)
         if (!validation.isValid) {
@@ -271,7 +276,7 @@ export default function Step5Checkout({
                 kmPackage: step2.kmPackage,
                 cancellationPolicy: step3.cancellationPolicy,
                 depositOption: currentDeposit,
-                depositAmount: 1000,
+                depositAmount: currentDeposit === 'flex_1000' ? 1000 : 2000,
                 extrasSelected: step4.selectedExtras.map((e) => ({
                     id: e.id,
                     name: e.name_es,
@@ -292,11 +297,11 @@ export default function Step5Checkout({
                     postalCode: customer.postalCode.trim(),
                     country: customer.country.trim(),
                     travelersCount: currentTravelersCount,
-                    passengers: (customer.passengers || [])
-                        .slice(0, Math.max(0, currentTravelersCount - 1))
-                        .map((p) => ({ ...p, isSecondDriver: false })),
-                    secondDriverSoloEnabled: false,
-                    secondDriverSolo: undefined,
+                    // El 2º conductor vale con cualquier modalidad, así que su casilla se envía tal cual
+                    passengers: (customer.passengers || []).slice(0, Math.max(0, currentTravelersCount - 1)),
+                    // El 2º conductor "solo" se envía únicamente si su bloque está visible (y por tanto validado)
+                    secondDriverSoloEnabled: soloSecondDriverVisible && Boolean(customer.secondDriverSoloEnabled),
+                    secondDriverSolo: soloSecondDriverVisible && customer.secondDriverSoloEnabled ? customer.secondDriverSolo : undefined,
                     notes: customer.specialNotes || '',
                 },
             }
@@ -596,14 +601,22 @@ export default function Step5Checkout({
                                     driverLicenseId: '',
                                 }
                                 const pAge = calculateAge(passenger.birthDate)
+                                const pLicenseYears = calculateLicenseYears(passenger.licenseDate)
+                                const is2ndDriver = Boolean(passenger.isSecondDriver)
 
                                 return (
-                                    <div key={idx} className="passenger-card">
+                                    <div key={idx} className={`passenger-card ${is2ndDriver ? 'passenger-card--second-driver' : ''}`}>
                                         <div className="passenger-card__header">
                                             <div className="passenger-card__tag">
                                                 <User size={15} />
                                                 <span>Pasajero {pNum} (Acompañante)</span>
                                             </div>
+                                            {is2ndDriver && (
+                                                <span className="passenger-driver-badge">
+                                                    <UserCheck size={13} />
+                                                    2º Conductor Autorizado
+                                                </span>
+                                            )}
                                         </div>
 
                                         <div className="form-grid">
@@ -671,9 +684,270 @@ export default function Step5Checkout({
                                                 ) : null}
                                             </div>
                                         </div>
+
+                                        {/* Casilla para habilitar 2º conductor (con cualquier modalidad de seguro) */}
+                                        <div className="second-driver-toggle-box">
+                                            <label className="driver-toggle-label" htmlFor={`checkbox-second-driver-${pNum}`}>
+                                                <input
+                                                    id={`checkbox-second-driver-${pNum}`}
+                                                    type="checkbox"
+                                                    className="driver-toggle-checkbox"
+                                                    checked={is2ndDriver}
+                                                    onChange={(e) => handlePassengerChange(idx, 'isSecondDriver', e.target.checked)}
+                                                    disabled={isSubmitting}
+                                                />
+                                                <div className="driver-toggle-text">
+                                                    <span className="driver-toggle-title">
+                                                        Habilitar a Pasajero {pNum} como 2º conductor autorizado
+                                                        {secondDriverIncluded
+                                                            ? <span className="driver-toggle-price">incluido</span>
+                                                            : <span className="driver-toggle-price driver-toggle-price--charged">+{SECOND_DRIVER_RATE_PER_DAY} €/día</span>}
+                                                    </span>
+                                                    <span className="driver-toggle-sub">
+                                                        {secondDriverPriceLabel} Solo un acompañante puede ser 2º conductor.
+                                                    </span>
+                                                </div>
+                                            </label>
+
+                                            {is2ndDriver && (
+                                                <div className="second-driver-license-block">
+                                                    <div className="form-grid">
+                                                        <div className="form-field">
+                                                            <label htmlFor={`input-passenger_${pNum}_driverLicenseId`} className="field-label">
+                                                                Número del permiso de conducir (Pasajero {pNum}) *
+                                                            </label>
+                                                            <div className="input-with-icon">
+                                                                <CreditCard size={16} className="input-icon" />
+                                                                <input
+                                                                    id={`input-passenger_${pNum}_driverLicenseId`}
+                                                                    type="text"
+                                                                    className={`field-input field-input--has-icon ${fieldErrors[`passenger_${pNum}_driverLicenseId`] ? 'field-input--error' : ''}`}
+                                                                    placeholder="Ej. 12345678-Z"
+                                                                    value={passenger.driverLicenseId || ''}
+                                                                    onChange={(e) => handlePassengerChange(idx, 'driverLicenseId', e.target.value)}
+                                                                    disabled={isSubmitting}
+                                                                    required
+                                                                />
+                                                            </div>
+                                                            {fieldErrors[`passenger_${pNum}_driverLicenseId`] ? (
+                                                                <span className="field-error-text">{fieldErrors[`passenger_${pNum}_driverLicenseId`]}</span>
+                                                            ) : (
+                                                                <span className="field-hint">El número que figura en su carnet: es el que autoriza el contrato.</span>
+                                                            )}
+                                                        </div>
+
+                                                        <div className="form-field">
+                                                            <label htmlFor={`input-passenger_${pNum}_licenseDate`} className="field-label">
+                                                                Fecha expedición carnet de conducir B (Pasajero {pNum}) *
+                                                            </label>
+                                                            <div className="input-with-icon">
+                                                                <Award size={16} className="input-icon" />
+                                                                <input
+                                                                    id={`input-passenger_${pNum}_licenseDate`}
+                                                                    type="date"
+                                                                    className={`field-input field-input--has-icon ${fieldErrors[`passenger_${pNum}_licenseDate`] ? 'field-input--error' : ''}`}
+                                                                    value={passenger.licenseDate || ''}
+                                                                    onChange={(e) => handlePassengerChange(idx, 'licenseDate', e.target.value)}
+                                                                    disabled={isSubmitting}
+                                                                    required
+                                                                />
+                                                            </div>
+                                                            {fieldErrors[`passenger_${pNum}_licenseDate`] && (
+                                                                <span className="field-error-text">{fieldErrors[`passenger_${pNum}_licenseDate`]}</span>
+                                                            )}
+                                                        </div>
+                                                    </div>
+
+                                                    <div className="driver-verification-status">
+                                                        {pAge !== null && pAge < 25 && (
+                                                            <span className="verification-pill verification-pill--error">
+                                                                ⚠️ Edad: {pAge} años (Se requieren al menos 25 años para conducir)
+                                                            </span>
+                                                        )}
+                                                        {pLicenseYears !== null && pLicenseYears < 2 && (
+                                                            <span className="verification-pill verification-pill--error">
+                                                                ⚠️ Carnet B: {pLicenseYears} {pLicenseYears === 1 ? 'año' : 'años'} (Se requieren mínimo 2 años de experiencia)
+                                                            </span>
+                                                        )}
+                                                        {pAge !== null && pAge >= 25 && pLicenseYears !== null && pLicenseYears >= 2 && (
+                                                            <span className="verification-pill verification-pill--success">
+                                                                ✓ 2º conductor verificado: {pAge} años y {pLicenseYears} años de experiencia
+                                                            </span>
+                                                        )}
+                                                    </div>
+                                                </div>
+                                            )}
+                                        </div>
                                     </div>
                                 )
                             })}
+                        </div>
+                    </div>
+                )}
+
+                {/* ── Si viaja 1 solo pasajero: Opción de 2º conductor (con cualquier seguro/fianza) ── */}
+                {soloSecondDriverVisible && (
+                    <div className="form-group-card form-group-card--solo-second-driver">
+                        <div className="form-group-card__header">
+                            <UserCheck size={18} className="text-forest" />
+                            <h4 className="form-group-card__title">
+                                2º Conductor Autorizado Opcional ({secondDriverIncluded ? 'incluido con Seguro Flex' : `+${SECOND_DRIVER_RATE_PER_DAY} €/día con Seguro Estándar`})
+                            </h4>
+                        </div>
+                        <p className="deposit-section-intro">
+                            {secondDriverPriceLabel} Si alguien más va a conducir la camper durante tu viaje, puedes añadir sus datos ahora:
+                        </p>
+
+                        <div className="second-driver-toggle-box">
+                            <label className="driver-toggle-label" htmlFor="checkbox-solo-second-driver">
+                                <input
+                                    id="checkbox-solo-second-driver"
+                                    type="checkbox"
+                                    className="driver-toggle-checkbox"
+                                    checked={Boolean(customer.secondDriverSoloEnabled)}
+                                    onChange={(e) => handleInputChange('secondDriverSoloEnabled', e.target.checked)}
+                                    disabled={isSubmitting}
+                                />
+                                <div className="driver-toggle-text">
+                                    <span className="driver-toggle-title">
+                                        Añadir datos de un 2º conductor autorizado (opcional)
+                                        {secondDriverIncluded
+                                            ? <span className="driver-toggle-price">incluido</span>
+                                            : <span className="driver-toggle-price driver-toggle-price--charged">+{SECOND_DRIVER_RATE_PER_DAY} €/día</span>}
+                                    </span>
+                                    <span className="driver-toggle-sub">
+                                        Habilita a otra persona para alternarse al volante con cobertura total del seguro.
+                                    </span>
+                                </div>
+                            </label>
+
+                            {customer.secondDriverSoloEnabled && (
+                                <div className="solo-second-driver-fields">
+                                    <div className="form-grid">
+                                        <div className="form-field form-field--span-2">
+                                            <label htmlFor="input-secondDriverSolo_fullName" className="field-label">
+                                                Nombre y Apellidos completos (2º Conductor) *
+                                            </label>
+                                            <input
+                                                id="input-secondDriverSolo_fullName"
+                                                type="text"
+                                                className={`field-input ${fieldErrors.secondDriverSolo_fullName ? 'field-input--error' : ''}`}
+                                                placeholder="Ej. María Sánchez Romero"
+                                                value={customer.secondDriverSolo?.fullName || ''}
+                                                onChange={(e) => handleSoloSecondDriverChange('fullName', e.target.value)}
+                                                disabled={isSubmitting}
+                                                required
+                                            />
+                                            {fieldErrors.secondDriverSolo_fullName && (
+                                                <span className="field-error-text">{fieldErrors.secondDriverSolo_fullName}</span>
+                                            )}
+                                        </div>
+
+                                        <div className="form-field">
+                                            <label htmlFor="input-secondDriverSolo_dniNie" className="field-label">
+                                                DNI / NIE / Pasaporte *
+                                            </label>
+                                            <input
+                                                id="input-secondDriverSolo_dniNie"
+                                                type="text"
+                                                className={`field-input ${fieldErrors.secondDriverSolo_dniNie ? 'field-input--error' : ''}`}
+                                                placeholder="Documento de identidad"
+                                                value={customer.secondDriverSolo?.dniNie || ''}
+                                                onChange={(e) => handleSoloSecondDriverChange('dniNie', e.target.value.toUpperCase())}
+                                                disabled={isSubmitting}
+                                                required
+                                            />
+                                            {fieldErrors.secondDriverSolo_dniNie && (
+                                                <span className="field-error-text">{fieldErrors.secondDriverSolo_dniNie}</span>
+                                            )}
+                                        </div>
+
+                                        <div className="form-field">
+                                            <label htmlFor="input-secondDriverSolo_birthDate" className="field-label">
+                                                Fecha de nacimiento (2º Conductor) *
+                                            </label>
+                                            <div className="input-with-icon">
+                                                <Calendar size={16} className="input-icon" />
+                                                <input
+                                                    id="input-secondDriverSolo_birthDate"
+                                                    type="date"
+                                                    className={`field-input field-input--has-icon ${fieldErrors.secondDriverSolo_birthDate ? 'field-input--error' : ''}`}
+                                                    value={customer.secondDriverSolo?.birthDate || ''}
+                                                    onChange={(e) => handleSoloSecondDriverChange('birthDate', e.target.value)}
+                                                    disabled={isSubmitting}
+                                                    required
+                                                />
+                                            </div>
+                                            {fieldErrors.secondDriverSolo_birthDate && (
+                                                <span className="field-error-text">{fieldErrors.secondDriverSolo_birthDate}</span>
+                                            )}
+                                        </div>
+
+                                        <div className="form-field">
+                                            <label htmlFor="input-secondDriverSolo_driverLicenseId" className="field-label">
+                                                Número del permiso de conducir (2º Conductor) *
+                                            </label>
+                                            <div className="input-with-icon">
+                                                <CreditCard size={16} className="input-icon" />
+                                                <input
+                                                    id="input-secondDriverSolo_driverLicenseId"
+                                                    type="text"
+                                                    className={`field-input field-input--has-icon ${fieldErrors.secondDriverSolo_driverLicenseId ? 'field-input--error' : ''}`}
+                                                    placeholder="Ej. 12345678-Z"
+                                                    value={customer.secondDriverSolo?.driverLicenseId || ''}
+                                                    onChange={(e) => handleSoloSecondDriverChange('driverLicenseId', e.target.value)}
+                                                    disabled={isSubmitting}
+                                                    required
+                                                />
+                                            </div>
+                                            {fieldErrors.secondDriverSolo_driverLicenseId ? (
+                                                <span className="field-error-text">{fieldErrors.secondDriverSolo_driverLicenseId}</span>
+                                            ) : (
+                                                <span className="field-hint">El número que figura en su carnet: es el que autoriza el contrato.</span>
+                                            )}
+                                        </div>
+
+                                        <div className="form-field">
+                                            <label htmlFor="input-secondDriverSolo_licenseDate" className="field-label">
+                                                Fecha expedición carnet B (2º Conductor) *
+                                            </label>
+                                            <div className="input-with-icon">
+                                                <Award size={16} className="input-icon" />
+                                                <input
+                                                    id="input-secondDriverSolo_licenseDate"
+                                                    type="date"
+                                                    className={`field-input field-input--has-icon ${fieldErrors.secondDriverSolo_licenseDate ? 'field-input--error' : ''}`}
+                                                    value={customer.secondDriverSolo?.licenseDate || ''}
+                                                    onChange={(e) => handleSoloSecondDriverChange('licenseDate', e.target.value)}
+                                                    disabled={isSubmitting}
+                                                    required
+                                                />
+                                            </div>
+                                            {fieldErrors.secondDriverSolo_licenseDate && (
+                                                <span className="field-error-text">{fieldErrors.secondDriverSolo_licenseDate}</span>
+                                            )}
+                                        </div>
+                                    </div>
+
+                                    <div className="driver-verification-status">
+                                        {calculateAge(customer.secondDriverSolo?.birthDate) !== null && (calculateAge(customer.secondDriverSolo?.birthDate) as number) < 25 && (
+                                            <span className="verification-pill verification-pill--error">
+                                                ⚠️ Edad: {calculateAge(customer.secondDriverSolo?.birthDate)} años (Mínimo 25 años requeridos)
+                                            </span>
+                                        )}
+                                        {calculateLicenseYears(customer.secondDriverSolo?.licenseDate) !== null && (calculateLicenseYears(customer.secondDriverSolo?.licenseDate) as number) < 2 && (
+                                            <span className="verification-pill verification-pill--error">
+                                                ⚠️ Carnet B: {calculateLicenseYears(customer.secondDriverSolo?.licenseDate)} años (Mínimo 2 años requeridos)
+                                            </span>
+                                        )}
+                                        {calculateAge(customer.secondDriverSolo?.birthDate) !== null && (calculateAge(customer.secondDriverSolo?.birthDate) as number) >= 25 && calculateLicenseYears(customer.secondDriverSolo?.licenseDate) !== null && (calculateLicenseYears(customer.secondDriverSolo?.licenseDate) as number) >= 2 && (
+                                            <span className="verification-pill verification-pill--success">
+                                                ✓ 2º conductor apto: edad y antigüedad válidas
+                                            </span>
+                                        )}
+                                    </div>
+                                </div>
+                            )}
                         </div>
                     </div>
                 )}
@@ -1267,9 +1541,16 @@ export default function Step5Checkout({
                     color: #7fd6ac;
                 }
 
+                :global(html[data-theme="light"]) .driver-toggle-price {
+                    background: #E7EFE5;
+                    color: #2D5233;
+                    border: 1px solid #CFE2D2;
+                }
+
                 .driver-toggle-price--charged {
-                    background: rgba(212, 175, 55, 0.18);
-                    color: #e3c969;
+                    background: var(--wz-pill-bg);
+                    color: var(--wz-pill-text);
+                    border: 1px solid var(--wz-pill-border);
                 }
 
                 .second-driver-license-block {

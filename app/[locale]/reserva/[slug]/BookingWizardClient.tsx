@@ -4,18 +4,19 @@ import React, { useState, useMemo, useEffect, useRef } from 'react'
 import {
     WizardCamper,
     WizardStep,
+    DepositOption,
     Step1Data,
     Step2Data,
     Step3Data,
     Step4Data,
     Step5Customer,
-    BookingPassenger,
     WizardExtraItem,
     validateStep1,
     validateStep2,
     validateStep3,
     validateStep4,
     validateStep5,
+    step5HasSecondDriver,
     normalizeStep5Draft,
 } from './types'
 import {
@@ -52,6 +53,7 @@ interface BookingWizardClientProps {
     initialPax?: number
     initialKmPackage?: 'included_150' | 'unlimited'
     initialCancellationPolicy?: 'standard' | 'flexible'
+    initialDepositOption?: DepositOption
     initialExtraIds?: string[]
     locale: string
 }
@@ -73,6 +75,7 @@ export default function BookingWizardClient({
     initialPax = 2,
     initialKmPackage = 'included_150',
     initialCancellationPolicy = 'standard',
+    initialDepositOption = 'standard_2000',
     initialExtraIds = [],
     locale = 'es',
 }: BookingWizardClientProps) {
@@ -101,10 +104,10 @@ export default function BookingWizardClient({
         kmPackage: initialKmPackage,
     })
 
-    // Step 5 State: Cancellation Policy
+    // Step 4 & 5 State: Deposit Option (Seguro/Fianza) & Cancellation Policy
     const [step3, setStep3] = useState<Step3Data>({
         cancellationPolicy: initialCancellationPolicy,
-        depositOption: 'standard_2000',
+        depositOption: initialDepositOption,
     })
 
     // Step 6 State: Selected Extras
@@ -131,7 +134,7 @@ export default function BookingWizardClient({
         email: '',
         phone: '',
         phoneCountryCode: '+34',
-        depositOption: 'standard_2000',
+        depositOption: initialDepositOption,
         passengers: Array.from({ length: Math.max(0, initialPaxCount - 1) }, () => ({
             fullName: '',
             dniNie: '',
@@ -195,7 +198,10 @@ export default function BookingWizardClient({
                     }))
 
                     if (draft.step2) setStep2(draft.step2)
-                    if (draft.step3) setStep3({ ...draft.step3, depositOption: 'standard_2000' })
+                    const draftDeposit: DepositOption = draft.step3?.depositOption === 'flex_1000' || draft.step5?.depositOption === 'flex_1000'
+                        ? 'flex_1000'
+                        : 'standard_2000'
+                    if (draft.step3) setStep3({ ...draft.step3, depositOption: draftDeposit })
                     if (draft.step4 && Array.isArray(draft.step4.selectedExtras)) {
                         const allowedIds = new Set(ALLOWED_EXTRAS_CATALOG.map((e) => e.id))
                         setStep4({
@@ -206,11 +212,7 @@ export default function BookingWizardClient({
                         const normalizedStep5 = normalizeStep5Draft(draft.step5, draft.step1?.pax || initialPaxCount)
                         setStep5({
                             ...normalizedStep5,
-                            depositOption: 'standard_2000',
-                            secondDriverSoloEnabled: false,
-                            passengers: Array.isArray(normalizedStep5.passengers)
-                                ? normalizedStep5.passengers.map((p: BookingPassenger) => ({ ...p, isSecondDriver: false }))
-                                : [],
+                            depositOption: draftDeposit,
                         })
                     }
                     if (typeof draft.maxCompletedStep === 'number') {
@@ -388,7 +390,8 @@ export default function BookingWizardClient({
             ? getMinNightsForDateV2(new Date(step1.startDate), seasonsV2, seasonPeriods)
             : 3
 
-    // Recálculo en tiempo real con calculatePriceV2 (Fianza de 1.000 € incluida sin recargo)
+    // Recálculo en tiempo real con calculatePriceV2 (Fianza Estándar 2.000 € / Flex 1.000 € + 2º conductor)
+    const activeDepositOption: DepositOption = step3.depositOption || step5.depositOption || 'standard_2000'
     const breakdown: PricingBreakdown | null = useMemo(() => {
         if (!step1.startDate || !step1.endDate) return null
 
@@ -419,10 +422,11 @@ export default function BookingWizardClient({
                 quantity: e.quantity,
                 category: e.category,
             })),
-            depositOption: 'standard_2000',
-            depositAmount: 1000,
+            depositOption: activeDepositOption,
+            secondDriver: step5HasSecondDriver(step5, step5.travelersCount || step1.pax || 1),
+            depositAmount: activeDepositOption === 'flex_1000' ? 1000 : 2000,
         })
-    }, [activeCamper, step1, step2, step3, step4, seasonsV2, seasonPeriods, durationDiscounts])
+    }, [activeCamper, step1, step2, step3, step4, step5, activeDepositOption, seasonsV2, seasonPeriods, durationDiscounts])
 
     // Validación de cada uno de los 7 pasos
     const isCurrentStepValid = useMemo(() => {
@@ -434,25 +438,17 @@ export default function BookingWizardClient({
             case 3:
                 return validateStep2(step2).isValid
             case 4:
-                return true
+                return activeDepositOption === 'standard_2000' || activeDepositOption === 'flex_1000'
             case 5:
                 return validateStep3(step3).isValid
             case 6:
                 return validateStep4(step4).isValid
             case 7:
-                return validateStep5(
-                    {
-                        ...step5,
-                        depositOption: 'standard_2000',
-                        secondDriverSoloEnabled: false,
-                        passengers: (step5.passengers || []).map((p) => ({ ...p, isSecondDriver: false })),
-                    },
-                    maxPax
-                ).isValid
+                return validateStep5({ ...step5, depositOption: activeDepositOption }, maxPax).isValid
             default:
                 return false
         }
-    }, [currentStep, step1, activeCamper, step2, step3, step4, step5, activeMinNights, maxPax])
+    }, [currentStep, step1, activeCamper, step2, step3, step4, step5, activeDepositOption, activeMinNights, maxPax])
 
     const scrollToTop = () => {
         window.scrollTo({ top: 0, behavior: 'smooth' })
@@ -475,12 +471,23 @@ export default function BookingWizardClient({
         }
     }
 
+    const handleDepositChange = (depositOption: DepositOption) => {
+        setStep3((prev) => ({ ...prev, depositOption }))
+        setStep5((prev) => ({ ...prev, depositOption }))
+    }
+
     const handleStep3Change = (newStep3: Step3Data) => {
-        setStep3({ ...newStep3, depositOption: 'standard_2000' })
+        setStep3(newStep3)
+        if (newStep3.depositOption) {
+            setStep5((prev) => ({ ...prev, depositOption: newStep3.depositOption }))
+        }
     }
 
     const handleStep5Change = (newCustomer: Step5Customer) => {
-        setStep5({ ...newCustomer, depositOption: 'standard_2000' })
+        setStep5(newCustomer)
+        if (newCustomer.depositOption && newCustomer.depositOption !== step3.depositOption) {
+            setStep3((prev) => ({ ...prev, depositOption: newCustomer.depositOption }))
+        }
         if (newCustomer.travelersCount && newCustomer.travelersCount !== step1.pax) {
             setStep1((prev) => ({ ...prev, pax: newCustomer.travelersCount }))
         }
@@ -582,8 +589,14 @@ export default function BookingWizardClient({
                                     />
                                 )}
 
-                                {/* Paso 4: Seguro a Todo Riesgo y Fianza de 1.000 € (Incluido) */}
-                                {currentStep === 4 && <Step4Insurance />}
+                                {/* Paso 4: Seguro y Fianza (Estándar 2.000 € o Flex 1.000 €) */}
+                                {currentStep === 4 && (
+                                    <Step4Insurance
+                                        depositOption={activeDepositOption}
+                                        totalDays={totalDays}
+                                        onChange={handleDepositChange}
+                                    />
+                                )}
 
                                 {/* Paso 5: Política de Cancelación */}
                                 {currentStep === 5 && (

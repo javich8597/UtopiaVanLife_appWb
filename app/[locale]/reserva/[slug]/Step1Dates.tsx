@@ -216,7 +216,7 @@ export default function Step1Dates({
                                     <span className="slot-option-btn__name">Mañana</span>
                                 </span>
                                 <span className="slot-option-btn__price-pill">
-                                    {canPickupMorning ? `+${formatPrice(pickupHalfDayCost)}` : 'Ocupado'}
+                                    {canPickupMorning ? '+0.5 día' : 'Ocupado'}
                                 </span>
                             </div>
                             <span className="slot-option-btn__time">09:00 – 12:00 h</span>
@@ -280,7 +280,7 @@ export default function Step1Dates({
                                     <span className="slot-option-btn__name">Tarde</span>
                                 </span>
                                 <span className="slot-option-btn__price-pill">
-                                    {canReturnAfternoon ? `+${formatPrice(returnHalfDayCost)}` : 'Ocupado'}
+                                    {canReturnAfternoon ? '+0.5 día' : 'Ocupado'}
                                 </span>
                             </div>
                             <span className="slot-option-btn__time">15:00 – 19:00 h</span>

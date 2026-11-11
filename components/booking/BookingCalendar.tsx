@@ -210,8 +210,8 @@ export default function BookingCalendar({
         })
     }, [monthsToRender, effectiveSlots])
 
-    const isHero = variant === 'hero' || !showSlots
-    const showDone = showDoneButton !== undefined ? showDoneButton : (!isHero && !!onClose)
+    const isHero = variant === 'hero'
+    const showDone = showDoneButton !== undefined ? showDoneButton : (showSlots && !isHero && !!onClose)
 
     return (
         <div className={`booking-cal ${isHero ? 'booking-cal--hero' : ''} ${activeMonthsCount === 2 ? 'booking-cal--two-months' : ''}`} role="dialog" aria-label="Selector de fechas de reserva">
@@ -228,7 +228,7 @@ export default function BookingCalendar({
                             ? '① Elige fecha de salida'
                             : !endDate
                             ? `② Elige fecha de regreso (mín. ${minNights} noches)`
-                            : isHero
+                            : isHero || !showSlots
                             ? '✓ Fechas listas'
                             : '③ Confirma tus horarios y pulsa "Listo"'}
                     </span>
@@ -365,8 +365,8 @@ export default function BookingCalendar({
                 </div>
             )}
 
-            {/* Selectores de Franja Horaria (solo si NO es hero) */}
-            {!isHero && (
+            {/* Selectores de Franja Horaria (solo si showSlots y NO es hero) */}
+            {!isHero && showSlots && (
                 <div className="booking-cal__slots-container">
                     {/* HORA DE RECOGIDA */}
                     <div className="booking-cal__slot-group">

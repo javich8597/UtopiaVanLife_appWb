@@ -6,7 +6,6 @@ import { Link } from '@/i18n/routing'
 import Navbar from '@/components/layout/Navbar'
 import Footer from '@/components/layout/Footer'
 import CamperCard from '@/components/campers/CamperCard'
-import { Shield, BatteryCharging, Coffee, MapPin } from 'lucide-react'
 import { useTranslations } from 'next-intl'
 import { useSiteTheme } from '@/lib/theme/siteThemeContext'
 
@@ -150,49 +149,6 @@ function CatalogContent() {
                 )}
             </div>
 
-            {/* Signature Standard Micro-Pillars Centered */}
-            <div className="catalog__pillars">
-                <div className="catalog__pillar-item">
-                    <div className="catalog__pillar-icon">
-                        <BatteryCharging size={20} />
-                    </div>
-                    <div className="catalog__pillar-text">
-                        <h4>Autonomía Off-Grid 100%</h4>
-                        <p>Baterías Victron Litio y placas solares. Libertad real sin pisar campings.</p>
-                    </div>
-                </div>
-
-                <div className="catalog__pillar-item">
-                    <div className="catalog__pillar-icon">
-                        <Shield size={20} />
-                    </div>
-                    <div className="catalog__pillar-text">
-                        <h4>Seguro a Todo Riesgo</h4>
-                        <p>Cobertura integral europea y asistencia personalizada 24h incluida.</p>
-                    </div>
-                </div>
-
-                <div className="catalog__pillar-item">
-                    <div className="catalog__pillar-icon">
-                        <Coffee size={20} />
-                    </div>
-                    <div className="catalog__pillar-text">
-                        <h4>Pack Confort Completo</h4>
-                        <p>Ropa de cama, toallas, menaje completo y 2 sillas de camping incluidas.</p>
-                    </div>
-                </div>
-
-                <div className="catalog__pillar-item">
-                    <div className="catalog__pillar-icon">
-                        <MapPin size={20} />
-                    </div>
-                    <div className="catalog__pillar-text">
-                        <h4>Discreción Total</h4>
-                        <p>Diseño exterior limpio y sobrio, sin pegatinas publicitarias invasivas.</p>
-                    </div>
-                </div>
-            </div>
-
             <style jsx>{`
                 .catalog__content {
                     display: flex;
@@ -300,65 +256,9 @@ function CatalogContent() {
                     border: 1px solid rgba(255, 255, 255, 0.08);
                 }
 
-                /* Pillars */
-                .catalog__pillars {
-                    display: grid;
-                    grid-template-columns: repeat(4, 1fr);
-                    gap: 20px;
-                    width: 100%;
-                    max-width: 1020px;
-                    margin-top: 56px;
-                    padding-top: 40px;
-                    border-top: 1px solid rgba(255, 255, 255, 0.08);
-                }
-
-                .catalog__pillar-item {
-                    display: flex;
-                    flex-direction: column;
-                    gap: 14px;
-                    background: #131518;
-                    border: 1px solid rgba(255, 255, 255, 0.08);
-                    border-radius: 20px;
-                    padding: 24px;
-                    transition: transform var(--transition-fast), border-color var(--transition-fast);
-                }
-                .catalog__pillar-item:hover {
-                    transform: translateY(-2px);
-                    border-color: rgba(204, 160, 83, 0.3);
-                }
-
-                .catalog__pillar-icon {
-                    display: inline-flex;
-                    align-items: center;
-                    justify-content: center;
-                    width: 44px;
-                    height: 44px;
-                    border-radius: 12px;
-                    background: rgba(204, 160, 83, 0.12);
-                    color: #CCA053;
-                }
-
-                .catalog__pillar-text h4 {
-                    font-size: 0.96rem;
-                    font-weight: 700;
-                    color: #FFFFFF;
-                    margin: 0 0 6px 0;
-                    letter-spacing: -0.01em;
-                }
-
-                .catalog__pillar-text p {
-                    font-size: 0.83rem;
-                    color: rgba(255, 255, 255, 0.6);
-                    line-height: 1.55;
-                    margin: 0;
-                }
-
                 @media (max-width: 960px) {
                     .catalog__grid {
                         grid-template-columns: minmax(0, 500px);
-                    }
-                    .catalog__pillars {
-                        grid-template-columns: repeat(2, 1fr);
                     }
                 }
 
@@ -373,10 +273,6 @@ function CatalogContent() {
                     }
                     .catalog__filter-btn {
                         justify-content: center;
-                    }
-                    .catalog__pillars {
-                        grid-template-columns: 1fr;
-                        gap: 16px;
                     }
                     .catalog__search-info {
                         flex-direction: column;

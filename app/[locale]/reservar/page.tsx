@@ -481,49 +481,6 @@ function ReservarContent() {
                 )}
             </div>
 
-            {/* Signature Standard Micro-Pillars Centered */}
-            <div className="reservar__pillars">
-                <div className="reservar__pillar-item">
-                    <div className="reservar__pillar-icon">
-                        <BatteryCharging size={20} />
-                    </div>
-                    <div className="reservar__pillar-text">
-                        <h4>Autonomía Off-Grid 100%</h4>
-                        <p>Baterías Victron Litio y placas solares. Libertad real sin pisar campings.</p>
-                    </div>
-                </div>
-
-                <div className="reservar__pillar-item">
-                    <div className="reservar__pillar-icon">
-                        <Shield size={20} />
-                    </div>
-                    <div className="reservar__pillar-text">
-                        <h4>Seguro a Todo Riesgo</h4>
-                        <p>Cobertura integral europea y asistencia personalizada 24h incluida.</p>
-                    </div>
-                </div>
-
-                <div className="reservar__pillar-item">
-                    <div className="reservar__pillar-icon">
-                        <Coffee size={20} />
-                    </div>
-                    <div className="reservar__pillar-text">
-                        <h4>Pack Confort Completo</h4>
-                        <p>Ropa de cama, toallas, menaje completo y 2 sillas de camping incluidas.</p>
-                    </div>
-                </div>
-
-                <div className="reservar__pillar-item">
-                    <div className="reservar__pillar-icon">
-                        <MapPin size={20} />
-                    </div>
-                    <div className="reservar__pillar-text">
-                        <h4>Discreción Total</h4>
-                        <p>Diseño exterior limpio y sobrio, sin pegatinas publicitarias invasivas.</p>
-                    </div>
-                </div>
-            </div>
-
             <style jsx>{`
                 .reservar-content {
                     display: flex;
@@ -1113,15 +1070,9 @@ export default function ReservarPage() {
                 {/* Centered Hero Header */}
                 <section className="reservar-hero">
                     <div className="container reservar-hero__container">
-                        <div className="reservar-hero__eyebrow">
-                            <span>RESERVA DIRECTA · BOUTIQUE CAMPERS MALLORCA</span>
-                        </div>
                         <h1 className="reservar-hero__title">
                             RESERVA TU UTOPIA
                         </h1>
-                        <p className="reservar-hero__subtitle">
-                            Selecciona las fechas de tu aventura para consultar la disponibilidad en tiempo real de nuestra flota boutique.
-                        </p>
                     </div>
                 </section>
 
@@ -1144,6 +1095,8 @@ export default function ReservarPage() {
                 }
 
                 .reservar-hero {
+                    position: relative;
+                    overflow: hidden;
                     background: radial-gradient(ellipse 80% 60% at 50% -20%, rgba(204, 160, 83, 0.12), transparent 70%), #0B0C0E;
                     padding: 5rem 0 3.5rem;
                     border-bottom: 1px solid rgba(255, 255, 255, 0.08);
@@ -1151,7 +1104,21 @@ export default function ReservarPage() {
                     text-align: center;
                 }
 
+                .reservar-hero::before {
+                    content: '';
+                    position: absolute;
+                    inset: 0;
+                    background-image: url('/images/lifestyle/newsletter-adventure-hero.jpg');
+                    background-size: cover;
+                    background-position: center 75%;
+                    opacity: 0.6;
+                    pointer-events: none;
+                    z-index: 0;
+                }
+
                 .reservar-hero__container {
+                    position: relative;
+                    z-index: 1;
                     display: flex;
                     flex-direction: column;
                     align-items: center;

@@ -286,7 +286,7 @@ h6 {
 }
 
 .section {
-  padding-block: var(--space-24);
+  padding-block: 3.5rem;
 }
 
 .section-sm {
@@ -722,7 +722,7 @@ h6 {
   }
 
   .section {
-    padding-block: var(--space-16);
+    padding-block: 2.5rem;
   }
 
   .hide-mobile {

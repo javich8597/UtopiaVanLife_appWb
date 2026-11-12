@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server'
 import { isValidServiceRoleKey } from '@/lib/admin/auth'
 import { requireAdmin } from '@/lib/admin/requireAdmin'
+import { BOOKING_STATUS_COLUMNS } from '@/lib/admin/bookingStatus'
 import { DOCUMENT_LIST_OPTIONS, type StoredFile } from '@/lib/admin/documents'
 import { madridDay } from '@/lib/booking/secondDriver'
 import {
@@ -62,7 +63,12 @@ const MAX_LIMIT = 500
 /** `storage.remove` en tandas: una lista enorme de rutas no cabe en una sola petición */
 const REMOVE_CHUNK = 100
 
-const BOOKING_FIELDS = 'id, user_id, status, start_date, end_date'
+/**
+ * Columnas de las reservas de una cuenta que necesita `holderImagePurgeDecision`. `payment_status`,
+ * `created_at` y `notes` son las de `BOOKING_STATUS_COLUMNS`: hacen falta para `isAbandonedPending`,
+ * porque una `pending` abandonada no puede alargar la conservación de la carpeta del titular.
+ */
+const BOOKING_FIELDS = `user_id, start_date, end_date, ${BOOKING_STATUS_COLUMNS}`
 
 /** Migración que crea la constancia. Se nombra en el 409 para que se sepa qué aplicar */
 const RETENTION_MIGRATION = 'supabase/migrations/20261110_document_retention_policy.sql'
@@ -80,12 +86,18 @@ interface FolderReport {
   purgeDay: string
   /** Nombres que se borrarían (o se han borrado): todas las copias de cada documento */
   files: string[]
-  /** Cuántos archivos NO se reconocen como documentación de identidad, y una muestra recortada */
+  /**
+   * Cuántos archivos NO se reconocen como documentación de identidad, con sus extensiones y las
+   * longitudes de sus nombres. NUNCA el nombre, ni un trozo: puede ser un dato personal
+   */
   unknown: number
-  unknownSample: string[]
+  unknownExtensions: string[]
+  unknownLengths: number[]
   /** Storage falló al listar: lo que diga esta carpeta no es de fiar y no se borra nada en ella */
   unreadable: boolean
   deleted: number
+  /** Qué quedó marcado en la reserva: nada, «revisada» o «purgada del todo» */
+  sealed?: 'reviewed' | 'purged'
   error?: string
 }
 
@@ -128,7 +140,9 @@ export async function POST(request: Request) {
     if (onlyBooking && !UUID_RE.test(onlyBooking)) {
       return NextResponse.json({ error: 'Reserva no válida' }, { status: 400 })
     }
-    if (onlyUser && !isSafeSegment(onlyUser)) {
+    // UUID, igual que `bookingId`: `scope_user_id` es de tipo uuid y la carpeta de Storage es el id
+    // de la cuenta. `isSafeSegment` dejaba pasar cualquier texto sin barras
+    if (onlyUser && !UUID_RE.test(onlyUser)) {
       return NextResponse.json({ error: 'Cliente no válido' }, { status: 400 })
     }
     const limit = Math.min(Math.max(Number(body.limit) || DEFAULT_LIMIT, 1), MAX_LIMIT)
@@ -146,11 +160,27 @@ export async function POST(request: Request) {
      */
     const includeHolderFolders = !onlyBooking || !!onlyUser
 
-    // 1. Candidatas. Una consulta por plazo, cada una ordenada, con su propio tope y excluyendo lo
-    //    que ya está purgado (es el filtro de los índices parciales de la migración). Así 60
-    //    reservas de 100 días no pueden dejar sin purgar los datos legales de una de 3 años.
-    //    `select('*')`: hace falta saber qué columnas existen de verdad en la base.
-    const candidates = await loadCandidates(db, { imageCutoff, legalCutoff, limit, onlyBooking, onlyUser })
+    /**
+     * 1. ¿Existe en la base lo que hace falta para dejar constancia?
+     *
+     * Va PRIMERO, antes de construir las consultas de candidatas, porque esas consultas filtran por
+     * las columnas de constancia: en PostgREST real, filtrar por una columna que no existe es un
+     * 42703, la ruta respondía 500 genérico y el 409 que explica qué migración falta era inalcanzable
+     * justo en la base para la que se escribió (hallazgo de `seguridad-auditor` y `qa-verificador`,
+     * 2026-11-12). El testigo es una fila cualquiera de `bookings` leída con `select('*')`: si una
+     * columna no está en la fila, no está en la tabla.
+     */
+    const schema = await checkRetentionSchema(db)
+    if (schema.error) throw new Error(schema.error)
+
+    // 2. Candidatas. Una consulta por plazo, cada una ordenada, con su propio tope y excluyendo lo
+    //    que ya está revisado o purgado (es el filtro de los índices parciales de la migración). Así
+    //    60 reservas de 100 días no pueden dejar sin purgar los datos legales de una de 3 años.
+    //    Si las columnas no existen todavía, NO se filtra por ellas: así la simulación sigue
+    //    sirviendo para ver qué habría que purgar, y el `confirm` se rechaza con el 409 de abajo.
+    const candidates = await loadCandidates(db, {
+      imageCutoff, legalCutoff, limit, onlyBooking, onlyUser, filterPurged: schema.ready,
+    })
     if (candidates.error) throw new Error(candidates.error)
 
     const rows = candidates.rows
@@ -176,7 +206,7 @@ export async function POST(request: Request) {
       }
     }
 
-    // 2. Imágenes del 2º conductor: una carpeta por reserva (`documents/<cliente>/<reserva>/`)
+    // 3. Imágenes del 2º conductor: una carpeta por reserva (`documents/<cliente>/<reserva>/`)
     const imagePlans = pendingImagePurges(rows, now)
     const folders: FolderReport[] = []
     const ownFolderByBooking = new Map<string, FolderReport>()
@@ -203,7 +233,7 @@ export async function POST(request: Request) {
       ownFolderByBooking.set(plan.bookingId, report)
     }
 
-    // 3. Imágenes del titular: UNA carpeta por cuenta (`documents/<cliente>/`), compartida por todas
+    // 4. Imágenes del titular: UNA carpeta por cuenta (`documents/<cliente>/`), compartida por todas
     //    sus reservas. Hace falta mirar TODAS las reservas de la cuenta, no solo las vencidas, o se
     //    borraría el DNI que la reserva siguiente del mismo cliente todavía necesita.
     const holderIds = includeHolderFolders
@@ -238,7 +268,7 @@ export async function POST(request: Request) {
       }
     }
 
-    // 4. Datos legales del registro de viajeros, a los 3 años
+    // 5. Datos legales del registro de viajeros, a los 3 años
     const legal: LegalReport[] = pendingLegalPurges(rows, now)
       .map(plan => ({
         bookingId: plan.bookingId,
@@ -248,9 +278,39 @@ export async function POST(request: Request) {
       }))
       .filter(report => report.columns.length > 0)
 
-    // 5. ¿Se puede dejar constancia? Si no, no se borra nada
-    const schema = await checkRetentionSchema(db, rows)
     const wouldPurge = folders.length > 0 || legal.length > 0
+
+    /**
+     * ¿Sirve de algo repetir? Hay candidatas que NUNCA se pueden marcar y que la consulta devuelve
+     * igual en cada pasada: una reserva sin `user_id` (no se sabe en qué carpeta está su
+     * documentación) y una cuenta con una reserva viva sin fechas (que con razón protege la carpeta
+     * del titular). El aviso anterior mandaba «vuelve a ejecutar hasta que truncated sea false», y en
+     * esos casos ese bucle no termina (hallazgo de `qa-verificador`, 2026-11-12).
+     */
+    const stalled: Array<{ bookingId: string | null; reason: string }> = [
+      ...skipped.map(s => ({ bookingId: s.bookingId, reason: s.reason })),
+      ...imagePlans
+        .filter(plan => {
+          if (!plan.userId) return false // ya contado arriba como `no_user`
+          const holder = holders.find(h => h.userId === plan.userId)
+          return !!holder && holder.reason === 'undatable_booking'
+        })
+        .map(plan => ({ bookingId: plan.bookingId, reason: 'holder_undatable' })),
+    ]
+    const stalledReasons = stalled.reduce<Record<string, number>>((acc, entry) => {
+      acc[entry.reason] = (acc[entry.reason] || 0) + 1
+      return acc
+    }, {})
+    /** ¿Queda alguna candidata revisada que esta pasada sí puede dejar resuelta? */
+    const advanceable = rows.length - new Set(stalled.map(s => s.bookingId)).size
+    const stalledWarning = stalled.length > 0
+      ? `${stalled.length} de las ${rows.length} reservas revisadas no se pueden marcar solas y volverán en cada pasada: repetir la purga NO las arregla, hay que revisarlas a mano (${Object.entries(stalledReasons).map(([reason, count]) => `${reason}: ${count}`).join(', ')}).`
+      : null
+    const truncatedWarning = candidates.truncated
+      ? advanceable > 0
+        ? `Se ha alcanzado el tope de ${limit} reservas por plazo: quedan candidatas sin revisar. Vuelve a ejecutar hasta que "truncated" sea false.`
+        : `Se ha alcanzado el tope de ${limit} reservas por plazo, pero NINGUNA de las revisadas puede avanzar: repetir devolvería siempre las mismas. Hay que resolver a mano las de "stalled" antes de que el barrido pueda seguir.`
+      : null
 
     const policy = {
       decision: 'Javier, 2026-11-10: purgar imágenes de Storage a los 100 días tras la devolución; retener datos legales 3 años por RD 933/2021.',
@@ -310,6 +370,10 @@ export async function POST(request: Request) {
         holders,
         legal,
         skipped,
+        stalled,
+        stalledReasons,
+        ...(stalledWarning ? { stalledWarning } : {}),
+        ...(truncatedWarning ? { truncatedWarning } : {}),
         hint: schema.missing.length > 0 && wouldPurge
           ? `No se ha borrado nada, y con { "confirm": true } se rechazaría con un 409: falta ${schema.missing.join(', ')}. Aplica antes ${RETENTION_MIGRATION}.`
           : 'No se ha borrado nada. Repite la llamada con { "confirm": true } para ejecutar la purga.',
@@ -318,6 +382,7 @@ export async function POST(request: Request) {
 
     // 6. Purga de verdad
     const done: RetentionPurgeEntry[] = []
+    let sealed = 0
 
     for (const folder of folders) {
       if (folder.unreadable || folder.files.length === 0) continue
@@ -342,35 +407,51 @@ export async function POST(request: Request) {
     }
 
     /**
-     * Constancia por reserva. Se sella también cuando no había nada que borrar o cuando lo que había
-     * estaba en la carpeta del titular: si no, esas reservas no quedan marcadas nunca, el filtro
-     * `identity_images_purged_at IS NULL` las devuelve en cada ejecución y una auditoría no puede
-     * distinguir «revisada y sin nada» de «sin revisar» (hallazgo de `qa-verificador`, 2026-11-10).
+     * Constancia por reserva, con DOS marcas que dicen cosas distintas:
      *
-     * NO se sella si algo quedó sin resolver: carpeta ilegible, tanda de borrado fallida, cuenta con
-     * una reserva viva sin fechas, o modo dirigido en el que la carpeta del titular no se miró.
+     *   - `identity_images_reviewed_at`: esta reserva se revisó y de SU subcarpeta no queda nada. Se
+     *     pone también cuando no había nada que borrar: si no, la reserva no se marca nunca, el
+     *     filtro de candidatas la devuelve en cada pasada y una auditoría no puede distinguir
+     *     «revisada y sin nada» de «sin revisar» (hallazgo de `qa-verificador`, 2026-11-10).
+     *   - `identity_images_purged_at`: además, de esta reserva no queda NINGUNA imagen de identidad,
+     *     ni siquiera en la carpeta de cuenta del titular. Solo se puede afirmar cuando esa carpeta
+     *     también se ha purgado. Con una reserva viva por delante se conserva a propósito
+     *     (`retained`), y sellar entonces como «purgada» afirmaba más de lo que había pasado: el
+     *     `dni_front` del titular seguía en el bucket (hallazgo de `seguridad-auditor`, 2026-11-12).
+     *
+     * No se marca nada si algo quedó sin resolver: carpeta ilegible, tanda de borrado fallida, cuenta
+     * con una reserva viva sin fechas, o modo dirigido en el que la carpeta del titular no se miró.
      */
     for (const plan of imagePlans) {
       const row = byId.get(plan.bookingId)
       if (!row || !plan.userId) continue
-      if (row.identity_images_purged_at) continue
-      if (!('identity_images_purged_at' in row)) continue
+      if (!('identity_images_reviewed_at' in row)) continue
+      if (row.identity_images_reviewed_at && row.identity_images_purged_at) continue
 
       const ownFolder = ownFolderByBooking.get(plan.bookingId)
       if (!ownFolder || ownFolder.unreadable || ownFolder.error) continue
 
-      if (!includeHolderFolders) continue
+      // La carpeta de cuenta tiene que haberse resuelto en esta pasada. `holders` está vacío en modo
+      // dirigido, así que este `find` ya cubre ese caso
       const holder = holders.find(h => h.userId === plan.userId)
       if (!holder || holder.reason === 'undatable_booking' || holder.reason === 'no_bookings') continue
-      if (holder.due) {
-        const holderFolder = holderFolderByUser.get(plan.userId)
-        if (!holderFolder || holderFolder.unreadable || holderFolder.error) continue
-      }
+      const holderFolder = holderFolderByUser.get(plan.userId)
+      if (holder.due && (!holderFolder || holderFolder.unreadable || holderFolder.error)) continue
 
-      const patch: Row = { identity_images_purged_at: new Date().toISOString() }
+      // `retained`: la cuenta conserva su carpeta por otra reserva viva, así que de esta reserva
+      // todavía pueden quedar imágenes del titular. Queda revisada, no purgada
+      const fullyPurged = holder.due
+      const stamp = new Date().toISOString()
+      const patch: Row = { identity_images_reviewed_at: stamp }
+      if (fullyPurged && 'identity_images_purged_at' in row) patch.identity_images_purged_at = stamp
       if ('identity_images_purged_count' in row) patch.identity_images_purged_count = ownFolder.deleted
       const { error } = await db.from('bookings').update(patch).eq('id', plan.bookingId)
-      if (error) console.error('retention: no se pudo marcar la reserva purgada', plan.bookingId, error.message)
+      if (error) {
+        console.error('retention: no se pudo marcar la reserva revisada', plan.bookingId, error.message)
+        continue
+      }
+      ownFolder.sealed = fullyPurged ? 'purged' : 'reviewed'
+      sealed++
     }
 
     for (const report of legal) {
@@ -411,6 +492,8 @@ export async function POST(request: Request) {
         columns_cleared: summary.columns,
         bookings_affected: summary.bookings,
         holders_affected: summary.holders,
+        bookings_sealed: sealed,
+        candidates_stalled: stalled.length,
         detail: done,
       })
       if (error) console.error('retention: no se pudo registrar la purga en retention_purge_log', error.message)
@@ -439,12 +522,17 @@ export async function POST(request: Request) {
       holders,
       legal,
       skipped,
+      stalled,
+      stalledReasons,
+      sealed,
       logged,
       ...(done.length > 0 && !logged
         ? { logWarning: 'No se pudo escribir en retention_purge_log aunque sí se purgó: revísalo antes de volver a ejecutar.' }
         : {}),
-      ...(candidates.truncated
-        ? { truncatedWarning: `Se ha alcanzado el tope de ${limit} reservas por plazo: quedan candidatas sin revisar. Vuelve a ejecutar hasta que "truncated" sea false.` }
+      ...(stalledWarning ? { stalledWarning } : {}),
+      ...(truncatedWarning ? { truncatedWarning } : {}),
+      ...(folders.some(f => f.sealed === 'reviewed')
+        ? { reviewedWarning: 'Alguna reserva queda marcada como REVISADA y no como purgada: su cuenta conserva la carpeta del titular por otra reserva viva, así que todavía pueden quedar imágenes del titular. Lo dice "sealed" de cada carpeta y el motivo "retained" en "holders".' }
         : {}),
     })
   } catch (error) {
@@ -456,16 +544,30 @@ export async function POST(request: Request) {
 /**
  * ¿Existe en la base lo que hace falta para dejar constancia de la purga?
  *
- * Las columnas se comprueban sobre las propias filas leídas con `select('*')`: si una columna no
- * está en la fila, no está en la tabla. La tabla del registro se comprueba con una lectura de una
+ * Se llama ANTES de construir las consultas de candidatas, porque esas filtran por las columnas de
+ * constancia y en PostgREST filtrar por una columna que no existe es un 42703: el 409 que explica
+ * qué falta quedaba detrás de un 500 genérico.
+ *
+ * El testigo es UNA fila cualquiera de `bookings` leída con `select('*')`, sin filtros: si una
+ * columna no está en la fila, no está en la tabla. La tabla del registro se comprueba leyendo una
  * fila: si no existe, PostgREST responde con un error.
  *
  * No se usa `to_regclass` porque desde la aplicación no hay forma de ejecutar SQL suelto; esta es la
  * comprobación equivalente con los medios de PostgREST.
+ *
+ * Si la base no tiene ni una reserva, `verified` es false y `missing` queda vacío: no hay nada que
+ * purgar, así que tampoco hay nada que comprobar.
  */
-async function checkRetentionSchema(db: any, rows: Row[]): Promise<{ ready: boolean; verified: boolean; missing: string[] }> {
+async function checkRetentionSchema(
+  db: any
+): Promise<{ ready: boolean; verified: boolean; missing: string[]; error?: string }> {
   const missing: string[] = []
-  const witness = rows.find(row => row && typeof row === 'object') || null
+
+  const { data, error: witnessError } = await db.from('bookings').select('*').limit(1)
+  // Un fallo real de la base no es «faltan columnas»: se propaga y la ruta responde 500
+  if (witnessError) return { ready: false, verified: false, missing, error: witnessError.message }
+
+  const witness = (Array.isArray(data) ? data : []).find((row: Row) => row && typeof row === 'object') || null
   if (witness) {
     for (const column of RETENTION_AUDIT_COLUMNS) {
       if (!(column in witness)) missing.push(`bookings.${column}`)
@@ -489,12 +591,26 @@ async function checkRetentionSchema(db: any, rows: Row[]): Promise<{ ready: bool
  * (hallazgo QA-RET-2).
  *
  * Dos consultas por plazo porque una reserva sin `end_date` se sitúa por `start_date`.
+ *
+ * Cada consulta pide `limit + 1` filas y se queda con `limit`: así `truncated` dice la verdad.
+ * Comparar `length >= limit` daba `true` con exactamente `limit` candidatas y pedía una pasada de
+ * más (hallazgo de `seguridad-auditor`, 2026-11-12).
+ *
+ * `filterPurged: false` cuando las columnas de constancia todavía no existen: filtrar por ellas
+ * sería un 42703 y taparía el 409 que explica qué migración falta.
  */
 async function loadCandidates(
   db: any,
-  options: { imageCutoff: string; legalCutoff: string; limit: number; onlyBooking: string | null; onlyUser: string | null }
+  options: {
+    imageCutoff: string
+    legalCutoff: string
+    limit: number
+    onlyBooking: string | null
+    onlyUser: string | null
+    filterPurged: boolean
+  }
 ): Promise<{ rows: Row[]; truncated: boolean; error?: string }> {
-  const { imageCutoff, legalCutoff, limit, onlyBooking, onlyUser } = options
+  const { imageCutoff, legalCutoff, limit, onlyBooking, onlyUser, filterPurged } = options
 
   if (onlyBooking) {
     const { data, error } = await db.from('bookings').select('*').eq('id', onlyBooking).maybeSingle()
@@ -502,19 +618,22 @@ async function loadCandidates(
     return { rows: data ? [data] : [], truncated: false }
   }
 
-  /** Filas sin purgar de ese plazo, opcionalmente de un solo cliente */
+  /** Filas sin resolver de ese plazo, opcionalmente de un solo cliente */
   const pending = (pendingColumn: string) => {
     let query = db.from('bookings').select('*')
     if (onlyUser) query = query.eq('user_id', onlyUser)
-    return query.is(pendingColumn, null)
+    return filterPurged ? query.is(pendingColumn, null) : query
   }
   /** Orden estable: la devolución más antigua primero y, a igualdad, por id */
   const ordered = (query: any) =>
-    query.order('end_date', { ascending: true }).order('id', { ascending: true }).limit(limit)
+    query.order('end_date', { ascending: true }).order('id', { ascending: true }).limit(limit + 1)
 
   const queries = [
-    ordered(pending('identity_images_purged_at').lte('end_date', imageCutoff)),
-    ordered(pending('identity_images_purged_at').is('end_date', null).lte('start_date', imageCutoff)),
+    // Imágenes: lo que marca que una reserva ya está resuelta es `identity_images_reviewed_at`,
+    // no `..._purged_at` (una reserva revisada cuya cuenta conserva la carpeta del titular nunca
+    // llega a «purgada» y, filtrando por esa, volvería en cada pasada)
+    ordered(pending('identity_images_reviewed_at').lte('end_date', imageCutoff)),
+    ordered(pending('identity_images_reviewed_at').is('end_date', null).lte('start_date', imageCutoff)),
     ordered(pending('legal_data_purged_at').lte('end_date', legalCutoff)),
     ordered(pending('legal_data_purged_at').is('end_date', null).lte('start_date', legalCutoff)),
   ]
@@ -522,11 +641,12 @@ async function loadCandidates(
   const failed = results.find(result => result.error)
   if (failed) return { rows: [], truncated: false, error: failed.error.message }
 
+  // Se pidió `limit + 1`: si vino la de más, quedan candidatas sin revisar, y esa no entra
+  const truncated = results.some(result => (result.data || []).length > limit)
   const byId = new Map<string, Row>()
   for (const result of results) {
-    for (const row of result.data || []) if (row?.id) byId.set(String(row.id), row)
+    for (const row of (result.data || []).slice(0, limit)) if (row?.id) byId.set(String(row.id), row)
   }
-  const truncated = results.some(result => (result.data || []).length >= limit)
   return { rows: [...byId.values()], truncated }
 }
 
@@ -556,7 +676,8 @@ async function readFolder(
     purgeDay: options.purgeDay,
     files: [],
     unknown: 0,
-    unknownSample: [],
+    unknownExtensions: [],
+    unknownLengths: [],
     unreadable: false,
     deleted: 0,
   }
@@ -570,10 +691,12 @@ async function readFolder(
     const files = (Array.isArray(data) ? data : []) as StoredFile[]
     const selection = selectIdentityFiles(files, options.prefixes)
     report.files = selection.purge
-    // Solo el recuento y una muestra recortada: un nombre puesto a mano puede llevar datos personales
+    // Ni un trozo del nombre: un archivo subido a mano puede llevar datos personales en el nombre, y
+    // 10 caracteres bastaban para entregar un DNI entero. Recuento, extensiones y longitudes
     const unknown = describeUnknownNames(selection.unknown)
     report.unknown = unknown.count
-    report.unknownSample = unknown.sample
+    report.unknownExtensions = unknown.extensions
+    report.unknownLengths = unknown.lengths
   } catch (e) {
     report.unreadable = true
     report.error = e instanceof Error ? e.message : 'error al listar'

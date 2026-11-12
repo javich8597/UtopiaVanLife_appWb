@@ -53,7 +53,10 @@ const MADRID_3_ANOS_MENOS_1 = '2029-06-09T21:30:00Z'
 
 const at = (iso: string) => new Date(iso)
 
-const audit = { identity_images_purged_at: null, identity_images_purged_count: null, legal_data_purged_at: null }
+const audit = {
+    identity_images_reviewed_at: null, identity_images_purged_at: null,
+    identity_images_purged_count: null, legal_data_purged_at: null,
+}
 
 const FOTOS_RESERVA = [
     `${CLIENTE}/${B_VIEJA}/second_dni_front_11111111-1111-4111-8111-111111111111.jpg`,
@@ -392,10 +395,12 @@ describe('QA conservación: la ruta real', () => {
     /* ------------------------------------------------------------------ */
 
     /**
-     * ADAPTADO tras el hallazgo de `seguridad-auditor`: la respuesta ya no repite el nombre completo
-     * de los archivos que no reconoce (un nombre puesto a mano puede llevar datos personales:
-     * «dni-de-ana-perez.jpg»). Ahora devuelve el recuento y una muestra recortada. Lo que este test
-     * mide sigue siendo lo mismo: que esos archivos NO se borran y que se informa de que están.
+     * ADAPTADO DOS VECES por el mismo hallazgo de `seguridad-auditor`, que se cerró a medias la
+     * primera: la respuesta devolvía el nombre completo de los archivos que no reconoce (un nombre
+     * puesto a mano puede llevar datos personales), después un recorte a 10 caracteres —que seguía
+     * bastando para entregar un DNI entero— y ahora solo el recuento, las extensiones y las
+     * longitudes. Lo que este test mide sigue siendo lo mismo: que esos archivos NO se borran y que
+     * se informa de que están.
      */
     it('no borra lo que no reconoce ni las subcarpetas de reserva, e informa de cuántos hay sin repetir sus nombres', async () => {
         freeze(MADRID_DIA_100)
@@ -413,9 +418,11 @@ describe('QA conservación: la ruta real', () => {
         const informados = res.json.folders.reduce((total: number, f: any) => total + f.unknown, 0)
         assert.equal(informados, extraños.length, 'se informa de los tres')
         const titular = res.json.folders.find((f: any) => f.scope === 'holder_images')
-        // `dni_front.jpg` pasa de 10 caracteres y se recorta; `notas.txt` no llega y va entero
-        assert.deepEqual(titular.unknownSample.sort(), ['dni_front.…', 'notas.txt'].sort())
-        assert.ok(!JSON.stringify(res.json).includes('ana-perez'), 'ningún nombre completo en la respuesta')
+        assert.equal(titular.unknown, 2, 'los dos de la carpeta del titular')
+        assert.deepEqual(titular.unknownExtensions, ['.jpg', '.txt'], 'de qué tipo son')
+        assert.deepEqual(titular.unknownLengths, [9, 13], 'y por qué longitud encontrarlos')
+        assert.ok(!JSON.stringify(res.json).includes('ana-perez'), 'ningún nombre, ni un trozo, en la respuesta')
+        assert.ok(!JSON.stringify(res.json).includes('notas'), 'ni el de un archivo corto')
 
         // La subcarpeta de la reserva no se borra como si fuera un archivo
         assert.ok(!quedan.includes(`${CLIENTE}/${B_VIEJA}`))

@@ -11,10 +11,18 @@
 -- deja constancia de que se haya borrado.
 --
 -- Qué hace esta migración (nada se borra aquí: solo prepara dónde consta lo purgado):
---   1. Tres columnas de constancia en public.bookings:
---        identity_images_purged_at     timestamptz  cuándo se borraron sus imágenes de identidad
---        identity_images_purged_count  integer      cuántos archivos se borraron
+--   1. Cuatro columnas de constancia en public.bookings:
+--        identity_images_reviewed_at   timestamptz  cuándo se revisó y su subcarpeta quedó limpia
+--        identity_images_purged_at     timestamptz  cuándo dejó de quedar NINGUNA imagen suya
+--        identity_images_purged_count  integer      cuántos archivos se borraron de su subcarpeta
 --        legal_data_purged_at          timestamptz  cuándo se borraron sus datos del RD 933/2021
+--      `reviewed` y `purged` NO son lo mismo, y confundirlas era un hallazgo de seguridad: las
+--      fotos del titular viven en una carpeta de CUENTA que se conserva mientras la cuenta tenga
+--      otra reserva viva. En ese caso la reserva vencida queda `reviewed` (su subcarpeta está
+--      limpia) pero NO `purged`, porque el dni_front del titular sigue en el bucket. Quien audite
+--      debe leer `purged` como «no queda nada de esta reserva» y `reviewed` como «revisada, pero la
+--      carpeta de cuenta aún se conserva». La purga de esa carpeta consta aparte en
+--      retention_purge_log, con scope 'holder_images'.
 --   2. public.retention_purge_log: una fila por ejecución de la purga, con quién, cuándo, los dos
 --      plazos vigentes y el detalle (rutas de Storage y nombres de columna, NUNCA valores). Es la
 --      prueba de que la política se cumple.
@@ -44,10 +52,14 @@
 --     no se pueden borrar reserva a reserva. La ruta las borra cuando ha vencido el plazo de la
 --     última reserva viva de esa cuenta.
 --   - Los datos de identidad del PERFIL (public.users: full_name, dni_nie, birth_date, address,
---     phone, driver_license_id…) también son de la cuenta y su plazo NO está decidido. La ruta no
---     los toca Y TAMPOCO LOS LISTA: vaciar el perfil es borrar la cuenta y eso lo decide Javier
---     aparte. (Antes esta cabecera decía que la ruta los listaba, y no era verdad: el ayudante que
---     lo hacía solo lo usaban los tests y se ha retirado. Hallazgo de `seguridad-auditor`.)
+--     phone, driver_license_id…) son de la cuenta y NO tienen plazo: se conservan mientras exista
+--     la cuenta (decisión de Javier, 2026-11-11). Son suyos, no de una reserva, y vaciarlos sería
+--     borrar la cuenta, que es otra cosa y la pide el cliente. La ruta no los toca ni los lista.
+--     Consecuencia que hay que asumir: a los 3 años se vacía la identidad del viajero EN LA RESERVA
+--     y la del perfil sigue ahí, así que el plazo del RD 933/2021 se cumple sobre el registro de
+--     viajeros, no sobre la ficha del cliente. (Antes esta cabecera decía que la ruta los listaba,
+--     y no era verdad: el ayudante que lo hacía solo lo usaban los tests y se ha retirado.
+--     Hallazgo de `seguridad-auditor`.)
 --
 -- ANTES DE APLICAR, comprobar:
 --   1. Que la purga puede escribir con la clave de servicio: las tres columnas de constancia solo
@@ -69,20 +81,24 @@
 --
 -- MATRIZ DE PERMISOS ESPERADA TRAS APLICAR
 --
--- public.bookings, columnas identity_images_purged_at / identity_images_purged_count /
--- legal_data_purged_at:
---                  anon   cliente dueño   otro cliente   admin   service role
---   SELECT         NO*    SÍ*             NO*            SÍ      SÍ
---   INSERT         NO*    NO (trigger)    NO*            NO (trigger)   SÍ
---   UPDATE         NO*    NO (trigger)    NO*            NO (trigger)   SÍ
---   DELETE (fila)  NO*    NO*             NO*            SÍ*            SÍ
+-- public.bookings, columnas identity_images_reviewed_at / identity_images_purged_at /
+-- identity_images_purged_count / legal_data_purged_at:
+--                  anon   cliente dueño   otro cliente   admin   postgres (SQL)   service role
+--   SELECT         NO*    SÍ*             NO*            SÍ      SÍ               SÍ
+--   INSERT         NO*    NO (trigger)    NO*            NO (trigger)   NO (trigger)   SÍ
+--   UPDATE         NO*    NO (trigger)    NO*            NO (trigger)   NO (trigger)   SÍ
+--   DELETE (fila)  NO*    NO*             NO*            SÍ*            SÍ             SÍ
 --   * lo decide la RLS de bookings, que no consta en el repositorio: SIN VERIFICAR.
 --     Este trigger solo añade la prohibición de escribir ESAS columnas; no relaja nada.
---   El sello de purga SOLO lo puede poner el rol `service_role`, es decir la propia purga. Ni el
---   administrador desde el navegador: si no, podría declarar purgada una reserva cuyas fotos siguen
---   ahí, o declarar una purga que nunca hizo (hallazgo de `seguridad-auditor`, 2026-11-10).
---   Una sesión SQL directa (psql o el editor de Supabase, donde no hay JWT) sí puede: ahí está
---   Javier, no un navegador, y tiene que poder corregir una fila a mano.
+--   El sello SOLO lo puede poner el rol `service_role`, es decir la propia purga. Ni el
+--   administrador desde el navegador (si no, podría declarar purgada una reserva cuyas fotos siguen
+--   ahí, o declarar una purga que nunca hizo), ni una sesión SQL directa, ni una tarea de pg_cron:
+--   es una LISTA POSITIVA, sin excepciones. Para corregir una fila a mano o desde pg_cron, en la
+--   misma transacción y antes del UPDATE:  SET LOCAL ROLE service_role;
+--   (La primera versión eximía a `current_user NOT IN ('authenticated','anon')` dentro de una
+--   función SECURITY DEFINER, donde `current_user` es el dueño de la función: esa condición era
+--   siempre verdadera y dejaba pasar cualquier escritura sin JWT. Hallazgo de `seguridad-auditor` y
+--   `qa-verificador`, 2026-11-12.)
 --
 -- public.retention_purge_log (tabla nueva, RLS activada aquí):
 --                  anon   cliente dueño   otro cliente   admin   service role
@@ -104,7 +120,15 @@
 --      fiscales más largos que 3 años. Si se quiere un plazo para el contrato, es otra decisión.
 --   b) El plazo de 100 días vence EL PROPIO día 100 contado desde la devolución (devolución el día
 --      D -> se borra el día D+100), que es lo que Javier pidió.
---   c) Los datos de identidad del perfil (public.users) a los 3 años: sin decidir y sin tocar.
+--   c) El perfil (public.users) NO caduca: decidido por Javier el 2026-11-11, se conserva mientras
+--      exista la cuenta, y la cuenta SOLO se borra si el cliente lo pide (decisión de Javier,
+--      2026-11-12). Aquí no queda nada que hacer, pero sí FUERA: hoy no existe ninguna forma de
+--      borrar una cuenta en toda la aplicación (ni ruta, ni pantalla, ni procedimiento), así que
+--      «solo si lo pide» equivale hoy a «nunca», y el derecho de supresión (art. 17 RGPD) tiene que
+--      existir de verdad. Cuando se monte, no puede borrarlo todo: el registro de viajeros de una
+--      reserva hay que conservarlo sus 3 años (RD 933/2021), que es lo que esta purga ya se lleva
+--      después. Es decir, borrar una cuenta = se va la ficha del cliente y sus imágenes, y se queda
+--      el registro de viajeros hasta que cumpla el plazo.
 --   d) Quién dispara la purga: hoy nadie. No hay botón en el panel ni tarea programada.
 --
 -- Idempotente: IF NOT EXISTS, DROP POLICY IF EXISTS y un único bloque.
@@ -117,25 +141,32 @@ BEGIN
 
   -- 1. Constancia por reserva
   ALTER TABLE public.bookings
+    ADD COLUMN IF NOT EXISTS identity_images_reviewed_at timestamptz,
     ADD COLUMN IF NOT EXISTS identity_images_purged_at timestamptz,
     ADD COLUMN IF NOT EXISTS identity_images_purged_count integer,
     ADD COLUMN IF NOT EXISTS legal_data_purged_at timestamptz;
 
+  COMMENT ON COLUMN public.bookings.identity_images_reviewed_at IS
+    'Cuándo la purga revisó esta reserva y dejó su subcarpeta de documents sin imágenes de identidad. Es la marca que hace avanzar el barrido; se pone también cuando no había nada que borrar.';
   COMMENT ON COLUMN public.bookings.identity_images_purged_at IS
-    'Cuándo se borraron del bucket documents las imágenes de identidad de esta reserva (100 días tras la devolución; decisión de Javier, 2026-11-10).';
+    'Cuándo dejó de quedar NINGUNA imagen de identidad de esta reserva en el bucket documents, ni siquiera en la carpeta de cuenta del titular (100 días tras la devolución; decisión de Javier, 2026-11-10). Puede ser NULL con identity_images_reviewed_at puesto: ver el aviso de abajo.';
   COMMENT ON COLUMN public.bookings.identity_images_purged_count IS
-    'Cuántos archivos se borraron en esa purga, contando todas las copias que dejó cada reenvío del formulario.';
+    'Cuántos archivos se borraron de la subcarpeta de ESTA reserva, contando todas las copias que dejó cada reenvío del formulario.';
   COMMENT ON COLUMN public.bookings.legal_data_purged_at IS
     'Cuándo se borraron los datos de identidad del registro de viajeros (RD 933/2021) de esta reserva, a los 3 años de la devolución.';
 
-  -- Índices parciales: la purga busca lo que AÚN no se ha purgado, y son las filas que menos hay
-  CREATE INDEX IF NOT EXISTS bookings_identity_images_not_purged_idx
+  -- Índices parciales: la purga busca lo que AÚN no está resuelto, y son las filas que menos hay.
+  -- El de imágenes va por `reviewed`, que es el filtro real de la consulta de candidatas
+  CREATE INDEX IF NOT EXISTS bookings_identity_images_not_reviewed_idx
     ON public.bookings (end_date)
-    WHERE identity_images_purged_at IS NULL;
+    WHERE identity_images_reviewed_at IS NULL;
 
   CREATE INDEX IF NOT EXISTS bookings_legal_data_not_purged_idx
     ON public.bookings (end_date)
     WHERE legal_data_purged_at IS NULL;
+
+  -- El índice de la primera versión iba por `identity_images_purged_at`, que ya no es el filtro
+  DROP INDEX IF EXISTS public.bookings_identity_images_not_purged_idx;
 
   -- 2. Registro de cumplimiento, una fila por ejecución
   CREATE TABLE IF NOT EXISTS public.retention_purge_log (
@@ -160,7 +191,12 @@ BEGIN
     columns_cleared integer NOT NULL DEFAULT 0,
     bookings_affected integer NOT NULL DEFAULT 0,
     holders_affected integer NOT NULL DEFAULT 0,
-    -- Rutas de Storage y nombres de columna. NUNCA valores de datos personales
+    -- Cuántas reservas quedaron marcadas, y cuántas de las revisadas no pueden avanzar y volverán
+    -- en cada pasada (sin user_id, o con una reserva viva sin fechas en su cuenta)
+    bookings_sealed integer NOT NULL DEFAULT 0,
+    candidates_stalled integer NOT NULL DEFAULT 0,
+    -- Rutas de Storage y nombres de columna. NUNCA valores de datos personales: ni el nombre de un
+    -- archivo que la purga no reconoce, porque el nombre también puede serlo
     detail jsonb NOT NULL DEFAULT '[]'::jsonb
   );
 
@@ -190,12 +226,27 @@ BEGIN
   --
   --    Y NO exime a public.is_privileged_writer(): eso incluiría a cualquier administrador con su
   --    sesión del navegador, que podría sellar como purgada una reserva cuyas fotos siguen en
-  --    Storage. El rol se lee del JWT sin depender de que exista auth.role(); una sesión SQL directa
-  --    (sin JWT, donde está Javier y no un navegador) sí puede corregir una fila a mano.
+  --    Storage.
+  --
+  --    LISTA POSITIVA, Y SECURITY INVOKER A PROPÓSITO. La primera versión era SECURITY DEFINER y
+  --    comprobaba `current_user NOT IN ('authenticated','anon')`. Dentro de una función DEFINER,
+  --    `current_user` es el DUEÑO de la función (postgres), no el rol de la sesión: esa condición
+  --    era SIEMPRE verdadera, así que cualquier escritura sin claims de JWT quedaba exenta —una
+  --    tarea de pg_cron entre ellas, que es justo por donde se va a disparar la purga (hallazgo de
+  --    `seguridad-auditor` y `qa-verificador`, 2026-11-12).
+  --
+  --    Con SECURITY INVOKER, `current_user` SÍ es el rol efectivo: PostgREST hace
+  --    `SET LOCAL ROLE authenticated | anon | service_role` según la clave, así que la comprobación
+  --    vale tanto por el JWT como por el rol de la sesión. La función no necesita privilegios
+  --    elevados: solo lee NEW/OLD y un ajuste, y nadie puede saltarse un trigger.
+  --
+  --    Para corregir una fila a mano (o para una tarea de pg_cron), antes del UPDATE:
+  --      SET LOCAL ROLE service_role;
+  --    No hay ninguna otra puerta: sin eso, ni postgres puede tocar estas columnas.
   CREATE OR REPLACE FUNCTION public.protect_bookings_retention_columns()
   RETURNS trigger
   LANGUAGE plpgsql
-  SECURITY DEFINER
+  SECURITY INVOKER
   SET search_path = public
   AS $fn$
   DECLARE
@@ -211,32 +262,30 @@ BEGIN
       END;
     END IF;
 
-    -- La purga: clave de service role
-    IF coalesce(v_role, current_user::text) = 'service_role' THEN
-      RETURN NEW;
-    END IF;
-
-    -- Sesión SQL directa: no hay JWT y el rol de conexión no es uno de navegador
-    IF v_role IS NULL AND current_user::text NOT IN ('authenticated', 'anon') THEN
+    -- Lista positiva: solo la purga. `current_user` es el rol efectivo porque esta función es
+    -- SECURITY INVOKER; `session_user` no serviría, porque PostgREST entra como `authenticator`
+    IF v_role = 'service_role' OR current_user::text = 'service_role' THEN
       RETURN NEW;
     END IF;
 
     IF TG_OP = 'INSERT' THEN
-      IF NEW.identity_images_purged_at IS NOT NULL
+      IF NEW.identity_images_reviewed_at IS NOT NULL
+         OR NEW.identity_images_purged_at IS NOT NULL
          OR NEW.identity_images_purged_count IS NOT NULL
          OR NEW.legal_data_purged_at IS NOT NULL THEN
-        RAISE EXCEPTION 'No autorizado a declarar una reserva purgada' USING ERRCODE = '42501';
+        RAISE EXCEPTION 'No autorizado a declarar una reserva revisada o purgada' USING ERRCODE = '42501';
       END IF;
       RETURN NEW;
     END IF;
 
     SELECT string_agg(k, ', ' ORDER BY k) INTO v_changed
     FROM jsonb_object_keys(to_jsonb(NEW)) AS k
-    WHERE k IN ('identity_images_purged_at', 'identity_images_purged_count', 'legal_data_purged_at')
+    WHERE k IN ('identity_images_reviewed_at', 'identity_images_purged_at',
+                'identity_images_purged_count', 'legal_data_purged_at')
       AND to_jsonb(NEW) -> k IS DISTINCT FROM to_jsonb(OLD) -> k;
 
     IF v_changed IS NOT NULL THEN
-      RAISE EXCEPTION 'No autorizado a modificar la constancia de purga: %', v_changed USING ERRCODE = '42501';
+      RAISE EXCEPTION 'No autorizado a modificar la constancia de purga: %. Solo la purga (service_role) puede.', v_changed USING ERRCODE = '42501';
     END IF;
 
     RETURN NEW;
@@ -251,11 +300,15 @@ END
 $retention$;
 
 -- COMPROBACIÓN (solo lectura).
--- Esperado: las tres columnas, la tabla con rowsecurity = true, UNA SOLA política (el SELECT del
--- administrador) y el trigger con tgenabled = 'O'.
+-- Esperado: las cuatro columnas, la tabla con rowsecurity = true, UNA SOLA política (el SELECT del
+-- administrador) y el trigger con tgenabled = 'O'. Y prosecdef = false: esta función es SECURITY
+-- INVOKER a propósito (con DEFINER, current_user sería su dueño y la comprobación de rol mentiría).
 --   SELECT column_name, data_type FROM information_schema.columns
 --   WHERE table_schema = 'public' AND table_name = 'bookings'
---     AND column_name IN ('identity_images_purged_at', 'identity_images_purged_count', 'legal_data_purged_at');
+--     AND column_name IN ('identity_images_reviewed_at', 'identity_images_purged_at',
+--                         'identity_images_purged_count', 'legal_data_purged_at');
+--
+--   SELECT prosecdef FROM pg_proc WHERE oid = to_regprocedure('public.protect_bookings_retention_columns()');
 --
 --   SELECT relrowsecurity FROM pg_class WHERE oid = 'public.retention_purge_log'::regclass;
 --
@@ -284,17 +337,23 @@ $retention$;
 --   6. Con la sesión de un ADMINISTRADOR (clave anon, desde el navegador), un UPDATE sobre
 --      identity_images_purged_at también debe fallar con 42501, y un INSERT en
 --      public.retention_purge_log debe fallar: solo la purga puede sellar y registrar.
---   7. Sin tope: repetir { "confirm": true } hasta que la respuesta traiga truncated = false. Ese es
---      el momento en que se puede afirmar que no queda nada por purgar.
+--   7. Sin tope: repetir { "confirm": true } hasta que la respuesta traiga truncated = false. Si
+--      trae `stalled` con filas, esas NO se arreglan repitiendo: hay reservas sin `user_id` o
+--      cuentas con una reserva viva sin fechas, y hay que resolverlas a mano. La respuesta lo dice
+--      en `stalledWarning`, y el aviso de `truncated` cambia de texto cuando ninguna puede avanzar.
+--   8. Si la respuesta trae `reviewedWarning`, alguna reserva quedó `reviewed` y no `purged`: su
+--      cuenta conserva la carpeta del titular por otra reserva viva. Es correcto, pero quien audite
+--      no puede leer esa reserva como «sin ninguna imagen».
 --
 -- REVERTIR (quita la constancia y la protección; NO devuelve nada de lo ya borrado, que es
--- irreversible):
+-- irreversible). Antes del ALTER, en la misma transacción:  SET LOCAL ROLE service_role;
 --   DROP TRIGGER IF EXISTS protect_bookings_retention_columns ON public.bookings;
 --   DROP FUNCTION IF EXISTS public.protect_bookings_retention_columns();
 --   DROP TABLE IF EXISTS public.retention_purge_log;
---   DROP INDEX IF EXISTS public.bookings_identity_images_not_purged_idx;
+--   DROP INDEX IF EXISTS public.bookings_identity_images_not_reviewed_idx;
 --   DROP INDEX IF EXISTS public.bookings_legal_data_not_purged_idx;
 --   ALTER TABLE public.bookings
+--     DROP COLUMN IF EXISTS identity_images_reviewed_at,
 --     DROP COLUMN IF EXISTS identity_images_purged_at,
 --     DROP COLUMN IF EXISTS identity_images_purged_count,
 --     DROP COLUMN IF EXISTS legal_data_purged_at;

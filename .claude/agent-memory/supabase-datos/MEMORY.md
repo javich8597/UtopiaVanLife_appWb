@@ -1,1 +1,3 @@
 - [Política de conservación de la documentación](politica-conservacion-documentacion.md) — dos plazos (100 días / 3 años), carpetas compartidas por cuenta y lo que sigue pendiente de Javier
+- [Guardas dentro de SECURITY DEFINER](guardas-dentro-de-security-definer.md) — `current_user` es el dueño de la función: cómo comprobar de verdad quién escribe
+- [Mutar por encima del tope](mutar-por-encima-del-tope.md) — probar un bucle por tandas exige pasar del doble del tamaño de tanda

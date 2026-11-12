@@ -70,10 +70,6 @@ export default function ContactClient({ t }: ContactClientProps) {
       {/* 1. Header Hero */}
       <section className="contact-hero">
         <div className="container">
-          <div className="hero-kicker-wrap">
-            <Sparkles size={13} className="hero-kicker-icon" />
-            <span className="hero-kicker">UTOPIA CONCIERGE · ATENCIÓN EXCLUSIVA MALLORCA</span>
-          </div>
           <h1 className="hero-title">{t.title}</h1>
           <p className="hero-subtitle">{t.subtitle}</p>
         </div>
@@ -108,9 +104,9 @@ export default function ContactClient({ t }: ContactClientProps) {
                           rel="noopener noreferrer"
                           className="whatsapp-btn"
                           title="Abrir chat de WhatsApp"
+                          aria-label="Abrir chat de WhatsApp"
                         >
-                          <MessageCircle size={14} />
-                          <span>WhatsApp</span>
+                          <MessageCircle size={15} />
                         </a>
                       </div>
                     </div>
@@ -318,10 +314,29 @@ export default function ContactClient({ t }: ContactClientProps) {
 
         /* 1. Hero */
         .contact-hero {
+          position: relative;
+          overflow: hidden;
           background: radial-gradient(ellipse 80% 60% at 50% -20%, rgba(204, 160, 83, 0.14), transparent 70%), #0B0C0E;
           padding: 4.5rem 0 3rem;
           border-bottom: 1px solid rgba(255, 255, 255, 0.08);
           text-align: center;
+        }
+
+        .contact-hero::before {
+          content: '';
+          position: absolute;
+          inset: 0;
+          background-image: url('/images/lifestyle/newsletter-adventure-hero.jpg');
+          background-size: cover;
+          background-position: center 75%;
+          opacity: 0.6;
+          pointer-events: none;
+          z-index: 0;
+        }
+
+        .contact-hero > :global(.container) {
+          position: relative;
+          z-index: 1;
         }
 
         .hero-kicker-wrap {
@@ -495,13 +510,13 @@ export default function ContactClient({ t }: ContactClientProps) {
         .whatsapp-btn {
           display: inline-flex;
           align-items: center;
-          gap: 6px;
-          padding: 4px 12px;
-          border-radius: var(--radius-full);
+          justify-content: center;
+          width: 30px;
+          height: 30px;
+          padding: 0;
+          border-radius: 50%;
           background: #25D366;
           color: #0B0C0E;
-          font-size: 0.75rem;
-          font-weight: 700;
           text-decoration: none;
           transition: all 0.2s ease;
         }

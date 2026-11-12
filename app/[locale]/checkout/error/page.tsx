@@ -195,18 +195,19 @@ function ErrorContent() {
                 }
 
                 .checkout-error-link {
-                    color: #94A3B8;
+                    color: #FFFFFF;
                     font-size: 0.88rem;
                     font-weight: 600;
                     display: inline-flex;
                     align-items: center;
                     gap: 6px;
                     text-decoration: none;
-                    transition: color 0.2s ease;
+                    transition: color 0.2s ease, opacity 0.2s ease;
                 }
 
                 .checkout-error-link:hover {
-                    color: #CCA053;
+                    color: #FFFFFF;
+                    opacity: 0.85;
                 }
 
                 @media (max-width: 640px) {

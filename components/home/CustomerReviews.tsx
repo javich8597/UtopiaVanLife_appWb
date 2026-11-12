@@ -113,6 +113,23 @@ export default function CustomerReviews() {
           overflow: hidden;
         }
 
+        .reviews-section::before {
+          content: '';
+          position: absolute;
+          inset: 0;
+          background-image: url('/images/hero-sunset-poster.jpg');
+          background-size: cover;
+          background-position: center;
+          opacity: 0.6;
+          pointer-events: none;
+          z-index: 0;
+        }
+
+        .reviews-section > .container {
+          position: relative;
+          z-index: 1;
+        }
+
         .reviews__header {
           display: flex;
           flex-direction: column;

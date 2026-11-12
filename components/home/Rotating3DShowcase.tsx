@@ -255,7 +255,13 @@ export default function Rotating3DShowcase() {
           position: relative;
           padding-top: var(--space-16);
           padding-bottom: var(--space-16);
-          background: #0B0C0E;
+          background-color: #0B0C0E;
+          background-image:
+            linear-gradient(180deg, rgba(11, 12, 14, 0.85) 0%, rgba(13, 18, 15, 0.82) 50%, rgba(11, 12, 14, 0.88) 100%),
+            url('/images/backgrounds/mallorca-bg-dark.webp');
+          background-position: center center;
+          background-size: cover;
+          background-repeat: no-repeat;
           color: #ffffff;
           overflow: hidden;
           border-bottom: 1px solid rgba(255, 255, 255, 0.08);

@@ -181,11 +181,23 @@ export default function AboutPreview() {
         }
 
         .about-band--a {
-          background: #0E1013;
+          background-color: #0E1013;
+          background-image:
+            linear-gradient(180deg, rgba(14, 16, 19, 0.85) 0%, rgba(14, 16, 19, 0.89) 100%),
+            url('/images/backgrounds/mallorca-bg-dark.webp');
+          background-position: center center;
+          background-size: cover;
+          background-repeat: no-repeat;
         }
 
         .about-band--b {
-          background: #0B0C0E;
+          background-color: #0B0C0E;
+          background-image:
+            linear-gradient(180deg, rgba(11, 12, 14, 0.86) 0%, rgba(11, 12, 14, 0.90) 100%),
+            url('/images/backgrounds/mallorca-bg-dark.webp');
+          background-position: center center;
+          background-size: cover;
+          background-repeat: no-repeat;
         }
 
         .about-band__grid {

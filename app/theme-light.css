@@ -680,7 +680,11 @@ html[data-theme="light"] .home-main::before {
 html[data-theme="light"] .featured {
   background:
     radial-gradient(ellipse 75% 45% at 50% 0%, rgba(204, 160, 83, 0.09) 0%, transparent 70%),
-    linear-gradient(180deg, #F5F2EC 0%, #EFEBE3 100%) !important;
+    linear-gradient(180deg, rgba(245, 242, 236, 0.90) 0%, rgba(239, 235, 227, 0.92) 100%),
+    url('/images/backgrounds/mallorca-bg-light.webp') !important;
+  background-position: center center !important;
+  background-size: cover !important;
+  background-repeat: no-repeat !important;
 }
 
 html[data-theme="light"] .featured__title {
@@ -736,15 +740,17 @@ html[data-theme="light"] .camper-card__tagline {
 
 html[data-theme="light"] .camper-card__spec-chip,
 html[data-theme="light"] .camper-card__spec {
-  background: #F7F5F1 !important;
-  border: 1px solid #EAE5DD !important;
+  background: transparent !important;
+  border: none !important;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.08) !important;
   color: #1F1B17 !important;
+  border-radius: 0 !important;
 }
 
 html[data-theme="light"] .camper-card__spec-icon {
   background: transparent !important;
   border: none !important;
-  color: #82681A !important;
+  color: #CCA053 !important;
 }
 
 html[data-theme="light"] .camper-card__spec-label {
@@ -783,7 +789,12 @@ html[data-theme="light"] .camper-card__btn:hover {
 
 /* 3D Showcase */
 html[data-theme="light"] .showcase-section {
-  background: #EFECE6 !important;
+  background:
+    linear-gradient(180deg, rgba(239, 236, 230, 0.90) 0%, rgba(247, 245, 241, 0.88) 100%),
+    url('/images/backgrounds/mallorca-bg-light.webp') !important;
+  background-position: center center !important;
+  background-size: cover !important;
+  background-repeat: no-repeat !important;
 }
 
 html[data-theme="light"] .showcase-eyebrow {
@@ -934,11 +945,21 @@ html[data-theme="light"] .about-band {
 }
 
 html[data-theme="light"] .about-band--a {
-  background: #F2F0EC !important;
+  background:
+    linear-gradient(180deg, rgba(242, 240, 236, 0.88) 0%, rgba(242, 240, 236, 0.91) 100%),
+    url('/images/backgrounds/mallorca-bg-light.webp') !important;
+  background-position: center center !important;
+  background-size: cover !important;
+  background-repeat: no-repeat !important;
 }
 
 html[data-theme="light"] .about-band--b {
-  background: #F7F5F1 !important;
+  background:
+    linear-gradient(180deg, rgba(247, 245, 241, 0.89) 0%, rgba(247, 245, 241, 0.92) 100%),
+    url('/images/backgrounds/mallorca-bg-light.webp') !important;
+  background-position: center center !important;
+  background-size: cover !important;
+  background-repeat: no-repeat !important;
 }
 
 html[data-theme="light"] .about-band__tag {
@@ -1112,7 +1133,12 @@ html[data-theme="light"] .experience-card__desc {
 /* FAQ & Recuadro de Atención Personalizada */
 html[data-theme="light"] .faq-section,
 html[data-theme="light"] .faq-page-main {
-  background: #F2F0EC !important;
+  background:
+    linear-gradient(180deg, rgba(242, 240, 236, 0.90) 0%, rgba(247, 245, 241, 0.92) 100%),
+    url('/images/backgrounds/mallorca-bg-light.webp') !important;
+  background-position: center center !important;
+  background-size: cover !important;
+  background-repeat: no-repeat !important;
   border-top: 1px solid #EAE5DD !important;
 }
 
@@ -1300,24 +1326,6 @@ html[data-theme="light"] .footer .footer__social-btn:hover {
   background: #F7EEDC !important;
   color: #1A1714 !important;
   /* TEXTO NEGRO EN BEIGE */
-}
-
-html[data-theme="light"] .footer .footer__instagram {
-  background: #FFFFFF !important;
-  border: 1px solid #EAE5DD !important;
-}
-
-html[data-theme="light"] .footer .footer__instagram-brand {
-  color: #1F1B17 !important;
-}
-
-html[data-theme="light"] .footer .footer__instagram-btn {
-  background: #1A1714 !important;
-  color: #F6EBD3 !important;
-}
-
-html[data-theme="light"] .footer .footer__instagram-text {
-  color: #857B6F !important;
 }
 
 html[data-theme="light"] .footer__bottom {
@@ -2567,167 +2575,118 @@ html[data-theme="light"] .about-page {
   background: #F2F0EC !important;
 }
 
-html[data-theme="light"] .about-who-section {
+html[data-theme="light"] .about-content {
   background: #F2F0EC !important;
-}
-
-html[data-theme="light"] .about-pill-label {
-  background: #F7EEDC !important;
-  border: 1px solid #E8D6B2 !important;
-  color: #1A1714 !important;
-  /* TEXTO NEGRO EN BEIGE */
-  font-weight: 700 !important;
-}
-
-html[data-theme="light"] .about-pill-icon {
-  color: #1A1714 !important;
-}
-
-html[data-theme="light"] .about-eyebrow {
-  color: #1A1714 !important;
-  font-weight: 800 !important;
-}
-
-html[data-theme="light"] .about-section-title {
   color: #1F1B17 !important;
 }
 
-html[data-theme="light"] .about-lead-text {
-  color: #2E2822 !important;
-}
-
-html[data-theme="light"] .about-body-text {
-  color: #4A433B !important;
-}
-
-html[data-theme="light"] .about-manifesto-box {
-  background: #F7EEDC !important;
-  border: 1px solid #E8D6B2 !important;
-  box-shadow: 0 4px 16px rgba(40, 30, 15, 0.05) !important;
-}
-
-html[data-theme="light"] .about-manifesto-item {
-  color: #1A1714 !important;
-  /* TEXTO NEGRO EN BEIGE */
-  font-weight: 600 !important;
-}
-
-html[data-theme="light"] .about-dot {
-  background: #1A1714 !important;
-}
-
-html[data-theme="light"] .about-image-card {
-  background: #FFFFFF !important;
-  border: 1px solid #EAE5DD !important;
-  box-shadow: 0 16px 40px rgba(40, 30, 15, 0.10) !important;
-}
-
-html[data-theme="light"] .about-img-glass-badge {
-  background: rgba(247, 245, 241, 0.94) !important;
-  border: 1px solid #E8D6B2 !important;
-  color: #1A1714 !important;
-  /* TEXTO NEGRO EN BEIGE */
-  font-weight: 700 !important;
-}
-
-html[data-theme="light"] .about-gallery-strip {
-  background: #EFECE6 !important;
+/* Apartados Manifiesto en modo claro */
+html[data-theme="light"] .about-manifesto {
   border-top: 1px solid #EAE5DD !important;
   border-bottom: 1px solid #EAE5DD !important;
+  box-shadow: 0 8px 30px rgba(40, 30, 15, 0.05) !important;
 }
 
-html[data-theme="light"] .about-gallery-tagline {
-  color: #1A1714 !important;
-  font-weight: 800 !important;
+html[data-theme="light"] .about-manifesto--dark {
+  background: #FAF8F5 !important;
 }
 
-html[data-theme="light"] .about-gallery-title {
-  color: #1F1B17 !important;
+html[data-theme="light"] .about-manifesto--alt {
+  background: #F4F1EA !important;
 }
 
-html[data-theme="light"] .about-gallery-item {
-  background: #FFFFFF !important;
-  border: 1px solid #EAE5DD !important;
-  box-shadow: 0 12px 30px rgba(40, 30, 15, 0.08) !important;
-}
-
-html[data-theme="light"] .about-gallery-badge {
+html[data-theme="light"] .about-manifesto__kicker {
   background: #F7EEDC !important;
   border: 1px solid #E8D6B2 !important;
   color: #1A1714 !important;
-  /* TEXTO NEGRO EN BEIGE */
   font-weight: 700 !important;
 }
 
-html[data-theme="light"] .about-method-section {
-  background: #F7F5F1 !important;
-}
-
-html[data-theme="light"] .about-method-title {
+html[data-theme="light"] .about-manifesto__title {
   color: #1F1B17 !important;
 }
 
-html[data-theme="light"] .about-quote-text {
-  color: #1A1714 !important;
-  font-weight: 500 !important;
+html[data-theme="light"] .about-manifesto__title-gradient {
+  background: linear-gradient(135deg, #1F1B17 15%, #8A6421 100%) !important;
+  -webkit-background-clip: text !important;
+  -webkit-text-fill-color: transparent !important;
 }
 
-html[data-theme="light"] .about-method-body {
+html[data-theme="light"] .about-manifesto__divider {
+  background: linear-gradient(90deg, #CCA053 0%, transparent 100%) !important;
+}
+
+html[data-theme="light"] .about-manifesto__lines p {
   color: #4A433B !important;
 }
 
-html[data-theme="light"] .about-pillar-card {
-  background: #FFFFFF !important;
-  border: 1px solid #EAE5DD !important;
-  box-shadow: 0 8px 24px rgba(40, 30, 15, 0.05) !important;
+html[data-theme="light"] .about-bullet-row {
+  color: #1F1B17 !important;
 }
 
-html[data-theme="light"] .about-pillar-icon-wrap {
+html[data-theme="light"] .about-check-disc {
   background: #F7EEDC !important;
-  color: #1A1714 !important;
+  border-color: #E8D6B2 !important;
+  color: #8A6421 !important;
 }
 
-html[data-theme="light"] .about-pillar-title {
-  color: #1F1B17 !important;
+html[data-theme="light"] .about-manifesto__punchline {
+  color: #9E7429 !important;
+  font-weight: 700 !important;
 }
 
-html[data-theme="light"] .about-pillar-desc {
-  color: #5A5248 !important;
+/* Difuminado de imágenes hacia los fondos claros */
+html[data-theme="light"] .about-manifesto__img-shadow--left-dark {
+  background: linear-gradient(
+    90deg,
+    #FAF8F5 0%,
+    rgba(250, 248, 245, 0.5) 22%,
+    rgba(250, 248, 245, 0.08) 50%,
+    transparent 100%
+  ) !important;
 }
 
-html[data-theme="light"] .about-philosophy-section {
-  background: #F2F0EC !important;
+html[data-theme="light"] .about-manifesto__img-shadow--right-alt {
+  background: linear-gradient(
+    270deg,
+    #F4F1EA 0%,
+    rgba(244, 241, 234, 0.5) 22%,
+    rgba(244, 241, 234, 0.08) 50%,
+    transparent 100%
+  ) !important;
 }
 
-html[data-theme="light"] .about-step-content p {
-  color: #1F1B17 !important;
+@media (max-width: 860px) {
+  html[data-theme="light"] .about-manifesto__img-shadow--left-dark {
+    background: linear-gradient(
+      180deg,
+      #FAF8F5 0%,
+      rgba(250, 248, 245, 0.2) 20%,
+      transparent 70%,
+      #FAF8F5 100%
+    ) !important;
+  }
+
+  html[data-theme="light"] .about-manifesto__img-shadow--right-alt {
+    background: linear-gradient(
+      180deg,
+      #F4F1EA 0%,
+      rgba(244, 241, 234, 0.2) 20%,
+      transparent 70%,
+      #F4F1EA 100%
+    ) !important;
+  }
 }
 
-html[data-theme="light"] .about-philosophy-conclusion {
-  border-top: 1px solid #EAE5DD !important;
-}
-
-html[data-theme="light"] .about-philosophy-conclusion p {
-  color: #1A1714 !important;
-  font-weight: 600 !important;
-}
-
+/* ── ÚLTIMO APARTADO (CTA): EN MODO CLARO SIN FONDO PROPIO ── */
 html[data-theme="light"] .about-cta-section {
-  background: #EFECE6 !important;
+  background: transparent !important;
 }
 
 html[data-theme="light"] .about-cta-card {
-  background: #FFFFFF !important;
-  border: 1px solid #EAE5DD !important;
-  box-shadow: 0 16px 40px rgba(40, 30, 15, 0.08) !important;
-}
-
-html[data-theme="light"] .about-cta-badge {
-  background: #F7EEDC !important;
-  border: 1px solid #E8D6B2 !important;
-  color: #1A1714 !important;
-  /* TEXTO NEGRO EN BEIGE */
-  font-weight: 700 !important;
+  background: transparent !important;
+  border: none !important;
+  box-shadow: none !important;
 }
 
 html[data-theme="light"] .about-cta-title {
@@ -2738,9 +2697,25 @@ html[data-theme="light"] .about-cta-subtitle {
   color: #5A5248 !important;
 }
 
-html[data-theme="light"] .about-cta-btn {
-  background: #1A1714 !important;
-  color: #F6EBD3 !important;
+html[data-theme="light"] .about-btn-gold,
+html[data-theme="light"] .about-btn-gold-outline {
+  background: #FFFFFF !important;
+  border: 1px solid #EAE5DD !important;
+  color: #1F1B17 !important;
+  box-shadow: 0 1px 4px rgba(40, 30, 15, 0.05) !important;
+}
+
+html[data-theme="light"] .about-btn-gold:hover,
+html[data-theme="light"] .about-btn-gold-outline:hover {
+  background: #F7F5F1 !important;
+  border-color: #D9D1C4 !important;
+  color: #1A1714 !important;
+  box-shadow: 0 2px 8px rgba(40, 30, 15, 0.08) !important;
+}
+
+html[data-theme="light"] .about-btn-gold svg,
+html[data-theme="light"] .about-btn-gold-outline svg {
+  color: #B8893A !important;
 }
 
 /* ── 14. CONTACTO (/contacto) ── */

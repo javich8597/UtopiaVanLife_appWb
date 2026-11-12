@@ -85,7 +85,13 @@ export default function FeaturedCampers() {
       <style jsx>{`
         .featured {
           position: relative;
-          background: #0E1013;
+          background-color: #0E1013;
+          background-image:
+            linear-gradient(180deg, rgba(14, 16, 19, 0.85) 0%, rgba(14, 16, 19, 0.89) 100%),
+            url('/images/backgrounds/mallorca-bg-dark.webp');
+          background-position: center center;
+          background-size: cover;
+          background-repeat: no-repeat;
           padding-block: 104px;
           border-bottom: 1px solid rgba(255, 255, 255, 0.08);
         }
@@ -152,7 +158,7 @@ export default function FeaturedCampers() {
           display: flex;
           justify-content: center;
         }
-        .featured__view-all-btn {
+        .featured__cta :global(.featured__view-all-btn) {
           display: inline-flex;
           align-items: center;
           gap: 8px;
@@ -160,25 +166,25 @@ export default function FeaturedCampers() {
           padding: 13px 30px;
           font-size: 0.94rem;
           font-weight: 700;
-          border: 1px solid rgba(204, 160, 83, 0.4);
-          color: #E8CA7C;
-          background: rgba(204, 160, 83, 0.08);
+          border: 1px solid rgba(255, 255, 255, 0.22);
+          color: #FFFFFF;
+          background: rgba(255, 255, 255, 0.08);
           text-decoration: none;
           transition: all 0.2s ease;
         }
-        .featured__view-all-btn:hover {
-          background: rgba(204, 160, 83, 0.18);
-          border-color: #CCA053;
+        .featured__cta :global(.featured__view-all-btn:hover) {
+          background: rgba(255, 255, 255, 0.16);
+          border-color: rgba(255, 255, 255, 0.45);
           color: #FFFFFF;
           transform: translateY(-2px);
         }
-        .featured__view-all-btn:hover .featured__btn-arrow {
+        .featured__cta :global(.featured__view-all-btn:hover .featured__btn-arrow) {
           transform: translateX(4px);
         }
-        .featured__view-all-btn:active {
+        .featured__cta :global(.featured__view-all-btn:active) {
           transform: scale(0.97);
         }
-        .featured__btn-arrow {
+        .featured__cta :global(.featured__btn-arrow) {
           transition: transform 180ms ease-out;
         }
 

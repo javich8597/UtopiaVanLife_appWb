@@ -29,6 +29,7 @@ export const viewport: Viewport = {
 }
 
 import CookieBanner from '@/components/ui/CookieBanner';
+import FloatingWhatsApp from '@/components/ui/FloatingWhatsApp';
 
 export default async function RootLayout({
   children,
@@ -73,6 +74,7 @@ export default async function RootLayout({
             <SiteThemeProvider initialTheme={initialTheme}>
               <NavigationLoader />
               {children}
+              <FloatingWhatsApp />
               <CookieBanner />
             </SiteThemeProvider>
           </NextIntlClientProvider>

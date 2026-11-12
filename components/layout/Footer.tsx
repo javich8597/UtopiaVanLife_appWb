@@ -1,7 +1,7 @@
 'use client'
 
 import { Link } from '@/i18n/routing'
-import { Instagram, MessageCircle, Mail, MapPin } from 'lucide-react'
+import { Instagram, MessageCircle, Mail, MapPin, Phone } from 'lucide-react'
 
 export default function Footer() {
   return (
@@ -55,51 +55,29 @@ export default function Footer() {
             <ul className="footer__links">
               <li>
                 <a href="mailto:info@utopiavanlife.com" className="footer__contact-link">
-                  <Mail size={14} className="footer__contact-icon" />
+                  <Mail size={15} className="footer__contact-icon" />
                   <span>info@utopiavanlife.com</span>
                 </a>
               </li>
               <li>
+                <a href="mailto:administracion@utopiavanlife.com" className="footer__contact-link">
+                  <Mail size={15} className="footer__contact-icon" />
+                  <span>administracion@utopiavanlife.com</span>
+                </a>
+              </li>
+              <li>
                 <a href="tel:+34611560916" className="footer__contact-link">
+                  <Phone size={15} className="footer__contact-icon" />
                   <span className="footer__contact-text">+34 611 560 916</span>
                 </a>
               </li>
               <li>
-                <a href="https://wa.me/34611560916" target="_blank" rel="noopener noreferrer" className="footer__contact-link">
-                  <MessageCircle size={14} className="footer__contact-icon" />
-                  <span>WhatsApp</span>
-                </a>
-              </li>
-              <li>
                 <span className="footer__contact-address">
-                  <MapPin size={14} className="footer__contact-icon" />
-                  <span>Carrer Son Oms, Palma de Mallorca</span>
+                  <MapPin size={15} className="footer__contact-icon" />
+                  <span>Carrer Son Oms, Palma de Mallorca (Illes Balears)</span>
                 </span>
               </li>
             </ul>
-          </div>
-        </div>
-
-        {/* Instagram feed callout */}
-        <div className="footer__instagram">
-          <div className="footer__instagram-header">
-            <div className="footer__instagram-brand">
-              <Instagram size={16} className="footer__instagram-icon" />
-              <span>@utopiavanlife</span>
-            </div>
-            <a
-              href="https://www.instagram.com/utopiavanlife/"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="footer__instagram-btn"
-            >
-              Seguir en Instagram
-            </a>
-          </div>
-          <div className="footer__instagram-placeholder">
-            <p className="footer__instagram-text">
-              ✨ Sigue nuestras rutas, calas secretas y puestas de sol en Mallorca.
-            </p>
           </div>
         </div>
 
@@ -230,69 +208,14 @@ export default function Footer() {
           align-items: center;
         }
 
-        /* Instagram card */
-        .footer__instagram {
-          margin-top: var(--space-10);
-          border: 1px solid rgba(255, 255, 255, 0.08);
-          border-radius: 16px;
-          overflow: hidden;
-          background: rgba(255, 255, 255, 0.02);
-          backdrop-filter: blur(12px);
-        }
-        .footer__instagram-header {
-          display: flex;
-          align-items: center;
-          justify-content: space-between;
-          padding: 12px 20px;
-          border-bottom: 1px solid rgba(255, 255, 255, 0.06);
-        }
-        .footer__instagram-brand {
-          display: flex;
-          align-items: center;
-          gap: 8px;
-          font-size: 0.85rem;
-          font-weight: 600;
-          color: rgba(255, 255, 255, 0.85);
-        }
-        :global(.footer__instagram-icon) {
-          color: #CCA053;
-        }
-        .footer__instagram-btn {
-          font-size: 0.74rem;
-          font-weight: 700;
-          letter-spacing: 0.04em;
-          text-transform: uppercase;
-          padding: 6px 14px;
-          border-radius: var(--radius-full);
-          background: rgba(204, 160, 83, 0.12);
-          border: 1px solid rgba(204, 160, 83, 0.35);
-          color: #CCA053;
-          text-decoration: none;
-          transition: all var(--transition-fast);
-        }
-        .footer__instagram-btn:hover {
-          background: #CCA053;
-          color: #090A0C;
-        }
-        .footer__instagram-placeholder {
-          padding: var(--space-5);
-          display: flex;
-          align-items: center;
-          justify-content: center;
-        }
-        .footer__instagram-text {
-          font-size: 0.85rem;
-          color: rgba(255, 255, 255, 0.5);
-          text-align: center;
-          margin: 0;
-        }
-
         /* Bottom credits */
         .footer__bottom {
           display: flex;
           justify-content: space-between;
           align-items: center;
-          margin-top: var(--space-8);
+          margin-top: var(--space-10);
+          padding-top: var(--space-6);
+          border-top: 1px solid rgba(255, 255, 255, 0.08);
           flex-wrap: wrap;
           gap: var(--space-2);
         }
@@ -319,11 +242,6 @@ export default function Footer() {
           .footer__grid {
             grid-template-columns: 1fr;
             gap: var(--space-6);
-          }
-          .footer__instagram-header {
-            flex-direction: column;
-            align-items: flex-start;
-            gap: 10px;
           }
           .footer__bottom {
             flex-direction: column;

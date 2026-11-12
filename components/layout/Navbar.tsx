@@ -7,7 +7,7 @@ import { useTranslations } from 'next-intl'
 import LanguageSwitcher from './LanguageSwitcher'
 import ThemeToggle from './ThemeToggle'
 
-export default function Navbar() {
+export default function Navbar({ alwaysVisible = false }: { alwaysVisible?: boolean }) {
   const t = useTranslations('Navigation')
   const pathname = usePathname()
 
@@ -29,15 +29,19 @@ export default function Navbar() {
         setIsScrolled(false)
       } else {
         setIsScrolled(true)
-        const diff = currentScrollY - lastScrollY.current
-
-        // Scroll down (> 8px past 80px) -> hide navbar to let user immerse in content
-        if (diff > 8 && currentScrollY > 80) {
-          setIsNavVisible(false)
-        }
-        // Scroll up (> 6px) -> reveal navbar immediately for fluid navigation
-        else if (diff < -6) {
+        if (alwaysVisible) {
           setIsNavVisible(true)
+        } else {
+          const diff = currentScrollY - lastScrollY.current
+
+          // Scroll down (> 8px past 80px) -> hide navbar to let user immerse in content
+          if (diff > 8 && currentScrollY > 80) {
+            setIsNavVisible(false)
+          }
+          // Scroll up (> 6px) -> reveal navbar immediately for fluid navigation
+          else if (diff < -6) {
+            setIsNavVisible(true)
+          }
         }
       }
 
@@ -46,7 +50,7 @@ export default function Navbar() {
 
     window.addEventListener('scroll', handleScroll, { passive: true })
     return () => window.removeEventListener('scroll', handleScroll)
-  }, [])
+  }, [alwaysVisible])
 
   // Close mobile menu on route change
   useEffect(() => {
@@ -98,7 +102,7 @@ export default function Navbar() {
   return (
     <>
       <nav
-        className={`navbar ${isScrolled ? 'navbar--scrolled' : ''} ${!isNavVisible && !menuOpen ? 'navbar--hidden' : ''}`}
+        className={`navbar ${isScrolled ? 'navbar--scrolled' : ''} ${!alwaysVisible && !isNavVisible && !menuOpen ? 'navbar--hidden' : ''}`}
         aria-label="Navegación principal"
       >
         <div className="navbar__inner container">

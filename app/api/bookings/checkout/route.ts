@@ -4,6 +4,7 @@ import { NextResponse } from 'next/server'
 import { getSupabaseAdmin } from '@/lib/supabase/admin'
 import { createClient as createServerClient } from '@/lib/supabase/server'
 import { calculatePriceV2 } from '@/lib/pricing/engine'
+import { resolveCamperRentalConfig } from '@/lib/campers/camperCatalog'
 import { CategorizedExtra, KmPackage, CancellationPolicy, DepositOption } from '@/lib/pricing/types'
 import { generateRedsysOrderId, createRedsysPaymentForm, getRedsysConfig, isRedsysLocale } from '@/lib/redsys'
 import {
@@ -621,12 +622,23 @@ export async function POST(req: Request) {
             supabase.from('extras').select('*'),
         ])
 
-        // Normalizar y verificar extras seleccionados con la base de datos (seguridad server-side)
+        // Normalizar y verificar extras seleccionados con la base de datos o catálogo base del servidor (seguridad server-side)
+        const STATIC_EXTRAS_CATALOG: Record<string, { name_es: string; category: string; price: number; price_type: 'per_day' | 'per_rental' }> = {
+            'extra-chair-unit': { name_es: 'Silla exterior adicional', category: 'Equipamiento', price: 10, price_type: 'per_rental' },
+            'extra-table-unit': { name_es: 'Mesa exterior adicional', category: 'Equipamiento', price: 15, price_type: 'per_rental' },
+            'extra-cleaning-set': { name_es: 'Set limpieza adicional', category: 'Equipamiento', price: 10, price_type: 'per_rental' },
+            'extra-bedding-kit': { name_es: 'Kit cama adicional', category: 'Confort', price: 20, price_type: 'per_rental' },
+            'extra-snorkel-mask': { name_es: 'Kit snorkel adicional', category: 'Deporte', price: 10, price_type: 'per_rental' },
+            'extra-paddle-surf': { name_es: 'Padelsurf con hinchador', category: 'Deporte', price: 45, price_type: 'per_rental' },
+            'extra-bike-rack': { name_es: 'Portabicicletas', category: 'Deporte', price: 40, price_type: 'per_rental' },
+            'extra-bicycle': { name_es: 'Bicicleta', category: 'Deporte', price: 35, price_type: 'per_rental' },
+        }
+
         const verifiedExtras: CategorizedExtra[] = []
         if (Array.isArray(rawExtras)) {
             for (const item of rawExtras) {
                 const extraId = typeof item === 'string' ? item : (item.id || item.extraId)
-                const dbExtra = (dbExtras || []).find((e: any) => e.id === extraId)
+                const dbExtra = (dbExtras || []).find((e: any) => e.id === extraId) || (extraId && STATIC_EXTRAS_CATALOG[extraId] ? { id: extraId, ...STATIC_EXTRAS_CATALOG[extraId] } : null)
                 if (dbExtra) {
                     const quantity = typeof item === 'object' && item.quantity ? Math.max(1, Math.floor(Number(item.quantity))) : 1
                     verifiedExtras.push({
@@ -645,6 +657,7 @@ export async function POST(req: Request) {
 
         // 6. Cálculo verificado de precios en el servidor (Source of Truth)
         // Se calcula 100% de forma inmutable en el backend mediante calculatePriceV2
+        const rentalConfig = resolveCamperRentalConfig(camper)
         const breakdown = calculatePriceV2({
             startDate,
             pickupSlot,
@@ -660,7 +673,11 @@ export async function POST(req: Request) {
             depositOption,
             secondDriver: hasSecondDriver,
             extrasSelected: verifiedExtras,
-            depositAmount: depositOption === 'flex_1000' ? 1000 : 2000,
+            standardDepositAmount: rentalConfig.standardDepositAmount,
+            flexDepositAmount: rentalConfig.flexDepositAmount,
+            flexDepositRatePerDay: rentalConfig.flexDepositRatePerDay,
+            secondDriverRatePerDay: rentalConfig.secondDriverRatePerDay,
+            depositAmount: depositOption === 'flex_1000' ? rentalConfig.flexDepositAmount : rentalConfig.standardDepositAmount,
         })
 
         if (breakdown.numNights <= 0) {

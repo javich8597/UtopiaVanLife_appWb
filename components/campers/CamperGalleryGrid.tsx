@@ -9,9 +9,10 @@ interface Props {
 }
 
 export default function CamperGalleryGrid({ images, onOpenLightbox }: Props) {
+  if (!images || images.length === 0) return null
   const hero = images[0]
-  const side1 = images[1]
-  const side2 = images[2]
+  const side1 = images[1] || images[0]
+  const side2 = images[2] || images[1] || images[0]
   const totalCount = images.length
 
   return (
@@ -107,6 +108,17 @@ export default function CamperGalleryGrid({ images, onOpenLightbox }: Props) {
           letter-spacing: 0.04em;
           text-transform: uppercase;
           pointer-events: none;
+        }
+
+        :global(html[data-theme="light"]) .gallery-hero-cell,
+        :global(html[data-theme="light"]) .gallery-side-cell {
+          background: #E8E3DA;
+        }
+        :global(html[data-theme="light"]) .gallery-count-badge {
+          background: rgba(250, 250, 247, 0.92);
+          border: 1px solid rgba(26, 23, 20, 0.16);
+          color: #1A1714;
+          box-shadow: 0 4px 14px rgba(26, 23, 20, 0.15);
         }
 
         @media (max-width: 640px) {

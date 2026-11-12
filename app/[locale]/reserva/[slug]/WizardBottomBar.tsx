@@ -7,10 +7,12 @@ import { formatPrice } from '@/lib/pricing/engine'
 
 export const WIZARD_STEPS = [
     { number: 1 as WizardStep, label: 'Fechas', fullTitle: 'Fechas y Horarios' },
-    { number: 2 as WizardStep, label: 'KM', fullTitle: 'Kilometraje' },
-    { number: 3 as WizardStep, label: 'Fianza', fullTitle: 'Cobertura & Fianza' },
-    { number: 4 as WizardStep, label: 'Extras', fullTitle: 'Extras & Experiencias' },
-    { number: 5 as WizardStep, label: 'Pago', fullTitle: 'Tus Datos & Pago' },
+    { number: 2 as WizardStep, label: 'Modelo', fullTitle: 'Modelo de Camper' },
+    { number: 3 as WizardStep, label: 'KM', fullTitle: 'Kilometraje' },
+    { number: 4 as WizardStep, label: 'Seguro', fullTitle: 'Seguro y Fianza' },
+    { number: 5 as WizardStep, label: 'Cancelación', fullTitle: 'Política de Cancelación' },
+    { number: 6 as WizardStep, label: 'Extras', fullTitle: 'Extras y Experiencias' },
+    { number: 7 as WizardStep, label: 'Pago', fullTitle: 'Tus Datos y Pago' },
 ]
 
 interface WizardBottomBarProps {
@@ -39,7 +41,7 @@ export default function WizardBottomBar({
     isSubmitting = false,
 }: WizardBottomBarProps) {
     const isFirstStep = currentStep === 1
-    const isFinalStep = currentStep === 5
+    const isFinalStep = currentStep === 7
 
     const handleNextClick = () => {
         if (!isStepValid || isSubmitting) return
@@ -90,9 +92,8 @@ export default function WizardBottomBar({
                                 <button
                                     key={step.number}
                                     type="button"
-                                    className={`wizard-step-node ${isCurrent ? 'wizard-step-node--current' : ''} ${
-                                        isCompleted ? 'wizard-step-node--completed' : ''
-                                    } ${!isClickable ? 'wizard-step-node--disabled' : ''}`}
+                                    className={`wizard-step-node ${isCurrent ? 'wizard-step-node--current' : ''} ${isCompleted ? 'wizard-step-node--completed' : ''
+                                        } ${!isClickable ? 'wizard-step-node--disabled' : ''}`}
                                     onClick={() => {
                                         if (isClickable && step.number !== currentStep) {
                                             onStepClick(step.number)
@@ -100,14 +101,13 @@ export default function WizardBottomBar({
                                     }}
                                     disabled={!isClickable || isSubmitting}
                                     aria-current={isCurrent ? 'step' : undefined}
-                                    aria-label={`Paso ${step.number}: ${step.fullTitle}${
-                                        isCompleted ? ' (completado)' : isCurrent ? ' (actual)' : ''
-                                    }`}
+                                    aria-label={`Paso ${step.number}: ${step.fullTitle}${isCompleted ? ' (completado)' : isCurrent ? ' (actual)' : ''
+                                        }`}
                                     title={`Paso ${step.number}: ${step.fullTitle}`}
                                 >
                                     <span className="wizard-step-node__circle">
                                         {isCompleted ? (
-                                            <Check size={12} strokeWidth={3} />
+                                            <Check size={10} strokeWidth={3} />
                                         ) : (
                                             <span>{step.number}</span>
                                         )}
@@ -143,9 +143,8 @@ export default function WizardBottomBar({
                 <div className="wizard-bottom-bar__col-right">
                     <button
                         type="button"
-                        className={`wizard-bar-btn wizard-bar-btn--next ${
-                            isFinalStep ? 'wizard-bar-btn--pay' : ''
-                        }`}
+                        className={`wizard-bar-btn wizard-bar-btn--next ${isFinalStep ? 'wizard-bar-btn--pay' : ''
+                            }`}
                         onClick={handleNextClick}
                         disabled={!isStepValid || isSubmitting}
                         aria-label={
@@ -205,7 +204,7 @@ export default function WizardBottomBar({
 
                 .wizard-bottom-bar__col-center {
                     flex: 1;
-                    max-width: 580px;
+                    max-width: 720px;
                     margin: 0 auto;
                 }
 
@@ -233,14 +232,14 @@ export default function WizardBottomBar({
 
                 .wizard-bar-btn--back {
                     background: var(--wz-surface);
-                    border: 1px solid rgba(255, 255, 255, 0.14);
+                    border: 1px solid var(--gray-300);
                     color: var(--black-matte);
                     min-width: 110px;
                 }
 
                 .wizard-bar-btn--back:hover:not(:disabled) {
-                    background: rgba(255, 255, 255, 0.08);
-                    border-color: rgba(255, 255, 255, 0.25);
+                    background: var(--wz-chip-bg);
+                    border-color: var(--forest-green);
                     transform: translateX(-2px);
                 }
 
@@ -263,7 +262,7 @@ export default function WizardBottomBar({
                 }
 
                 .wizard-bar-btn--next:disabled {
-                    background: rgba(255, 255, 255, 0.1);
+                    background: var(--gray-200);
                     color: var(--gray-500);
                     cursor: not-allowed;
                     box-shadow: none;
@@ -288,11 +287,11 @@ export default function WizardBottomBar({
 
                 .wizard-stepper__track-bg {
                     position: absolute;
-                    top: 14px;
-                    left: 20px;
-                    right: 20px;
+                    top: 12px;
+                    left: 26px;
+                    right: 26px;
                     height: 2px;
-                    background: rgba(255, 255, 255, 0.12);
+                    background: var(--gray-200);
                     z-index: 1;
                 }
 
@@ -307,7 +306,7 @@ export default function WizardBottomBar({
                     position: relative;
                     z-index: 2;
                     display: flex;
-                    align-items: center;
+                    align-items: flex-start;
                     justify-content: space-between;
                 }
 
@@ -315,10 +314,12 @@ export default function WizardBottomBar({
                     background: transparent;
                     border: none;
                     cursor: pointer;
-                    display: inline-flex;
+                    display: flex;
+                    flex-direction: column;
                     align-items: center;
+                    gap: 4px;
                     padding: 2px 6px;
-                    border-radius: var(--radius-full);
+                    border-radius: var(--radius-md);
                     transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
                     user-select: none;
                 }
@@ -337,16 +338,16 @@ export default function WizardBottomBar({
                 }
 
                 .wizard-step-node__circle {
-                    width: 28px;
-                    height: 28px;
+                    width: 22px;
+                    height: 22px;
                     border-radius: 50%;
-                    background: #181A1E;
-                    border: 2px solid rgba(255, 255, 255, 0.18);
-                    color: var(--gray-400);
+                    background: var(--wz-surface);
+                    border: 1.5px solid var(--gray-300);
+                    color: var(--gray-500);
                     display: flex;
                     align-items: center;
                     justify-content: center;
-                    font-size: 11px;
+                    font-size: 10px;
                     font-weight: 700;
                     transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
                     flex-shrink: 0;
@@ -364,14 +365,16 @@ export default function WizardBottomBar({
                     border-color: var(--forest-green);
                     color: var(--forest-green);
                     box-shadow: 0 0 0 3px rgba(204, 160, 83, 0.22);
-                    transform: scale(1.1);
+                    transform: scale(1.08);
                 }
 
                 .wizard-step-node__label {
-                    font-size: 12px;
+                    font-size: 10px;
                     font-weight: 600;
                     color: var(--gray-400);
-                    margin-left: 6px;
+                    margin-left: 0;
+                    line-height: 1.1;
+                    text-align: center;
                     white-space: nowrap;
                     transition: color 0.2s ease;
                 }
@@ -412,25 +415,26 @@ export default function WizardBottomBar({
                     }
 
                     .wizard-stepper__track-bg {
-                        top: 15px;
+                        top: 12px;
                         left: 18px;
                         right: 18px;
                     }
 
                     .wizard-step-node {
-                        padding: 2px 4px;
-                        min-width: 44px;
-                        min-height: 34px;
+                        padding: 2px 3px;
+                        min-width: 40px;
+                        min-height: 36px;
                         justify-content: center;
                     }
 
                     .wizard-step-node__circle {
-                        width: 28px;
-                        height: 28px;
+                        width: 20px;
+                        height: 20px;
+                        font-size: 9.5px;
                     }
 
                     .wizard-step-node__label {
-                        display: none;
+                        font-size: 9px;
                     }
 
                     /* Actions row container (Back, Mobile Price, Next) */

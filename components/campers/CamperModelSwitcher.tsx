@@ -54,19 +54,37 @@ export default function CamperModelSwitcher({ currentSlug }: Props) {
           font-weight: 700;
           text-transform: uppercase;
           letter-spacing: 0.08em;
-          color: rgba(255, 255, 255, 0.6) !important;
+          color: rgba(255, 255, 255, 0.65);
           transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
           text-decoration: none !important;
           white-space: nowrap;
         }
         :global(.model-pill:hover) {
-          color: #ffffff !important;
+          color: #ffffff;
         }
         :global(.model-pill--active) {
-          background: #e6ca65 !important;
+          background: #e6ca65;
           color: #0b0c0e !important;
           box-shadow: 0 4px 14px rgba(230, 202, 101, 0.35);
         }
+
+        :global(html[data-theme="light"]) .camper-model-switcher {
+          background: #F4EFE4;
+          border-color: rgba(26, 23, 20, 0.14);
+          box-shadow: 0 4px 14px rgba(26, 23, 20, 0.08);
+        }
+        :global(html[data-theme="light"] .model-pill) {
+          color: #5C554C;
+        }
+        :global(html[data-theme="light"] .model-pill:hover) {
+          color: #1A1714;
+        }
+        :global(html[data-theme="light"] .model-pill--active) {
+          background: #1A1714;
+          color: #FAF9F6 !important;
+          box-shadow: 0 4px 12px rgba(26, 23, 20, 0.2);
+        }
+
         @media (max-width: 640px) {
           :global(.model-pill) {
             padding: 6px 14px;

@@ -4,35 +4,24 @@ import type { CamperLiveStatus } from '@/lib/admin/dashboardMetrics'
 import { useBodyScrollLock } from '@/lib/ui/useBodyScrollLock'
 import AdminPageHeader from '../AdminPageHeader'
 import AdminStatTiles from '../AdminStatTiles'
+import CamperEditorModal from './CamperEditorModal'
 import { Eye as EyeIcon, Wrench as WrenchIcon, Navigation as NavIcon, Gauge } from 'lucide-react'
 
-import React, { useState, useRef } from 'react'
+import React, { useState } from 'react'
 import Image from 'next/image'
 import {
   Plus,
   Edit3,
   Trash2,
   CheckCircle2,
-  XCircle,
-  Wrench,
-  Eye,
   X,
   Loader2,
   AlertTriangle,
-  Users,
   Search,
   Car,
-  Upload,
-  Image as ImageIcon,
-  Settings,
-  Fuel,
-  Ruler,
-  Calendar,
-  Droplets,
-  Wind,
-  Star,
 } from 'lucide-react'
 import { formatPrice } from '@/lib/pricing/engine'
+import { resolveCamperRentalConfig } from '@/lib/campers/camperCatalog'
 import { useRouter } from 'next/navigation'
 
 export interface CamperItem {
@@ -68,13 +57,6 @@ interface Props {
   liveStatus?: Record<string, CamperLiveStatus>
 }
 
-const PRESET_THUMBNAILS = [
-  { label: 'Exterior NEO', url: '/images/campers/neo/neo-ext.png' },
-  { label: 'Exterior SPACE', url: '/images/campers/space/space-ext.png' },
-  { label: 'Interior NEO', url: '/images/campers/neo/neo-interior.png' },
-  { label: 'Interior SPACE', url: '/images/campers/space/space-interior.png' },
-]
-
 export default function CampersClient({ initialCampers, liveStatus = {} }: Props) {
   const router = useRouter()
   const [campers, setCampers] = useState<CamperItem[]>(initialCampers || [])
@@ -85,40 +67,6 @@ export default function CampersClient({ initialCampers, liveStatus = {} }: Props
   const [isModalOpen, setIsModalOpen] = useState(false)
   const [modalMode, setModalMode] = useState<'create' | 'edit'>('create')
   const [editingCamper, setEditingCamper] = useState<CamperItem | null>(null)
-
-  // Form State
-  const [formData, setFormData] = useState({
-    name: '',
-    slug: '',
-    seats: 3,
-    beds: 2,
-    deposit_amount: 1000,
-    price_per_night: 120,
-    is_active: true,
-    is_available: true,
-    thumbnail_url: '/images/campers/neo/neo-ext.png',
-    images: ['/images/campers/neo/neo-ext.png'] as string[],
-    description_es: '',
-    specs: {
-      length_m: 5.99,
-      width_m: 2.05,
-      height_m: 2.58,
-      year: 2025,
-      engine: 'Diésel 2.2L Multijet 140 CV',
-      transmission: 'Manual 6 velocidades',
-      ac: 'Dometic CoolAir 12V',
-      fresh_water_l: 113,
-    },
-  })
-  const [galleryUrlInput, setGalleryUrlInput] = useState('')
-  const [formError, setFormError] = useState('')
-  const [isSaving, setIsSaving] = useState(false)
-  const [isUploadingThumb, setIsUploadingThumb] = useState(false)
-  const [isUploadingGallery, setIsUploadingGallery] = useState(false)
-
-  // File Inputs
-  const thumbFileRef = useRef<HTMLInputElement>(null)
-  const galleryFileRef = useRef<HTMLInputElement>(null)
 
   // Delete Modal State
   const [camperToDelete, setCamperToDelete] = useState<CamperItem | null>(null)
@@ -158,31 +106,6 @@ export default function CampersClient({ initialCampers, liveStatus = {} }: Props
   const handleOpenCreate = () => {
     setModalMode('create')
     setEditingCamper(null)
-    setFormData({
-      name: '',
-      slug: '',
-      seats: 3,
-      beds: 2,
-      deposit_amount: 1000,
-      price_per_night: 120,
-      is_active: true,
-      is_available: true,
-      thumbnail_url: '/images/campers/neo/neo-ext.png',
-      images: ['/images/campers/neo/neo-ext.png'],
-      description_es: '',
-      specs: {
-        length_m: 5.99,
-        width_m: 2.05,
-        height_m: 2.58,
-        year: 2025,
-        engine: 'Diésel 2.2L Multijet 140 CV',
-        transmission: 'Manual 6 velocidades',
-        ac: 'Dometic CoolAir 12V',
-        fresh_water_l: 113,
-      },
-    })
-    setGalleryUrlInput('')
-    setFormError('')
     setIsModalOpen(true)
   }
 
@@ -190,120 +113,21 @@ export default function CampersClient({ initialCampers, liveStatus = {} }: Props
   const handleOpenEdit = (camper: CamperItem) => {
     setModalMode('edit')
     setEditingCamper(camper)
-    const currentImgs = Array.isArray(camper.images) && camper.images.length > 0
-      ? camper.images
-      : (camper.thumbnail_url ? [camper.thumbnail_url] : ['/images/campers/neo/neo-ext.png'])
-
-    setFormData({
-      name: camper.name || '',
-      slug: camper.slug || '',
-      seats: camper.specs?.seats || 2,
-      beds: camper.specs?.beds || 2,
-      deposit_amount: camper.deposit_amount ?? 1000,
-      price_per_night: camper.price_per_night ?? 120,
-      is_active: camper.is_active ?? true,
-      is_available: camper.is_available ?? true,
-      thumbnail_url: camper.thumbnail_url || '/images/campers/neo/neo-ext.png',
-      images: currentImgs,
-      description_es: camper.description_es || '',
-      specs: {
-        length_m: camper.specs?.length_m ?? 5.99,
-        width_m: camper.specs?.width_m ?? 2.05,
-        height_m: camper.specs?.height_m ?? 2.58,
-        year: camper.specs?.year ?? 2025,
-        engine: camper.specs?.engine ?? 'Diésel 2.2L Multijet 140 CV',
-        transmission: camper.specs?.transmission ?? 'Manual 6 velocidades',
-        ac: camper.specs?.ac ?? 'Dometic CoolAir 12V',
-        fresh_water_l: camper.specs?.fresh_water_l ?? 113,
-      },
-    })
-    setGalleryUrlInput('')
-    setFormError('')
     setIsModalOpen(true)
   }
 
-  // Upload image to API
-  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>, target: 'thumbnail' | 'gallery') => {
-    const file = e.target.files?.[0]
-    if (!file) return
-
-    if (target === 'thumbnail') setIsUploadingThumb(true)
-    else setIsUploadingGallery(true)
-
-    setFormError('')
-
-    try {
-      const data = new FormData()
-      data.append('file', file)
-
-      const res = await fetch('/api/admin/campers/upload-image', {
-        method: 'POST',
-        body: data,
-      })
-
-      const json = await res.json()
-
-      if (!res.ok) {
-        throw new Error(json.error || 'Error al subir la imagen')
-      }
-
-      if (target === 'thumbnail') {
-        setFormData(prev => ({
-          ...prev,
-          thumbnail_url: json.url,
-          images: prev.images.includes(json.url) ? prev.images : [json.url, ...prev.images],
-        }))
-        showToast('success', 'Foto de portada actualizada correctamente.')
-      } else {
-        setFormData(prev => {
-          const isDefaultThumb = !prev.thumbnail_url || prev.thumbnail_url.includes('/neo-ext') || prev.thumbnail_url.includes('/space-ext')
-          return {
-            ...prev,
-            thumbnail_url: isDefaultThumb ? json.url : prev.thumbnail_url,
-            images: [...prev.images, json.url],
-          }
-        })
-        showToast('success', 'Foto añadida a la galería.')
-      }
-    } catch (err: any) {
-      setFormError(err.message || 'Error al procesar la imagen')
-    } finally {
-      if (target === 'thumbnail') setIsUploadingThumb(false)
-      else setIsUploadingGallery(false)
-      if (e.target) e.target.value = ''
+  const handleCamperSaved = (savedCamper: any, mode: 'create' | 'edit') => {
+    if (mode === 'create') {
+      setCampers(prev => [savedCamper, ...prev])
+      showToast('success', `Camper "${savedCamper.name}" creada y publicada correctamente.`)
+    } else {
+      setCampers(prev =>
+        prev.map(c => (c.id === editingCamper?.id ? { ...c, ...savedCamper } : c))
+      )
+      showToast('success', `Camper "${savedCamper.name}" actualizada correctamente.`)
     }
-  }
-
-  // Set gallery image as main thumbnail
-  const handleSetAsThumbnail = (url: string) => {
-    setFormData(prev => ({
-      ...prev,
-      thumbnail_url: url,
-      images: prev.images.includes(url) ? prev.images : [url, ...prev.images],
-    }))
-    showToast('success', 'Foto fijada como portada principal de la tarjeta.')
-  }
-
-  // Add URL to gallery
-  const handleAddGalleryUrl = () => {
-    const url = galleryUrlInput.trim()
-    if (!url) return
-
-    if (!formData.images.includes(url)) {
-      setFormData(prev => ({
-        ...prev,
-        images: [...prev.images, url],
-      }))
-    }
-    setGalleryUrlInput('')
-  }
-
-  // Remove URL from gallery
-  const handleRemoveGalleryImage = (index: number) => {
-    setFormData(prev => ({
-      ...prev,
-      images: prev.images.filter((_, i) => i !== index),
-    }))
+    setIsModalOpen(false)
+    router.refresh()
   }
 
   // Quick status toggle
@@ -342,81 +166,6 @@ export default function CampersClient({ initialCampers, liveStatus = {} }: Props
       showToast('error', err.message || 'Error al actualizar el estado de la camper')
     } finally {
       setTogglingId(null)
-    }
-  }
-
-  // Save Modal Form (Create or Edit)
-  const handleSaveCamper = async (e: React.FormEvent) => {
-    e.preventDefault()
-    setFormError('')
-
-    if (!formData.name.trim()) {
-      setFormError('El nombre de la camper es obligatorio.')
-      return
-    }
-
-    const finalSlug = formData.slug.trim()
-      ? formData.slug.trim().toLowerCase().replace(/[^a-z0-9_-]/g, '-')
-      : formData.name.trim().toLowerCase().replace(/[^a-z0-9_-]/g, '-')
-
-    setIsSaving(true)
-
-    try {
-      const url = modalMode === 'create' ? '/api/admin/campers' : `/api/admin/campers/${editingCamper?.id}`
-      const method = modalMode === 'create' ? 'POST' : 'PATCH'
-
-      const payload = {
-        name: formData.name.trim(),
-        slug: finalSlug,
-        seats: Number(formData.seats),
-        beds: Number(formData.beds),
-        deposit_amount: Number(formData.deposit_amount),
-        price_per_night: Number(formData.price_per_night),
-        is_active: formData.is_active,
-        is_available: formData.is_available,
-        thumbnail_url: formData.thumbnail_url || (formData.images.length > 0 ? formData.images[0] : '/images/campers/neo/neo-ext.png'),
-        images: formData.images.length > 0
-          ? (formData.thumbnail_url && !formData.images.includes(formData.thumbnail_url)
-              ? [formData.thumbnail_url, ...formData.images]
-              : formData.images)
-          : [formData.thumbnail_url || '/images/campers/neo/neo-ext.png'],
-        description_es: formData.description_es,
-        specs: {
-          ...formData.specs,
-          seats: Number(formData.seats),
-          beds: Number(formData.beds),
-        },
-      }
-
-      const res = await fetch(url, {
-        method,
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload),
-      })
-
-      const result = await res.json()
-
-      if (!res.ok) {
-        throw new Error(result.error || 'Error al guardar la camper')
-      }
-
-      if (modalMode === 'create') {
-        setCampers(prev => [result.camper, ...prev])
-        showToast('success', `Camper "${result.camper.name}" creada y publicada en la flota correctamente.`)
-      } else {
-        setCampers(prev =>
-          prev.map(c => (c.id === editingCamper?.id ? { ...c, ...result.camper } : c))
-        )
-        showToast('success', `Camper "${result.camper.name}" actualizada correctamente.`)
-      }
-
-      setIsModalOpen(false)
-      router.refresh()
-    } catch (err: any) {
-      setFormError(err.message || 'Ocurrió un error inesperado al guardar la camper')
-      showToast('error', err.message || 'Error al guardar la camper')
-    } finally {
-      setIsSaving(false)
     }
   }
 
@@ -517,30 +266,6 @@ export default function CampersClient({ initialCampers, liveStatus = {} }: Props
           </button>
         </div>
       )}
-      {/* Hidden File Inputs */}
-      <label htmlFor="camper-file-upload-thumb" className="sr-only">Subir foto de miniatura del vehículo</label>
-      <input
-        ref={thumbFileRef}
-        id="camper-file-upload-thumb"
-        name="camper_file_upload_thumb"
-        type="file"
-        accept="image/*"
-        aria-label="Subir foto de miniatura del vehículo"
-        style={{ display: 'none' }}
-        onChange={e => handleFileUpload(e, 'thumbnail')}
-      />
-      <label htmlFor="camper-file-upload-gallery" className="sr-only">Añadir foto a la galería del vehículo</label>
-      <input
-        ref={galleryFileRef}
-        id="camper-file-upload-gallery"
-        name="camper_file_upload_gallery"
-        type="file"
-        accept="image/*"
-        aria-label="Añadir foto a la galería del vehículo"
-        style={{ display: 'none' }}
-        onChange={e => handleFileUpload(e, 'gallery')}
-      />
-
       <AdminPageHeader
         title="Flota"
         description="Fotos, plazas, precio y estado de cada camper."
@@ -612,6 +337,7 @@ export default function CampersClient({ initialCampers, liveStatus = {} }: Props
           const isTogglingActive = togglingId === `${camper.id}-is_active`
           const isTogglingAvailable = togglingId === `${camper.id}-is_available`
           const live = liveStatus[camper.id]
+          const rentalConfig = resolveCamperRentalConfig(camper)
 
           return (
             <article key={camper.id} className="adm-card fleet-card">
@@ -633,7 +359,7 @@ export default function CampersClient({ initialCampers, liveStatus = {} }: Props
                     <span className="fleet-card__slug">/{camper.slug}</span>
                   </div>
                   <div className="fleet-card__price">
-                    <strong>{formatPrice(camper.price_per_night || 120)}</strong>
+                    <strong>{formatPrice(rentalConfig.basePricePerNight)}</strong>
                     <span>/ noche</span>
                   </div>
                 </div>
@@ -641,7 +367,7 @@ export default function CampersClient({ initialCampers, liveStatus = {} }: Props
                 <dl className="fleet-card__facts">
                   <div><dt>Plazas</dt><dd>{camper.specs?.seats || 2}</dd></div>
                   <div><dt>Camas</dt><dd>{camper.specs?.beds || 2}</dd></div>
-                  <div><dt>Fianza</dt><dd>{formatPrice(camper.deposit_amount ?? 1000)}</dd></div>
+                  <div><dt>Fianza</dt><dd>{formatPrice(rentalConfig.standardDepositAmount)}</dd></div>
                   <div>
                     <dt>{live?.state === 'on_trip' ? 'Vuelve' : 'Próxima salida'}</dt>
                     <dd>
@@ -710,533 +436,15 @@ export default function CampersClient({ initialCampers, liveStatus = {} }: Props
         )}
       </div>
 
-      {/* MODAL: Nueva / Editar Camper */}
+      {/* MODAL: Nueva / Editar Camper (6 pestañas) */}
       {isModalOpen && (
-        <div className="modal-backdrop" onClick={() => !isSaving && setIsModalOpen(false)}>
-          <div className="modal-card" onClick={e => e.stopPropagation()}>
-            <div className="modal-header">
-              <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                <div className="modal-header-icon">
-                  <Car size={20} />
-                </div>
-                <div>
-                  <h3 className="text-h4" style={{ margin: 0 }}>
-                    {modalMode === 'create' ? 'Añadir camper' : `Editar: ${editingCamper?.name}`}
-                  </h3>
-                  <p className="text-xs" style={{ color: 'var(--adm-text-2)', margin: 0 }}>
-                    Configuración técnica, fotos, tarifas y disponibilidad del vehículo.
-                  </p>
-                </div>
-              </div>
-              <button
-                type="button"
-                onClick={() => !isSaving && setIsModalOpen(false)}
-                className="modal-close-btn"
-                disabled={isSaving}
-              >
-                <X size={20} />
-              </button>
-            </div>
-
-            <form onSubmit={handleSaveCamper} className="modal-body">
-              {formError && (
-                <div className="modal-alert-error">
-                  <AlertTriangle size={16} />
-                  <span>{formError}</span>
-                </div>
-              )}
-
-              {/* Fila 1: Nombre y Slug */}
-              <div className="form-grid-2">
-                <div className="form-group">
-                  <label htmlFor="camper-form-name" className="form-label">
-                    Nombre del Vehículo <span className="text-error">*</span>
-                  </label>
-                  <input
-                    id="camper-form-name"
-                    name="camper_name"
-                    type="text"
-                    required
-                    placeholder="Ej. NEO, SPACE, HORIZON"
-                    value={formData.name}
-                    onChange={e => {
-                      const newName = e.target.value
-                      setFormData(prev => ({
-                        ...prev,
-                        name: newName,
-                        slug: modalMode === 'create' && !prev.slug.trim()
-                          ? newName.toLowerCase().replace(/[^a-z0-9_-]/g, '-')
-                          : prev.slug,
-                      }))
-                    }}
-                    className="form-input"
-                  />
-                </div>
-
-                <div className="form-group">
-                  <label htmlFor="camper-form-slug" className="form-label">
-                    Slug / Identificador URL <span className="text-error">*</span>
-                  </label>
-                  <input
-                    id="camper-form-slug"
-                    name="camper_slug"
-                    type="text"
-                    required
-                    placeholder="ej. horizon"
-                    value={formData.slug}
-                    onChange={e => setFormData(prev => ({ ...prev, slug: e.target.value }))}
-                    className="form-input"
-                  />
-                </div>
-              </div>
-
-              {/* Fila 2: Plazas y Camas */}
-              <div className="form-grid-2">
-                <div className="form-group">
-                  <label htmlFor="camper-form-seats" className="form-label">
-                    Plazas Homologadas (Asientos) <span className="text-error">*</span>
-                  </label>
-                  <input
-                    id="camper-form-seats"
-                    name="camper_seats"
-                    type="number"
-                    min="1"
-                    max="9"
-                    required
-                    value={formData.seats}
-                    onChange={e => setFormData(prev => ({ ...prev, seats: parseInt(e.target.value, 10) || 1 }))}
-                    className="form-input"
-                  />
-                </div>
-
-                <div className="form-group">
-                  <label htmlFor="camper-form-beds" className="form-label">
-                    Plazas para Dormir (Camas) <span className="text-error">*</span>
-                  </label>
-                  <input
-                    id="camper-form-beds"
-                    name="camper_beds"
-                    type="number"
-                    min="1"
-                    max="6"
-                    required
-                    value={formData.beds}
-                    onChange={e => setFormData(prev => ({ ...prev, beds: parseInt(e.target.value, 10) || 1 }))}
-                    className="form-input"
-                  />
-                </div>
-              </div>
-
-              {/* Fila 3: Fianza y Precio Base */}
-              <div className="form-grid-2">
-                <div className="form-group">
-                  <label htmlFor="camper-form-deposit" className="form-label">
-                    Fianza Reembolsable (€) <span className="text-error">*</span>
-                  </label>
-                  <input
-                    id="camper-form-deposit"
-                    name="camper_deposit"
-                    type="number"
-                    min="0"
-                    step="50"
-                    required
-                    value={formData.deposit_amount}
-                    onChange={e => setFormData(prev => ({ ...prev, deposit_amount: parseFloat(e.target.value) || 0 }))}
-                    className="form-input"
-                  />
-                </div>
-
-                <div className="form-group">
-                  <label htmlFor="camper-form-price" className="form-label">
-                    Tarifa Base por Noche (€) <span className="text-error">*</span>
-                  </label>
-                  <input
-                    id="camper-form-price"
-                    name="camper_price"
-                    type="number"
-                    min="0"
-                    step="5"
-                    required
-                    value={formData.price_per_night}
-                    onChange={e => setFormData(prev => ({ ...prev, price_per_night: parseFloat(e.target.value) || 0 }))}
-                    className="form-input"
-                  />
-                </div>
-              </div>
-
-              {/* Fila 4: Estados de Publicación y Operatividad */}
-              <div className="form-grid-2">
-                <div className="toggle-group-card">
-                  <span className="toggle-title">Publicación en Web</span>
-                  <p className="toggle-desc">Determina si los usuarios pueden ver y reservar este modelo.</p>
-                  <div className="toggle-options">
-                    <label htmlFor="camper-is-active-true" className={`toggle-option ${formData.is_active ? 'selected' : ''}`}>
-                      <input
-                        id="camper-is-active-true"
-                        type="radio"
-                        name="is_active"
-                        checked={formData.is_active}
-                        onChange={() => setFormData(prev => ({ ...prev, is_active: true }))}
-                      />
-                      <span>Publicada</span>
-                    </label>
-                    <label htmlFor="camper-is-active-false" className={`toggle-option ${!formData.is_active ? 'selected' : ''}`}>
-                      <input
-                        id="camper-is-active-false"
-                        type="radio"
-                        name="is_active"
-                        checked={!formData.is_active}
-                        onChange={() => setFormData(prev => ({ ...prev, is_active: false }))}
-                      />
-                      <span>Oculta</span>
-                    </label>
-                  </div>
-                </div>
-
-                <div className="toggle-group-card">
-                  <span className="toggle-title">Estado Operativo</span>
-                  <p className="toggle-desc">Define si la furgoneta está operativa o en taller / revisión.</p>
-                  <div className="toggle-options">
-                    <label htmlFor="camper-is-available-true" className={`toggle-option ${formData.is_available ? 'selected' : ''}`}>
-                      <input
-                        id="camper-is-available-true"
-                        type="radio"
-                        name="is_available"
-                        checked={formData.is_available}
-                        onChange={() => setFormData(prev => ({ ...prev, is_available: true }))}
-                      />
-                      <span>Operativa</span>
-                    </label>
-                    <label htmlFor="camper-is-available-false" className={`toggle-option ${!formData.is_available ? 'selected-amber' : ''}`}>
-                      <input
-                        id="camper-is-available-false"
-                        type="radio"
-                        name="is_available"
-                        checked={!formData.is_available}
-                        onChange={() => setFormData(prev => ({ ...prev, is_available: false }))}
-                      />
-                      <span>En taller</span>
-                    </label>
-                  </div>
-                </div>
-              </div>
-
-              {/* Fila 5: Imagen Miniatura y Subida */}
-              <div className="card-sub-box">
-                <div className="card-sub-box-header">
-                  <label htmlFor="camper-form-thumbnail" className="form-label" style={{ margin: 0, fontWeight: 700 }}>
-                    Foto Principal / Miniatura
-                  </label>
-                  <button
-                    type="button"
-                    onClick={() => thumbFileRef.current?.click()}
-                    disabled={isUploadingThumb}
-                    className="btn btn-outline btn-sm btn-sub-upload"
-                  >
-                    {isUploadingThumb ? <Loader2 size={13} className="animate-spin" /> : <Upload size={13} />}
-                    <span>Subir desde este equipo</span>
-                  </button>
-                </div>
-
-                <div className="thumb-input-row">
-                  {formData.thumbnail_url && (
-                    <div className="thumb-preview-square">
-                      <Image
-                        src={formData.thumbnail_url}
-                        alt="Vista previa miniatura"
-                        fill
-                        sizes="70px"
-                        style={{ objectFit: 'cover' }}
-                      />
-                    </div>
-                  )}
-                  <input
-                    id="camper-form-thumbnail"
-                    name="camper_thumbnail"
-                    type="text"
-                    value={formData.thumbnail_url}
-                    onChange={e => setFormData(prev => ({ ...prev, thumbnail_url: e.target.value }))}
-                    className="form-input flex-1"
-                    placeholder="/images/campers/... o URL externa"
-                  />
-                </div>
-
-                <div className="preset-images-row">
-                  <span className="text-xs text-muted-inline">Preajustes oficiales:</span>
-                  {PRESET_THUMBNAILS.map(preset => (
-                    <button
-                      key={preset.url}
-                      type="button"
-                      onClick={() => setFormData(prev => ({ ...prev, thumbnail_url: preset.url }))}
-                      className={`preset-btn ${formData.thumbnail_url === preset.url ? 'active' : ''}`}
-                    >
-                      {preset.label}
-                    </button>
-                  ))}
-                </div>
-
-                {/* Selección rápida de portada desde las fotos de la galería */}
-                {formData.images.length > 0 && (
-                  <div className="gallery-quick-picker">
-                    <span className="text-xs gallery-picker-title">
-                      O elige como portada una de las fotos de la galería:
-                    </span>
-                    <div className="gallery-chips-row">
-                      {formData.images.map((img, i) => (
-                        <button
-                          key={i}
-                          type="button"
-                          onClick={() => handleSetAsThumbnail(img)}
-                          className={`gallery-chip-btn ${formData.thumbnail_url === img ? 'is-active' : ''}`}
-                          title={formData.thumbnail_url === img ? 'Portada actual' : 'Fijar como portada'}
-                        >
-                          <Image src={img} alt={`Opción ${i + 1}`} fill sizes="64px" style={{ objectFit: 'cover' }} />
-                          {formData.thumbnail_url === img && (
-                            <span className="gallery-chip-check">
-                              ✓
-                            </span>
-                          )}
-                        </button>
-                      ))}
-                    </div>
-                  </div>
-                )}
-              </div>
-
-              {/* Fila 6: Galería de Fotos del Vehículo */}
-              <div className="card-sub-box">
-                <div className="card-sub-box-header card-sub-box-header--mb10">
-                  <div>
-                    <label className="form-label" style={{ margin: 0, fontWeight: 700 }}>
-                      Galería de Fotos ({formData.images.length})
-                    </label>
-                    <p className="text-xs text-muted-sub">
-                      Fotos para el carrusel de detalle en la web. Puedes marcar cualquiera como portada.
-                    </p>
-                  </div>
-
-                  <button
-                    type="button"
-                    onClick={() => galleryFileRef.current?.click()}
-                    disabled={isUploadingGallery}
-                    className="btn btn-outline btn-sm btn-sub-upload"
-                  >
-                    {isUploadingGallery ? <Loader2 size={13} className="animate-spin" /> : <Upload size={13} />}
-                    <span>Añadir foto desde PC</span>
-                  </button>
-                </div>
-
-                {/* Grid de fotos añadidas */}
-                <div className="gallery-cards-grid">
-                  {formData.images.map((imgUrl, idx) => {
-                    const isCover = formData.thumbnail_url === imgUrl
-                    return (
-                      <div
-                        key={idx}
-                        className={`gallery-card-thumb ${isCover ? 'is-cover' : ''}`}
-                      >
-                        <Image
-                          src={imgUrl}
-                          alt={`Foto ${idx + 1}`}
-                          fill
-                          sizes="100px"
-                          style={{ objectFit: 'cover' }}
-                        />
-
-                        {/* Badge o botón de portada */}
-                        {isCover ? (
-                          <span className="gallery-cover-badge">
-                            <Star size={10} fill="var(--adm-amber-soft)" color="var(--adm-amber-soft)" /> Portada
-                          </span>
-                        ) : (
-                          <button
-                            type="button"
-                            onClick={() => handleSetAsThumbnail(imgUrl)}
-                            className="gallery-set-cover-btn"
-                            title="Establecer como foto de portada"
-                          >
-                            <Star size={10} /> Portada
-                          </button>
-                        )}
-
-                        <button
-                          type="button"
-                          onClick={() => handleRemoveGalleryImage(idx)}
-                          className="gallery-delete-btn"
-                          title="Eliminar foto de la galería"
-                        >
-                          <X size={12} />
-                        </button>
-                      </div>
-                    )
-                  })}
-                  {formData.images.length === 0 && (
-                    <div className="gallery-empty-state">
-                      No hay fotos en la galería aún.
-                    </div>
-                  )}
-                </div>
-
-                {/* Input para añadir URL manual */}
-                <div className="gallery-url-input-row">
-                  <label htmlFor="camper-gallery-url-input" className="sr-only">URL externa de imagen para añadir a la galería</label>
-                  <input
-                    id="camper-gallery-url-input"
-                    name="camper_gallery_url"
-                    type="text"
-                    value={galleryUrlInput}
-                    onChange={e => setGalleryUrlInput(e.target.value)}
-                    placeholder="O pega una URL de imagen..."
-                    className="form-input flex-1 font-small"
-                    aria-label="URL externa de imagen para añadir a la galería"
-                  />
-                  <button
-                    type="button"
-                    onClick={handleAddGalleryUrl}
-                    className="btn btn-ghost btn-sm btn-add-url"
-                  >
-                    + Añadir URL
-                  </button>
-                </div>
-              </div>
-
-              {/* Fila 7: Especificaciones Técnicas Completas */}
-              <div className="card-sub-box">
-                <label className="form-label font-bold mb-2">
-                  Ficha Técnica y Medidas del Vehículo
-                </label>
-
-                <div className="specs-grid">
-                  <div>
-                    <label htmlFor="camper-spec-engine" className="text-xs spec-label">
-                      Motorización
-                    </label>
-                    <input
-                      id="camper-spec-engine"
-                      name="spec_engine"
-                      type="text"
-                      placeholder="Ej. Diésel 2.2L Multijet 140 CV"
-                      value={formData.specs.engine}
-                      onChange={e => setFormData(prev => ({ ...prev, specs: { ...prev.specs, engine: e.target.value } }))}
-                      className="form-input"
-                    />
-                  </div>
-
-                  <div>
-                    <label htmlFor="camper-spec-transmission" className="text-xs spec-label">
-                      Transmisión
-                    </label>
-                    <input
-                      id="camper-spec-transmission"
-                      name="spec_transmission"
-                      type="text"
-                      placeholder="Ej. Manual 6 vel. / Automático"
-                      value={formData.specs.transmission}
-                      onChange={e => setFormData(prev => ({ ...prev, specs: { ...prev.specs, transmission: e.target.value } }))}
-                      className="form-input"
-                    />
-                  </div>
-
-                  <div>
-                    <label htmlFor="camper-spec-length" className="text-xs spec-label">
-                      Longitud (m)
-                    </label>
-                    <input
-                      id="camper-spec-length"
-                      name="spec_length_m"
-                      type="number"
-                      step="0.01"
-                      placeholder="5.99"
-                      value={formData.specs.length_m}
-                      onChange={e => setFormData(prev => ({ ...prev, specs: { ...prev.specs, length_m: parseFloat(e.target.value) || 5.99 } }))}
-                      className="form-input"
-                    />
-                  </div>
-
-                  <div>
-                    <label htmlFor="camper-spec-year" className="text-xs spec-label">
-                      Año del Modelo
-                    </label>
-                    <input
-                      id="camper-spec-year"
-                      name="spec_year"
-                      type="number"
-                      placeholder="2025"
-                      value={formData.specs.year}
-                      onChange={e => setFormData(prev => ({ ...prev, specs: { ...prev.specs, year: parseInt(e.target.value, 10) || 2025 } }))}
-                      className="form-input"
-                    />
-                  </div>
-
-                  <div>
-                    <label htmlFor="camper-spec-ac" className="text-xs spec-label">
-                      Aire Acondicionado
-                    </label>
-                    <input
-                      id="camper-spec-ac"
-                      name="spec_ac"
-                      type="text"
-                      placeholder="Ej. Dometic CoolAir 12V"
-                      value={formData.specs.ac}
-                      onChange={e => setFormData(prev => ({ ...prev, specs: { ...prev.specs, ac: e.target.value } }))}
-                      className="form-input"
-                    />
-                  </div>
-
-                  <div>
-                    <label htmlFor="camper-spec-water" className="text-xs spec-label">
-                      Agua Limpia (Litros)
-                    </label>
-                    <input
-                      id="camper-spec-water"
-                      name="spec_fresh_water_l"
-                      type="number"
-                      placeholder="113"
-                      value={formData.specs.fresh_water_l}
-                      onChange={e => setFormData(prev => ({ ...prev, specs: { ...prev.specs, fresh_water_l: parseInt(e.target.value, 10) || 100 } }))}
-                      className="form-input"
-                    />
-                  </div>
-                </div>
-              </div>
-
-              {/* Fila 8: Descripción */}
-              <div className="form-group">
-                <label htmlFor="camper-form-desc" className="form-label">Descripción Detallada & Equipamiento</label>
-                <textarea
-                  id="camper-form-desc"
-                  name="camper_description"
-                  rows={3}
-                  value={formData.description_es}
-                  onChange={e => setFormData(prev => ({ ...prev, description_es: e.target.value }))}
-                  className="form-input"
-                  placeholder="Detalles del equipamiento, habitáculo, panel solar, cocina, etc."
-                />
-              </div>
-
-              {/* Footer Modal */}
-              <div className="modal-footer">
-                <button
-                  type="button"
-                  onClick={() => setIsModalOpen(false)}
-                  disabled={isSaving}
-                  className="btn btn-outline"
-                >
-                  Cancelar
-                </button>
-                <button
-                  type="submit"
-                  disabled={isSaving}
-                  className="btn btn-forest"
-                  style={{ display: 'inline-flex', alignItems: 'center', gap: '8px' }}
-                >
-                  {isSaving ? <Loader2 size={16} className="animate-spin" /> : <CheckCircle2 size={16} />}
-                  {modalMode === 'create' ? 'Crear Camper' : 'Guardar Cambios'}
-                </button>
-              </div>
-            </form>
-          </div>
-        </div>
+        <CamperEditorModal
+          mode={modalMode}
+          camper={editingCamper}
+          onClose={() => setIsModalOpen(false)}
+          onSaved={handleCamperSaved}
+          onToast={showToast}
+        />
       )}
 
       {/* MODAL CONFIRM DELETE / ARCHIVE */}
@@ -1381,7 +589,7 @@ export default function CampersClient({ initialCampers, liveStatus = {} }: Props
           flex-direction: column;
         }
         .fleet-card__price strong {
-          font-family: var(--font-heading);
+          font-family: var(--font-sans);
           font-size: 1.15rem;
           color: var(--adm-text);
           font-variant-numeric: tabular-nums;

@@ -23,6 +23,7 @@ import {
 } from 'lucide-react'
 import { parseISO, format, differenceInDays } from 'date-fns'
 import { es } from 'date-fns/locale'
+import { useSiteTheme } from '@/lib/theme/siteThemeContext'
 
 const SEASON_PRICES: Record<string, number> = {
     'Temporada Alta': 175,
@@ -31,6 +32,7 @@ const SEASON_PRICES: Record<string, number> = {
 }
 
 function ReservarContent() {
+    const { theme } = useSiteTheme()
     const router = useRouter()
     const searchParams = useSearchParams()
 
@@ -57,9 +59,9 @@ function ReservarContent() {
             id: '1',
             slug: 'space',
             name: 'SPACE',
-            description_es: 'SPACE redefine el confort con distribución abierta de 7m², cama elevable eléctrica sobre salón en U y 160L de agua limpia.',
+            description_es: 'Camper diseñada para dos personas, primando el máximo confort en todo momento. Cama elevable + interbanco, sistema eléctrico Pro (540Ah litio, 400W solar, Victron 2.000W) y aire acondicionado 12V Dometic.',
             thumbnail_url: '/images/campers/uploads/1790382530493-2k_space_landscape_door_closed.jpeg',
-            specs: { beds: 2, seats: 2, length_m: 6.0 },
+            specs: { beds: 2, seats: 2, length_m: 5.99 },
             deposit_amount: 1000,
             pricePerNight: 154,
             seasonName: 'Temporada Media',
@@ -69,9 +71,9 @@ function ReservarContent() {
             id: '2',
             slug: 'neo',
             name: 'NEO',
-            description_es: 'La camper más polivalente y con 2.230L de maletero. Separación total de cabina, 540Ah litio Victron y aire acondicionado 12V.',
+            description_es: 'Camper ideal para dos personas, que se adapta de forma perfecta para 3. Gran maletero, cama doble fija + auxiliar, sistema eléctrico Pro (540Ah litio, 400W solar, Victron 2.000W) y aire acondicionado 12V Dometic.',
             thumbnail_url: '/images/campers/neo/neo-ext.png',
-            specs: { beds: 3, seats: 3, length_m: 6.0 },
+            specs: { beds: 3, seats: 3, length_m: 5.99 },
             deposit_amount: 1000,
             pricePerNight: 124,
             seasonName: 'Temporada Media',
@@ -439,7 +441,7 @@ function ReservarContent() {
                                     searchParams={bookingParams}
                                     customHref={bookingUrl}
                                     ctaText={hasDates ? `Reservar ${c.name}` : `Ver detalles de ${c.name}`}
-                                    variant="dark"
+                                    variant={theme === 'light' ? 'light' : 'dark'}
                                 />
                             )
                         })}

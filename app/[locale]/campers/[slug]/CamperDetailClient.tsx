@@ -1,23 +1,32 @@
 'use client'
 
-import { useState, useRef } from 'react'
+import { useState, useRef, useEffect, useMemo } from 'react'
 import Link from 'next/link'
 import {
   ChevronRight,
-  Heart,
-  Clock,
-  ShieldCheck
+  Clock
 } from 'lucide-react'
 import PriceCalculator from '@/components/booking/PriceCalculator'
+import BookingCalendar, { BlockedRange } from '@/components/booking/BookingCalendar'
+import { BlockedSlot } from '@/lib/booking/availability'
+import {
+  calculatePrice,
+  calculatePriceV2,
+  formatPrice,
+  getMinNightsForDate,
+  getMinNightsForDateV2,
+  DaySlot,
+} from '@/lib/pricing/engine'
 import CamperModelSwitcher from '@/components/campers/CamperModelSwitcher'
 import CamperGalleryGrid from '@/components/campers/CamperGalleryGrid'
-import CamperLightboxModal, { LightboxImage } from '@/components/campers/CamperLightboxModal'
+import CamperLightboxModal from '@/components/campers/CamperLightboxModal'
 import CamperFeaturePills from '@/components/campers/CamperFeaturePills'
 import CamperDescription from '@/components/campers/CamperDescription'
 import CamperFloorplans from '@/components/campers/CamperFloorplans'
-import CamperFeatureGrid, { FeatureItem } from '@/components/campers/CamperFeatureGrid'
+import CamperFeatureGrid from '@/components/campers/CamperFeatureGrid'
 import CamperIncluded from '@/components/campers/CamperIncluded'
 import CamperStickyBookingBar from '@/components/campers/CamperStickyBookingBar'
+import { resolveCamperContent } from '@/lib/campers/camperCatalog'
 import { useTranslations, useLocale } from 'next-intl'
 
 interface Props {
@@ -29,142 +38,6 @@ interface Props {
   seasonsV2?: any[]
   seasonPeriods?: any[]
   durationDiscounts?: any[]
-}
-
-/* ──────────────────────────────────────────────────────────────────────────
-   STATIC CONTENT PER CAMPER
-   ────────────────────────────────────────────────────────────────────────── */
-
-interface CamperContent {
-  tagline: string
-  pills: { icon: 'users' | 'bed' | 'droplets' | 'zap'; label: string }[]
-  galleryImages: LightboxImage[]
-  description: string[]
-  descriptionInlineImage: { src: string; alt: string }
-  floorplanDay: string
-  floorplanNight: string
-  features: FeatureItem[]
-  included: string[]
-}
-
-const CAMPER_CONTENT: Record<string, CamperContent> = {
-  space: {
-    tagline: 'Suite diáfana de 2 plazas, salón panorámico en «U» con mesa 360°, cama eléctrica de techo y Pack Cine HD.',
-    pills: [
-      { icon: 'users', label: '2 Plazas Suite Diáfana' },
-      { icon: 'bed', label: 'Cama eléctrica de techo' },
-      { icon: 'droplets', label: 'Ducha Interior + WC' },
-      { icon: 'zap', label: 'Victron 540Ah + Pack Cine' },
-    ],
-    galleryImages: [
-      { src: '/images/campers/space/exterior/space-vehicle-hero-lanzarote.webp', tag: 'Exterior SPACE' },
-      { src: '/images/campers/space/interior/space-dining-lounge-frontview.jpg', tag: 'Salón comedor con luz natural' },
-      { src: '/images/campers/space/interior/space-electric-drop-down-bed.jpg', tag: 'Cama eléctrica suspendida' },
-      { src: '/images/campers/space/interior/space-cinema-projector-lounge.jpg', tag: 'Cine con proyector HD' },
-      { src: '/images/campers/space/interior/space-kitchen-counter-cabin.jpg', tag: 'Cocina nórdica' },
-      { src: '/images/campers/space/interior/space-bathroom-shower.webp', tag: 'Ducha interior de agua caliente' },
-    ],
-    description: [
-      'SPACE redefine el concepto de viaje nómada: una suite diáfana concebida para 2 plazas donde el salón panorámico en «U» y su distribución open concept de 7m² convierten la furgoneta camper en un santuario privado luminoso frente al mar.',
-      'Su cama eléctrica escamoteable de techo desciende suavemente sobre el salón pulsando un interruptor, ofreciendo un descanso de máxima gama de noche sin restar ni un solo centímetro de espacio útil durante el día para cocinar, trabajar o relajarte.',
-      'El salón panorámico en «U» cuenta con mesa de diseño rotatoria 360°, ideal para cenas inolvidables con vistas, jornadas de trabajo remoto o para disfrutar del proyector en gran formato incluido en el Pack Cine HD.',
-      'Autonomía energética extrema de grado expedición: sistema Victron PRO con 540Ah en baterías LiFePO4, inversor cargador Victron MultiPlus de 2.000W de onda pura y 400W de paneles solares MPPT SmartSolar, alimentando el aire acondicionado Dometic 12V 100% autónomo sin necesidad de tomas externas ni conexión a red de camping.',
-      'Confort y privacidad absolutos: depósito de 113L de agua limpia, baño completo interior con ducha de agua caliente instantánea presurizada, WC portátil, cocina nórdica con 2 fogones, nevera compresor de 86L y calefacción estacionaria diésel digital.',
-    ],
-    descriptionInlineImage: {
-      src: '/images/campers/space/interior/space-lounge-spacious-daylight.jpg',
-      alt: 'Salón panorámico SPACE con luz natural',
-    },
-    floorplanDay: '/images/campers/space/exterior/space-vehicle-dimensions-top.webp',
-    floorplanNight: '/images/campers/space/exterior/space-vehicle-dimensions-side.webp',
-    features: [
-      { icon: 'battery', label: 'Batería Victron PRO', value: '2 × LiFePO4 · 540Ah' },
-      { icon: 'zap', label: 'Inversor 230V', value: 'Victron MultiPlus 2.000W onda pura' },
-      { icon: 'snowflake', label: 'Aire acondicionado', value: 'Dometic 12V autónomo sin red' },
-      { icon: 'tv', label: 'Pack Cine HD', value: 'Proyector integrado + pantalla en salón' },
-      { icon: 'bed', label: 'Cama escamoteable', value: 'Eléctrica de techo (sin restar espacio de día)' },
-      { icon: 'gauge', label: 'Salón panorámico «U»', value: 'Mesa giratoria 360° · 7m² diáfanos' },
-      { icon: 'droplets', label: 'Aguas limpias', value: '113 litros presurizados' },
-      { icon: 'thermometer', label: 'Baño interior', value: 'Ducha agua caliente instantánea' },
-      { icon: 'wind', label: 'Calefacción', value: 'Estacionaria diésel digital' },
-      { icon: 'sun', label: 'Placas solares', value: '400W monocristalinas · MPPT SmartSolar' },
-      { icon: 'plug', label: 'Control integral', value: 'Centralita Victron Cerbo GX + táctil' },
-      { icon: 'utensils', label: 'Cocina nórdica', value: '2 fogones + nevera compresor 86 L' },
-      { icon: 'shield', label: 'WC interior', value: 'Portátil de fácil acceso y vaciado' },
-      { icon: 'shield', label: 'Aislamiento Kaiflex', value: '360° térmico y acústico' },
-      { icon: 'gauge', label: 'Aguas grises', value: '90 litros con descarga asistida' },
-      { icon: 'folder', label: 'Oscurecedores y mosquiteras', value: 'Remis integrados en cabina y claraboya' },
-    ],
-    included: [
-      'Seguro a todo riesgo con asistencia en carretera 24/7',
-      '150 km/día incluidos (ampliable a kilometraje ilimitado)',
-      'Pack Cine HD con proyector y pantalla panorámica',
-      'Menaje completo gourmet (vajilla, cafetera italiana, set chef)',
-      'Ropa de cama premium con sábanas de lino y toallas de baño',
-      'Kit de esnórquel completo para descubrir calas secretas',
-      'Mesa y 2 sillas de exterior confort para acampada',
-      'Check-in y entrega personalizada en aeropuerto / Son Oms',
-      'Asistencia nómada telefónica 24/7 durante todo tu viaje',
-    ],
-  },
-  neo: {
-    tagline: '3 plazas de viaje y descanso, dormitorio posterior independiente y maletero XXL de 2.230 L para material deportivo.',
-    pills: [
-      { icon: 'users', label: '3 Viaje / 3 Descanso' },
-      { icon: 'bed', label: 'Dormitorio independiente' },
-      { icon: 'droplets', label: 'Maletero XXL 2.230 L' },
-      { icon: 'zap', label: 'Victron 540Ah + Clima 12V' },
-    ],
-    galleryImages: [
-      { src: '/images/campers/neo/exterior/neo-exterior-front-three-quarter.jpg', tag: 'Exterior NEO' },
-      { src: '/images/campers/neo/interior/neo-dining-room-daylight.jpg', tag: 'Salón comedor NEO' },
-      { src: '/images/campers/neo/interior/neo-interior-hero-anthracite.webp', tag: 'Interior antracita' },
-      { src: '/images/campers/neo/details/neo-garage-bike-storage.jpg', tag: 'Garaje trasero con bicis' },
-      { src: '/images/campers/neo/details/solar-tech.webp', tag: 'Placa solar 400W' },
-      { src: '/images/campers/neo/interior/neo-bathroom-shower.webp', tag: 'Baño con ducha interior' },
-    ],
-    description: [
-      'NEO es la furgoneta camper definitiva para aventureros que viajan con todo: homologada para 3 plazas de viaje y descanso, une la calidez de un hogar nómada con un maletero garaje colosal de 2.230 L concebido para tablas de surf, bicicletas, material deportivo y equipaje voluminoso.',
-      'Su dormitorio posterior independiente cuenta con una cama doble fija de 192×130 cm con colchón viscoelástico de alta densidad y una cama auxiliar para una tercera persona, complementado con separación total de cabina para aislar térmica y acústicamente el habitáculo.',
-      'El garaje posterior bajo la cama fija de 2.230 litros es accesible cómodamente tanto desde las puertas traseras de 270° como desde el interior, permitiéndote organizar y proteger todo tu equipo sin restar habitabilidad.',
-      'Autonomía energética extrema de grado expedición: sistema Victron PRO con 540Ah en baterías LiFePO4, inversor cargador Victron MultiPlus de 2.000W de onda pura y 400W solares monocristalinos MPPT SmartSolar, alimentando el aire acondicionado Dometic 12V autónomo sin necesidad de cables ni conexión a camping.',
-      'Equipamiento de viaje completo: 113L de agua limpia, baño completo interior con ducha de agua caliente instantánea presurizada y WC químico, cocina completa con 2 fogones, nevera compresor de 86L y calefacción estacionaria diésel digital.',
-    ],
-    descriptionInlineImage: {
-      src: '/images/campers/neo/details/neo-garage-bike-storage.jpg',
-      alt: 'Garaje trasero NEO con bicicletas',
-    },
-    floorplanDay: '/images/campers/neo/blueprints/day-layout.webp',
-    floorplanNight: '/images/campers/neo/blueprints/night-layout.webp',
-    features: [
-      { icon: 'battery', label: 'Batería Victron PRO', value: '2 × LiFePO4 · 540Ah' },
-      { icon: 'zap', label: 'Inversor 230V', value: 'Victron MultiPlus 2.000W onda pura' },
-      { icon: 'snowflake', label: 'Aire acondicionado', value: 'Dometic 12V autónomo sin red' },
-      { icon: 'wind', label: 'Calefacción', value: 'Estacionaria diésel digital' },
-      { icon: 'droplets', label: 'Aguas limpias', value: '113 litros presurizados' },
-      { icon: 'thermometer', label: 'Baño interior', value: 'Ducha agua caliente instantánea' },
-      { icon: 'gauge', label: 'Maletero de gran capacidad', value: '2.230 L para material deportivo y equipaje' },
-      { icon: 'bed', label: 'Dormitorio independiente', value: '3 plazas (cama fija 192×130 + cama auxiliar)' },
-      { icon: 'sun', label: 'Placas solares', value: '400W monocristalinas · MPPT SmartSolar' },
-      { icon: 'plug', label: 'Control integral', value: 'Victron Cerbo GX + táctil' },
-      { icon: 'utensils', label: 'Cocina nórdica', value: '2 fogones + nevera compresor 86 L' },
-      { icon: 'shield', label: 'WC interior', value: 'Químico dedicado de fácil extracción' },
-      { icon: 'folder', label: 'Separación de cabina', value: 'Privacidad e intimidad acústica' },
-      { icon: 'shield', label: 'Aislamiento Kaiflex', value: '360° térmico y acústico' },
-      { icon: 'gauge', label: 'Aguas grises', value: '90 litros con vaciado asistido' },
-      { icon: 'folder', label: 'Oscurecedores y mosquiteras', value: 'Remis integrados en cabina y ventanas' },
-    ],
-    included: [
-      'Seguro a todo riesgo con asistencia en carretera 24/7',
-      '150 km/día incluidos (ampliable a kilometraje ilimitado)',
-      'Menaje completo gourmet (vajilla, cafetera italiana, set chef)',
-      'Ropa de cama premium con sábanas de lino y toallas de baño',
-      'Kit de esnórquel completo para descubrir calas secretas',
-      'Mesa y 3 sillas de exterior confort para acampada',
-      'Check-in y entrega personalizada en aeropuerto / Son Oms',
-      'Asistencia nómada telefónica 24/7 durante todo tu viaje',
-    ],
-  },
 }
 
 /* ──────────────────────────────────────────────────────────────────────────
@@ -189,15 +62,95 @@ export default function CamperDetailClient({
   const [lightboxIndex, setLightboxIndex] = useState(0)
 
   const slug = camper.slug?.toLowerCase() || 'space'
-  const content = CAMPER_CONTENT[slug] || CAMPER_CONTENT.space
+  const content = useMemo(() => resolveCamperContent(camper), [camper])
+  const basePrice = content.rental.basePricePerNight
+  const {
+    standardDepositAmount,
+    flexDepositAmount,
+    flexDepositRatePerDay,
+    secondDriverRatePerDay,
+  } = content.rental
 
-  const basePrice = Number(camper.base_price_per_night) || (slug === 'space' ? 135 : 110)
+  const [sidebarStartDate, setSidebarStartDate] = useState(initialFrom || '')
+  const [sidebarStartSlot, setSidebarStartSlot] = useState<DaySlot>('afternoon')
+  const [sidebarEndDate, setSidebarEndDate] = useState(initialTo || '')
+  const [sidebarEndSlot, setSidebarEndSlot] = useState<DaySlot>('morning')
+  const [blockedSlots, setBlockedSlots] = useState<BlockedSlot[]>([])
+  const [blockedRanges, setBlockedRanges] = useState<BlockedRange[]>([])
+
+  useEffect(() => {
+    let isMounted = true
+    async function fetchAvailability() {
+      try {
+        const res = await fetch(`/api/campers/${slug}/availability`)
+        if (res.ok) {
+          const data = await res.json()
+          if (isMounted) {
+            setBlockedSlots(data.blockedSlots || [])
+            setBlockedRanges(data.blockedRanges || [])
+          }
+        }
+      } catch {
+        // Silencioso si falla la carga de disponibilidad
+      }
+    }
+    fetchAvailability()
+    return () => {
+      isMounted = false
+    }
+  }, [slug])
 
   const effectiveSeasons = seasons.length > 0 ? seasons : [
     { id: 's1', name: 'Temporada Alta', start_date: '2025-06-15', end_date: '2025-09-15', price_per_night: 175, discount_7days_pct: 10 },
     { id: 's2', name: 'Temporada Media', start_date: '2025-04-01', end_date: '2025-06-14', price_per_night: 130, discount_7days_pct: 8 },
     { id: 's3', name: 'Temporada Baja', start_date: '2025-11-01', end_date: '2026-03-31', price_per_night: 95, discount_7days_pct: 5 },
   ]
+
+  const sidebarMinNights = sidebarStartDate
+    ? (seasonsV2 && seasonPeriods && seasonsV2.length > 0)
+      ? getMinNightsForDateV2(new Date(sidebarStartDate), seasonsV2, seasonPeriods)
+      : getMinNightsForDate(new Date(sidebarStartDate), effectiveSeasons)
+    : 3
+
+  const sidebarBreakdown = useMemo(() => {
+    if (!sidebarStartDate || !sidebarEndDate) return null
+    const start = new Date(sidebarStartDate)
+    const end = new Date(sidebarEndDate)
+    if (end <= start) return null
+
+    if (seasonsV2 && seasonPeriods && seasonsV2.length > 0 && basePrice) {
+      return calculatePriceV2({
+        startDate: start,
+        startSlot: sidebarStartSlot,
+        endDate: end,
+        endSlot: sidebarEndSlot,
+        camperBasePrice: basePrice,
+        seasons: seasonsV2,
+        periods: seasonPeriods,
+        discounts: durationDiscounts || [],
+        selectedExtras: [],
+        standardDepositAmount,
+        flexDepositAmount,
+        flexDepositRatePerDay,
+        secondDriverRatePerDay,
+        depositAmount: standardDepositAmount,
+      })
+    }
+    return calculatePrice(start, sidebarStartSlot, end, sidebarEndSlot, effectiveSeasons, [], standardDepositAmount)
+  }, [sidebarStartDate, sidebarStartSlot, sidebarEndDate, sidebarEndSlot, seasonsV2, seasonPeriods, durationDiscounts, basePrice, effectiveSeasons, standardDepositAmount, flexDepositAmount, flexDepositRatePerDay, secondDriverRatePerDay])
+
+  const sidebarBookingHref = useMemo(() => {
+    const params = new URLSearchParams({ step: '1' })
+    if (sidebarStartDate && sidebarEndDate && sidebarBreakdown) {
+      const pickupTime = sidebarStartSlot === 'morning' ? '09:00' : '15:00'
+      const dropoffTime = sidebarEndSlot === 'morning' ? '12:00' : '19:00'
+      params.set('from', sidebarStartDate)
+      params.set('pickup_time', pickupTime)
+      params.set('to', sidebarEndDate)
+      params.set('dropoff_time', dropoffTime)
+    }
+    return `/${locale}/reserva/${slug}?${params.toString()}`
+  }, [locale, slug, sidebarStartDate, sidebarStartSlot, sidebarEndDate, sidebarEndSlot, sidebarBreakdown])
 
   const effectiveExtras = extras.length > 0 ? extras : [
     { id: 'e1', name_es: 'Kit Snorkel', price: 25, icon: 'waves' },
@@ -218,7 +171,7 @@ export default function CamperDetailClient({
 
   return (
     <div className="camper-detail-v2">
-      {/* ── Header Section ── */}
+      {/* ── Top Bar ── */}
       <section className="camper-header">
         <div className="header-top-row">
           <div className="header-left">
@@ -227,14 +180,9 @@ export default function CamperDetailClient({
               <span>Volver a Campers</span>
             </Link>
           </div>
-          <CamperModelSwitcher currentSlug={slug} />
-        </div>
-
-        <div className="header-hero-block">
-          <span className="hero-eyebrow">UTOPIA VAN LIFE · COLECCIÓN EXCLUSIVA</span>
-          <h1 className="camper-title">{camper.name || slug.toUpperCase()}</h1>
-          <p className="camper-tagline">{content.tagline}</p>
-          <CamperFeaturePills pills={content.pills} />
+          <div className="header-switcher-mobile">
+            <CamperModelSwitcher currentSlug={slug} />
+          </div>
         </div>
       </section>
 
@@ -242,13 +190,20 @@ export default function CamperDetailClient({
       <div className="page-layout">
         {/* Content Column */}
         <div className="content-column">
+          <div className="header-hero-block">
+            <span className="hero-eyebrow">UTOPIA VAN LIFE · COLECCIÓN EXCLUSIVA</span>
+            <h1 className="camper-title">{content.name}</h1>
+            <p className="camper-tagline">{content.card.tagline}</p>
+            <CamperFeaturePills pills={content.card.pills} />
+          </div>
+
           <CamperGalleryGrid
             images={content.galleryImages}
             onOpenLightbox={handleOpenLightbox}
           />
 
           <CamperDescription
-            paragraphs={content.description}
+            paragraphs={content.descriptionParagraphs}
             inlineImage={content.descriptionInlineImage}
           />
 
@@ -257,7 +212,17 @@ export default function CamperDetailClient({
             nightImage={content.floorplanNight}
           />
 
-          <CamperFeatureGrid features={content.features} initialVisible={8} />
+          <CamperFeatureGrid
+            title="CARACTERÍSTICAS Y EQUIPAMIENTO"
+            features={content.features}
+            initialVisible={8}
+          />
+
+          <CamperFeatureGrid
+            title="CARACTERÍSTICAS TÉCNICAS"
+            features={content.technicalFeatures}
+            initialVisible={8}
+          />
 
           <CamperIncluded items={content.included} />
 
@@ -270,7 +235,10 @@ export default function CamperDetailClient({
             <div className="calculator-card">
               <PriceCalculator
                 camperSlug={slug}
-                depositAmount={2000}
+                depositAmount={standardDepositAmount}
+                flexDepositAmount={flexDepositAmount}
+                flexDepositRatePerDay={flexDepositRatePerDay}
+                secondDriverRatePerDay={secondDriverRatePerDay}
                 seasons={effectiveSeasons}
                 availableExtras={effectiveExtras}
                 initialFrom={initialFrom}
@@ -285,64 +253,62 @@ export default function CamperDetailClient({
           </div>
         </div>
 
-        {/* Sidebar (desktop only) */}
+        {/* Sidebar (desktop fixed/sticky while scrolling left content) */}
         <aside className="booking-sidebar">
+          <div className="sidebar-switcher-wrap">
+            <CamperModelSwitcher currentSlug={slug} />
+          </div>
+
           <div className="sidebar-card">
             <div className="sidebar-card-accent" />
 
-            <div className="sidebar-trust-row">
-              <Heart size={14} className="sidebar-icon-muted" />
-              <span>Sin compromiso · Respuesta en 24h</span>
+            <div className="sidebar-response-row">
+              <Clock size={14} className="sidebar-icon-muted" />
+              <span>Sin compromiso · Respuesta en menos de 24h</span>
             </div>
 
-            <div className="sidebar-price-block">
-              <span className="sidebar-price-label">desde</span>
-              <span className="sidebar-price-amount">{basePrice}€</span>
-              <span className="sidebar-price-unit">/ noche</span>
+            <div className="sidebar-price-header">
+              <div className="sidebar-price-block">
+                <span className="sidebar-price-label">desde</span>
+                <span className="sidebar-price-amount">{basePrice}€</span>
+                <span className="sidebar-price-unit">/ noche</span>
+              </div>
+              {sidebarBreakdown && sidebarBreakdown.numNights > 0 && (
+                <div className="sidebar-estimated-total">
+                  <span>{formatPrice(sidebarBreakdown.totalWithoutDeposit)}</span>
+                  <span className="sidebar-estimated-nights"> · {sidebarBreakdown.numNights} {sidebarBreakdown.numNights === 1 ? 'noche' : 'noches'}</span>
+                </div>
+              )}
+            </div>
+
+            <div className="sidebar-calendar-wrap">
+              <BookingCalendar
+                startDate={sidebarStartDate}
+                startSlot={sidebarStartSlot}
+                endDate={sidebarEndDate}
+                endSlot={sidebarEndSlot}
+                onChange={(start, sSlot, end, eSlot) => {
+                  setSidebarStartDate(start)
+                  setSidebarStartSlot(sSlot)
+                  setSidebarEndDate(end)
+                  setSidebarEndSlot(eSlot)
+                }}
+                blockedSlots={blockedSlots}
+                blockedRanges={blockedRanges}
+                minNights={sidebarMinNights}
+                showSlots={false}
+                showDoneButton={false}
+                monthsCount={1}
+              />
             </div>
 
             <Link
-              href={`/${locale}/reserva/${slug}${initialFrom && initialTo ? `?from=${initialFrom}&to=${initialTo}` : ''}`}
+              href={sidebarBookingHref}
               className="sidebar-cta-btn"
             >
               <span>Reservar esta Camper</span>
               <ChevronRight size={16} />
             </Link>
-
-            <div className="sidebar-separator" />
-
-            <ul className="sidebar-includes">
-              {content.included.slice(0, 4).map((item, i) => (
-                <li key={i} className="sidebar-include-item">
-                  <ShieldCheck size={14} className="sidebar-check-icon" />
-                  <span>{item}</span>
-                </li>
-              ))}
-            </ul>
-
-            <div className="sidebar-separator" />
-
-            <div className="sidebar-response-row">
-              <Clock size={14} className="sidebar-icon-muted" />
-              <span>Respuesta en menos de 24 horas</span>
-            </div>
-
-            {/* Embedded Calculator */}
-            <div className="sidebar-calculator-wrap" ref={bookingSectionRef}>
-              <PriceCalculator
-                camperSlug={slug}
-                depositAmount={2000}
-                seasons={effectiveSeasons}
-                availableExtras={effectiveExtras}
-                initialFrom={initialFrom}
-                initialTo={initialTo}
-                maxGuests={camper.specs?.seats || (slug === 'space' ? 2 : 3)}
-                seasonsV2={seasonsV2}
-                seasonPeriods={seasonPeriods}
-                durationDiscounts={durationDiscounts}
-                camperBasePrice={basePrice}
-              />
-            </div>
           </div>
         </aside>
       </div>
@@ -366,27 +332,34 @@ export default function CamperDetailClient({
       />
 
       <style jsx>{`
+        :global(.camper-detail-main) {
+          padding-top: 72px;
+        }
+        :global(.camper-detail-fallback) {
+          height: 50vh;
+        }
+
         /* ── Page Root ── */
         .camper-detail-v2 {
           background-color: #0b0c0e;
           color: #f5f5f7;
           min-height: 100vh;
           padding-bottom: calc(100px + env(safe-area-inset-bottom, 16px));
-          overflow-x: hidden;
+          overflow-x: clip;
+          transition: background-color 240ms ease, color 240ms ease;
         }
 
         /* ── Header ── */
         .camper-header {
           max-width: 1280px;
           margin: 0 auto;
-          padding: 24px 24px 28px;
+          padding: 20px 24px 16px;
         }
         .header-top-row {
           display: flex;
           align-items: center;
           justify-content: space-between;
           gap: 16px;
-          margin-bottom: 28px;
           flex-wrap: wrap;
         }
         .header-left {
@@ -410,7 +383,8 @@ export default function CamperDetailClient({
         }
         .header-hero-block {
           border-bottom: 1px solid rgba(255, 255, 255, 0.06);
-          padding-bottom: 28px;
+          padding-bottom: 24px;
+          margin-bottom: 28px;
         }
         .hero-eyebrow {
           display: block;
@@ -432,11 +406,11 @@ export default function CamperDetailClient({
         }
         .camper-tagline {
           font-size: 16px;
-          font-weight: 300;
-          color: rgba(255, 255, 255, 0.6);
-          line-height: 1.5;
+          font-weight: 400;
+          color: rgba(255, 255, 255, 0.65);
+          line-height: 1.55;
           margin: 0;
-          max-width: 620px;
+          max-width: 680px;
         }
 
         /* ── Two-Column Layout ── */
@@ -479,7 +453,7 @@ export default function CamperDetailClient({
           border-radius: 1px;
         }
         .calculator-card {
-          background: #ffffff;
+          background: #131518;
           border-radius: 20px;
           overflow: hidden;
           box-shadow: 0 16px 40px -8px rgba(0, 0, 0, 0.6);
@@ -488,16 +462,37 @@ export default function CamperDetailClient({
         /* ── Sidebar ── */
         .booking-sidebar {
           position: sticky;
-          top: 96px;
+          top: 88px;
           align-self: start;
+          height: fit-content;
+        }
+        .sidebar-switcher-wrap {
+          margin-bottom: 12px;
+          display: flex;
+        }
+        .sidebar-switcher-wrap :global(.camper-model-switcher) {
+          width: 100%;
+          display: flex;
+          justify-content: stretch;
+          padding: 4px;
+        }
+        .sidebar-switcher-wrap :global(.model-pill) {
+          flex: 1;
+          justify-content: center;
+          text-align: center;
+          padding: 7px 12px;
+        }
+        .header-switcher-mobile {
+          display: none;
         }
         .sidebar-card {
           position: relative;
           border-radius: 20px;
           border: 1px solid rgba(255, 255, 255, 0.08);
           background: #131518;
-          padding: 24px;
+          padding: 16px 18px;
           overflow: hidden;
+          transition: background-color 240ms ease, border-color 240ms ease, box-shadow 240ms ease;
         }
         .sidebar-card-accent {
           position: absolute;
@@ -507,39 +502,108 @@ export default function CamperDetailClient({
           height: 3px;
           background: linear-gradient(90deg, #e6ca65, rgba(230, 202, 101, 0.2));
         }
-        .sidebar-trust-row {
+        .sidebar-response-row {
           display: flex;
           align-items: center;
-          gap: 8px;
-          font-size: 11px;
-          color: rgba(255, 255, 255, 0.45);
-          margin-bottom: 16px;
-          margin-top: 4px;
+          gap: 7px;
+          font-size: 11.5px;
+          font-weight: 500;
+          color: rgba(255, 255, 255, 0.6);
+          margin-top: 2px;
+          margin-bottom: 10px;
         }
         :global(.sidebar-icon-muted) {
-          color: rgba(255, 255, 255, 0.35);
+          color: #e6ca65;
+          flex-shrink: 0;
+        }
+        .sidebar-price-header {
+          display: flex;
+          align-items: baseline;
+          justify-content: space-between;
+          flex-wrap: wrap;
+          gap: 8px;
+          margin-bottom: 12px;
         }
         .sidebar-price-block {
           display: flex;
           align-items: baseline;
-          margin-bottom: 20px;
         }
         .sidebar-price-label {
           font-size: 11px;
-          color: rgba(255, 255, 255, 0.45);
+          color: rgba(255, 255, 255, 0.5);
           font-weight: 500;
           text-transform: lowercase;
-          margin-right: 9px;
+          margin-right: 7px;
         }
         .sidebar-price-amount {
-          font-size: 32px;
+          font-size: 28px;
           font-weight: 800;
           color: #ffffff;
+          line-height: 1;
         }
         .sidebar-price-unit {
-          font-size: 14px;
-          color: rgba(255, 255, 255, 0.5);
-          margin-left: 2.5px;
+          font-size: 13px;
+          color: rgba(255, 255, 255, 0.55);
+          margin-left: 3px;
+        }
+        .sidebar-estimated-total {
+          font-size: 12px;
+          font-weight: 700;
+          color: #e6ca65;
+          background: rgba(230, 202, 101, 0.12);
+          border: 1px solid rgba(230, 202, 101, 0.28);
+          padding: 3px 9px;
+          border-radius: 9999px;
+        }
+        .sidebar-estimated-nights {
+          font-weight: 500;
+          color: rgba(255, 255, 255, 0.72);
+        }
+        .sidebar-calendar-wrap {
+          margin-bottom: 14px;
+        }
+        .sidebar-calendar-wrap :global(.booking-cal) {
+          width: 100%;
+          max-width: 100%;
+          margin: 0;
+          padding: 10px 12px;
+          box-shadow: none;
+          background: #0b0c0e;
+          border: 1px solid rgba(255, 255, 255, 0.08);
+        }
+        .sidebar-calendar-wrap :global(.booking-cal__step-banner) {
+          padding: 5px 10px;
+          font-size: 11px;
+          margin-bottom: 8px;
+        }
+        .sidebar-calendar-wrap :global(.booking-cal__header) {
+          margin-bottom: 6px;
+        }
+        .sidebar-calendar-wrap :global(.booking-cal__weekdays) {
+          margin-bottom: 2px;
+        }
+        .sidebar-calendar-wrap :global(.booking-cal__day) {
+          aspect-ratio: auto;
+          height: 29px;
+          font-size: 12px;
+        }
+        .sidebar-calendar-wrap :global(.booking-cal__day-number) {
+          width: 26px;
+          height: 26px;
+        }
+        .sidebar-calendar-wrap :global(.booking-cal__legend) {
+          margin-top: 6px;
+          padding-top: 6px;
+          gap: 8px;
+          font-size: 10.5px;
+        }
+        .sidebar-calendar-wrap :global(.booking-cal__footer) {
+          margin-top: 6px;
+          padding-top: 6px;
+        }
+        .sidebar-calendar-wrap :global(.booking-cal__clear-btn) {
+          padding: 4px 10px;
+          font-size: 11px;
         }
         :global(.sidebar-cta-btn) {
           display: flex;
@@ -547,11 +611,11 @@ export default function CamperDetailClient({
           justify-content: center;
           gap: 8px;
           width: 100%;
-          padding: 14px 20px;
-          border-radius: 14px;
+          padding: 12px 18px;
+          border-radius: 12px;
           background: #e6ca65;
           color: #0b0c0e;
-          font-size: 13px;
+          font-size: 12.5px;
           font-weight: 800;
           text-transform: uppercase;
           letter-spacing: 0.06em;
@@ -564,49 +628,89 @@ export default function CamperDetailClient({
           transform: translateY(-1px);
           box-shadow: 0 8px 24px rgba(230, 202, 101, 0.35);
         }
-        .sidebar-separator {
-          height: 1px;
-          background: rgba(255, 255, 255, 0.08);
-          margin: 20px 0;
+
+        /* ── Light Mode Support ── */
+        :global(html[data-theme="light"]) .camper-detail-v2 {
+          background-color: #F2F0EC;
+          color: #1F1B17;
         }
-        .sidebar-includes {
-          list-style: none;
-          padding: 0;
-          margin: 0;
-          display: flex;
-          flex-direction: column;
-          gap: 10px;
+        :global(html[data-theme="light"]) :global(.back-link) {
+          color: #5A5248;
         }
-        .sidebar-include-item {
-          display: flex;
-          align-items: flex-start;
-          gap: 8px;
-          font-size: 12px;
-          color: rgba(255, 255, 255, 0.65);
-          line-height: 1.4;
+        :global(html[data-theme="light"]) :global(.back-link:hover) {
+          color: #1F1B17;
         }
-        :global(.sidebar-check-icon) {
-          color: #e6ca65;
-          flex-shrink: 0;
-          margin-top: 1px;
+        :global(html[data-theme="light"]) .header-hero-block {
+          border-bottom-color: #EAE5DD;
         }
-        .sidebar-response-row {
-          display: flex;
-          align-items: center;
-          gap: 8px;
-          font-size: 11px;
-          color: rgba(255, 255, 255, 0.4);
-          margin-bottom: 20px;
+        :global(html[data-theme="light"]) .hero-eyebrow {
+          color: #B8893A;
+          font-weight: 800;
         }
-        .sidebar-calculator-wrap {
-          background: #ffffff;
-          border-radius: 16px;
-          overflow: hidden;
-          box-shadow: 0 8px 24px -6px rgba(0, 0, 0, 0.4);
+        :global(html[data-theme="light"]) .camper-title {
+          color: #1F1B17;
+        }
+        :global(html[data-theme="light"]) .camper-tagline {
+          color: #5A5248;
+        }
+        :global(html[data-theme="light"]) .section-divider-title {
+          color: #1A1714;
+        }
+        :global(html[data-theme="light"]) .section-divider-line {
+          background: linear-gradient(90deg, #D9D1C4, #EAE5DD);
+        }
+        :global(html[data-theme="light"]) .calculator-card {
+          background: #FFFFFF;
+          box-shadow: 0 12px 32px rgba(40, 30, 15, 0.08);
+        }
+        :global(html[data-theme="light"]) .sidebar-card {
+          background: #FFFFFF;
+          border-color: #EAE5DD;
+          box-shadow: 0 8px 30px rgba(40, 30, 15, 0.08);
+        }
+        :global(html[data-theme="light"]) .sidebar-card-accent {
+          background: linear-gradient(90deg, #CCA053, #E8D6B2);
+        }
+        :global(html[data-theme="light"]) .sidebar-response-row {
+          color: #5A5248;
+        }
+        :global(html[data-theme="light"]) :global(.sidebar-icon-muted) {
+          color: #82681A;
+        }
+        :global(html[data-theme="light"]) .sidebar-price-label,
+        :global(html[data-theme="light"]) .sidebar-price-unit {
+          color: #5A5248;
+        }
+        :global(html[data-theme="light"]) .sidebar-price-amount {
+          color: #1F1B17;
+        }
+        :global(html[data-theme="light"]) .sidebar-estimated-total {
+          background: #F7EEDC;
+          border-color: #E8D6B2;
+          color: #1A1714;
+        }
+        :global(html[data-theme="light"]) .sidebar-estimated-nights {
+          color: #5A5248;
+        }
+        :global(html[data-theme="light"]) .sidebar-calendar-wrap :global(.booking-cal) {
+          background: #FAF8F5;
+          border-color: #EAE5DD;
+        }
+        :global(html[data-theme="light"]) :global(.sidebar-cta-btn) {
+          background: #1A1714;
+          color: #F6EBD3;
+          box-shadow: 0 6px 20px rgba(26, 23, 20, 0.16);
+        }
+        :global(html[data-theme="light"]) :global(.sidebar-cta-btn:hover) {
+          background: #2E2822;
+          box-shadow: 0 8px 24px rgba(26, 23, 20, 0.24);
         }
 
         /* ── Responsive ── */
         @media (max-width: 860px) {
+          .header-switcher-mobile {
+            display: block;
+          }
           .page-layout {
             grid-template-columns: 1fr;
             gap: 0;

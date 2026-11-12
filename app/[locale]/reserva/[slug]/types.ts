@@ -18,16 +18,23 @@ import { DaySlot, KmPackage, CancellationPolicy, DepositOption } from '@/lib/pri
 import { BlockedSlot } from '@/lib/booking/availability'
 import { validateBookingRange } from '@/lib/booking/calendarLogic'
 import { isValidEmail, MAX_BOOKING_NIGHTS, normalizeEmail } from '@/lib/booking/checkoutRules'
+import { resolveCamperContent } from '@/lib/campers/camperCatalog'
 
-export type WizardStep = 1 | 2 | 3 | 4 | 5
+export type WizardStep = 1 | 2 | 3 | 4 | 5 | 6 | 7
 
 export type { DaySlot, KmPackage, CancellationPolicy, DepositOption }
+
+export interface CamperGalleryPhoto {
+    src: string
+    tag: string
+}
 
 export interface WizardCamper {
     id: string
     slug: string
     name: string
     description_es?: string
+    thumbnail_url?: string
     specs?: {
         beds?: number
         seats?: number
@@ -36,12 +43,17 @@ export interface WizardCamper {
         height_m?: number
         engine?: string
         transmission?: string
+        [key: string]: any
     }
     price_per_night?: number
     price_per_day?: number
     base_price_per_night?: number
     deposit_amount?: number
     images?: string[]
+}
+
+export function getCamperGalleryImages(camper: WizardCamper): CamperGalleryPhoto[] {
+    return resolveCamperContent(camper).galleryImages
 }
 
 export interface WizardExtraItem {

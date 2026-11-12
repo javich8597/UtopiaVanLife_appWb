@@ -71,6 +71,7 @@ interface PageProps {
         pax?: string
         km?: 'included_150' | 'unlimited'
         cancellation?: 'standard' | 'flexible'
+        deposit?: string
         extras?: string
     }>
 }
@@ -89,16 +90,19 @@ export default async function ReservaWizardPage({ params, searchParams }: PagePr
     const search = await searchParams
 
     let camperData: any = null
+    let allDbCampers: any[] = []
 
     try {
         const supabase = await createClient()
-        const { data } = await supabase
+        const { data: campersList } = await supabase
             .from('campers')
             .select('*')
-            .eq('slug', slug)
-            .maybeSingle()
+            .order('base_price_per_night', { ascending: true })
 
-        if (data) camperData = data
+        if (campersList && campersList.length > 0) {
+            allDbCampers = campersList
+            camperData = campersList.find((c: any) => c.slug === slug) || null
+        }
     } catch (e) {
         console.warn('Could not fetch camper from Supabase, using fallback:', e)
     }
@@ -111,17 +115,32 @@ export default async function ReservaWizardPage({ params, searchParams }: PagePr
         notFound()
     }
 
-    const effectiveCamper: WizardCamper = {
-        id: camperData.id,
-        slug: camperData.slug,
-        name: camperData.name || slug.toUpperCase(),
-        description_es: camperData.description_es,
-        specs: camperData.specs,
-        base_price_per_night: Number(camperData.base_price_per_night || camperData.price_per_night || 110),
-        price_per_night: Number(camperData.price_per_night || camperData.base_price_per_night || 110),
-        deposit_amount: Number(camperData.deposit_amount) || 1000,
-        images: camperData.images || [],
-    }
+    const toWizardCamper = (c: any, defaultSlug?: string): WizardCamper => ({
+        id: c.id,
+        slug: c.slug || defaultSlug || 'neo',
+        name: c.name || (c.slug || defaultSlug || 'NEO').toUpperCase(),
+        description_es: c.description_es,
+        thumbnail_url: c.thumbnail_url,
+        specs: c.specs,
+        base_price_per_night: Number(c.base_price_per_night || c.price_per_night || 110),
+        price_per_night: Number(c.price_per_night || c.base_price_per_night || 110),
+        deposit_amount: Number(c.deposit_amount) || 1000,
+        images: c.images || [],
+    })
+
+    const effectiveCamper: WizardCamper = toWizardCamper(camperData, slug)
+
+    const allCampersMap = new Map<string, WizardCamper>()
+    Object.entries(DEMO_CAMPERS).forEach(([k, v]) => {
+        allCampersMap.set(k, toWizardCamper(v, k))
+    })
+    allDbCampers.forEach((c: any) => {
+        if (c && c.slug) {
+            allCampersMap.set(c.slug, toWizardCamper(c, c.slug))
+        }
+    })
+    allCampersMap.set(effectiveCamper.slug, effectiveCamper)
+    const allCampers = Array.from(allCampersMap.values())
 
     // Fetch seasons, periods, duration discounts & extras
     let seasonsV2: any[] = []
@@ -173,6 +192,7 @@ export default async function ReservaWizardPage({ params, searchParams }: PagePr
         <Suspense fallback={<div style={{ minHeight: '80vh', background: '#0B0C0E' }} />}>
             <BookingWizardClient
                 camper={effectiveCamper}
+                allCampers={allCampers}
                 availableExtras={availableExtras}
                 seasonsV2={seasonsV2}
                 seasonPeriods={seasonPeriods}
@@ -184,6 +204,7 @@ export default async function ReservaWizardPage({ params, searchParams }: PagePr
                 initialPax={Number(search.pax) || 2}
                 initialKmPackage={search.km === 'unlimited' ? 'unlimited' : 'included_150'}
                 initialCancellationPolicy={search.cancellation === 'flexible' ? 'flexible' : 'standard'}
+                initialDepositOption={search.deposit === 'flex' || search.deposit === 'flex_1000' ? 'flex_1000' : 'standard_2000'}
                 initialExtraIds={search.extras ? search.extras.split(',').filter(Boolean) : []}
                 locale={locale}
             />

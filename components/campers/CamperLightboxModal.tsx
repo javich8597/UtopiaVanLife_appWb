@@ -260,6 +260,36 @@ export default function CamperLightboxModal({
           object-fit: cover;
           display: block;
         }
+        :global(html[data-theme="light"]) .camper-lightbox-backdrop {
+          background: rgba(242, 240, 236, 0.97);
+        }
+        :global(html[data-theme="light"]) .lightbox-counter {
+          color: #1A1714;
+        }
+        :global(html[data-theme="light"]) .lightbox-divider {
+          color: #D9D1C4;
+        }
+        :global(html[data-theme="light"]) .lightbox-caption {
+          color: #1F1B17;
+        }
+        :global(html[data-theme="light"]) .lightbox-close-btn,
+        :global(html[data-theme="light"]) .lightbox-nav-btn {
+          background: #FFFFFF;
+          border: 1px solid #D9D1C4;
+          color: #1A1714;
+          box-shadow: 0 4px 12px rgba(40, 30, 15, 0.1);
+        }
+        :global(html[data-theme="light"]) .lightbox-image-container {
+          background: #FAF8F5;
+          border: 1px solid #EAE5DD;
+          box-shadow: 0 20px 44px rgba(40, 30, 15, 0.12);
+        }
+        :global(html[data-theme="light"]) .thumb-btn {
+          background: #EAE5DD;
+        }
+        :global(html[data-theme="light"]) .thumb-btn--active {
+          border-color: #1A1714;
+        }
         @media (max-width: 640px) {
           .camper-lightbox-backdrop {
             padding: 12px 14px;

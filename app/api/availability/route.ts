@@ -3,12 +3,14 @@ import { createServerClient } from '@supabase/ssr'
 import { getSupabaseAdmin } from '@/lib/supabase/admin'
 import { resolveSeasonForDate, SeasonV2, SeasonPeriod } from '@/lib/pricing/engine'
 
+export const dynamic = 'force-dynamic'
+
 const DEMO_CAMPERS = [
     {
         id: '1', slug: 'neo', name: 'NEO',
-        description_es: 'La camper más polivalente y con 2.230L de maletero. Separación total de cabina, 540Ah litio Victron y aire acondicionado 12V.',
+        description_es: 'Camper ideal para dos personas, que se adapta de forma perfecta para 3. Gran maletero, cama doble fija + auxiliar, sistema eléctrico Pro (540Ah litio, 400W solar, Victron 2.000W) y aire acondicionado 12V Dometic.',
         thumbnail_url: '/images/campers/neo/neo-ext.png',
-        specs: { beds: 3, seats: 3, length_m: 6.0 },
+        specs: { beds: 3, seats: 3, length_m: 5.99 },
         deposit_amount: 1000,
         pricePerNight: 120,
         seasonName: 'Temporada Media',
@@ -16,9 +18,9 @@ const DEMO_CAMPERS = [
     },
     {
         id: '2', slug: 'space', name: 'SPACE',
-        description_es: 'SPACE redefine el confort con distribución abierta de 7m², cama elevable eléctrica sobre salón en U y 160L de agua limpia.',
+        description_es: 'Camper diseñada para dos personas, primando el máximo confort en todo momento. Cama elevable + interbanco, sistema eléctrico Pro (540Ah litio, 400W solar, Victron 2.000W) y aire acondicionado 12V Dometic.',
         thumbnail_url: '/images/campers/space/space-ext.png',
-        specs: { beds: 2, seats: 2, length_m: 6.0 },
+        specs: { beds: 2, seats: 2, length_m: 5.99 },
         deposit_amount: 1000,
         pricePerNight: 140,
         seasonName: 'Temporada Media',
@@ -76,7 +78,7 @@ export async function GET(request: Request) {
         })
 
         if (!from || !to) {
-            return NextResponse.json({ campers: campersWithPricing })
+            return NextResponse.json({ campers: campersWithPricing }, { headers: { 'Cache-Control': 'no-store' } })
         }
 
         // RLS oculta las reservas ajenas al visitante anónimo: se leen en servidor, solo el camper_id
@@ -104,7 +106,7 @@ export async function GET(request: Request) {
                 ...c,
                 isAvailable: !unavailableIds.has(c.id),
             })),
-        })
+        }, { headers: { 'Cache-Control': 'no-store' } })
     } catch {
         return NextResponse.json({ campers: DEMO_CAMPERS })
     }

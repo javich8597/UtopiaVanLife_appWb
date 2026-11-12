@@ -5,6 +5,7 @@ import { useRouter } from '@/i18n/routing'
 import { Calendar as CalendarIcon, Users, Plus, Minus, CheckCircle, ChevronDown, AlertCircle, Tag, Check, Info } from 'lucide-react'
 import { calculatePrice, calculatePriceV2, formatPrice, getMinNightsForDate, getMinNightsForDateV2, DaySlot } from '@/lib/pricing/engine'
 import type { Season, SeasonV2, SeasonPeriod, DurationDiscount, Extra } from '@/lib/pricing/engine'
+import { formatDepositEuros } from '@/lib/campers/camperCatalog'
 import BookingCalendar, { BlockedRange } from './BookingCalendar'
 import { BlockedSlot } from '@/lib/booking/availability'
 import { motion, AnimatePresence } from 'framer-motion'
@@ -12,492 +13,502 @@ import { parseISO, format } from 'date-fns'
 import { es } from 'date-fns/locale'
 
 interface PriceCalculatorProps {
-    camperSlug: string
-    depositAmount: number
-    seasons: Season[]
-    availableExtras: Extra[]
-    initialFrom?: string
-    initialTo?: string
-    maxGuests?: number
-    durationDiscounts?: DurationDiscount[]
-    seasonsV2?: SeasonV2[]
-    seasonPeriods?: SeasonPeriod[]
-    camperBasePrice?: number
+  camperSlug: string
+  depositAmount: number
+  flexDepositAmount?: number
+  flexDepositRatePerDay?: number
+  secondDriverRatePerDay?: number
+  seasons: Season[]
+  availableExtras: Extra[]
+  initialFrom?: string
+  initialTo?: string
+  maxGuests?: number
+  durationDiscounts?: DurationDiscount[]
+  seasonsV2?: SeasonV2[]
+  seasonPeriods?: SeasonPeriod[]
+  camperBasePrice?: number
 }
 
 export default function PriceCalculator({
-    camperSlug,
-    depositAmount,
-    seasons,
-    availableExtras,
-    initialFrom,
-    initialTo,
-    maxGuests,
-    durationDiscounts,
-    seasonsV2,
-    seasonPeriods,
-    camperBasePrice,
+  camperSlug,
+  depositAmount,
+  flexDepositAmount = 1000,
+  flexDepositRatePerDay = 10,
+  secondDriverRatePerDay = 5,
+  seasons,
+  availableExtras,
+  initialFrom,
+  initialTo,
+  maxGuests,
+  durationDiscounts,
+  seasonsV2,
+  seasonPeriods,
+  camperBasePrice,
 }: PriceCalculatorProps) {
-    const router = useRouter()
-    const maxPax = maxGuests || (camperSlug === 'space' ? 2 : 3)
-    const [startDate, setStartDate] = useState(initialFrom || '')
-    const [startSlot, setStartSlot] = useState<DaySlot>('afternoon')
-    const [endDate, setEndDate] = useState(initialTo || '')
-    const [endSlot, setEndSlot] = useState<DaySlot>('morning')
-    const [pax, setPax] = useState(Math.min(2, maxPax))
-    const [isCalendarOpen, setIsCalendarOpen] = useState(false)
-    const [isExtrasOpen, setIsExtrasOpen] = useState(false)
-    const [blockedSlots, setBlockedSlots] = useState<BlockedSlot[]>([])
-    const [blockedRanges, setBlockedRanges] = useState<BlockedRange[]>([])
-    const [selectedExtras, setSelectedExtras] = useState<Extra[]>([])
-    const [breakdown, setBreakdown] = useState<ReturnType<typeof calculatePrice> | null>(null)
+  const router = useRouter()
+  const maxPax = maxGuests || (camperSlug === 'space' ? 2 : 3)
+  const [startDate, setStartDate] = useState(initialFrom || '')
+  const [startSlot, setStartSlot] = useState<DaySlot>('afternoon')
+  const [endDate, setEndDate] = useState(initialTo || '')
+  const [endSlot, setEndSlot] = useState<DaySlot>('morning')
+  const [pax, setPax] = useState(Math.min(2, maxPax))
+  const [isCalendarOpen, setIsCalendarOpen] = useState(false)
+  const [isExtrasOpen, setIsExtrasOpen] = useState(false)
+  const [blockedSlots, setBlockedSlots] = useState<BlockedSlot[]>([])
+  const [blockedRanges, setBlockedRanges] = useState<BlockedRange[]>([])
+  const [selectedExtras, setSelectedExtras] = useState<Extra[]>([])
+  const [breakdown, setBreakdown] = useState<ReturnType<typeof calculatePrice> | null>(null)
 
-    // Fianza estándar (2.000 €): no se cobra al reservar, solo se informa
-    const safeDeposit = Number(depositAmount) || 2000
-    const dateTriggerRef = useRef<HTMLDivElement>(null)
-    const calendarCollapseRef = useRef<HTMLDivElement>(null)
+  // Fianza estándar (2.000 €): no se cobra al reservar, solo se informa
+  const safeDeposit = Number(depositAmount) || 2000
+  const dateTriggerRef = useRef<HTMLDivElement>(null)
+  const calendarCollapseRef = useRef<HTMLDivElement>(null)
 
-    // Cerrar el calendario al hacer clic fuera del recuadro del calendario (a los lados incluidos) o presionar Escape
-    useEffect(() => {
-        if (!isCalendarOpen) return
+  // Cerrar el calendario al hacer clic fuera del recuadro del calendario (a los lados incluidos) o presionar Escape
+  useEffect(() => {
+    if (!isCalendarOpen) return
 
-        const handleClickOutside = (e: MouseEvent | TouchEvent) => {
-            const target = e.target as Node
-            if (calendarCollapseRef.current && calendarCollapseRef.current.contains(target)) {
-                return
-            }
-            if (dateTriggerRef.current && dateTriggerRef.current.contains(target)) {
-                return
-            }
-            setIsCalendarOpen(false)
-        }
-
-        const handleKeyDown = (e: KeyboardEvent) => {
-            if (e.key === 'Escape') {
-                setIsCalendarOpen(false)
-            }
-        }
-
-        document.addEventListener('mousedown', handleClickOutside)
-        document.addEventListener('touchstart', handleClickOutside)
-        document.addEventListener('keydown', handleKeyDown)
-
-        return () => {
-            document.removeEventListener('mousedown', handleClickOutside)
-            document.removeEventListener('touchstart', handleClickOutside)
-            document.removeEventListener('keydown', handleKeyDown)
-        }
-    }, [isCalendarOpen])
-
-    // Cargar fechas y slots bloqueados para esta furgoneta
-    useEffect(() => {
-        let isMounted = true
-        async function fetchAvailability() {
-            try {
-                const res = await fetch(`/api/campers/${camperSlug}/availability`)
-                if (res.ok) {
-                    const data = await res.json()
-                    if (isMounted) {
-                        if (data.blockedSlots) setBlockedSlots(data.blockedSlots)
-                        if (data.blockedRanges) setBlockedRanges(data.blockedRanges)
-                    }
-                }
-            } catch {
-                // Silencioso si falla
-            }
-        }
-        fetchAvailability()
-        return () => {
-            isMounted = false
-        }
-    }, [camperSlug])
-
-    // Estancia mínima para la temporada del día de inicio
-    const activeMinNights = startDate
-        ? (seasonsV2 && seasonPeriods && seasonsV2.length > 0)
-            ? getMinNightsForDateV2(new Date(startDate), seasonsV2, seasonPeriods)
-            : getMinNightsForDate(new Date(startDate), seasons)
-        : 3
-
-    // Recalcular desglose de precio con granularidad de medio día
-    useEffect(() => {
-        if (!startDate || !endDate) { setBreakdown(null); return }
-        const start = new Date(startDate)
-        const end = new Date(endDate)
-        if (end <= start) { setBreakdown(null); return }
-
-        if (seasonsV2 && seasonPeriods && seasonsV2.length > 0 && camperBasePrice) {
-            const result = calculatePriceV2({
-                startDate: start,
-                startSlot,
-                endDate: end,
-                endSlot,
-                camperBasePrice,
-                seasons: seasonsV2,
-                periods: seasonPeriods,
-                discounts: durationDiscounts || [],
-                selectedExtras,
-                depositAmount: safeDeposit
-            })
-            setBreakdown(result)
-        } else {
-            const result = calculatePrice(start, startSlot, end, endSlot, seasons, selectedExtras, safeDeposit)
-            setBreakdown(result)
-        }
-    }, [startDate, startSlot, endDate, endSlot, selectedExtras, seasons, safeDeposit, seasonsV2, seasonPeriods, durationDiscounts, camperBasePrice])
-
-    const toggleExtra = (extra: Extra) => {
-        setSelectedExtras(prev =>
-            prev.find(e => e.id === extra.id)
-                ? prev.filter(e => e.id !== extra.id)
-                : [...prev, extra]
-        )
+    const handleClickOutside = (e: MouseEvent | TouchEvent) => {
+      const target = e.target as Node
+      if (calendarCollapseRef.current && calendarCollapseRef.current.contains(target)) {
+        return
+      }
+      if (dateTriggerRef.current && dateTriggerRef.current.contains(target)) {
+        return
+      }
+      setIsCalendarOpen(false)
     }
 
-    const handleDatesChange = (start: string, sSlot: DaySlot, end: string, eSlot: DaySlot) => {
-        setStartDate(start)
-        setStartSlot(sSlot)
-        setEndDate(end)
-        setEndSlot(eSlot)
-        // Mantener el calendario abierto para permitir al usuario seleccionar y revisar turnos horarios y pulsar 'Listo'
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        setIsCalendarOpen(false)
+      }
     }
 
-    const isBelowMinNights = Boolean(breakdown && breakdown.numNights < activeMinNights)
+    document.addEventListener('mousedown', handleClickOutside)
+    document.addEventListener('touchstart', handleClickOutside)
+    document.addEventListener('keydown', handleKeyDown)
 
-    const handleReserve = () => {
-        if (!startDate || !endDate || !breakdown || isBelowMinNights) return
-        const pickupTime = startSlot === 'morning' ? '09:00' : '15:00'
-        const dropoffTime = endSlot === 'morning' ? '12:00' : '19:00'
-
-        const params = new URLSearchParams({
-            from: startDate,
-            pickup_time: pickupTime,
-            to: endDate,
-            dropoff_time: dropoffTime,
-            pax: String(Math.min(3, Math.max(1, pax))),
-            extras: selectedExtras.map(e => e.id).join(','),
-        })
-        router.push(`/reserva/${camperSlug}?${params.toString()}`)
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside)
+      document.removeEventListener('touchstart', handleClickOutside)
+      document.removeEventListener('keydown', handleKeyDown)
     }
+  }, [isCalendarOpen])
 
-    const formatDisplayDate = (dateStr: string, slot?: DaySlot, isEnd?: boolean) => {
-        if (!dateStr) return null
-        try {
-            const formatted = format(parseISO(dateStr), "d 'de' MMM", { locale: es })
-            if (!slot) return formatted
-            const timeTag = isEnd
-                ? (slot === 'morning' ? '12:00h' : '19:00h')
-                : (slot === 'morning' ? '09:00h' : '15:00h')
-            return `${formatted} (${timeTag})`
-        } catch {
-            return dateStr
+  // Cargar fechas y slots bloqueados para esta furgoneta
+  useEffect(() => {
+    let isMounted = true
+    async function fetchAvailability() {
+      try {
+        const res = await fetch(`/api/campers/${camperSlug}/availability`)
+        if (res.ok) {
+          const data = await res.json()
+          if (isMounted) {
+            if (data.blockedSlots) setBlockedSlots(data.blockedSlots)
+            if (data.blockedRanges) setBlockedRanges(data.blockedRanges)
+          }
         }
+      } catch {
+        // Silencioso si falla
+      }
     }
+    fetchAvailability()
+    return () => {
+      isMounted = false
+    }
+  }, [camperSlug])
 
-    return (
-        <div className="price-calc">
-            <div className="price-calc__header">
-                <h3 className="text-h4">Calcular precio</h3>
-                {breakdown && (
-                    <div className="price-calc__total">
-                        <span className="price-calc__amount">{formatPrice(breakdown.totalWithoutDeposit)}</span>
-                        <span className="price-calc__nights">
-                            / {breakdown.totalDays} día{breakdown.totalDays !== 1 ? 's' : ''} ({breakdown.numNights} n.)
-                        </span>
-                    </div>
-                )}
-            </div>
+  // Estancia mínima para la temporada del día de inicio
+  const activeMinNights = startDate
+    ? (seasonsV2 && seasonPeriods && seasonsV2.length > 0)
+      ? getMinNightsForDateV2(new Date(startDate), seasonsV2, seasonPeriods)
+      : getMinNightsForDate(new Date(startDate), seasons)
+    : 3
 
-            {/* Interactive Dates Selector */}
-            <div className="price-calc__dates-wrapper">
-                <div
-                    ref={dateTriggerRef}
-                    className={`price-calc__dates-card ${isCalendarOpen ? 'price-calc__dates-card--open' : ''}`}
-                    onClick={() => setIsCalendarOpen(prev => !prev)}
-                >
-                    <div className="price-calc__date-pill">
-                        <span className="price-calc__date-label">
-                            <CalendarIcon size={12} style={{ display: 'inline', marginRight: 5 }} />
-                            Recogida
-                        </span>
-                        <span className={`price-calc__date-val ${!startDate ? 'price-calc__date-val--placeholder' : ''}`}>
-                            {formatDisplayDate(startDate, startSlot, false) || 'Añadir fecha'}
-                        </span>
-                    </div>
+  // Recalcular desglose de precio con granularidad de medio día
+  useEffect(() => {
+    if (!startDate || !endDate) { setBreakdown(null); return }
+    const start = new Date(startDate)
+    const end = new Date(endDate)
+    if (end <= start) { setBreakdown(null); return }
 
-                    <div className="price-calc__date-separator" />
+    if (seasonsV2 && seasonPeriods && seasonsV2.length > 0 && camperBasePrice) {
+      const result = calculatePriceV2({
+        startDate: start,
+        startSlot,
+        endDate: end,
+        endSlot,
+        camperBasePrice,
+        seasons: seasonsV2,
+        periods: seasonPeriods,
+        discounts: durationDiscounts || [],
+        selectedExtras,
+        standardDepositAmount: safeDeposit,
+        flexDepositAmount,
+        flexDepositRatePerDay,
+        secondDriverRatePerDay,
+        depositAmount: safeDeposit
+      })
+      setBreakdown(result)
+    } else {
+      const result = calculatePrice(start, startSlot, end, endSlot, seasons, selectedExtras, safeDeposit)
+      setBreakdown(result)
+    }
+  }, [startDate, startSlot, endDate, endSlot, selectedExtras, seasons, safeDeposit, flexDepositAmount, flexDepositRatePerDay, secondDriverRatePerDay, seasonsV2, seasonPeriods, durationDiscounts, camperBasePrice])
 
-                    <div className="price-calc__date-pill">
-                        <span className="price-calc__date-label">
-                            <CalendarIcon size={12} style={{ display: 'inline', marginRight: 5 }} />
-                            Devolución
-                        </span>
-                        <span className={`price-calc__date-val ${!endDate ? 'price-calc__date-val--placeholder' : ''}`}>
-                            {formatDisplayDate(endDate, endSlot, true) || 'Añadir fecha'}
-                        </span>
-                    </div>
+  const toggleExtra = (extra: Extra) => {
+    setSelectedExtras(prev =>
+      prev.find(e => e.id === extra.id)
+        ? prev.filter(e => e.id !== extra.id)
+        : [...prev, extra]
+    )
+  }
 
-                    <div className="price-calc__dates-caret">
-                        <ChevronDown
-                            size={16}
-                            style={{
-                                transform: isCalendarOpen ? 'rotate(180deg)' : 'rotate(0deg)',
-                                transition: 'transform var(--transition-fast)'
-                            }}
-                        />
-                    </div>
-                </div>
+  const handleDatesChange = (start: string, sSlot: DaySlot, end: string, eSlot: DaySlot) => {
+    setStartDate(start)
+    setStartSlot(sSlot)
+    setEndDate(end)
+    setEndSlot(eSlot)
+    // Mantener el calendario abierto para permitir al usuario seleccionar y revisar turnos horarios y pulsar 'Listo'
+  }
 
-                {/* Resumen de franjas seleccionadas */}
-                {startDate && endDate && (
-                    <div className="price-calc__schedule-badge">
-                        <span>Recogida: {startSlot === 'morning' ? 'Mañana (09–12h)' : 'Tarde (15–19h)'}</span>
-                        <span>·</span>
-                        <span>Devolución: {endSlot === 'morning' ? 'Mañana (09–12h)' : 'Tarde (15–19h)'}</span>
-                    </div>
-                )}
+  const isBelowMinNights = Boolean(breakdown && breakdown.numNights < activeMinNights)
 
-                {/* Animated Dropdown Calendar */}
-                <AnimatePresence>
-                    {isCalendarOpen && (
-                        <motion.div
-                            ref={calendarCollapseRef}
-                            initial={{ opacity: 0, height: 0 }}
-                            animate={{ opacity: 1, height: 'auto' }}
-                            exit={{ opacity: 0, height: 0 }}
-                            transition={{ duration: 0.25, ease: 'easeInOut' }}
-                            className="price-calc__calendar-collapse"
-                        >
-                            <BookingCalendar
-                                startDate={startDate}
-                                startSlot={startSlot}
-                                endDate={endDate}
-                                endSlot={endSlot}
-                                onChange={handleDatesChange}
-                                blockedSlots={blockedSlots}
-                                blockedRanges={blockedRanges}
-                                minNights={activeMinNights}
-                                onClose={() => setIsCalendarOpen(false)}
-                            />
-                        </motion.div>
-                    )}
-                </AnimatePresence>
-            </div>
+  const handleReserve = () => {
+    if (!startDate || !endDate || !breakdown || isBelowMinNights) return
+    const pickupTime = startSlot === 'morning' ? '09:00' : '15:00'
+    const dropoffTime = endSlot === 'morning' ? '12:00' : '19:00'
 
-            {/* Pax (travellers max based on camper capacity) */}
-            <div className="form-group">
-                <div className="price-calc__pax-header">
-                    <label className="form-label" style={{ marginBottom: 0 }}>
-                        <Users size={12} style={{ display: 'inline', marginRight: 5 }} />
-                        Viajeros
-                    </label>
-                    <span className="price-calc__pax-badge">Máx. {maxPax} {maxPax === 1 ? 'plaza' : 'plazas'}</span>
-                </div>
-                <div className="price-calc__pax">
-                    <button
-                        type="button"
-                        className="btn btn-outline btn-icon"
-                        onClick={() => setPax(p => Math.max(1, p - 1))}
-                        disabled={pax <= 1}
-                        aria-label="Disminuir viajeros"
-                    >
-                        <Minus size={16} />
-                    </button>
-                    <span className="price-calc__pax-num">{pax} {pax === 1 ? 'persona' : 'personas'}</span>
-                    <button
-                        type="button"
-                        className="btn btn-outline btn-icon"
-                        onClick={() => setPax(p => Math.min(maxPax, p + 1))}
-                        disabled={pax >= maxPax}
-                        aria-label={`Aumentar viajeros (máximo ${maxPax})`}
-                    >
-                        <Plus size={16} />
-                    </button>
-                </div>
-            </div>
+    const params = new URLSearchParams({
+      step: '1',
+      from: startDate,
+      pickup_time: pickupTime,
+      to: endDate,
+      dropoff_time: dropoffTime,
+      pax: String(Math.min(3, Math.max(1, pax))),
+      extras: selectedExtras.map(e => e.id).join(','),
+    })
+    router.push(`/reserva/${camperSlug}?${params.toString()}`)
+  }
 
-            {/* Collapsible Extras Dropdown */}
-            {availableExtras.length > 0 && (
-                <div className="price-calc__extras-section">
-                    <button
-                        type="button"
-                        className={`price-calc__extras-toggle ${isExtrasOpen ? 'price-calc__extras-toggle--open' : ''}`}
-                        onClick={() => setIsExtrasOpen(prev => !prev)}
-                        aria-expanded={isExtrasOpen}
-                    >
-                        <div className="price-calc__extras-toggle-left">
-                            <Plus size={16} className="text-forest" />
-                            <div className="price-calc__extras-toggle-info">
-                                <span className="price-calc__extras-title">Personaliza tu viaje: Extras</span>
-                                <span className="price-calc__extras-hint">
-                                    {selectedExtras.length === 0
-                                        ? 'Equipamiento opcional para tu ruta'
-                                        : `${selectedExtras.length} ${selectedExtras.length === 1 ? 'extra añadido' : 'extras añadidos'} (+${formatPrice(breakdown?.extrasTotal || 0)})`}
-                                </span>
-                            </div>
-                        </div>
-                        <div className="price-calc__extras-toggle-right">
-                            {selectedExtras.length > 0 && (
-                                <span className="price-calc__extras-count-badge">
-                                    {selectedExtras.length}
-                                </span>
-                            )}
-                            <ChevronDown
-                                size={16}
-                                className={`price-calc__extras-chevron ${isExtrasOpen ? 'price-calc__extras-chevron--open' : ''}`}
-                            />
-                        </div>
-                    </button>
+  const formatDisplayDate = (dateStr: string, slot?: DaySlot, isEnd?: boolean) => {
+    if (!dateStr) return null
+    try {
+      const formatted = format(parseISO(dateStr), "d 'de' MMM", { locale: es })
+      if (!slot) return formatted
+      const timeTag = isEnd
+        ? (slot === 'morning' ? '12:00h' : '19:00h')
+        : (slot === 'morning' ? '09:00h' : '15:00h')
+      return `${formatted} (${timeTag})`
+    } catch {
+      return dateStr
+    }
+  }
 
-                    {/* Selected Extras preview chips when collapsed */}
-                    {!isExtrasOpen && selectedExtras.length > 0 && (
-                        <div className="price-calc__extras-chips">
-                            {selectedExtras.map(e => (
-                                <span
-                                    key={e.id}
-                                    className="price-calc__extra-chip"
-                                    onClick={() => toggleExtra(e)}
-                                    title="Pulsar para deseleccionar"
-                                >
-                                    ✓ {e.name_es} <span className="price-calc__chip-price">+{formatPrice(Number(e.price))}{e.price_type === 'per_day' ? '/día' : ''}</span>
-                                </span>
-                            ))}
-                        </div>
-                    )}
+  return (
+    <div className="price-calc">
+      <div className="price-calc__header">
+        <h3 className="text-h4">Calcular precio</h3>
+        {breakdown && (
+          <div className="price-calc__total">
+            <span className="price-calc__amount">{formatPrice(breakdown.totalWithoutDeposit)}</span>
+            <span className="price-calc__nights">
+              / {breakdown.totalDays} día{breakdown.totalDays !== 1 ? 's' : ''} ({breakdown.numNights} n.)
+            </span>
+          </div>
+        )}
+      </div>
 
-                    {/* Collapsible Animated Panel */}
-                    <AnimatePresence>
-                        {isExtrasOpen && (
-                            <motion.div
-                                initial={{ opacity: 0, height: 0 }}
-                                animate={{ opacity: 1, height: 'auto' }}
-                                exit={{ opacity: 0, height: 0 }}
-                                transition={{ duration: 0.22, ease: 'easeInOut' }}
-                                className="price-calc__extras-collapse"
-                            >
-                                <div className="price-calc__extras-grid">
-                                    {availableExtras.map(extra => {
-                                        const selected = selectedExtras.some(e => e.id === extra.id)
-                                        return (
-                                            <button
-                                                key={extra.id}
-                                                type="button"
-                                                className={`price-calc__extra-card ${selected ? 'price-calc__extra-card--selected' : ''}`}
-                                                onClick={() => toggleExtra(extra)}
-                                            >
-                                                <div className="price-calc__extra-card-content">
-                                                    <span className={`price-calc__extra-checkbox ${selected ? 'price-calc__extra-checkbox--checked' : ''}`}>
-                                                        {selected && <Check size={11} strokeWidth={3} />}
-                                                    </span>
-                                                    <span className="price-calc__extra-name">{extra.name_es}</span>
-                                                </div>
-                                                <span className="price-calc__extra-price">
-                                                    +{formatPrice(Number(extra.price))}{extra.price_type === 'per_day' ? '/día' : ''}
-                                                </span>
-                                            </button>
-                                        )
-                                    })}
-                                </div>
-                            </motion.div>
-                        )}
-                    </AnimatePresence>
-                </div>
-            )}
+      {/* Interactive Dates Selector */}
+      <div className="price-calc__dates-wrapper">
+        <div
+          ref={dateTriggerRef}
+          className={`price-calc__dates-card ${isCalendarOpen ? 'price-calc__dates-card--open' : ''}`}
+          onClick={() => setIsCalendarOpen(prev => !prev)}
+        >
+          <div className="price-calc__date-pill">
+            <span className="price-calc__date-label">
+              <CalendarIcon size={12} style={{ display: 'inline', marginRight: 5 }} />
+              Recogida
+            </span>
+            <span className={`price-calc__date-val ${!startDate ? 'price-calc__date-val--placeholder' : ''}`}>
+              {formatDisplayDate(startDate, startSlot, false) || 'Añadir fecha'}
+            </span>
+          </div>
 
-            {/* Price breakdown */}
-            {breakdown && breakdown.numNights > 0 && (
-                <div className="price-calc__breakdown">
-                    {breakdown.nightsPerSeason.map((s, i) => (
-                        <div key={i} className="price-calc__row">
-                            <span>{s.season} × {s.nights} noche{s.nights !== 1 ? 's' : ''}</span>
-                            <span>{formatPrice(s.subtotal)}</span>
-                        </div>
-                    ))}
-                    {breakdown.totalDays > breakdown.numNights && (
-                        <div className="price-calc__row" style={{ color: 'var(--forest-green)', fontStyle: 'italic' }}>
-                            <span>Suplemento medio día ({breakdown.totalDays - breakdown.numNights} día adicional)</span>
-                            <span>+{formatPrice(breakdown.baseTotal - breakdown.nightsPerSeason.reduce((acc, curr) => acc + curr.subtotal, 0))}</span>
-                        </div>
-                    )}
-                    {breakdown.discountAmount > 0 && (
-                        <div className="price-calc__row price-calc__row--discount">
-                            <div className="price-calc__discount-tag-wrap">
-                                <span className="price-calc__discount-badge">−{breakdown.discountPct}%</span>
-                                <span>Descuento estancia larga ({breakdown.totalDays} días)</span>
-                            </div>
-                            <span className="price-calc__discount-amount">−{formatPrice(breakdown.discountAmount)}</span>
-                        </div>
-                    )}
-                    {breakdown.extrasTotal > 0 && (
-                        <div className="price-calc__row">
-                            <span>Extras opcionales</span>
-                            <span>{formatPrice(breakdown.extrasTotal)}</span>
-                        </div>
-                    )}
-                    <div className="price-calc__divider" />
-                    {/* La fianza no se cobra al reservar: el total es lo que se paga en Redsys */}
-                    <div className="price-calc__row price-calc__row--total">
-                        <span>Total a pagar ({breakdown.totalDays} días)</span>
-                        <span>{formatPrice(breakdown.payableTotal)}</span>
-                    </div>
-                </div>
-            )}
+          <div className="price-calc__date-separator" />
 
-            {/* Discount savings banner */}
-            {breakdown && breakdown.discountAmount > 0 && (
-                <div className="price-calc__discount-banner">
-                    <Tag size={16} className="text-gold" />
-                    <span>¡Ahorras <strong>{formatPrice(breakdown.discountAmount)}</strong> con el descuento del {breakdown.discountPct}% por estancia larga!</span>
-                </div>
-            )}
+          <div className="price-calc__date-pill">
+            <span className="price-calc__date-label">
+              <CalendarIcon size={12} style={{ display: 'inline', marginRight: 5 }} />
+              Devolución
+            </span>
+            <span className={`price-calc__date-val ${!endDate ? 'price-calc__date-val--placeholder' : ''}`}>
+              {formatDisplayDate(endDate, endSlot, true) || 'Añadir fecha'}
+            </span>
+          </div>
 
-            {/* Dynamic hint for next duration discount tier */}
-            {breakdown && breakdown.numNights > 0 && (
-                (() => {
-                    const sortedDiscounts = (durationDiscounts || [
-                        { min_days: 7, discount_pct: 10, is_active: true },
-                        { min_days: 14, discount_pct: 15, is_active: true },
-                        { min_days: 21, discount_pct: 20, is_active: true },
-                    ]).filter(d => d.is_active && d.min_days > breakdown.totalDays).sort((a, b) => a.min_days - b.min_days)
-                    const nextTier = sortedDiscounts[0]
-                    if (!nextTier) return null
-                    return (
-                        <div className="price-calc__discount-hint">
-                            <Info size={14} style={{ flexShrink: 0, marginTop: 1 }} />
-                            <span>Reserva {nextTier.min_days} días o más y obtén un descuento automático del {nextTier.discount_pct}% en tu alquiler.</span>
-                        </div>
-                    )
-                })()
-            )}
+          <div className="price-calc__dates-caret">
+            <ChevronDown
+              size={16}
+              style={{
+                transform: isCalendarOpen ? 'rotate(180deg)' : 'rotate(0deg)',
+                transition: 'transform var(--transition-fast)'
+              }}
+            />
+          </div>
+        </div>
 
-            {isBelowMinNights && (
-                <div className="price-calc__min-nights-alert">
-                    <AlertCircle size={14} />
-                    <span>Estancia mínima requerida para estas fechas: {activeMinNights} noches.</span>
-                </div>
-            )}
+        {/* Resumen de franjas seleccionadas */}
+        {startDate && endDate && (
+          <div className="price-calc__schedule-badge">
+            <span>Recogida: {startSlot === 'morning' ? 'Mañana (09–12h)' : 'Tarde (15–19h)'}</span>
+            <span>·</span>
+            <span>Devolución: {endSlot === 'morning' ? 'Mañana (09–12h)' : 'Tarde (15–19h)'}</span>
+          </div>
+        )}
 
-            <button
-                className="btn btn-forest btn-lg"
-                style={{ width: '100%' }}
-                disabled={!breakdown || breakdown.numNights === 0 || isBelowMinNights}
-                onClick={handleReserve}
+        {/* Animated Dropdown Calendar */}
+        <AnimatePresence>
+          {isCalendarOpen && (
+            <motion.div
+              ref={calendarCollapseRef}
+              initial={{ opacity: 0, height: 0 }}
+              animate={{ opacity: 1, height: 'auto' }}
+              exit={{ opacity: 0, height: 0 }}
+              transition={{ duration: 0.25, ease: 'easeInOut' }}
+              className="price-calc__calendar-collapse"
             >
-                {isBelowMinNights
-                    ? `Mínimo ${activeMinNights} noches requeridas`
-                    : breakdown && breakdown.numNights > 0
-                    ? `Reservar — ${formatPrice(breakdown.payableTotal)}`
-                    : 'Selecciona fechas para reservar'}
-            </button>
+              <BookingCalendar
+                startDate={startDate}
+                startSlot={startSlot}
+                endDate={endDate}
+                endSlot={endSlot}
+                onChange={handleDatesChange}
+                blockedSlots={blockedSlots}
+                blockedRanges={blockedRanges}
+                minNights={activeMinNights}
+                onClose={() => setIsCalendarOpen(false)}
+              />
+            </motion.div>
+          )}
+        </AnimatePresence>
+      </div>
 
-            {breakdown && breakdown.numNights > 0 && !isBelowMinNights && (
-                <p className="price-calc__subtext-fianza">
-                    <Info size={13} className="text-forest" aria-hidden="true" />
-                    <span>Fianza aparte, no se cobra: retención de 2.000 € en tarjeta al recoger la camper. 1.000 € con la opción Flex (+10 €/día).</span>
-                </p>
+      {/* Pax (travellers max based on camper capacity) */}
+      <div className="form-group">
+        <div className="price-calc__pax-header">
+          <label className="form-label price-calc__pax-label">
+            <Users size={12} className="price-calc__pax-icon" />
+            Viajeros
+          </label>
+          <span className="price-calc__pax-badge">Máx. {maxPax} {maxPax === 1 ? 'plaza' : 'plazas'}</span>
+        </div>
+        <div className="price-calc__pax">
+          <button
+            type="button"
+            className="btn btn-outline btn-icon"
+            onClick={() => setPax(p => Math.max(1, p - 1))}
+            disabled={pax <= 1}
+            aria-label="Disminuir viajeros"
+          >
+            <Minus size={16} />
+          </button>
+          <span className="price-calc__pax-num">{pax} {pax === 1 ? 'persona' : 'personas'}</span>
+          <button
+            type="button"
+            className="btn btn-outline btn-icon"
+            onClick={() => setPax(p => Math.min(maxPax, p + 1))}
+            disabled={pax >= maxPax}
+            aria-label={`Aumentar viajeros (máximo ${maxPax})`}
+          >
+            <Plus size={16} />
+          </button>
+        </div>
+      </div>
+
+      {/* Collapsible Extras Dropdown */}
+      {availableExtras.length > 0 && (
+        <div className="price-calc__extras-section">
+          <button
+            type="button"
+            className={`price-calc__extras-toggle ${isExtrasOpen ? 'price-calc__extras-toggle--open' : ''}`}
+            onClick={() => setIsExtrasOpen(prev => !prev)}
+            aria-expanded={isExtrasOpen}
+          >
+            <div className="price-calc__extras-toggle-left">
+              <Plus size={16} className="text-forest" />
+              <div className="price-calc__extras-toggle-info">
+                <span className="price-calc__extras-title">Personaliza tu viaje: Extras</span>
+                <span className="price-calc__extras-hint">
+                  {selectedExtras.length === 0
+                    ? 'Equipamiento opcional para tu ruta'
+                    : `${selectedExtras.length} ${selectedExtras.length === 1 ? 'extra añadido' : 'extras añadidos'} (+${formatPrice(breakdown?.extrasTotal || 0)})`}
+                </span>
+              </div>
+            </div>
+            <div className="price-calc__extras-toggle-right">
+              {selectedExtras.length > 0 && (
+                <span className="price-calc__extras-count-badge">
+                  {selectedExtras.length}
+                </span>
+              )}
+              <ChevronDown
+                size={16}
+                className={`price-calc__extras-chevron ${isExtrasOpen ? 'price-calc__extras-chevron--open' : ''}`}
+              />
+            </div>
+          </button>
+
+          {/* Selected Extras preview chips when collapsed */}
+          {!isExtrasOpen && selectedExtras.length > 0 && (
+            <div className="price-calc__extras-chips">
+              {selectedExtras.map(e => (
+                <span
+                  key={e.id}
+                  className="price-calc__extra-chip"
+                  onClick={() => toggleExtra(e)}
+                  title="Pulsar para deseleccionar"
+                >
+                  ✓ {e.name_es} <span className="price-calc__chip-price">+{formatPrice(Number(e.price))}{e.price_type === 'per_day' ? '/día' : ''}</span>
+                </span>
+              ))}
+            </div>
+          )}
+
+          {/* Collapsible Animated Panel */}
+          <AnimatePresence>
+            {isExtrasOpen && (
+              <motion.div
+                initial={{ opacity: 0, height: 0 }}
+                animate={{ opacity: 1, height: 'auto' }}
+                exit={{ opacity: 0, height: 0 }}
+                transition={{ duration: 0.22, ease: 'easeInOut' }}
+                className="price-calc__extras-collapse"
+              >
+                <div className="price-calc__extras-grid">
+                  {availableExtras.map(extra => {
+                    const selected = selectedExtras.some(e => e.id === extra.id)
+                    return (
+                      <button
+                        key={extra.id}
+                        type="button"
+                        className={`price-calc__extra-card ${selected ? 'price-calc__extra-card--selected' : ''}`}
+                        onClick={() => toggleExtra(extra)}
+                      >
+                        <div className="price-calc__extra-card-content">
+                          <span className={`price-calc__extra-checkbox ${selected ? 'price-calc__extra-checkbox--checked' : ''}`}>
+                            {selected && <Check size={11} strokeWidth={3} />}
+                          </span>
+                          <span className="price-calc__extra-name">{extra.name_es}</span>
+                        </div>
+                        <span className="price-calc__extra-price">
+                          +{formatPrice(Number(extra.price))}{extra.price_type === 'per_day' ? '/día' : ''}
+                        </span>
+                      </button>
+                    )
+                  })}
+                </div>
+              </motion.div>
             )}
+          </AnimatePresence>
+        </div>
+      )}
 
-            <style jsx>{`
+      {/* Price breakdown */}
+      {breakdown && breakdown.numNights > 0 && (
+        <div className="price-calc__breakdown">
+          {breakdown.nightsPerSeason.map((s, i) => (
+            <div key={i} className="price-calc__row">
+              <span>{s.season} × {s.nights} noche{s.nights !== 1 ? 's' : ''}</span>
+              <span>{formatPrice(s.subtotal)}</span>
+            </div>
+          ))}
+          {breakdown.totalDays > breakdown.numNights && (
+            <div className="price-calc__row price-calc__row--half-day">
+              <span>Suplemento medio día ({breakdown.totalDays - breakdown.numNights} día adicional)</span>
+              <span>+{formatPrice(breakdown.baseTotal - breakdown.nightsPerSeason.reduce((acc, curr) => acc + curr.subtotal, 0))}</span>
+            </div>
+          )}
+          {breakdown.discountAmount > 0 && (
+            <div className="price-calc__row price-calc__row--discount">
+              <div className="price-calc__discount-tag-wrap">
+                <span className="price-calc__discount-badge">−{breakdown.discountPct}%</span>
+                <span>Descuento estancia larga ({breakdown.totalDays} días)</span>
+              </div>
+              <span className="price-calc__discount-amount">−{formatPrice(breakdown.discountAmount)}</span>
+            </div>
+          )}
+          {breakdown.extrasTotal > 0 && (
+            <div className="price-calc__row">
+              <span>Extras opcionales</span>
+              <span>{formatPrice(breakdown.extrasTotal)}</span>
+            </div>
+          )}
+          <div className="price-calc__divider" />
+          {/* La fianza no se cobra al reservar: el total es lo que se paga en Redsys */}
+          <div className="price-calc__row price-calc__row--total">
+            <span>Total a pagar ({breakdown.totalDays} días)</span>
+            <span>{formatPrice(breakdown.payableTotal)}</span>
+          </div>
+        </div>
+      )}
+
+      {/* Discount savings banner */}
+      {breakdown && breakdown.discountAmount > 0 && (
+        <div className="price-calc__discount-banner">
+          <Tag size={16} className="text-gold" />
+          <span>¡Ahorras <strong>{formatPrice(breakdown.discountAmount)}</strong> con el descuento del {breakdown.discountPct}% por estancia larga!</span>
+        </div>
+      )}
+
+      {/* Dynamic hint for next duration discount tier */}
+      {breakdown && breakdown.numNights > 0 && (
+        (() => {
+          const sortedDiscounts = (durationDiscounts || [
+            { min_days: 7, discount_pct: 10, is_active: true },
+            { min_days: 14, discount_pct: 15, is_active: true },
+            { min_days: 21, discount_pct: 20, is_active: true },
+          ]).filter(d => d.is_active && d.min_days > breakdown.totalDays).sort((a, b) => a.min_days - b.min_days)
+          const nextTier = sortedDiscounts[0]
+          if (!nextTier) return null
+          return (
+            <div className="price-calc__discount-hint">
+              <Info size={14} className="price-calc__hint-icon" />
+              <span>Reserva {nextTier.min_days} días o más y obtén un descuento automático del {nextTier.discount_pct}% en tu alquiler.</span>
+            </div>
+          )
+        })()
+      )}
+
+      {isBelowMinNights && (
+        <div className="price-calc__min-nights-alert">
+          <AlertCircle size={14} />
+          <span>Estancia mínima requerida para estas fechas: {activeMinNights} noches.</span>
+        </div>
+      )}
+
+      <button
+        className="btn btn-forest btn-lg price-calc__submit-btn"
+        disabled={!breakdown || breakdown.numNights === 0 || isBelowMinNights}
+        onClick={handleReserve}
+      >
+        {isBelowMinNights
+          ? `Mínimo ${activeMinNights} noches requeridas`
+          : breakdown && breakdown.numNights > 0
+            ? `Reservar — ${formatPrice(breakdown.payableTotal)}`
+            : 'Selecciona fechas para reservar'}
+      </button>
+
+      {breakdown && breakdown.numNights > 0 && !isBelowMinNights && (
+        <p className="price-calc__subtext-fianza">
+          <Info size={13} className="text-forest" aria-hidden="true" />
+          <span>Fianza aparte, no se cobra: retención de {formatDepositEuros(safeDeposit)} en tarjeta al recoger la camper. {formatDepositEuros(flexDepositAmount)} con la opción Flex (+{flexDepositRatePerDay} €/día).</span>
+        </p>
+      )}
+
+      <style jsx>{`
         .price-calc__subtext-fianza {
           font-size: var(--text-xs);
           color: var(--gray-500);
@@ -959,7 +970,158 @@ export default function PriceCalculator({
           font-size: 0.78rem;
           font-weight: 500;
         }
+
+        .price-calc__pax-label {
+          margin-bottom: 0;
+        }
+        .price-calc__pax-label :global(.price-calc__pax-icon) {
+          display: inline;
+          margin-right: 5px;
+        }
+        .price-calc__row--half-day {
+          color: var(--forest-green);
+          font-style: italic;
+        }
+        .price-calc__discount-hint :global(.price-calc__hint-icon) {
+          flex-shrink: 0;
+          margin-top: 1px;
+        }
+        .price-calc__submit-btn {
+          width: 100%;
+        }
+
+        /* Dark mode theming (default html without data-theme="light") */
+        :global(html:not([data-theme="light"])) .price-calc {
+          background: #131518;
+          border-color: rgba(255, 255, 255, 0.08);
+          color: #F4F1EA;
+        }
+        :global(html:not([data-theme="light"])) .price-calc__header {
+          border-bottom-color: rgba(255, 255, 255, 0.08);
+        }
+        :global(html:not([data-theme="light"])) .price-calc__amount {
+          color: #E6CA65;
+        }
+        :global(html:not([data-theme="light"])) .price-calc__nights,
+        :global(html:not([data-theme="light"])) .price-calc__subtext-fianza {
+          color: rgba(255, 255, 255, 0.6);
+        }
+        :global(html:not([data-theme="light"])) .price-calc__dates-card {
+          background: #181B20;
+          border-color: rgba(255, 255, 255, 0.12);
+        }
+        :global(html:not([data-theme="light"])) .price-calc__dates-card:hover,
+        :global(html:not([data-theme="light"])) .price-calc__dates-card--open {
+          background: #1D2127;
+          border-color: rgba(230, 202, 101, 0.55);
+          box-shadow: 0 0 0 1px rgba(230, 202, 101, 0.35);
+        }
+        :global(html:not([data-theme="light"])) .price-calc__date-label {
+          color: rgba(255, 255, 255, 0.55);
+        }
+        :global(html:not([data-theme="light"])) .price-calc__date-val {
+          color: #FFFFFF;
+        }
+        :global(html:not([data-theme="light"])) .price-calc__date-val--placeholder {
+          color: rgba(255, 255, 255, 0.45);
+        }
+        :global(html:not([data-theme="light"])) .price-calc__date-separator {
+          background: rgba(255, 255, 255, 0.1);
+        }
+        :global(html:not([data-theme="light"])) .price-calc__dates-caret {
+          color: rgba(255, 255, 255, 0.6);
+        }
+        :global(html:not([data-theme="light"])) .price-calc__schedule-badge {
+          background: rgba(230, 202, 101, 0.1);
+          border-color: rgba(230, 202, 101, 0.25);
+          color: #E6CA65;
+        }
+        :global(html:not([data-theme="light"])) .price-calc__pax-label,
+        :global(html:not([data-theme="light"])) .price-calc__pax-num {
+          color: #F4F1EA;
+        }
+        :global(html:not([data-theme="light"])) .price-calc__pax-badge {
+          background: rgba(230, 202, 101, 0.12);
+          color: #E6CA65;
+        }
+        :global(html:not([data-theme="light"])) .price-calc__extras-toggle {
+          background: #181B20;
+          border-color: rgba(255, 255, 255, 0.1);
+        }
+        :global(html:not([data-theme="light"])) .price-calc__extras-toggle:hover,
+        :global(html:not([data-theme="light"])) .price-calc__extras-toggle--open {
+          background: #1D2127;
+          border-color: rgba(230, 202, 101, 0.45);
+          box-shadow: none;
+        }
+        :global(html:not([data-theme="light"])) .price-calc__extras-title {
+          color: #FFFFFF;
+        }
+        :global(html:not([data-theme="light"])) .price-calc__extras-hint,
+        :global(html:not([data-theme="light"])) .price-calc__extras-chevron {
+          color: rgba(255, 255, 255, 0.55);
+        }
+        :global(html:not([data-theme="light"])) .price-calc__extra-card {
+          background: #181B20;
+          border-color: rgba(255, 255, 255, 0.08);
+        }
+        :global(html:not([data-theme="light"])) .price-calc__extra-card:hover {
+          background: #1D2127;
+          border-color: rgba(230, 202, 101, 0.35);
+        }
+        :global(html:not([data-theme="light"])) .price-calc__extra-card--selected {
+          background: rgba(230, 202, 101, 0.1);
+          border-color: rgba(230, 202, 101, 0.5);
+        }
+        :global(html:not([data-theme="light"])) .price-calc__extra-checkbox {
+          background: #131518;
+          border-color: rgba(255, 255, 255, 0.3);
+        }
+        :global(html:not([data-theme="light"])) .price-calc__extra-checkbox--checked {
+          background: #E6CA65;
+          border-color: #E6CA65;
+          color: #0B0C0E;
+        }
+        :global(html:not([data-theme="light"])) .price-calc__extra-name {
+          color: #F4F1EA;
+        }
+        :global(html:not([data-theme="light"])) .price-calc__extra-price {
+          color: #E6CA65;
+        }
+        :global(html:not([data-theme="light"])) .price-calc__breakdown {
+          background: #181B20;
+          border-color: rgba(255, 255, 255, 0.08);
+        }
+        :global(html:not([data-theme="light"])) .price-calc__row {
+          color: rgba(255, 255, 255, 0.78);
+        }
+        :global(html:not([data-theme="light"])) .price-calc__row--half-day {
+          color: #E6CA65;
+        }
+        :global(html:not([data-theme="light"])) .price-calc__row--discount {
+          background: rgba(52, 211, 153, 0.12);
+          color: #6EE7B7;
+        }
+        :global(html:not([data-theme="light"])) .price-calc__discount-amount {
+          color: #6EE7B7;
+        }
+        :global(html:not([data-theme="light"])) .price-calc__row--total {
+          color: #E6CA65;
+        }
+        :global(html:not([data-theme="light"])) .price-calc__divider {
+          background: rgba(255, 255, 255, 0.1);
+        }
+        :global(html:not([data-theme="light"])) .price-calc__discount-banner {
+          background: rgba(52, 211, 153, 0.12);
+          border-color: rgba(52, 211, 153, 0.3);
+          color: #A7F3D0;
+        }
+        :global(html:not([data-theme="light"])) .price-calc__discount-hint {
+          background: rgba(255, 255, 255, 0.04);
+          border-color: rgba(255, 255, 255, 0.1);
+          color: rgba(255, 255, 255, 0.7);
+        }
       `}</style>
-        </div>
-    )
+    </div>
+  )
 }

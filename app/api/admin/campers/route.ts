@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server'
+import { revalidatePath } from 'next/cache'
 import { createClient as createServerClient } from '@/lib/supabase/server'
 import { isAdminUser, getAdminClientOrSession } from '@/lib/admin/auth'
 
@@ -55,7 +56,7 @@ export async function GET() {
     const campersWithPricing = (campers || []).map((c: any) => {
       const prices = pricing?.filter((p: any) => p.camper_id === c.id) || []
       const mediaPrice = prices.find((p: any) => p.seasons?.name?.toLowerCase().includes('media'))?.price_per_night
-      const basePrice = mediaPrice || prices[0]?.price_per_night || (c.slug === 'neo' ? 120 : (c.slug === 'space' ? 140 : 120))
+      const basePrice = c.base_price_per_night || mediaPrice || prices[0]?.price_per_night || (c.slug === 'neo' ? 110 : (c.slug === 'space' ? 140 : 120))
       return {
         ...c,
         price_per_night: Number(basePrice),
@@ -106,7 +107,7 @@ export async function POST(request: Request) {
 
     const parsedSeats = parseInt(seats ?? customSpecs?.seats ?? 2, 10)
     const parsedBeds = parseInt(beds ?? customSpecs?.beds ?? 2, 10)
-    const parsedDeposit = parseFloat(deposit_amount ?? 1000)
+    const parsedDeposit = parseFloat(deposit_amount ?? customSpecs?.rental?.standard_deposit_amount ?? 2000)
     const parsedPrice = parseFloat(price_per_night ?? base_price ?? 120)
 
     if (isNaN(parsedSeats) || parsedSeats < 1) {
@@ -184,6 +185,10 @@ export async function POST(request: Request) {
         console.warn('Could not insert camper_pricing for new camper:', pricingErr)
       }
     }
+
+    try {
+      revalidatePath('/', 'layout')
+    } catch { /* Safe outside request context */ }
 
     return NextResponse.json({
       success: true,

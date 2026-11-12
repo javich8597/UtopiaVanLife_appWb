@@ -98,6 +98,30 @@ export default function CamperFloorplans({ dayImage, nightImage }: Props) {
           background: #131518;
         }
 
+        :global(html[data-theme="light"]) .section-divider-title {
+          color: #5C554C;
+        }
+        :global(html[data-theme="light"]) .section-divider-line {
+          background: linear-gradient(90deg, rgba(150, 122, 34, 0.38), rgba(26, 23, 20, 0.08));
+        }
+        :global(html[data-theme="light"]) .floorplan-card {
+          background: #FAFAF7;
+          border-color: rgba(26, 23, 20, 0.14);
+          box-shadow: 0 2px 10px rgba(26, 23, 20, 0.05);
+        }
+        :global(html[data-theme="light"]) .floorplan-card:hover {
+          border-color: rgba(150, 122, 34, 0.4);
+        }
+        :global(html[data-theme="light"]) .floorplan-label {
+          background: rgba(250, 250, 247, 0.94);
+          border: 1px solid rgba(26, 23, 20, 0.14);
+          color: #1A1714;
+          box-shadow: 0 2px 8px rgba(26, 23, 20, 0.08);
+        }
+        :global(html[data-theme="light"]) .floorplan-img {
+          background: #FFFFFF;
+        }
+
         @media (max-width: 640px) {
           .floorplans-grid {
             grid-template-columns: 1fr;

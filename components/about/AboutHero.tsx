@@ -1,5 +1,6 @@
 'use client'
 
+import Image from 'next/image'
 import { motion } from 'framer-motion'
 import { ChevronDown } from 'lucide-react'
 import { useTranslations } from 'next-intl'
@@ -26,72 +27,80 @@ export default function AboutHero() {
           suppressHydrationWarning
           poster="/images/about/transit.jpg"
         >
-          <source src="/videos/video_noche_min.mp4" type="video/mp4" />
+          <source src="/videos/video_noche_loop.mp4" type="video/mp4" />
         </video>
         <div className="about-hero__overlay" />
       </div>
 
-      <div className="container about-hero__content">
-        {/* Floating Capsule Badge */}
-        <motion.div
-          className="about-hero__badge-wrap"
-          initial={{ opacity: 0, y: 14 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5, ease: [0.23, 1, 0.32, 1] }}
-        >
-          <div className="about-hero__badge">
-            <span>{t('heroBadge')}</span>
-          </div>
-        </motion.div>
+      <div className="about-hero__container">
+        <div className="about-hero__content">
+          {/* Logo en Grande en sustitución de la insignia anterior */}
+          <motion.div
+            className="about-hero__logo-wrap"
+            initial={{ opacity: 0, y: 16 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.55, ease: [0.23, 1, 0.32, 1] }}
+          >
+            <Image
+              src="/images/logo-white.png"
+              alt="Utopia Van Life"
+              width={460}
+              height={132}
+              priority
+              className="about-hero__logo-img"
+            />
+          </motion.div>
 
-        {/* Headline */}
-        <motion.h1
-          className="about-hero__title"
-          initial={{ opacity: 0, y: 18 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6, delay: 0.1, ease: [0.23, 1, 0.32, 1] }}
-        >
-          Más que campers.
-          <span className="about-hero__title-italic">Una forma de viajar.</span>
-        </motion.h1>
+          {/* Headline - Tamaño título grande, acotado a la mitad izquierda de la pantalla */}
+          <motion.h1
+            className="about-hero__title"
+            initial={{ opacity: 0, y: 18 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6, delay: 0.1, ease: [0.23, 1, 0.32, 1] }}
+          >
+            Más que campers.
+            <span className="about-hero__title-italic">Una forma de viajar.</span>
+          </motion.h1>
 
-        {/* Subtitle */}
-        <motion.p
-          className="about-hero__subtitle"
-          initial={{ opacity: 0, y: 18 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6, delay: 0.2, ease: [0.23, 1, 0.32, 1] }}
-        >
-          {t('heroSubtitle')}
-        </motion.p>
+          {/* Subtitle */}
+          <motion.p
+            className="about-hero__subtitle"
+            initial={{ opacity: 0, y: 18 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6, delay: 0.2, ease: [0.23, 1, 0.32, 1] }}
+          >
+            {t('heroSubtitle')}
+          </motion.p>
 
-        {/* Scroll down indicator */}
-        <motion.button
-          type="button"
-          onClick={handleScrollDown}
-          className="about-hero__scroll-btn"
-          aria-label="Desplazarse a la siguiente sección"
-          initial={{ opacity: 0, y: 8 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6, delay: 0.35, ease: [0.23, 1, 0.32, 1] }}
-        >
-          <span className="about-hero__scroll-text">Descubre nuestra historia</span>
-          <div className="about-hero__scroll-pill">
-            <ChevronDown size={15} />
-          </div>
-        </motion.button>
+          {/* Scroll down indicator aligned to the left */}
+          <motion.button
+            type="button"
+            onClick={handleScrollDown}
+            className="about-hero__scroll-btn"
+            aria-label="Desplazarse a la siguiente sección"
+            initial={{ opacity: 0, y: 8 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6, delay: 0.35, ease: [0.23, 1, 0.32, 1] }}
+          >
+            <span className="about-hero__scroll-text">Descubre nuestra historia</span>
+            <div className="about-hero__scroll-pill">
+              <ChevronDown size={15} />
+            </div>
+          </motion.button>
+        </div>
       </div>
 
       <style jsx>{`
         .about-hero {
           position: relative;
-          min-height: 82vh;
+          min-height: 92vh;
           display: flex;
           align-items: center;
-          justify-content: center;
           overflow: hidden;
-          padding: 8rem 0 4.5rem;
+          padding: 8.5rem 0 5rem;
           color: #ffffff;
+          background: #0B0C0E;
+          width: 100%;
         }
 
         .about-hero__video-wrap {
@@ -111,122 +120,129 @@ export default function AboutHero() {
         .about-hero__overlay {
           position: absolute;
           inset: 0;
+          /* Strong gradient on the left half to give high contrast for large typography */
           background: linear-gradient(
-            180deg,
-            rgba(20, 26, 20, 0.52) 0%,
-            rgba(18, 22, 18, 0.65) 50%,
-            rgba(18, 22, 18, 0.88) 100%
+            90deg,
+            rgba(11, 12, 14, 0.96) 0%,
+            rgba(11, 12, 14, 0.9) 36%,
+            rgba(11, 12, 14, 0.52) 54%,
+            rgba(11, 12, 14, 0.15) 85%,
+            transparent 100%
           );
-          backdrop-filter: blur(1px);
+          box-shadow: inset 0 80px 90px -40px rgba(11, 12, 14, 0.9), inset 0 -60px 80px -30px rgba(11, 12, 14, 0.95);
+        }
+
+        .about-hero__container {
+          position: relative;
+          z-index: 2;
+          width: 100%;
+          padding: 0 clamp(24px, 5vw, 80px);
         }
 
         .about-hero__content {
-          position: relative;
-          z-index: 2;
           display: flex;
           flex-direction: column;
+          align-items: flex-start;
+          text-align: left;
+          max-width: 60%; /* Ample room for large typography on the left */
+        }
+
+        /* LOGO EN GRANDE BLANCO */
+        .about-hero__logo-wrap {
+          margin-bottom: 2.2rem;
+          display: flex;
           align-items: center;
-          text-align: center;
-          max-width: 860px;
         }
 
-        .about-hero__badge-wrap {
-          margin-bottom: 1.5rem;
+        :global(.about-hero__logo-img) {
+          width: clamp(280px, 32vw, 460px);
+          height: auto;
+          max-height: 125px;
+          object-fit: contain;
+          filter: drop-shadow(0 4px 28px rgba(0, 0, 0, 0.8));
+          display: block;
         }
 
-        .about-hero__badge {
-          display: inline-flex;
-          align-items: center;
-          gap: 0.5rem;
-          padding: 0.45rem 1.15rem;
-          background: rgba(204, 160, 83, 0.12);
-          border: 1px solid rgba(204, 160, 83, 0.35);
-          backdrop-filter: blur(16px);
-          -webkit-backdrop-filter: blur(16px);
-          border-radius: var(--radius-full);
-          font-size: 0.75rem;
-          font-weight: 700;
-          letter-spacing: 0.18em;
-          text-transform: uppercase;
-          color: #CCA053;
-          box-shadow: 0 4px 20px rgba(0, 0, 0, 0.25);
-        }
-
-        .about-hero__badge-icon {
-          color: #CCA053;
-        }
-
+        /* TAMAÑO DEL TÍTULO PRINCIPAL DEL HERO */
         .about-hero__title {
-          font-family: var(--font-display);
-          font-size: clamp(2.85rem, 6.5vw, 5rem);
-          line-height: 1.08;
+          font-family: var(--font-display, serif);
+          font-size: clamp(4.6rem, 8vw, 7.2rem);
+          line-height: 0.98;
           font-weight: 300;
-          letter-spacing: -0.025em;
+          letter-spacing: -0.035em;
           color: #ffffff;
-          margin-bottom: 1.5rem;
-          display: flex;
-          flex-direction: column;
-          align-items: center;
-          text-shadow: 0 2px 16px rgba(0, 0, 0, 0.4);
+          margin-bottom: 2rem;
+          text-shadow: 0 4px 36px rgba(0, 0, 0, 0.85);
         }
 
         .about-hero__title-italic {
+          display: block;
           font-style: italic;
           font-weight: 400;
-          color: #f7efe6;
-          margin-top: 0.2rem;
+          background: linear-gradient(135deg, #FFFFFF 20%, #E8CA7C 100%);
+          -webkit-background-clip: text;
+          -webkit-text-fill-color: transparent;
+          margin-top: 0.45rem;
         }
 
         .about-hero__subtitle {
-          font-size: clamp(1.05rem, 2vw, 1.25rem);
-          line-height: 1.65;
-          color: rgba(255, 255, 255, 0.88);
-          max-width: 620px;
-          margin: 0 auto 2.5rem;
+          font-size: clamp(1.32rem, 2.2vw, 1.65rem);
+          line-height: 1.55;
+          color: rgba(255, 255, 255, 0.94);
+          max-width: 100%;
+          margin: 0 0 3.8rem;
           font-weight: 400;
-          text-shadow: 0 1px 10px rgba(0, 0, 0, 0.3);
+          text-shadow: 0 2px 14px rgba(0, 0, 0, 0.65);
         }
 
         .about-hero__scroll-btn {
           display: inline-flex;
-          flex-direction: column;
           align-items: center;
-          gap: 0.5rem;
-          background: none;
-          border: none;
+          gap: 0.75rem;
+          margin-top: 0.6rem;
+          background: rgba(255, 255, 255, 0.08);
+          border: 1px solid rgba(255, 255, 255, 0.28);
+          backdrop-filter: blur(8px);
+          -webkit-backdrop-filter: blur(8px);
+          padding: 9px 20px 9px 18px;
+          border-radius: 9999px;
           cursor: pointer;
-          color: rgba(255, 255, 255, 0.75);
-          transition: color 200ms cubic-bezier(0.23, 1, 0.32, 1), transform 160ms cubic-bezier(0.23, 1, 0.32, 1);
+          color: #FFFFFF;
+          box-shadow: 0 4px 16px rgba(0, 0, 0, 0.35);
+          transition: all 220ms ease;
         }
 
         @media (hover: hover) and (pointer: fine) {
           .about-hero__scroll-btn:hover {
-            color: #ffffff;
+            color: #FFFFFF;
+            border-color: rgba(255, 255, 255, 0.55);
+            background: rgba(255, 255, 255, 0.16);
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.45);
             transform: translateY(2px);
           }
         }
 
         .about-hero__scroll-btn:active {
-          transform: scale(0.97) translateY(2px);
+          transform: scale(0.98) translateY(2px);
         }
 
         .about-hero__scroll-text {
-          font-size: 0.775rem;
+          font-size: 0.8rem;
           letter-spacing: 0.08em;
           text-transform: uppercase;
-          font-weight: 500;
+          font-weight: 600;
+          color: #FFFFFF;
         }
 
         .about-hero__scroll-pill {
-          width: 32px;
-          height: 32px;
+          width: 26px;
+          height: 26px;
           display: flex;
           align-items: center;
           justify-content: center;
-          border-radius: var(--radius-full);
-          background: rgba(255, 255, 255, 0.1);
-          border: 1px solid rgba(255, 255, 255, 0.2);
-          backdrop-filter: blur(8px);
+          border-radius: 50%;
+          background: rgba(204, 160, 83, 0.18);
+          color: #CCA053;
           animation: floatSlow 2.5s ease-in-out infinite;
         }
 
@@ -235,20 +251,63 @@ export default function AboutHero() {
             transform: translateY(0);
           }
           50% {
-            transform: translateY(5px);
+            transform: translateY(4px);
           }
         }
 
-        @media (max-width: 768px) {
+        /* RESPONSIVE BREAKPOINTS (AGENTS.md) */
+        @media (max-width: 860px) {
           .about-hero {
-            min-height: 75vh;
-            padding: 7rem 0 3.5rem;
+            min-height: 82vh;
+            padding: 7.5rem 0 4rem;
+          }
+          .about-hero__container {
+            padding: 0 20px;
+          }
+          .about-hero__content {
+            max-width: 100%;
+          }
+          :global(.about-hero__logo-img) {
+            width: clamp(230px, 58vw, 340px);
+            max-height: 95px;
+          }
+          .about-hero__logo-wrap {
+            margin-bottom: 1.6rem;
           }
           .about-hero__title {
-            gap: 0.15rem;
+            font-size: clamp(3.2rem, 9vw, 4.4rem);
           }
           .about-hero__subtitle {
-            margin-bottom: 2rem;
+            font-size: 1.2rem;
+          }
+          .about-hero__overlay {
+            background: linear-gradient(
+              180deg,
+              rgba(11, 12, 14, 0.88) 0%,
+              rgba(11, 12, 14, 0.8) 55%,
+              rgba(11, 12, 14, 0.95) 100%
+            );
+          }
+        }
+
+        @media (max-width: 640px) {
+          .about-hero {
+            min-height: 76vh;
+            padding: 6.5rem 0 3.5rem;
+          }
+          :global(.about-hero__logo-img) {
+            width: clamp(200px, 64vw, 280px);
+            max-height: 80px;
+          }
+          .about-hero__logo-wrap {
+            margin-bottom: 1.35rem;
+          }
+          .about-hero__title {
+            font-size: clamp(2.7rem, 9.8vw, 3.6rem);
+          }
+          .about-hero__subtitle {
+            font-size: 1.12rem;
+            margin-bottom: 1.8rem;
           }
         }
       `}</style>

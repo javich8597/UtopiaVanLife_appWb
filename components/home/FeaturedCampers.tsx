@@ -8,85 +8,92 @@ import { useTranslations } from 'next-intl'
 import { useSiteTheme } from '@/lib/theme/siteThemeContext'
 
 const CAMPER_IMAGES = [
-    '/images/campers/neo/neo-ext.png',
-    '/images/campers/uploads/1790382530493-2k_space_landscape_door_closed.jpeg',
+  '/images/campers/neo/neo-ext.png',
+  '/images/campers/uploads/1790382530493-2k_space_landscape_door_closed.jpeg',
 ]
 
 // Static fallback campers
 const demoCampers = [
-    {
-        id: '1', slug: 'neo', name: 'NEO',
-        description_es: 'La camper más polivalente y con mayor almacenaje. 2.230L de maletero, separación de cabina, 540Ah litio Victron y aire acondicionado 12V.',
-        thumbnail_url: CAMPER_IMAGES[0],
-        specs: { beds: 3, seats: 3, length_m: 6.0 },
-        deposit_amount: 1000,
-        pricePerNight: 120,
-        seasonName: 'Temporada Media',
-        isAvailable: true,
-    },
-    {
-        id: '2', slug: 'space', name: 'SPACE',
-        description_es: 'Máximo confort y amplitud diáfana (7m² Open Concept). Cama elevable eléctrica sobre salón en U, 160L de agua limpia y Pack Cine con proyector.',
-        thumbnail_url: CAMPER_IMAGES[1],
-        specs: { beds: 2, seats: 2, length_m: 6.0 },
-        deposit_amount: 1000,
-        pricePerNight: 140,
-        seasonName: 'Temporada Media',
-        isAvailable: true,
-    },
+  {
+    id: '1', slug: 'neo', name: 'NEO',
+    description_es: 'Camper ideal para dos personas, que se adapta de forma perfecta para 3. Gran maletero, cama doble fija + auxiliar, sistema eléctrico Pro (540Ah litio, 400W solar, Victron 2.000W) y aire acondicionado 12V Dometic.',
+    thumbnail_url: CAMPER_IMAGES[0],
+    specs: { beds: 3, seats: 3, length_m: 5.99 },
+    deposit_amount: 1000,
+    pricePerNight: 120,
+    seasonName: 'Temporada Media',
+    isAvailable: true,
+  },
+  {
+    id: '2', slug: 'space', name: 'SPACE',
+    description_es: 'Camper diseñada para dos personas, primando el máximo confort en todo momento. Cama elevable + interbanco, sistema eléctrico Pro (540Ah litio, 400W solar, Victron 2.000W) y aire acondicionado 12V Dometic.',
+    thumbnail_url: CAMPER_IMAGES[1],
+    specs: { beds: 2, seats: 2, length_m: 5.99 },
+    deposit_amount: 1000,
+    pricePerNight: 140,
+    seasonName: 'Temporada Media',
+    isAvailable: true,
+  },
 ]
 
 export default function FeaturedCampers() {
-    const t = useTranslations('HomePage.FeaturedCampers')
-    const { theme } = useSiteTheme()
-    const [campers, setCampers] = useState(demoCampers)
+  const t = useTranslations('HomePage.FeaturedCampers')
+  const { theme } = useSiteTheme()
+  const [campers, setCampers] = useState(demoCampers)
 
-    useEffect(() => {
-        fetch('/api/availability')
-            .then(r => r.json())
-            .then(data => { if (data.campers?.length > 0) setCampers(data.campers) })
-            .catch(() => { })
-    }, [])
+  useEffect(() => {
+    fetch('/api/availability', { cache: 'no-store' })
+      .then(r => r.json())
+      .then(data => { if (data.campers?.length > 0) setCampers(data.campers) })
+      .catch(() => { })
+  }, [])
 
-    return (
-        <section className="featured section" id="campers">
-            <div className="container">
-                {/* Centered Editorial Header */}
-                <div className="featured__header">
-                    <div className="featured__eyebrow-pill">
-                        <span>{t('eyebrow')}</span>
-                    </div>
-                    <h2 className="featured__title">
-                        {t('title')}
-                    </h2>
-                    <p className="featured__subtitle">
-                        {t('subtitle')}
-                    </p>
-                </div>
+  return (
+    <section className="featured section" id="campers">
+      <div className="container">
+        {/* Centered Editorial Header */}
+        <div className="featured__header">
+          <div className="featured__eyebrow-pill">
+            <span>{t('eyebrow')}</span>
+          </div>
+          <h2 className="featured__title">
+            {t('title')}
+          </h2>
+          <p className="featured__subtitle">
+            {t('subtitle')}
+          </p>
+        </div>
 
-                {/* Centered 2-Column Grid */}
-                <div className="featured__grid-container">
-                    <div className="featured__grid">
-                        {campers.map(c => (
-                            <CamperCard key={c.id} {...c as any} variant={theme === 'light' ? 'light' : 'dark'} />
-                        ))}
-                    </div>
-                </div>
+        {/* Centered 2-Column Grid */}
+        <div className="featured__grid-container">
+          <div className="featured__grid">
+            {campers.map(c => (
+              <CamperCard key={c.id} {...c as any} variant={theme === 'light' ? 'light' : 'dark'} />
+            ))}
+          </div>
+        </div>
 
-                {/* Bottom Centered Link */}
-                <div className="featured__cta">
-                    <Link href="/campers" className="featured__view-all-btn">
-                        <span>{t('viewAll')}</span>
-                        <ArrowRight size={16} className="featured__btn-arrow" />
-                    </Link>
-                </div>
-            </div>
+        {/* Bottom Centered Link */}
+        <div className="featured__cta">
+          <Link href="/campers" className="featured__view-all-btn">
+            <span>{t('viewAll')}</span>
+            <ArrowRight size={16} className="featured__btn-arrow" />
+          </Link>
+        </div>
+      </div>
 
-            <style jsx>{`
+      <style jsx>{`
         .featured {
-          background-color: #0B0C0E;
-          padding-block: 90px;
-          border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+          position: relative;
+          background-color: #0E1013;
+          background-image:
+            linear-gradient(180deg, rgba(14, 16, 19, 0.85) 0%, rgba(14, 16, 19, 0.89) 100%),
+            url('/images/backgrounds/mallorca-bg-dark.webp');
+          background-position: center center;
+          background-size: cover;
+          background-repeat: no-repeat;
+          padding-block: 104px;
+          border-bottom: 1px solid rgba(255, 255, 255, 0.08);
         }
         .featured__header {
           display: flex;
@@ -117,11 +124,11 @@ export default function FeaturedCampers() {
         }
         .featured__title {
           font-family: var(--font-display, inherit);
-          font-size: clamp(2.4rem, 4.5vw, 3.4rem);
-          font-weight: 800;
+          font-size: clamp(2.6rem, 4.8vw, 3.65rem);
+          font-weight: 500;
           color: #FFFFFF;
-          letter-spacing: -0.025em;
-          line-height: 1.12;
+          letter-spacing: -0.02em;
+          line-height: 1.08;
           margin: 0;
         }
         .featured__subtitle {
@@ -140,11 +147,9 @@ export default function FeaturedCampers() {
         }
         .featured__grid {
           display: grid;
-          grid-template-columns: repeat(2, minmax(0, 480px));
+          grid-template-columns: repeat(2, minmax(0, 1fr));
           gap: 32px;
           width: 100%;
-          max-width: 1020px;
-          justify-content: center;
         }
 
         /* CTA */
@@ -153,7 +158,7 @@ export default function FeaturedCampers() {
           display: flex;
           justify-content: center;
         }
-        .featured__view-all-btn {
+        .featured__cta :global(.featured__view-all-btn) {
           display: inline-flex;
           align-items: center;
           gap: 8px;
@@ -161,25 +166,25 @@ export default function FeaturedCampers() {
           padding: 13px 30px;
           font-size: 0.94rem;
           font-weight: 700;
-          border: 1px solid rgba(204, 160, 83, 0.4);
-          color: #E8CA7C;
-          background: rgba(204, 160, 83, 0.08);
+          border: 1px solid rgba(255, 255, 255, 0.22);
+          color: #FFFFFF;
+          background: rgba(255, 255, 255, 0.08);
           text-decoration: none;
           transition: all 0.2s ease;
         }
-        .featured__view-all-btn:hover {
-          background: rgba(204, 160, 83, 0.18);
-          border-color: #CCA053;
+        .featured__cta :global(.featured__view-all-btn:hover) {
+          background: rgba(255, 255, 255, 0.16);
+          border-color: rgba(255, 255, 255, 0.45);
           color: #FFFFFF;
           transform: translateY(-2px);
         }
-        .featured__view-all-btn:hover .featured__btn-arrow {
+        .featured__cta :global(.featured__view-all-btn:hover .featured__btn-arrow) {
           transform: translateX(4px);
         }
-        .featured__view-all-btn:active {
+        .featured__cta :global(.featured__view-all-btn:active) {
           transform: scale(0.97);
         }
-        .featured__btn-arrow {
+        .featured__cta :global(.featured__btn-arrow) {
           transition: transform 180ms ease-out;
         }
 
@@ -196,6 +201,6 @@ export default function FeaturedCampers() {
           }
         }
       `}</style>
-        </section>
-    )
+    </section>
+  )
 }

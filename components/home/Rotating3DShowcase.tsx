@@ -1,126 +1,126 @@
 'use client'
 
-import { useState, useEffect, useRef, useCallback } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import Image from 'next/image'
-import { Eye, Compass, MoveHorizontal } from 'lucide-react'
+import { Eye } from 'lucide-react'
 import { Link } from '@/i18n/routing'
-import { useTranslations, useLocale } from 'next-intl'
+import { useTranslations } from 'next-intl'
 
-interface ShowcaseItem {
+interface ShowcaseItemConfig {
   id: string
-  title: string
-  subtitle: string
-  camper: 'SPACE' | 'NEO' | 'MALLORCA'
-  tag: string
+  titleKey: 'card1_title' | 'card2_title' | 'card3_title' | 'card4_title' | 'card5_title' | 'card6_title' | 'card7_title' | 'card8_title'
+  subtitleKey: 'card1_subtitle' | 'card2_subtitle' | 'card3_subtitle' | 'card4_subtitle' | 'card5_subtitle' | 'card6_subtitle' | 'card7_subtitle' | 'card8_subtitle'
+  tagKey: 'card1_tag' | 'card2_tag' | 'card3_tag' | 'card4_tag' | 'card5_tag' | 'card6_tag' | 'card7_tag' | 'card8_tag'
+  badgeKey: 'card1_badge' | 'card2_badge' | 'card3_badge' | 'card4_badge' | 'card5_badge' | 'card6_badge' | 'card7_badge' | 'card8_badge'
   image: string
-  href: string
+  href: '/campers/space' | '/campers/neo' | '/campers'
 }
 
-const SHOWCASE_ITEMS: ShowcaseItem[] = [
+const SHOWCASE_ITEMS: ShowcaseItemConfig[] = [
   {
-    id: 'space-sunset',
-    title: 'Atardecer en los Acantilados',
-    subtitle: 'Vistas panorámicas infinitas al Mediterráneo',
-    camper: 'SPACE',
-    tag: 'Utopia Space',
+    id: 'sunrise-breakfast',
+    titleKey: 'card1_title',
+    subtitleKey: 'card1_subtitle',
+    tagKey: 'card1_tag',
+    badgeKey: 'card1_badge',
+    image: '/images/hero/hero-breakfast-sea-horizon.webp',
+    href: '/campers/space',
+  },
+  {
+    id: 'hidden-coves',
+    titleKey: 'card2_title',
+    subtitleKey: 'card2_subtitle',
+    tagKey: 'card2_tag',
+    badgeKey: 'card2_badge',
+    image: '/images/guia/cala-tuent.jpg',
+    href: '/campers',
+  },
+  {
+    id: 'paddle-surf',
+    titleKey: 'card3_title',
+    subtitleKey: 'card3_subtitle',
+    tagKey: 'card3_tag',
+    badgeKey: 'card3_badge',
+    image: '/images/experiences/exp-paddlesurf-mallorca.jpg',
+    href: '/campers/neo',
+  },
+  {
+    id: 'cycling-tramuntana',
+    titleKey: 'card4_title',
+    subtitleKey: 'card4_subtitle',
+    tagKey: 'card4_tag',
+    badgeKey: 'card4_badge',
+    image: '/images/experiences/exp-cycling-mallorca.jpg',
+    href: '/campers/neo',
+  },
+  {
+    id: 'offgrid-sunset',
+    titleKey: 'card5_title',
+    subtitleKey: 'card5_subtitle',
+    tagKey: 'card5_tag',
+    badgeKey: 'card5_badge',
     image: '/images/campers/uploads/1790382530493-2k_space_landscape_door_closed.jpeg',
     href: '/campers/space',
   },
   {
-    id: 'neo-lounge',
-    title: 'Salón con Madera Natural',
-    subtitle: 'Luz natural, acabados cálidos y máxima calidez',
-    camper: 'NEO',
-    tag: 'Utopia Neo',
-    image: '/images/campers/neo/interior/neo-salon-daylight.webp',
-    href: '/campers/neo',
-  },
-  {
-    id: 'space-saloon-open',
-    title: 'Salón en U Abierto al Mar',
-    subtitle: 'Suite diáfana de 7m² con puertas panorámicas',
-    camper: 'SPACE',
-    tag: 'Suite Diáfana',
-    image: '/images/campers/space/interior/space-saloon-rear-doors-open.webp',
+    id: 'sunset-gastronomy',
+    titleKey: 'card6_title',
+    subtitleKey: 'card6_subtitle',
+    tagKey: 'card6_tag',
+    badgeKey: 'card6_badge',
+    image: '/images/experiences/exp-sunset-gastronomy.jpg',
     href: '/campers/space',
   },
   {
-    id: 'neo-kitchen',
-    title: 'Cocina Equipada',
-    subtitle: 'Dos fogones, nevera de 86 L y menaje completo premium',
-    camper: 'NEO',
-    tag: 'Gastronomía',
-    image: '/images/campers/neo/interior/neo-kitchen-wine-cooler.webp',
-    href: '/campers/neo',
-  },
-  {
-    id: 'space-cinema',
-    title: 'Cine Suite Bajo las Estrellas',
-    subtitle: 'Proyector del Pack Cine para tus noches de película',
-    camper: 'SPACE',
-    tag: 'Pack Cinema',
-    image: '/images/campers/space/interior/space-cinema-projector-lounge.webp',
+    id: 'pack-cinema',
+    titleKey: 'card7_title',
+    subtitleKey: 'card7_subtitle',
+    tagKey: 'card7_tag',
+    badgeKey: 'card7_badge',
+    image: '/images/experiences/exp-cinema-movie.jpg',
     href: '/campers/space',
   },
   {
-    id: 'neo-ocean-bed',
-    title: 'Dormitorio con Vista al Océano',
-    subtitle: 'Colchón viscoelástico de alta densidad y confort',
-    camper: 'NEO',
-    tag: 'Descanso 5★',
-    image: '/images/campers/neo/interior/neo-bed-view-outdoors.webp',
+    id: 'shower-comfort',
+    titleKey: 'card8_title',
+    subtitleKey: 'card8_subtitle',
+    tagKey: 'card8_tag',
+    badgeKey: 'card8_badge',
+    image: '/images/experiences/exp2.png',
     href: '/campers/neo',
-  },
-  {
-    id: 'space-drop-bed',
-    title: 'Cama Elevable Eléctrica',
-    subtitle: 'Espacio diáfano de día, cama doble de noche',
-    camper: 'SPACE',
-    tag: 'Ingeniería',
-    image: '/images/campers/space/interior/space-electric-drop-down-bed.webp',
-    href: '/campers/space',
-  },
-  {
-    id: 'island-breakfast',
-    title: 'Despertar en Calas Vírgenes',
-    subtitle: 'La libertad de amanecer en primera línea de mar',
-    camper: 'MALLORCA',
-    tag: 'Experiencia',
-    image: '/images/hero/hero-breakfast-sea-horizon.webp',
-    href: '/campers',
   },
 ]
 
 export default function Rotating3DShowcase() {
-  const locale = useLocale()
-  const isEs = locale === 'es'
+  const t = useTranslations('HomePage.Showcase')
 
   const containerRef = useRef<HTMLDivElement>(null)
   const [rotationAngle, setRotationAngle] = useState(0)
   const [isDragging, setIsDragging] = useState(false)
   const [isHovered, setIsHovered] = useState(false)
-  
+
   const dragStartX = useRef(0)
   const dragStartAngle = useRef(0)
+  const dragDistanceRef = useRef(0)
   const animFrameId = useRef<number | null>(null)
   const lastTimeRef = useRef<number | null>(null)
   const currentAngleRef = useRef(0)
 
-  // Sync ref with state
-  currentAngleRef.current = rotationAngle
+  // Sync ref with state outside render
+  useEffect(() => {
+    currentAngleRef.current = rotationAngle
+  }, [rotationAngle])
 
   // Auto rotation loop
   useEffect(() => {
-    const autoSpeed = 0.05 // degrees per millisecond * constant -> gentle ~5-7 deg/sec
-
     const animate = (timestamp: number) => {
       if (!lastTimeRef.current) lastTimeRef.current = timestamp
       const delta = timestamp - lastTimeRef.current
       lastTimeRef.current = timestamp
 
-      // If not dragging and not hovered, advance gentle auto-rotation
+      // If not dragging and not hovered, advance gentle auto-rotation (velocidad muy suave y pausada)
       if (!isDragging && !isHovered) {
-        setRotationAngle(prev => (prev - (delta * 0.016)) % 360)
+        setRotationAngle(prev => (prev - (delta * 0.007)) % 360)
       }
 
       animFrameId.current = requestAnimationFrame(animate)
@@ -137,6 +137,7 @@ export default function Rotating3DShowcase() {
     setIsDragging(true)
     dragStartX.current = e.clientX
     dragStartAngle.current = currentAngleRef.current
+    dragDistanceRef.current = 0
     if (containerRef.current) {
       containerRef.current.setPointerCapture(e.pointerId)
     }
@@ -145,6 +146,7 @@ export default function Rotating3DShowcase() {
   const handlePointerMove = (e: React.PointerEvent) => {
     if (!isDragging) return
     const deltaX = e.clientX - dragStartX.current
+    dragDistanceRef.current = Math.max(dragDistanceRef.current, Math.abs(deltaX))
     // 0.35 sensitivity
     const newAngle = dragStartAngle.current + deltaX * 0.35
     setRotationAngle(newAngle)
@@ -158,32 +160,28 @@ export default function Rotating3DShowcase() {
     }
   }
 
+  const handleCardClick = (e: React.MouseEvent) => {
+    if (dragDistanceRef.current > 8) {
+      e.preventDefault()
+    }
+  }
+
   const totalCards = SHOWCASE_ITEMS.length
   const stepAngle = 360 / totalCards
 
   return (
-    <section className="showcase-section" aria-label="Galería interactiva en 3D de Utopia Van Life">
+    <section className="showcase-section" id="experiencias" aria-label={t('ariaLabel')}>
       <div className="container showcase-header">
-        <div className="showcase-eyebrow">
-          <Eye size={13} className="text-forest" />
-          <span>{isEs ? 'EXPERIENCIA VISUAL 360°' : '360° VISUAL EXPERIENCE'}</span>
-        </div>
         <h2 className="showcase-title">
-          {isEs ? 'Espacios pensados para desconectar' : 'Spaces Crafted for Pure Freedom'}
+          {t('title')}
         </h2>
         <p className="showcase-subtitle">
-          {isEs
-            ? 'Gira la galería arrastrando para descubrir los interiores de autor, la autonomía solar y cada detalle artesanal.'
-            : 'Drag to spin the cylinder and explore bespoke interiors, solar independence and handcrafted comfort.'}
+          {t('subtitle')}
         </p>
-        <div className="showcase-drag-hint">
-          <MoveHorizontal size={14} className="drag-hint-icon" />
-          <span>{isEs ? 'Arrastra para girar · Haz clic en cualquier foto' : 'Drag to rotate · Click any photo to view'}</span>
-        </div>
       </div>
 
       {/* 3D Scene Viewport */}
-      <div 
+      <div
         ref={containerRef}
         className="showcase-viewport"
         onPointerDown={handlePointerDown}
@@ -193,7 +191,7 @@ export default function Rotating3DShowcase() {
         onMouseEnter={() => setIsHovered(true)}
         onMouseLeave={() => setIsHovered(false)}
       >
-        <div 
+        <div
           className="showcase-cylinder"
           style={{
             transform: `rotateY(${rotationAngle}deg)`,
@@ -201,6 +199,10 @@ export default function Rotating3DShowcase() {
         >
           {SHOWCASE_ITEMS.map((item, index) => {
             const cardAngle = index * stepAngle
+            const title = t(item.titleKey)
+            const subtitle = t(item.subtitleKey)
+            const tag = t(item.tagKey)
+            const badge = t(item.badgeKey)
 
             return (
               <div
@@ -210,34 +212,35 @@ export default function Rotating3DShowcase() {
                   transform: `rotateY(${cardAngle}deg) translateZ(var(--cylinder-radius))`,
                 }}
               >
-                <Link href={item.href as any} className="showcase-card__link">
+                <Link href={item.href} className="showcase-card__link" onClick={handleCardClick}>
                   <div className="showcase-card__image-wrap">
                     <Image
                       src={item.image}
-                      alt={item.title}
+                      alt={title}
                       fill
-                      sizes="(max-width: 640px) 270px, 360px"
+                      sizes="(max-width: 640px) 640px, 1080px"
+                      quality={95}
                       className="showcase-card__img"
                       style={{ objectFit: 'cover', objectPosition: 'center' }}
-                      loading="lazy"
+                      loading="eager"
                     />
                     <div className="showcase-card__scrim" />
 
                     <div className="showcase-card__tag">
-                      <span>{item.tag}</span>
+                      <span>{tag}</span>
                     </div>
 
                     <div className="showcase-card__content">
                       <div className="showcase-card__badge-row">
-                        <span className="showcase-card__camper-badge">{item.camper}</span>
+                        <span className="showcase-card__camper-badge">{badge}</span>
                       </div>
-                      <h3 className="showcase-card__heading">{item.title}</h3>
-                      <p className="showcase-card__text">{item.subtitle}</p>
+                      <h3 className="showcase-card__heading">{title}</h3>
+                      <p className="showcase-card__text">{subtitle}</p>
                     </div>
 
                     <div className="showcase-card__action">
                       <Eye size={14} />
-                      <span>{isEs ? 'Explorar' : 'Explore'}</span>
+                      <span>{t('explore')}</span>
                     </div>
                   </div>
                 </Link>
@@ -250,11 +253,18 @@ export default function Rotating3DShowcase() {
       <style jsx>{`
         .showcase-section {
           position: relative;
-          padding-top: var(--space-20);
-          padding-bottom: var(--space-24);
-          background: linear-gradient(180deg, #0B0C0E 0%, #0d120f 16%, #0d120f 84%, #0E1013 100%);
+          padding-top: var(--space-16);
+          padding-bottom: var(--space-16);
+          background-color: #0B0C0E;
+          background-image:
+            linear-gradient(180deg, rgba(11, 12, 14, 0.85) 0%, rgba(13, 18, 15, 0.82) 50%, rgba(11, 12, 14, 0.88) 100%),
+            url('/images/backgrounds/mallorca-bg-dark.webp');
+          background-position: center center;
+          background-size: cover;
+          background-repeat: no-repeat;
           color: #ffffff;
           overflow: hidden;
+          border-bottom: 1px solid rgba(255, 255, 255, 0.08);
         }
 
         .showcase-header {
@@ -262,7 +272,10 @@ export default function Rotating3DShowcase() {
           flex-direction: column;
           align-items: center;
           text-align: center;
-          margin-bottom: var(--space-12);
+          max-width: 680px;
+          margin-inline: auto;
+          margin-bottom: var(--space-16);
+          gap: 16px;
           position: relative;
           z-index: 2;
         }
@@ -271,36 +284,33 @@ export default function Rotating3DShowcase() {
           display: inline-flex;
           align-items: center;
           gap: 6px;
-          padding: 6px 14px;
+          padding: 6px 16px;
           border-radius: 999px;
-          background: rgba(45, 58, 45, 0.4);
-          border: 1px solid rgba(255, 255, 255, 0.12);
-          backdrop-filter: blur(10px);
-          -webkit-backdrop-filter: blur(10px);
-          font-size: 0.72rem;
-          font-weight: 600;
-          letter-spacing: 0.08em;
-          color: #9cd1a6;
-          margin-bottom: var(--space-4);
+          background: rgba(204, 160, 83, 0.12);
+          border: 1px solid rgba(204, 160, 83, 0.35);
+          font-size: 0.76rem;
+          font-weight: 700;
+          letter-spacing: 0.1em;
+          color: #E8CA7C;
           text-transform: uppercase;
         }
 
         .showcase-title {
-          font-family: var(--font-serif, serif);
-          font-size: clamp(1.85rem, 3.5vw, 2.75rem);
-          font-weight: 400;
-          color: #ffffff;
+          font-family: var(--font-display, inherit);
+          font-size: clamp(2.6rem, 4.8vw, 3.65rem);
+          font-weight: 500;
+          color: #FFFFFF;
           letter-spacing: -0.02em;
-          margin-bottom: var(--space-3);
-          max-width: 640px;
+          line-height: 1.08;
+          margin: 0;
         }
 
         .showcase-subtitle {
-          font-size: clamp(0.92rem, 1.8vw, 1.05rem);
-          color: rgba(255, 255, 255, 0.7);
-          max-width: 580px;
-          line-height: 1.6;
-          margin-bottom: var(--space-4);
+          font-size: 1.05rem;
+          color: #94A3B8;
+          line-height: 1.68;
+          margin: 0;
+          text-wrap: balance;
         }
 
         .showcase-drag-hint {
@@ -319,8 +329,8 @@ export default function Rotating3DShowcase() {
         .showcase-viewport {
           position: relative;
           width: 100%;
-          height: 500px;
-          perspective: 1200px;
+          height: 420px;
+          perspective: 1150px;
           display: flex;
           align-items: center;
           justify-content: center;
@@ -337,29 +347,29 @@ export default function Rotating3DShowcase() {
         /* The 3D Rotating Cylinder */
         .showcase-cylinder {
           position: relative;
-          width: 370px;
-          height: 350px;
+          width: 345px;
+          height: 295px;
           transform-style: preserve-3d;
           transition: transform 0.05s linear;
           will-change: transform;
-          --cylinder-radius: 480px;
+          --cylinder-radius: 445px;
         }
 
-        /* Each Card Facet - Formato cuadrado equilibrado */
+        /* Each Card Facet - Formato panorámico/compacto equilibrado */
         .showcase-card {
           position: absolute;
           inset: 0;
-          width: 360px;
-          height: 340px;
+          width: 335px;
+          height: 285px;
           margin: auto;
           transform-style: preserve-3d;
           backface-visibility: hidden;
           -webkit-backface-visibility: hidden;
-          border-radius: 20px;
+          border-radius: 18px;
           overflow: hidden;
           background: rgba(20, 24, 22, 0.85);
           border: 1px solid rgba(255, 255, 255, 0.14);
-          box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4);
+          box-shadow: 0 16px 36px rgba(0, 0, 0, 0.4);
           transition: border-color 220ms ease, box-shadow 220ms ease;
         }
 
@@ -492,28 +502,39 @@ export default function Rotating3DShowcase() {
         /* Mobile Adjustments (<= 640px) */
         @media (max-width: 640px) {
           .showcase-section {
-            padding-top: var(--space-14);
-            padding-bottom: var(--space-16);
+            padding-top: var(--space-10);
+            padding-bottom: var(--space-12);
           }
           .showcase-viewport {
-            height: 380px;
-            perspective: 850px;
+            height: 310px;
+            perspective: 800px;
           }
           .showcase-cylinder {
-            width: 280px;
-            height: 260px;
-            --cylinder-radius: 340px;
+            width: 230px;
+            height: 200px;
+            --cylinder-radius: 290px;
           }
           .showcase-card {
-            width: 260px;
-            height: 240px;
-            border-radius: 16px;
+            width: 220px;
+            height: 190px;
+            border-radius: 14px;
+          }
+          .showcase-card__tag {
+            top: 10px;
+            left: 10px;
+            padding: 3px 8px;
+            font-size: 0.65rem;
+          }
+          .showcase-card__content {
+            padding: 12px;
           }
           .showcase-card__heading {
-            font-size: 0.95rem;
+            font-size: 0.88rem;
+            margin-bottom: 2px;
           }
           .showcase-card__text {
-            font-size: 0.72rem;
+            font-size: 0.68rem;
+            line-height: 1.25;
           }
         }
       `}</style>

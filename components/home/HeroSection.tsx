@@ -206,21 +206,11 @@ export default function HeroSection() {
 
       {/* Contenido Editorial Central */}
       <div className="hero__content">
-        {/* Coordenadas / Eyebrow */}
-        <div className="hero__coordinates">
-          <span>{t('eyebrow') || 'MALLORCA · 39.6953° N'}</span>
-        </div>
-
         {/* Gran Titular Icónico UTOPIA / VAN LIFE */}
         <h1 className="hero__title">
           <span className="hero__title-line hero__title-line--cream">UTOPIA</span>
           <span className="hero__title-line hero__title-line--gold">VAN LIFE</span>
         </h1>
-
-        {/* Subtítulo poético de la dualidad exterior / interior */}
-        <p className="hero__subtitle">
-          {t('tagline') || 'Dos formas de entrar en la aventura. El camino fuera. Tu refugio dentro.'}
-        </p>
 
         {/* Barra de Selección Flotante Glassmorphic */}
         <div className="hero__search-container" ref={containerRef}>

@@ -129,27 +129,25 @@
       "model_name": "SPACE",
       "url": "https://nomade-nation.com/es-es/models/space",
       "utopia_url": "https://www.utopiavanlife.com/space/",
-      "title": "SPACE | La camper más amplia — Utopia Van Life",
-      "tagline": "Máximo confort en una camper. El espacio que se adapta a ti.",
-      "description": "SPACE redefine el confort sobre ruedas con una distribución completamente abierta de 7m² ('The biggest 7m²'). Gracias a su cama elevable eléctrica de techo (hasta 600kg de carga), durante el día disfrutas de un impresionante salón panorámico en U con mesa giratoria 360° para teletrabajo o relax. Equipada con 160L de agua limpia, 540Ah de litio Victron, 400W solares, aire acondicionado 12V Dometic y Pack Cine con proyector.",
+      "title": "SPACE | Máximo confort en una camper — Utopia Van Life",
+      "tagline": "Más espacio, más comodidad y una experiencia pensada para viajar sin límites.",
+      "description": "Gracias a su cama elevable, durante el día disfrutas de todo el espacio interior, como si estuvieras en una autocaravana… pero con la libertad de una camper. Menos maletero. Más calidad de vida en el día a día. Camper diseñada para dos personas, primando el máximo confort en todo momento. Equipada con el sistema eléctrico PRO más avanzado del mercado (2 baterías de litio 540Ah, 2 placas solares monocristalinas 400W, inversor Multiplus 2.000W Victron, Cerbo GX), aire acondicionado 12V Dometic integrado y depósitos de 113L de aguas limpias y 90L de aguas grises.",
       "key_highlights": [
-        "Distribución abierta 'Open Concept' (7m² sin divisiones)",
-        "Cama elevable eléctrica de techo (185 x 135 cm, soporte 600kg) que sube al techo",
-        "Salón panorámico trasero en U con mesa giratoria 360° para teletrabajo",
-        "5 Ventanas correderas y hasta 3 claraboyas para máxima luminosidad",
-        "Depósito de aguas limpias de gran autonomía de 160 Litros",
-        "Sistema Eléctrico PRO Victron con 2 baterías de litio (540Ah) y 2 placas solares (400W)",
-        "Inversor Victron Multiplus 2.000W y cargador Orion XS 12/12-50A",
-        "Pantalla táctil Garmin SERV con app móvil Garmin RV Controls",
-        "Aire acondicionado 12V Dometic y calefacción diésel Truma Combi 4D + E",
-        "Cocina con encimera en L, 2 fogones, nevera de compresor 86L y gas GLP",
-        "Baño completo tipo spa con ducha interior caliente, WC químico y ducha exterior",
-        "Sonido envolvente JBL con 4 altavoces coaxiales + amplificador y Pack Cine con proyector HD",
-        "Pantalla multimedia táctil de 10\" con Apple CarPlay / Android Auto y cámara dinámica trasera"
+        "Camper diseñada para 2 personas (2 plazas viajar / 2 plazas dormir)",
+        "Cama elevable + cama interbanco: máximo espacio interior durante el día",
+        "Sistema Eléctrico PRO con 2 baterías de litio (540Ah) y 2 placas solares monocristalinas (400W)",
+        "Inversor Multiplus 2.000W Victron, centralita Cerbo GX, Orion XS 12/12-50A y SmartSolar MPPT 100/30",
+        "Aire acondicionado 12V Dometic integrado",
+        "Calefacción diésel y aislamiento completo 360º",
+        "Cocina equipada con nevera 86L y dos fogones + gas GLP y alarma de gases",
+        "Baño completo con ducha interior, WC químico y ducha exterior",
+        "Depósitos de aguas limpias 113L y aguas grises 90L",
+        "Mosquiteras, oscurecedores y claraboya panorámica",
+        "Motor diésel 8L/100 km y cambio manual 140 CV (5,99 m)"
       ],
       "technical_specifications": {
         "base_vehicle": "Fiat Ducato L3H2",
-        "engine": "Motor Multijet 140 CV (cambio manual) / 180 CV (cambio automático)",
+        "engine": "Motor diésel 140 CV (cambio manual)",
         "traction": "Tracción delantera",
         "fuel_type": "Diesel",
         "consumption": "8L/100 km",
@@ -161,9 +159,9 @@
           "max_weight_mma": "3.500 kg"
         },
         "water_system": {
-          "fresh_water_liters": 160,
-          "gray_water_liters": 93,
-          "hot_water_boiler": "Truma Combi 4D + E"
+          "fresh_water_liters": 113,
+          "gray_water_liters": 90,
+          "hot_water_boiler": "Gas GLP / Calefacción diésel"
         },
         "electrical_system": {
           "lithium_battery_capacity": "540 Ah (2x Victron)",

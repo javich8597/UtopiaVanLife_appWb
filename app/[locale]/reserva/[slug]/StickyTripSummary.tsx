@@ -1,23 +1,25 @@
 'use client'
 
-import React from 'react'
+import React, { useEffect } from 'react'
 import Image from 'next/image'
 import {
     Calendar as CalendarIcon,
     Clock,
     Users,
-    Shield,
     ShieldCheck,
     Check,
     CreditCard,
     Lock,
     X,
     Info,
-    ChevronDown,
-    ChevronUp,
+    Gauge,
+    RefreshCw,
+    Package,
+    CarFront,
 } from 'lucide-react'
 import { WizardCamper, Step1Data, Step2Data, Step3Data, Step4Data } from './types'
 import { PricingBreakdown, formatPrice } from '@/lib/pricing/engine'
+import { resolveCamperContent, formatDepositEuros } from '@/lib/campers/camperCatalog'
 import { format, parseISO } from 'date-fns'
 import { es } from 'date-fns/locale'
 
@@ -32,13 +34,6 @@ interface StickyTripSummaryProps {
     onCloseMobile?: () => void
 }
 
-const INCLUDED_SERVICES = [
-    'Seguro a todo riesgo con asistencia en carretera 24/7',
-    'Ropa de cama completa, sábanas, almohadas y toallas de baño',
-    'Menaje de cocina completo, cafetera italiana y kit de limpieza',
-    '2 sillas de camping para exterior',
-]
-
 export default function StickyTripSummary({
     camper,
     breakdown,
@@ -49,17 +44,35 @@ export default function StickyTripSummary({
     isOpenMobile = false,
     onCloseMobile,
 }: StickyTripSummaryProps) {
-    const mainImage = camper.images && camper.images.length > 0 ? camper.images[0] : '/images/campers/neo/neo-ext.png'
+    const resolved = resolveCamperContent(camper)
+    const mainImage = resolved.cardImages[0] || resolved.galleryImages[0]?.src || '/images/campers/neo/neo-ext.png'
+    const {
+        standardDepositAmount,
+        flexDepositAmount,
+        flexDepositRatePerDay,
+        included: includedServices,
+    } = resolved.rental
+
+    // Bloquear scroll del body cuando el bottom sheet móvil está abierto (AGENTS.md Regla 5)
+    useEffect(() => {
+        if (!isOpenMobile || typeof document === 'undefined') return
+        const prevOverflow = document.body.style.overflow
+        document.body.style.overflow = 'hidden'
+        return () => {
+            document.body.style.overflow = prevOverflow
+        }
+    }, [isOpenMobile])
 
     const formatDateSlot = (dateStr: string, slot: 'morning' | 'afternoon', isDropoff: boolean) => {
         if (!dateStr) return 'Por seleccionar'
         try {
             const d = parseISO(dateStr)
             const dateFormatted = format(d, "d 'de' MMM", { locale: es })
+            const slotLabel = slot === 'morning' ? 'Mañana' : 'Tarde'
             const timeTag = isDropoff
-                ? (slot === 'morning' ? '12:00h' : '19:00h')
-                : (slot === 'morning' ? '09:00h' : '15:00h')
-            return `${dateFormatted} (${timeTag})`
+                ? (slot === 'morning' ? '09:00–12:00h' : '15:00–19:00h')
+                : (slot === 'morning' ? '09:00–12:00h' : '15:00–19:00h')
+            return `${dateFormatted} · ${slotLabel} (${timeTag})`
         } catch {
             return dateStr
         }
@@ -68,7 +81,9 @@ export default function StickyTripSummary({
     const totalPayable = breakdown ? breakdown.payableTotal : 0
     const totalDays = breakdown ? breakdown.totalDays : 0
     const numNights = breakdown ? breakdown.numNights : 0
-    const depositAmount = breakdown ? breakdown.depositAmount : (step3.depositOption === 'flex_1000' ? 1000 : 2000)
+    const depositAmount = breakdown
+        ? breakdown.depositAmount
+        : (step3.depositOption === 'flex_1000' ? flexDepositAmount : standardDepositAmount)
 
     const contentProps: TripSummaryContentProps = {
         camper,
@@ -80,6 +95,8 @@ export default function StickyTripSummary({
         breakdown,
         totalPayable,
         depositAmount,
+        flexDepositRatePerDay,
+        includedServices,
         totalDays,
         numNights,
         formatDateSlot,
@@ -91,11 +108,7 @@ export default function StickyTripSummary({
             <aside className="sticky-summary-desktop">
                 <div className="sticky-summary-card">
                     <div className="sticky-summary-card__header">
-                        <h3 className="summary-heading">Tu Viaje · Utopia Van Life</h3>
-                        <span className="summary-live-indicator">
-                            <span className="live-dot" />
-                            En vivo
-                        </span>
+                        <h3 className="summary-heading">Resumen de tu Reserva</h3>
                     </div>
                     <TripSummaryContent {...contentProps} />
                 </div>
@@ -111,7 +124,7 @@ export default function StickyTripSummary({
                         <div className="mobile-summary-sheet__header">
                             <div className="mobile-sheet-drag-handle" />
                             <div className="mobile-sheet-title-row">
-                                <h3 className="summary-heading">Tu Viaje · Desglose Completo</h3>
+                                <h3 className="summary-heading">Resumen de tu Reserva · Desglose</h3>
                                 <button
                                     type="button"
                                     className="mobile-sheet-close-btn"
@@ -130,7 +143,6 @@ export default function StickyTripSummary({
             )}
 
             <style jsx>{`
-                /* Desktop sticky aside */
                 .sticky-summary-desktop {
                     display: block;
                     width: 100%;
@@ -194,7 +206,7 @@ export default function StickyTripSummary({
                 .mobile-summary-backdrop {
                     position: fixed;
                     inset: 0;
-                    background: rgba(0, 0, 0, 0.5);
+                    background: rgba(0, 0, 0, 0.65);
                     backdrop-filter: blur(4px);
                     z-index: 60;
                     display: flex;
@@ -209,7 +221,7 @@ export default function StickyTripSummary({
                     max-height: 85vh;
                     display: flex;
                     flex-direction: column;
-                    box-shadow: 0 -8px 32px rgba(0, 0, 0, 0.2);
+                    box-shadow: 0 -8px 32px rgba(0, 0, 0, 0.35);
                     animation: slideUp 0.3s cubic-bezier(0.16, 1, 0.3, 1);
                 }
 
@@ -239,8 +251,9 @@ export default function StickyTripSummary({
                 .mobile-sheet-close-btn {
                     border: none;
                     background: var(--gray-100);
-                    width: 30px;
-                    height: 30px;
+                    color: var(--black-matte);
+                    width: 34px;
+                    height: 34px;
                     border-radius: 50%;
                     display: flex;
                     align-items: center;
@@ -277,6 +290,8 @@ interface TripSummaryContentProps {
     breakdown: PricingBreakdown | null
     totalPayable: number
     depositAmount: number
+    flexDepositRatePerDay: number
+    includedServices: string[]
     totalDays: number
     numNights: number
     formatDateSlot: (dateStr: string, slot: 'morning' | 'afternoon', isDropoff: boolean) => string
@@ -290,189 +305,253 @@ function TripSummaryContent({
     step3,
     breakdown,
     depositAmount,
+    flexDepositRatePerDay,
+    includedServices,
     totalDays,
     numNights,
     formatDateSlot,
 }: TripSummaryContentProps) {
     return (
         <div className="trip-summary-content">
-            {/* Header info */}
-            <div className="summary-camper-card">
-                <div className="summary-camper-thumb" style={{ position: 'relative' }}>
-                    <Image
-                        src={mainImage}
-                        alt={camper.name}
-                        fill
-                        priority
-                        sizes="90px"
-                        className="summary-camper-img"
-                    />
+            {/* ── 1. FECHAS Y HORARIOS ── */}
+            <div className="summary-section-block">
+                <div className="summary-section-head">
+                    <span className="summary-step-num">1</span>
+                    <span className="summary-section-label">Fechas y Horarios</span>
                 </div>
-                <div className="summary-camper-info">
-                    <span className="summary-brand-tag">UTOPIA VAN LIFE</span>
-                    <h3 className="summary-camper-name">{camper.name}</h3>
-                    <div className="summary-camper-specs">
-                        <span>{camper.specs?.seats || 2} plazas</span>
-                        <span>·</span>
-                        <span>{camper.specs?.beds || 2} camas</span>
-                        <span>·</span>
-                        <span>{camper.specs?.engine || 'Diésel 140 CV'}</span>
-                    </div>
-                </div>
-            </div>
 
-            {/* Selected Dates and Slots */}
-            <div className="summary-dates-card">
-                <div className="summary-date-row">
-                    <div className="summary-date-icon">
-                        <CalendarIcon size={14} className="text-forest" />
+                <div className="summary-dates-card">
+                    <div className="summary-date-row">
+                        <CalendarIcon size={15} strokeWidth={1.8} className="summary-gold-icon" />
+                        <div className="summary-date-details">
+                            <span className="summary-date-label">Recogida:</span>
+                            <span className="summary-date-val">
+                                {formatDateSlot(step1.startDate, step1.startSlot, false)}
+                            </span>
+                        </div>
                     </div>
-                    <div className="summary-date-details">
-                        <span className="summary-date-label">Recogida:</span>
-                        <span className="summary-date-val">
-                            {formatDateSlot(step1.startDate, step1.startSlot, false)}
+
+                    <div className="summary-date-row">
+                        <Clock size={15} strokeWidth={1.8} className="summary-gold-icon" />
+                        <div className="summary-date-details">
+                            <span className="summary-date-label">Devolución:</span>
+                            <span className="summary-date-val">
+                                {formatDateSlot(step1.endDate, step1.endSlot, true)}
+                            </span>
+                        </div>
+                    </div>
+
+                    <div className="summary-stats-pills">
+                        <span className="stats-pill">
+                            {numNights} {numNights === 1 ? 'noche' : 'noches'} ({totalDays} días)
                         </span>
                     </div>
-                </div>
 
-                <div className="summary-date-row">
-                    <div className="summary-date-icon">
-                        <Clock size={14} className="text-forest" />
-                    </div>
-                    <div className="summary-date-details">
-                        <span className="summary-date-label">Devolución:</span>
-                        <span className="summary-date-val">
-                            {formatDateSlot(step1.endDate, step1.endSlot, true)}
-                        </span>
-                    </div>
-                </div>
-
-                <div className="summary-stats-pills">
-                    <span className="stats-pill">
-                        {numNights} {numNights === 1 ? 'noche' : 'noches'} ({totalDays} días)
-                    </span>
-                    <span className="stats-pill">
-                        <Users size={12} className="stats-pill__icon" />
-                        {step1.pax} {step1.pax === 1 ? 'viajero' : 'viajeros'}
-                    </span>
-                </div>
-            </div>
-
-            {/* Price Breakdown */}
-            <div className="summary-breakdown-section">
-                <h4 className="summary-breakdown-title">Desglose económico</h4>
-
-                {breakdown && breakdown.numNights > 0 ? (
-                    <div className="summary-breakdown-list">
-                        {/* Nights by season */}
-                        {breakdown.nightsPerSeason.map((seasonItem, i) => (
-                            <div key={i} className="summary-breakdown-row">
-                                <span className="summary-row-label">
-                                    {seasonItem.season} ({seasonItem.nights} n. × {formatPrice(seasonItem.pricePerNight)})
-                                </span>
-                                <span className="summary-row-val">{formatPrice(seasonItem.subtotal)}</span>
-                            </div>
-                        ))}
-
-                        {/* Half-day slot supplement */}
-                        {breakdown.slotSupplement > 0 && (
-                            <div className="summary-breakdown-row summary-breakdown-row--slot">
-                                <span className="summary-row-label">
-                                    Suplemento franja horaria (+{totalDays - numNights} día)
-                                </span>
-                                <span className="summary-row-val">+{formatPrice(breakdown.slotSupplement)}</span>
-                            </div>
-                        )}
-
-                        {/* Duration Discount */}
-                        {breakdown.discountAmount > 0 && (
-                            <div className="summary-breakdown-row summary-breakdown-row--discount">
-                                <div className="summary-discount-label">
-                                    <span className="discount-tag">−{breakdown.discountPct}%</span>
-                                    <span>Descuento estancia larga</span>
+                    {breakdown && breakdown.numNights > 0 && (
+                        <div className="summary-sub-breakdown">
+                            {breakdown.nightsPerSeason.map((seasonItem, i) => (
+                                <div key={i} className="summary-breakdown-row">
+                                    <span className="summary-row-label">
+                                        {seasonItem.season} ({seasonItem.nights} n. × {formatPrice(seasonItem.pricePerNight)})
+                                    </span>
+                                    <span className="summary-row-val">{formatPrice(seasonItem.subtotal)}</span>
                                 </div>
-                                <span className="summary-discount-val">−{formatPrice(breakdown.discountAmount)}</span>
-                            </div>
-                        )}
+                            ))}
 
-                        {/* KM Package */}
-                        <div className="summary-breakdown-row">
+                            {breakdown.slotSupplement > 0 && (
+                                <div className="summary-breakdown-row summary-breakdown-row--slot">
+                                    <span className="summary-row-label">
+                                        Suplemento franja horaria (+{totalDays - numNights} día)
+                                    </span>
+                                    <span className="summary-row-val">+{formatPrice(breakdown.slotSupplement)}</span>
+                                </div>
+                            )}
+
+                            {breakdown.discountAmount > 0 && (
+                                <div className="summary-breakdown-row summary-breakdown-row--discount">
+                                    <div className="summary-discount-label">
+                                        <span className="discount-tag">−{breakdown.discountPct}%</span>
+                                        <span>Descuento estancia larga</span>
+                                    </div>
+                                    <span className="summary-discount-val">−{formatPrice(breakdown.discountAmount)}</span>
+                                </div>
+                            )}
+                        </div>
+                    )}
+                </div>
+            </div>
+
+            {/* ── 2. MODELO SELECCIONADO ── */}
+            <div className="summary-section-block">
+                <div className="summary-section-head">
+                    <span className="summary-step-num">2</span>
+                    <span className="summary-section-label">Modelo Seleccionado</span>
+                </div>
+
+                <div className="summary-camper-card">
+                    <div className="summary-camper-thumb">
+                        <Image
+                            src={mainImage}
+                            alt={camper.name}
+                            fill
+                            priority
+                            sizes="90px"
+                            className="summary-camper-img"
+                        />
+                    </div>
+                    <div className="summary-camper-info">
+                        <span className="summary-brand-tag">UTOPIA VAN LIFE</span>
+                        <h3 className="summary-camper-name">Utopia {camper.name}</h3>
+                        <div className="summary-camper-specs">
+                            <span>{camper.specs?.seats || (camper.slug === 'space' ? 2 : 3)} plazas</span>
+                            <span>·</span>
+                            <span>{camper.specs?.beds || (camper.slug === 'space' ? 2 : 3)} camas</span>
+                            <span>·</span>
+                            <span>{formatPrice(camper.base_price_per_night || camper.price_per_night || 110)}/noche base</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            {/* ── 3. KILOMETRAJE ── */}
+            <div className="summary-section-block">
+                <div className="summary-section-head">
+                    <span className="summary-step-num">3</span>
+                    <span className="summary-section-label">Kilometraje</span>
+                </div>
+                <div className="summary-item-box">
+                    <div className="summary-breakdown-row">
+                        <span className="summary-row-label summary-row-label--with-icon">
+                            <Gauge size={15} strokeWidth={1.8} className="summary-gold-icon" />
+                            <span>{step2.kmPackage === 'unlimited' ? 'Kilometraje Ilimitado' : '150 km / día incluidos'}</span>
+                        </span>
+                        <span className="summary-row-val">
+                            {step2.kmPackage === 'unlimited' && breakdown
+                                ? `+${formatPrice(breakdown.kmSupplement)}`
+                                : 'Incluido'}
+                        </span>
+                    </div>
+                </div>
+            </div>
+
+            {/* ── 4. SEGURO Y FIANZA ── */}
+            <div className="summary-section-block">
+                <div className="summary-section-head">
+                    <span className="summary-step-num">4</span>
+                    <span className="summary-section-label">Seguro y Fianza</span>
+                </div>
+                <div className="summary-item-box">
+                    <div className="summary-breakdown-row">
+                        <span className="summary-row-label summary-row-label--with-icon">
+                            <ShieldCheck size={15} strokeWidth={1.8} className="summary-gold-icon" />
+                            <span>
+                                {step3.depositOption === 'flex_1000'
+                                    ? `Seguro Flex (+${flexDepositRatePerDay} €/día)`
+                                    : 'Seguro Estándar'}
+                            </span>
+                        </span>
+                        <span className="summary-row-val">
+                            {step3.depositOption === 'flex_1000'
+                                ? (breakdown && breakdown.flexDepositSupplement > 0
+                                    ? `+${formatPrice(breakdown.flexDepositSupplement)}`
+                                    : `+${flexDepositRatePerDay} €/día`)
+                                : 'Incluido'}
+                        </span>
+                    </div>
+                    <div className="summary-breakdown-row summary-breakdown-row--muted">
+                        <span className="summary-row-label">Fianza reembolsable (retención en entrega)</span>
+                        <span className="summary-row-val">{formatPrice(depositAmount)}</span>
+                    </div>
+                    {breakdown && breakdown.secondDriver && (
+                        <div className="summary-breakdown-row summary-breakdown-row--muted">
                             <span className="summary-row-label">
-                                Paquete KM ({step2.kmPackage === 'unlimited' ? 'Ilimitado' : '150 km/día'})
+                                {breakdown.secondDriverRatePerDay > 0
+                                    ? `Segundo conductor (+${breakdown.secondDriverRatePerDay} €/día)`
+                                    : 'Segundo conductor'}
                             </span>
                             <span className="summary-row-val">
-                                {step2.kmPackage === 'unlimited'
-                                    ? `+${formatPrice(breakdown.kmSupplement)}`
+                                {breakdown.secondDriverSupplement > 0
+                                    ? `+${formatPrice(breakdown.secondDriverSupplement)}`
                                     : '0,00 € (Incluido)'}
                             </span>
                         </div>
+                    )}
+                </div>
+            </div>
 
-                        {/* Cancellation Policy */}
-                        <div className="summary-breakdown-row">
-                            <span className="summary-row-label">
-                                Cancelación ({step3.cancellationPolicy === 'flexible' ? 'Flexible' : 'Estándar'})
-                            </span>
-                            <span className="summary-row-val">
-                                {step3.cancellationPolicy === 'flexible'
+            {/* ── 5. POLÍTICA DE CANCELACIÓN ── */}
+            <div className="summary-section-block">
+                <div className="summary-section-head">
+                    <span className="summary-step-num">5</span>
+                    <span className="summary-section-label">Política de Cancelación</span>
+                </div>
+                <div className="summary-item-box">
+                    <div className="summary-breakdown-row">
+                        <span className="summary-row-label summary-row-label--with-icon">
+                            <RefreshCw size={15} strokeWidth={1.8} className="summary-gold-icon" />
+                            <span>Cancelación {step3.cancellationPolicy === 'flexible' ? 'Flex' : 'Estándar'}</span>
+                        </span>
+                        <span className="summary-row-val">
+                            {step3.cancellationPolicy === 'flexible'
+                                ? (breakdown && breakdown.cancellationSupplement > 0
                                     ? `+${formatPrice(breakdown.cancellationSupplement)}`
-                                    : '0,00 € (Incluida)'}
-                            </span>
-                        </div>
+                                    : '+8 €/día')
+                                : 'Incluida'}
+                        </span>
+                    </div>
+                </div>
+            </div>
 
-                        {/* Fianza Flex Supplement */}
-                        {breakdown.flexDepositSupplement > 0 && (
-                            <div className="summary-breakdown-row">
-                                <span className="summary-row-label">
-                                    Fianza Flex (+10 €/día · Depósito 1.000 € y 2º conductor)
-                                </span>
-                                <span className="summary-row-val">
-                                    +{formatPrice(breakdown.flexDepositSupplement)}
-                                </span>
-                            </div>
-                        )}
-
-                        {/* Segundo conductor: incluido con Flex, suplemento diario con Estándar */}
-                        {breakdown.secondDriver && (
-                            <div className="summary-breakdown-row">
-                                <span className="summary-row-label">
-                                    {breakdown.secondDriverRatePerDay > 0
-                                        ? `Segundo conductor (+${breakdown.secondDriverRatePerDay} €/día)`
-                                        : 'Segundo conductor'}
-                                </span>
-                                <span className="summary-row-val">
-                                    {breakdown.secondDriverSupplement > 0
-                                        ? `+${formatPrice(breakdown.secondDriverSupplement)}`
-                                        : '0,00 € (Incluido)'}
-                                </span>
-                            </div>
-                        )}
-
-                        {/* Selected Extras */}
-                        {breakdown.itemizedExtras.length > 0 && (
-                            <div className="summary-extras-group">
-                                <div className="summary-extras-header">
+            {/* ── 6. EXTRAS ── */}
+            <div className="summary-section-block">
+                <div className="summary-section-head">
+                    <span className="summary-step-num">6</span>
+                    <span className="summary-section-label">Extras</span>
+                </div>
+                <div className="summary-item-box">
+                    {breakdown && breakdown.itemizedExtras.length > 0 ? (
+                        <div className="summary-extras-group">
+                            <div className="summary-extras-header">
+                                <span className="summary-row-label summary-row-label--with-icon">
+                                    <Package size={15} strokeWidth={1.8} className="summary-gold-icon" />
                                     <span>Extras seleccionados ({breakdown.itemizedExtras.length})</span>
-                                    <span>{formatPrice(breakdown.extrasTotal)}</span>
-                                </div>
-                                {breakdown.itemizedExtras.map((extra) => (
-                                    <div key={extra.id} className="summary-extra-subrow">
-                                        <span className="extra-subrow-name">
-                                            {extra.quantity > 1 ? `${extra.quantity}× ` : ''}{extra.name}
-                                        </span>
-                                        <span className="extra-subrow-val">{formatPrice(extra.total)}</span>
-                                    </div>
-                                ))}
+                                </span>
+                                <span className="summary-row-val">+{formatPrice(breakdown.extrasTotal)}</span>
                             </div>
-                        )}
+                            {breakdown.itemizedExtras.map((extra) => (
+                                <div key={extra.id} className="summary-extra-subrow">
+                                    <span className="extra-subrow-name">
+                                        {extra.quantity > 1 ? `${extra.quantity}× ` : ''}{extra.name}
+                                    </span>
+                                    <span className="extra-subrow-val">{formatPrice(extra.total)}</span>
+                                </div>
+                            ))}
+                        </div>
+                    ) : (
+                        <div className="summary-breakdown-row">
+                            <span className="summary-row-label summary-row-label--with-icon">
+                                <Package size={15} strokeWidth={1.8} className="summary-gold-icon" />
+                                <span>Sin extras opcionales</span>
+                            </span>
+                            <span className="summary-row-val">0,00 €</span>
+                        </div>
+                    )}
+                </div>
+            </div>
 
-                        {/* Divider */}
-                        <div className="summary-divider" />
+            {/* ── 7. PAGO Y TOTAL ── */}
+            <div className="summary-section-block">
+                <div className="summary-section-head">
+                    <span className="summary-step-num">7</span>
+                    <span className="summary-section-label">Pago · Total de la Reserva</span>
+                </div>
 
-                        {/* Total To Pay Now */}
+                {breakdown && breakdown.numNights > 0 ? (
+                    <div className="summary-total-box">
                         <div className="summary-total-row">
                             <div>
-                                <span className="summary-total-title">Total a abonar</span>
-                                <span className="summary-total-sub">100% alquiler, paquetes y extras</span>
+                                <span className="summary-total-title">Total a abonar ahora</span>
+                                <span className="summary-total-sub">Alquiler, seguro a todo riesgo, paquetes y extras</span>
                             </div>
                             <span className="summary-total-amount">{formatPrice(breakdown.payableTotal)}</span>
                         </div>
@@ -489,12 +568,11 @@ function TripSummaryContent({
             <div className="summary-deposit-box">
                 <div className="deposit-box__header">
                     <ShieldCheck size={16} className="text-forest" />
-                    <span className="deposit-box__title">Fianza informativa reembolsable</span>
+                    <span className="deposit-box__title">Fianza reembolsable · {formatPrice(depositAmount)}</span>
                 </div>
                 <div className="deposit-box__body">
-                    <span className="deposit-box__amount">{formatPrice(depositAmount)}</span>
                     <p className="deposit-box__text">
-                        <strong>No se cobra ahora.</strong> Se realiza una retención temporal con tarjeta bancaria el día de entrega del vehículo y se libera íntegramente tras la revisión al finalizar el viaje.
+                        <strong>No se cobra hoy.</strong> Se realiza una retención temporal con tarjeta bancaria en la entrega de la camper y se libera al 100% tras la revisión a la devolución.
                     </p>
                 </div>
             </div>
@@ -503,9 +581,9 @@ function TripSummaryContent({
             <div className="summary-included-box">
                 <span className="summary-included-title">Incluido en todos los alquileres Utopia:</span>
                 <ul className="summary-included-list">
-                    {INCLUDED_SERVICES.map((item, i) => (
+                    {includedServices.map((item, i) => (
                         <li key={i} className="summary-included-item">
-                            <Check size={13} className="text-forest summary-included-icon" />
+                            <Check size={14} strokeWidth={2.2} className="summary-included-icon" />
                             <span>{item}</span>
                         </li>
                     ))}
@@ -528,7 +606,53 @@ function TripSummaryContent({
                 .trip-summary-content {
                     display: flex;
                     flex-direction: column;
-                    gap: var(--space-4);
+                    gap: 12px;
+                }
+
+                .summary-section-block {
+                    display: flex;
+                    flex-direction: column;
+                    gap: 6px;
+                }
+
+                .summary-section-head {
+                    display: flex;
+                    align-items: center;
+                    gap: 7px;
+                }
+
+                .summary-step-num {
+                    width: 18px;
+                    height: 18px;
+                    border-radius: 50%;
+                    background: var(--wz-pill-bg);
+                    border: 1px solid var(--wz-pill-border);
+                    color: var(--wz-pill-text);
+                    font-size: 10px;
+                    font-weight: 800;
+                    display: inline-flex;
+                    align-items: center;
+                    justify-content: center;
+                    flex-shrink: 0;
+                }
+
+                .summary-section-label {
+                    font-size: 11px;
+                    font-weight: 700;
+                    text-transform: uppercase;
+                    letter-spacing: 0.05em;
+                    color: var(--gray-600);
+                }
+
+                .summary-item-box {
+                    background: transparent;
+                    border: none;
+                    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+                    border-radius: 0;
+                    padding: 8px 0;
+                    display: flex;
+                    flex-direction: column;
+                    gap: 6px;
                 }
 
                 /* Camper card */
@@ -536,19 +660,20 @@ function TripSummaryContent({
                     display: flex;
                     align-items: center;
                     gap: var(--space-3);
-                    background: var(--wz-bg);
-                    border: 1px solid var(--gray-200);
-                    border-radius: var(--radius-lg);
-                    padding: var(--space-3);
+                    background: transparent;
+                    border: none;
+                    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+                    border-radius: 0;
+                    padding: 8px 0;
                 }
 
                 .summary-camper-thumb {
                     position: relative;
-                    width: 78px;
-                    height: 52px;
-                    border-radius: var(--radius-md);
+                    width: 72px;
+                    height: 48px;
+                    border-radius: var(--radius-sm);
                     overflow: hidden;
-                    background: #202020;
+                    background: var(--gray-100);
                     flex-shrink: 0;
                 }
 
@@ -565,12 +690,12 @@ function TripSummaryContent({
                     font-size: 9px;
                     font-weight: 700;
                     letter-spacing: 0.08em;
-                    color: var(--forest-green);
+                    color: #d4a742;
                 }
 
                 .summary-camper-name {
                     font-family: var(--font-display);
-                    font-size: var(--text-base);
+                    font-size: 14px;
                     font-weight: 700;
                     color: var(--black-matte);
                     margin: 0;
@@ -591,23 +716,25 @@ function TripSummaryContent({
                     display: flex;
                     flex-direction: column;
                     gap: 6px;
-                    background: var(--wz-bg);
-                    border: 1px solid var(--gray-200);
-                    border-radius: var(--radius-md);
-                    padding: var(--space-3);
+                    background: transparent;
+                    border: none;
+                    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+                    border-radius: 0;
+                    padding: 8px 0;
                 }
 
                 .summary-date-row {
                     display: flex;
                     align-items: center;
-                    gap: 8px;
+                    gap: 10px;
                 }
 
                 .summary-date-details {
                     display: flex;
+                    flex-wrap: wrap;
                     align-items: baseline;
-                    gap: 6px;
-                    font-size: 12px;
+                    gap: 5px;
+                    font-size: 11.5px;
                 }
 
                 .summary-date-label {
@@ -624,19 +751,18 @@ function TripSummaryContent({
                     display: flex;
                     align-items: center;
                     gap: 6px;
-                    margin-top: 4px;
+                    margin-top: 2px;
                     padding-top: 6px;
-                    border-top: 1px solid rgba(255, 255, 255, 0.05);
                 }
 
                 .stats-pill {
                     font-size: 11px;
                     font-weight: 600;
-                    color: var(--gray-700);
-                    background: var(--wz-surface);
+                    color: var(--wz-pill-text);
+                    background: var(--wz-pill-bg);
                     padding: 2px 8px;
                     border-radius: var(--radius-sm);
-                    border: 1px solid var(--gray-200);
+                    border: 1px solid var(--wz-pill-border);
                     display: inline-flex;
                     align-items: center;
                     gap: 4px;
@@ -647,34 +773,52 @@ function TripSummaryContent({
                     margin-right: 2px;
                 }
 
-                /* Breakdown section */
-                .summary-breakdown-section {
+                .summary-sub-breakdown {
                     display: flex;
                     flex-direction: column;
-                    gap: var(--space-2);
-                }
-
-                .summary-breakdown-title {
-                    font-size: 12px;
-                    font-weight: 700;
-                    text-transform: uppercase;
-                    letter-spacing: 0.05em;
-                    color: var(--gray-600);
-                    margin: 0;
-                }
-
-                .summary-breakdown-list {
-                    display: flex;
-                    flex-direction: column;
-                    gap: 6px;
+                    gap: 5px;
+                    margin-top: 4px;
+                    padding-top: 6px;
+                    border-top: 1px dashed rgba(255, 255, 255, 0.08);
                 }
 
                 .summary-breakdown-row {
                     display: flex;
                     align-items: center;
                     justify-content: space-between;
+                    gap: 8px;
                     font-size: 12px;
                     color: var(--gray-700);
+                }
+
+                :global(.summary-gold-icon) {
+                    color: #d4a742;
+                    flex-shrink: 0;
+                }
+
+                :global(html[data-theme="light"]) .summary-item-box,
+                :global(html[data-theme="light"]) .summary-camper-card,
+                :global(html[data-theme="light"]) .summary-dates-card {
+                    border-bottom-color: rgba(26, 23, 20, 0.08);
+                }
+
+                :global(html[data-theme="light"]) .summary-sub-breakdown {
+                    border-top-color: rgba(26, 23, 20, 0.08);
+                }
+
+                :global(html[data-theme="light"]) :global(.summary-gold-icon) {
+                    color: #b38827;
+                }
+
+                .summary-breakdown-row--muted {
+                    font-size: 11px;
+                    color: var(--gray-500);
+                }
+
+                .summary-row-label--with-icon {
+                    display: inline-flex;
+                    align-items: center;
+                    gap: 6px;
                 }
 
                 .summary-breakdown-row--slot {
@@ -683,7 +827,7 @@ function TripSummaryContent({
                 }
 
                 .summary-breakdown-row--discount {
-                    color: #E8CA7C;
+                    color: var(--wz-pill-text);
                     font-weight: 600;
                 }
 
@@ -694,8 +838,9 @@ function TripSummaryContent({
                 }
 
                 .discount-tag {
-                    background: rgba(204, 160, 83, 0.14);
-                    color: #E8CA7C;
+                    background: var(--wz-pill-bg);
+                    border: 1px solid var(--wz-pill-border);
+                    color: var(--wz-pill-text);
                     font-size: 10px;
                     font-weight: 700;
                     padding: 1px 5px;
@@ -705,17 +850,15 @@ function TripSummaryContent({
                 .summary-row-val {
                     font-weight: 600;
                     color: var(--black-matte);
+                    white-space: nowrap;
                 }
 
                 .summary-discount-val {
-                    color: #E8CA7C;
+                    color: var(--wz-pill-text);
                     font-weight: 700;
                 }
 
                 .summary-extras-group {
-                    margin-top: 4px;
-                    padding-top: 6px;
-                    border-top: 1px dashed var(--gray-200);
                     display: flex;
                     flex-direction: column;
                     gap: 4px;
@@ -725,8 +868,8 @@ function TripSummaryContent({
                     display: flex;
                     align-items: center;
                     justify-content: space-between;
-                    font-size: 11px;
-                    font-weight: 700;
+                    font-size: 12px;
+                    font-weight: 600;
                     color: var(--gray-700);
                 }
 
@@ -736,20 +879,21 @@ function TripSummaryContent({
                     justify-content: space-between;
                     font-size: 11px;
                     color: var(--gray-600);
-                    padding-left: 8px;
+                    padding-left: 18px;
                 }
 
-                .summary-divider {
-                    height: 1px;
-                    background: var(--gray-200);
-                    margin: 6px 0;
+                .summary-total-box {
+                    background: var(--wz-pill-bg);
+                    border: 1.5px solid var(--wz-pill-border);
+                    border-radius: var(--radius-md);
+                    padding: 11px 13px;
                 }
 
                 .summary-total-row {
                     display: flex;
                     align-items: center;
                     justify-content: space-between;
-                    padding-top: 4px;
+                    gap: 10px;
                 }
 
                 .summary-total-title {
@@ -769,6 +913,7 @@ function TripSummaryContent({
                     font-size: var(--text-xl);
                     font-weight: 800;
                     color: var(--forest-green);
+                    white-space: nowrap;
                 }
 
                 .summary-empty-state {
@@ -777,17 +922,18 @@ function TripSummaryContent({
                     gap: 8px;
                     font-size: 11px;
                     color: var(--gray-600);
-                    background: var(--wz-bg);
+                    background: var(--wz-chip-bg);
+                    border: 1px solid var(--wz-chip-border);
                     padding: var(--space-3);
                     border-radius: var(--radius-md);
                 }
 
                 /* Deposit Box */
                 .summary-deposit-box {
-                    background: rgba(204, 160, 83, 0.04);
-                    border: 1px solid rgba(204, 160, 83, 0.12);
+                    background: var(--wz-pill-bg);
+                    border: 1px solid var(--wz-pill-border);
                     border-radius: var(--radius-md);
-                    padding: var(--space-3);
+                    padding: 10px 12px;
                     display: flex;
                     flex-direction: column;
                     gap: 4px;
@@ -811,33 +957,27 @@ function TripSummaryContent({
                     gap: 2px;
                 }
 
-                .deposit-box__amount {
-                    font-size: 13px;
-                    font-weight: 700;
-                    color: var(--black-matte);
-                }
-
                 .deposit-box__text {
                     font-size: 10px;
                     color: var(--gray-600);
-                    line-height: 1.4;
+                    line-height: 1.45;
                     margin: 0;
                 }
 
-                /* Included Box */
+                /* Included list */
                 .summary-included-box {
-                    background: var(--wz-surface);
-                    border: 1px solid var(--gray-200);
-                    border-radius: var(--radius-md);
-                    padding: var(--space-3);
+                    border-top: 1px solid var(--gray-100);
+                    padding-top: var(--space-3);
                 }
 
                 .summary-included-title {
-                    font-size: 11px;
+                    font-size: 10px;
                     font-weight: 700;
-                    color: var(--black-matte);
-                    margin-bottom: 6px;
+                    text-transform: uppercase;
+                    letter-spacing: 0.04em;
+                    color: var(--gray-500);
                     display: block;
+                    margin-bottom: 6px;
                 }
 
                 .summary-included-list {
@@ -846,28 +986,44 @@ function TripSummaryContent({
                     margin: 0;
                     display: flex;
                     flex-direction: column;
-                    gap: 5px;
+                    gap: 0;
                 }
 
                 .summary-included-item {
                     display: flex;
-                    align-items: flex-start;
-                    gap: 6px;
-                    font-size: 11px;
+                    align-items: center;
+                    gap: 8px;
+                    font-size: 11.5px;
                     color: var(--gray-600);
                     line-height: 1.35;
+                    padding: 6px 0;
+                    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+                }
+
+                .summary-included-item:last-child {
+                    border-bottom: none;
                 }
 
                 :global(.summary-included-icon) {
+                    color: #d4a742;
                     flex-shrink: 0;
-                    margin-top: 3px;
+                }
+
+                :global(html[data-theme="light"]) .summary-included-item {
+                    border-bottom-color: rgba(26, 23, 20, 0.08);
+                }
+
+                :global(html[data-theme="light"]) :global(.summary-included-icon) {
+                    color: #b38827;
                 }
 
                 /* Trust Footer */
                 .summary-trust-footer {
                     display: flex;
-                    flex-direction: column;
-                    gap: 4px;
+                    flex-wrap: wrap;
+                    align-items: center;
+                    justify-content: space-between;
+                    gap: 6px;
                     padding-top: var(--space-2);
                     border-top: 1px solid var(--gray-100);
                 }
@@ -875,8 +1031,9 @@ function TripSummaryContent({
                 .trust-badge {
                     display: flex;
                     align-items: center;
-                    gap: 6px;
+                    gap: 4px;
                     font-size: 10px;
+                    font-weight: 600;
                     color: var(--gray-500);
                 }
             `}</style>

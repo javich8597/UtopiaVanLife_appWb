@@ -18,10 +18,8 @@ export default function CamperIncluded({ items }: Props) {
       <ul className="included-list">
         {items.map((item, i) => (
           <li key={i} className="included-item">
-            <span className="included-check">
-              <Check size={14} />
-            </span>
-            <span>{item}</span>
+            <Check size={18} strokeWidth={2.2} className="included-check-icon" />
+            <span className="included-text">{item}</span>
           </li>
         ))}
       </ul>
@@ -57,32 +55,58 @@ export default function CamperIncluded({ items }: Props) {
           margin: 0;
           display: grid;
           grid-template-columns: 1fr 1fr;
-          gap: 10px;
+          column-gap: 36px;
+          row-gap: 0;
         }
         .included-item {
           display: flex;
-          align-items: flex-start;
-          gap: 10px;
-          font-size: 13px;
-          color: rgba(255, 255, 255, 0.75);
-          line-height: 1.5;
-        }
-        .included-check {
-          width: 22px;
-          height: 22px;
-          border-radius: 6px;
-          background: rgba(230, 202, 101, 0.12);
-          display: flex;
           align-items: center;
-          justify-content: center;
+          gap: 14px;
+          font-size: 13.5px;
+          color: rgba(255, 255, 255, 0.9);
+          line-height: 1.45;
+          padding: 14px 0;
+          background: transparent;
+          border: none;
+          border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+          border-radius: 0;
+        }
+        :global(.included-check-icon) {
+          color: #d4a742;
           flex-shrink: 0;
-          color: #e6ca65;
-          margin-top: 1px;
+        }
+        .included-text {
+          flex: 1;
         }
 
+        :global(html[data-theme="light"]) .section-divider-title {
+          color: #5C554C;
+        }
+        :global(html[data-theme="light"]) .section-divider-line {
+          background: linear-gradient(90deg, rgba(150, 122, 34, 0.38), rgba(26, 23, 20, 0.08));
+        }
+        :global(html[data-theme="light"]) .included-item {
+          background: transparent;
+          border-bottom-color: rgba(26, 23, 20, 0.1);
+          color: #1A1714;
+          box-shadow: none;
+        }
+        :global(html[data-theme="light"]) :global(.included-check-icon) {
+          color: #b38827;
+        }
+
+        @media (max-width: 860px) {
+          .included-list {
+            grid-template-columns: 1fr 1fr;
+            column-gap: 20px;
+          }
+        }
         @media (max-width: 640px) {
           .included-list {
             grid-template-columns: 1fr;
+          }
+          .included-item {
+            padding: 12px 0;
           }
         }
       `}</style>

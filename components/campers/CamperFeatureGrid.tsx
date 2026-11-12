@@ -6,7 +6,7 @@ import {
   Zap, Droplets, Sun, Shield, Utensils,
   Wifi, Battery, ThermometerSun, Wind, Tv,
   Bed, Plug, Gauge, Snowflake, FolderOpen,
-  ChevronDown
+  Users, Ruler, ChevronDown
 } from 'lucide-react'
 
 export interface FeatureItem {
@@ -18,6 +18,7 @@ export interface FeatureItem {
 interface Props {
   features: FeatureItem[]
   initialVisible?: number
+  title?: string
 }
 
 const ICON_MAP: Record<string, any> = {
@@ -36,9 +37,11 @@ const ICON_MAP: Record<string, any> = {
   gauge: Gauge,
   snowflake: Snowflake,
   folder: FolderOpen,
+  users: Users,
+  ruler: Ruler,
 }
 
-export default function CamperFeatureGrid({ features, initialVisible = 8 }: Props) {
+export default function CamperFeatureGrid({ features, initialVisible = 8, title = 'CARACTERÍSTICAS' }: Props) {
   const [expanded, setExpanded] = useState(false)
   const visible = expanded ? features : features.slice(0, initialVisible)
   const needsExpand = features.length > initialVisible
@@ -46,7 +49,7 @@ export default function CamperFeatureGrid({ features, initialVisible = 8 }: Prop
   return (
     <section className="feature-grid-section">
       <div className="section-divider-row">
-        <h3 className="section-divider-title">CARACTERÍSTICAS</h3>
+        <h3 className="section-divider-title">{title}</h3>
         <div className="section-divider-line" />
       </div>
 
@@ -54,13 +57,11 @@ export default function CamperFeatureGrid({ features, initialVisible = 8 }: Prop
         {visible.map((f, i) => {
           const Icon = ICON_MAP[f.icon] || Zap
           return (
-            <div key={i} className="feature-card">
-              <div className="feature-icon-box">
-                <Icon size={18} />
-              </div>
+            <div key={i} className="feature-row">
+              <Icon size={18} strokeWidth={1.8} className="feature-row-icon" />
               <div className="feature-text">
                 <span className="feature-label">{f.label}</span>
-                <span className="feature-value">{f.value}</span>
+                {f.value && <span className="feature-value">{f.value}</span>}
               </div>
             </div>
           )
@@ -108,36 +109,21 @@ export default function CamperFeatureGrid({ features, initialVisible = 8 }: Prop
         .feature-grid {
           display: grid;
           grid-template-columns: 1fr 1fr;
-          gap: 10px;
+          column-gap: 36px;
+          row-gap: 0;
         }
-        .feature-card {
+        .feature-row {
           display: flex;
           align-items: center;
-          gap: 12px;
-          padding: 14px 16px;
-          background: #131518;
-          border: 1px solid rgba(255, 255, 255, 0.08);
-          border-radius: 14px;
-          transition: border-color 0.25s ease, box-shadow 0.25s ease;
+          gap: 14px;
+          padding: 14px 0;
+          border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+          min-width: 0;
+          transition: border-color 0.2s ease;
         }
-        .feature-card:hover {
-          border-color: rgba(230, 202, 101, 0.25);
-          box-shadow: 0 0 20px -5px rgba(230, 202, 101, 0.1);
-        }
-        .feature-icon-box {
-          width: 36px;
-          height: 36px;
-          border-radius: 10px;
-          background: rgba(230, 202, 101, 0.12);
-          display: flex;
-          align-items: center;
-          justify-content: center;
+        :global(.feature-row-icon) {
+          color: #d4a742;
           flex-shrink: 0;
-          color: #e6ca65;
-          transition: transform 0.25s ease;
-        }
-        .feature-card:hover .feature-icon-box {
-          transform: scale(1.08);
         }
         .feature-text {
           display: flex;
@@ -146,15 +132,15 @@ export default function CamperFeatureGrid({ features, initialVisible = 8 }: Prop
           min-width: 0;
         }
         .feature-label {
-          font-size: 13px;
+          font-size: 13.5px;
           font-weight: 600;
-          color: rgba(255, 255, 255, 0.9);
-          line-height: 1.3;
+          color: rgba(255, 255, 255, 0.95);
+          line-height: 1.35;
         }
         .feature-value {
-          font-size: 11px;
-          color: rgba(255, 255, 255, 0.45);
-          line-height: 1.3;
+          font-size: 12px;
+          color: rgba(255, 255, 255, 0.55);
+          line-height: 1.35;
         }
         .feature-expand-wrap {
           display: flex;
@@ -188,17 +174,47 @@ export default function CamperFeatureGrid({ features, initialVisible = 8 }: Prop
           transform: rotate(180deg);
         }
 
+        :global(html[data-theme="light"]) .section-divider-title {
+          color: #5C554C;
+        }
+        :global(html[data-theme="light"]) .section-divider-line {
+          background: linear-gradient(90deg, rgba(150, 122, 34, 0.38), rgba(26, 23, 20, 0.08));
+        }
+        :global(html[data-theme="light"]) .feature-row {
+          border-bottom-color: rgba(26, 23, 20, 0.1);
+        }
+        :global(html[data-theme="light"]) :global(.feature-row-icon) {
+          color: #b38827;
+        }
+        :global(html[data-theme="light"]) .feature-label {
+          color: #1A1714;
+        }
+        :global(html[data-theme="light"]) .feature-value {
+          color: #5C554C;
+        }
+        :global(html[data-theme="light"]) .feature-expand-btn {
+          background: #FAFAF7;
+          border-color: rgba(26, 23, 20, 0.18);
+          color: #1F1B17;
+        }
+        :global(html[data-theme="light"]) .feature-expand-btn:hover {
+          background: #F3EFE7;
+          border-color: rgba(150, 122, 34, 0.45);
+          color: #6B5514;
+        }
+
         @media (max-width: 860px) {
           .feature-grid {
             grid-template-columns: 1fr 1fr;
+            column-gap: 20px;
           }
         }
         @media (max-width: 640px) {
           .feature-grid {
             grid-template-columns: 1fr;
           }
-          .feature-card {
-            padding: 12px 14px;
+          .feature-row {
+            padding: 12px 0;
           }
         }
       `}</style>

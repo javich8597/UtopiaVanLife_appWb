@@ -41,7 +41,8 @@ html[data-theme="light"] {
   /* Dorado de marca y tonos arena */
   --site-gold: #B8893A;
   --site-gold-fill: #CCA053;
-  --site-gold-text: #1A1714; /* Texto negro en acentos arena/dorados para alto contraste */
+  --site-gold-text: #1A1714;
+  /* Texto negro en acentos arena/dorados para alto contraste */
   --site-gold-soft: #F7EEDC;
   --site-gold-line: #E8D6B2;
 
@@ -60,7 +61,8 @@ html[data-theme="light"] {
   --forest-green-accent: #B8893A;
   --sand: #E8D6B2;
   --sand-light: #F7EEDC;
-  --sand-dark: #1A1714; /* Negro para cualquier texto en partes beige */
+  --sand-dark: #1A1714;
+  /* Negro para cualquier texto en partes beige */
   --gray-50: #F7F5F1;
   --gray-100: #F7F5F1;
   --gray-200: #EAE5DD;
@@ -235,7 +237,8 @@ html[data-theme="light"] .lang-dropdown-btn:hover {
 
 html[data-theme="light"] .lang-dropdown-btn--selected {
   background: #F7EEDC !important;
-  color: #1A1714 !important; /* TEXTO NEGRO EN BEIGE */
+  color: #1A1714 !important;
+  /* TEXTO NEGRO EN BEIGE */
   font-weight: 700 !important;
 }
 
@@ -316,7 +319,8 @@ html[data-theme="light"] .mobile-menu__links .mobile-menu__link--reservar {
 html[data-theme="light"] .mobile-menu__links .mobile-menu__link--admin {
   background: #F7EEDC !important;
   border-color: #E8D6B2 !important;
-  color: #1A1714 !important; /* TEXTO NEGRO EN BEIGE */
+  color: #1A1714 !important;
+  /* TEXTO NEGRO EN BEIGE */
   font-weight: 700 !important;
 }
 
@@ -422,6 +426,13 @@ html[data-theme="light"] .price-calc__calendar-collapse .booking-cal {
   max-width: 100% !important;
 }
 
+html[data-theme="light"] .sidebar-calendar-wrap .booking-cal {
+  background: #FAF8F5 !important;
+  border: 1px solid #EAE5DD !important;
+  box-shadow: none !important;
+  max-width: 100% !important;
+}
+
 html[data-theme="light"] .reservar-search__calendar-popover {
   background: transparent !important;
   border: none !important;
@@ -476,7 +487,8 @@ html[data-theme="light"] .booking-cal__day-number {
 /* Hover en días válidos: respuesta inmediata interactiva idéntica a modo oscuro */
 html[data-theme="light"] .booking-cal__day:hover:not(.booking-cal__day--disabled):not(.booking-cal__day--start):not(.booking-cal__day--end) .booking-cal__day-number {
   background: #CCA053 !important;
-  color: #1A1714 !important; /* TEXTO NEGRO EN BEIGE */
+  color: #1A1714 !important;
+  /* TEXTO NEGRO EN BEIGE */
   font-weight: 800 !important;
   transform: scale(1.08) !important;
 }
@@ -579,14 +591,16 @@ html[data-theme="light"] .booking-cal__slot-pill--active .booking-cal__slot-badg
 
 html[data-theme="light"] .booking-cal__slot-badge {
   background: #E2DBD3 !important;
-  color: #1A1714 !important; /* TEXTO NEGRO EN BEIGE */
+  color: #1A1714 !important;
+  /* TEXTO NEGRO EN BEIGE */
   font-weight: 700 !important;
 }
 
 /* Banner de pasos informativos */
 html[data-theme="light"] .booking-cal__step-banner {
   background: #F7EEDC !important;
-  color: #1A1714 !important; /* TEXTO NEGRO EN BEIGE */
+  color: #1A1714 !important;
+  /* TEXTO NEGRO EN BEIGE */
   border: 1px solid #E8D6B2 !important;
   font-weight: 700 !important;
 }
@@ -648,9 +662,29 @@ html[data-theme="light"] .booking-cal__legend {
   color: #5A5248 !important;
 }
 
+html[data-theme="light"] .booking-cal__legend-icon--am {
+  background: linear-gradient(135deg, rgba(184, 137, 58, 0.55) 50%, #FAF8F5 50%) !important;
+  border-color: #B8893A !important;
+}
+
+html[data-theme="light"] .booking-cal__legend-icon--pm {
+  background: linear-gradient(135deg, #FAF8F5 50%, rgba(184, 137, 58, 0.55) 50%) !important;
+  border-color: #B8893A !important;
+}
+
 /* ── 7. SECCIONES DE LA HOME (CAMPERS, 3D, WHY, EXPERIENCIAS, FAQ) ── */
+html[data-theme="light"] .home-main::before {
+  opacity: 0.022 !important;
+}
+
 html[data-theme="light"] .featured {
-  background: #F2F0EC !important;
+  background:
+    radial-gradient(ellipse 75% 45% at 50% 0%, rgba(204, 160, 83, 0.09) 0%, transparent 70%),
+    linear-gradient(180deg, rgba(245, 242, 236, 0.90) 0%, rgba(239, 235, 227, 0.92) 100%),
+    url('/images/backgrounds/mallorca-bg-light.webp') !important;
+  background-position: center center !important;
+  background-size: cover !important;
+  background-repeat: no-repeat !important;
 }
 
 html[data-theme="light"] .featured__title {
@@ -664,7 +698,8 @@ html[data-theme="light"] .featured__subtitle {
 html[data-theme="light"] .featured__eyebrow-pill {
   background: #F7EEDC !important;
   border: 1px solid #E8D6B2 !important;
-  color: #1A1714 !important; /* TEXTO NEGRO EN BEIGE */
+  color: #1A1714 !important;
+  /* TEXTO NEGRO EN BEIGE */
   font-weight: 700 !important;
 }
 
@@ -703,42 +738,70 @@ html[data-theme="light"] .camper-card__tagline {
   color: #5A5248 !important;
 }
 
-html[data-theme="light"] .camper-card__spec-chip {
-  background: #F7F5F1 !important;
-  border: 1px solid #EAE5DD !important;
+html[data-theme="light"] .camper-card__spec-chip,
+html[data-theme="light"] .camper-card__spec {
+  background: transparent !important;
+  border: none !important;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.08) !important;
   color: #1F1B17 !important;
+  border-radius: 0 !important;
+}
+
+html[data-theme="light"] .camper-card__spec-icon {
+  background: transparent !important;
+  border: none !important;
+  color: #CCA053 !important;
 }
 
 html[data-theme="light"] .camper-card__spec-label {
   color: #5A5248 !important;
 }
 
+html[data-theme="light"] .camper-card__spec-val {
+  color: #1F1B17 !important;
+}
+
 html[data-theme="light"] .camper-card__footer {
   border-top: 1px solid #EAE5DD !important;
 }
 
-html[data-theme="light"] .camper-card__price-value {
+html[data-theme="light"] .camper-card__price-from,
+html[data-theme="light"] .camper-card__price-unit {
+  color: #5A5248 !important;
+}
+
+html[data-theme="light"] .camper-card__price-value,
+html[data-theme="light"] .camper-card__price-amount {
   color: #1F1B17 !important;
 }
 
-html[data-theme="light"] .camper-card__cta {
+html[data-theme="light"] .camper-card__cta,
+html[data-theme="light"] .camper-card__btn {
   background: #1A1714 !important;
   color: #F6EBD3 !important;
+  border-color: #1A1714 !important;
 }
 
-html[data-theme="light"] .camper-card__cta:hover {
+html[data-theme="light"] .camper-card__cta:hover,
+html[data-theme="light"] .camper-card__btn:hover {
   background: #2E2822 !important;
 }
 
 /* 3D Showcase */
 html[data-theme="light"] .showcase-section {
-  background: #EFECE6 !important;
+  background:
+    linear-gradient(180deg, rgba(239, 236, 230, 0.90) 0%, rgba(247, 245, 241, 0.88) 100%),
+    url('/images/backgrounds/mallorca-bg-light.webp') !important;
+  background-position: center center !important;
+  background-size: cover !important;
+  background-repeat: no-repeat !important;
 }
 
 html[data-theme="light"] .showcase-eyebrow {
   background: #F7EEDC !important;
   border: 1px solid #E8D6B2 !important;
-  color: #1A1714 !important; /* TEXTO NEGRO EN BEIGE */
+  color: #1A1714 !important;
+  /* TEXTO NEGRO EN BEIGE */
   font-weight: 700 !important;
 }
 
@@ -790,7 +853,8 @@ html[data-theme="light"] .why-section {
 html[data-theme="light"] .why__eyebrow-badge {
   background: #F7EEDC !important;
   border: 1px solid #E8D6B2 !important;
-  color: #1A1714 !important; /* TEXTO NEGRO EN BEIGE */
+  color: #1A1714 !important;
+  /* TEXTO NEGRO EN BEIGE */
   font-weight: 700 !important;
 }
 
@@ -840,7 +904,8 @@ html[data-theme="light"] .why__card-tag,
 html[data-theme="light"] .why-card__tag {
   background: #F7EEDC !important;
   border: 1px solid #E8D6B2 !important;
-  color: #1A1714 !important; /* TEXTO NEGRO EN BEIGE */
+  color: #1A1714 !important;
+  /* TEXTO NEGRO EN BEIGE */
   font-weight: 700 !important;
   padding: 4px 10px !important;
   border-radius: 999px !important;
@@ -856,6 +921,103 @@ html[data-theme="light"] .why-card__desc {
   color: #5A5248 !important;
 }
 
+/* AboutPreview ("Por qué Utopia" formato alternado estilo /venta + enlace a Conócenos) */
+html[data-theme="light"] .about-preview {
+  color: #1F1B17 !important;
+}
+
+html[data-theme="light"] .about-preview__eyebrow-pill {
+  background: #F7EEDC !important;
+  border: 1px solid #E8D6B2 !important;
+  color: #1A1714 !important;
+}
+
+html[data-theme="light"] .about-preview__header-title {
+  color: #1F1B17 !important;
+}
+
+html[data-theme="light"] .about-preview__header-subtitle {
+  color: #5A5248 !important;
+}
+
+html[data-theme="light"] .about-band {
+  border-bottom: 1px solid #EAE5DD !important;
+}
+
+html[data-theme="light"] .about-band--a {
+  background:
+    linear-gradient(180deg, rgba(242, 240, 236, 0.88) 0%, rgba(242, 240, 236, 0.91) 100%),
+    url('/images/backgrounds/mallorca-bg-light.webp') !important;
+  background-position: center center !important;
+  background-size: cover !important;
+  background-repeat: no-repeat !important;
+}
+
+html[data-theme="light"] .about-band--b {
+  background:
+    linear-gradient(180deg, rgba(247, 245, 241, 0.89) 0%, rgba(247, 245, 241, 0.92) 100%),
+    url('/images/backgrounds/mallorca-bg-light.webp') !important;
+  background-position: center center !important;
+  background-size: cover !important;
+  background-repeat: no-repeat !important;
+}
+
+html[data-theme="light"] .about-band__tag {
+  background: #F7EEDC !important;
+  border: 1px solid #E8D6B2 !important;
+  color: #1A1714 !important;
+}
+
+html[data-theme="light"] .about-band__title {
+  color: #1F1B17 !important;
+}
+
+html[data-theme="light"] .about-band__title-accent {
+  background: linear-gradient(135deg, #1F1B17 0%, #8A6421 55%, #B8893A 100%) !important;
+  -webkit-background-clip: text !important;
+  -webkit-text-fill-color: transparent !important;
+  color: #B8893A !important;
+}
+
+html[data-theme="light"] .about-band__desc,
+html[data-theme="light"] .about-band__list {
+  color: #5A5248 !important;
+}
+
+html[data-theme="light"] .about-band__item-title,
+html[data-theme="light"] .about-band__highlight {
+  color: #1F1B17 !important;
+}
+
+html[data-theme="light"] .about-band__check-disc {
+  background: #F7EEDC !important;
+  border: 1px solid #E8D6B2 !important;
+  color: #8A6421 !important;
+}
+
+html[data-theme="light"] .about-band__media {
+  background: #FFFFFF !important;
+  border-color: #EAE5DD !important;
+  box-shadow: 0 12px 32px rgba(40, 30, 15, 0.10) !important;
+}
+
+html[data-theme="light"] .about-band__media--dark {
+  background: #14171A !important;
+  border-color: #D9D1C4 !important;
+}
+
+html[data-theme="light"] .about-band__cta {
+  background: #1A1714 !important;
+  border-color: #1A1714 !important;
+  color: #F6EBD3 !important;
+}
+
+html[data-theme="light"] .about-band__cta:hover {
+  background: #2E2822 !important;
+  border-color: #2E2822 !important;
+  color: #FFFFFF !important;
+}
+
 /* Experiencias ("Momentos que no caben en una habitación de hotel") */
 html[data-theme="light"] .experiences,
 html[data-theme="light"] .experiences-section {
@@ -865,18 +1027,17 @@ html[data-theme="light"] .experiences-section {
 }
 
 html[data-theme="light"] .experiences__ambient-bg {
-  background: radial-gradient(
-    circle at 80% 20%,
-    rgba(204, 160, 83, 0.10) 0%,
-    rgba(247, 245, 241, 0.85) 60%,
-    #F7F5F1 100%
-  ) !important;
+  background: radial-gradient(circle at 80% 20%,
+      rgba(204, 160, 83, 0.10) 0%,
+      rgba(247, 245, 241, 0.85) 60%,
+      #F7F5F1 100%) !important;
 }
 
 html[data-theme="light"] .experiences__eyebrow-badge {
   background: #F7EEDC !important;
   border: 1px solid #E8D6B2 !important;
-  color: #1A1714 !important; /* TEXTO NEGRO EN BEIGE */
+  color: #1A1714 !important;
+  /* TEXTO NEGRO EN BEIGE */
   font-weight: 700 !important;
 }
 
@@ -917,12 +1078,10 @@ html[data-theme="light"] .exp-card__media-wrap {
 }
 
 html[data-theme="light"] .exp-card__media-scrim {
-  background: linear-gradient(
-    to bottom,
-    rgba(0, 0, 0, 0.08) 0%,
-    transparent 60%,
-    rgba(26, 23, 20, 0.28) 100%
-  ) !important;
+  background: linear-gradient(to bottom,
+      rgba(0, 0, 0, 0.08) 0%,
+      transparent 60%,
+      rgba(26, 23, 20, 0.28) 100%) !important;
 }
 
 html[data-theme="light"] .exp-card__highlight-pill {
@@ -948,7 +1107,8 @@ html[data-theme="light"] .exp-card__tag,
 html[data-theme="light"] .experience-card__tag {
   background: #F7EEDC !important;
   border: 1px solid #E8D6B2 !important;
-  color: #1A1714 !important; /* TEXTO NEGRO EN BEIGE */
+  color: #1A1714 !important;
+  /* TEXTO NEGRO EN BEIGE */
   font-weight: 700 !important;
   padding: 4px 10px !important;
   border-radius: 999px !important;
@@ -973,27 +1133,48 @@ html[data-theme="light"] .experience-card__desc {
 /* FAQ & Recuadro de Atención Personalizada */
 html[data-theme="light"] .faq-section,
 html[data-theme="light"] .faq-page-main {
-  background: #F2F0EC !important;
+  background:
+    linear-gradient(180deg, rgba(242, 240, 236, 0.90) 0%, rgba(247, 245, 241, 0.92) 100%),
+    url('/images/backgrounds/mallorca-bg-light.webp') !important;
+  background-position: center center !important;
+  background-size: cover !important;
+  background-repeat: no-repeat !important;
   border-top: 1px solid #EAE5DD !important;
 }
 
 html[data-theme="light"] .faq-eyebrow-pill {
   background: #F7EEDC !important;
   border: 1px solid #E8D6B2 !important;
-  color: #1A1714 !important; /* TEXTO NEGRO EN BEIGE */
+  color: #1A1714 !important;
+  /* TEXTO NEGRO EN BEIGE */
   font-weight: 700 !important;
+}
+
+html[data-theme="light"] .faq-title {
+  color: #1F1B17 !important;
+}
+
+html[data-theme="light"] .faq-subtitle {
+  color: #5A5248 !important;
 }
 
 html[data-theme="light"] .faq-card,
 html[data-theme="light"] .faq-experience--dark .faq-card {
-  background: #FFFFFF !important;
-  border: 1px solid #EAE5DD !important;
-  box-shadow: 0 2px 8px rgba(40, 30, 15, 0.04) !important;
+  background: transparent !important;
+  border: none !important;
+  border-bottom: 1px solid #EAE5DD !important;
+  border-radius: 0 !important;
+  box-shadow: none !important;
+}
+
+html[data-theme="light"] .faq-card:first-child,
+html[data-theme="light"] .faq-experience--dark .faq-card:first-child {
+  border-top: 1px solid #EAE5DD !important;
 }
 
 html[data-theme="light"] .faq-card:hover,
 html[data-theme="light"] .faq-experience--dark .faq-card:hover {
-  border-color: #D9D1C4 !important;
+  border-bottom-color: #B8893A !important;
 }
 
 html[data-theme="light"] .faq-card__question,
@@ -1004,14 +1185,14 @@ html[data-theme="light"] .faq-experience--dark .faq-card__question {
 html[data-theme="light"] .faq-card__chevron-wrap,
 html[data-theme="light"] .faq-experience--dark .faq-card__chevron,
 html[data-theme="light"] .faq-experience--dark .faq-card__chevron-wrap {
-  color: #1A1714 !important;
-  background: #F7F5F1 !important;
+  color: #5A5248 !important;
+  background: transparent !important;
 }
 
 html[data-theme="light"] .faq-card__body,
 html[data-theme="light"] .faq-experience--dark .faq-card__body {
   color: #5A5248 !important;
-  border-top: 1px solid #EAE5DD !important;
+  border-top: none !important;
 }
 
 html[data-theme="light"] .faq-strong-highlight,
@@ -1021,62 +1202,73 @@ html[data-theme="light"] .faq-experience--dark .faq-strong-highlight {
 
 html[data-theme="light"] .faq-card__category-chip,
 html[data-theme="light"] .faq-experience--dark .faq-card__category-chip {
-  background: #F7EEDC !important;
-  border: 1px solid #E8D6B2 !important;
-  color: #1A1714 !important; /* TEXTO NEGRO EN BEIGE */
-  font-weight: 700 !important;
+  background: transparent !important;
+  border: none !important;
+  color: #8A6626 !important;
+  padding: 0 !important;
+  font-weight: 600 !important;
 }
 
-html[data-theme="light"] .faq-contact-card {
-  background: #FFFFFF !important;
+/* Reseñas de clientes */
+html[data-theme="light"] .reviews-section {
+  background:
+    radial-gradient(ellipse 75% 50% at 50% 100%, rgba(204, 160, 83, 0.08) 0%, transparent 72%),
+    linear-gradient(180deg, #F7F5F1 0%, #EFEAE1 100%) !important;
+  border-top: 1px solid #EAE5DD !important;
+}
+
+html[data-theme="light"] .reviews__eyebrow-pill {
+  background: #F7EEDC !important;
+  border: 1px solid #E8D6B2 !important;
+  color: #1A1714 !important;
+}
+
+html[data-theme="light"] .reviews__title {
   color: #1F1B17 !important;
+}
+
+html[data-theme="light"] .reviews__subtitle {
+  color: #5A5248 !important;
+}
+
+html[data-theme="light"] .reviews-fade--left {
+  background: linear-gradient(to right, #F7F5F1 0%, transparent 100%) !important;
+}
+
+html[data-theme="light"] .reviews-fade--right {
+  background: linear-gradient(to left, #F7F5F1 0%, transparent 100%) !important;
+}
+
+html[data-theme="light"] .review-card {
+  background: #FFFFFF !important;
   border: 1px solid #EAE5DD !important;
   box-shadow: 0 2px 8px rgba(40, 30, 15, 0.04), 0 12px 28px rgba(40, 30, 15, 0.06) !important;
 }
 
-html[data-theme="light"] .faq-contact-card__glow {
-  background: radial-gradient(circle, rgba(204, 160, 83, 0.14) 0%, transparent 70%) !important;
+html[data-theme="light"] .review-card:hover {
+  border-color: #D9D1C4 !important;
 }
 
-html[data-theme="light"] .faq-contact-badge {
+html[data-theme="light"] .review-card__text {
+  color: #3F3932 !important;
+}
+
+html[data-theme="light"] .review-card__footer {
+  border-top-color: #EAE5DD !important;
+}
+
+html[data-theme="light"] .review-card__avatar {
   background: #F7EEDC !important;
-  border: 1px solid #E8D6B2 !important;
-  color: #1A1714 !important; /* TEXTO NEGRO EN BEIGE */
-  font-weight: 700 !important;
-  padding: 5px 12px !important;
-  border-radius: 999px !important;
+  border-color: #E8D6B2 !important;
+  color: #1A1714 !important;
 }
 
-html[data-theme="light"] .faq-contact-title {
+html[data-theme="light"] .review-card__name {
   color: #1F1B17 !important;
-  font-family: var(--font-display, inherit) !important;
-  font-weight: 700 !important;
 }
 
-html[data-theme="light"] .faq-contact-desc {
-  color: #5A5248 !important;
-}
-
-html[data-theme="light"] .faq-contact-actions .btn-forest {
-  background: #1A1714 !important;
-  color: #F6EBD3 !important;
-  border: 1px solid #1A1714 !important;
-}
-
-html[data-theme="light"] .faq-contact-actions .btn-forest:hover {
-  background: #2E2822 !important;
-}
-
-html[data-theme="light"] .faq-contact-actions .btn-outline {
-  background: #FAF8F5 !important;
-  border: 1.5px solid #D9D1C4 !important;
-  color: #1A1714 !important;
-}
-
-html[data-theme="light"] .faq-contact-actions .btn-outline:hover {
-  background: #F7EEDC !important;
-  border-color: #B8893A !important;
-  color: #1A1714 !important;
+html[data-theme="light"] .review-card__source {
+  color: #7A7065 !important;
 }
 
 /* ── 8. FOOTER ── */
@@ -1132,25 +1324,8 @@ html[data-theme="light"] .footer .footer__social-btn {
 html[data-theme="light"] .footer .footer__social-btn:hover {
   border-color: #D9D1C4 !important;
   background: #F7EEDC !important;
-  color: #1A1714 !important; /* TEXTO NEGRO EN BEIGE */
-}
-
-html[data-theme="light"] .footer .footer__instagram {
-  background: #FFFFFF !important;
-  border: 1px solid #EAE5DD !important;
-}
-
-html[data-theme="light"] .footer .footer__instagram-brand {
-  color: #1F1B17 !important;
-}
-
-html[data-theme="light"] .footer .footer__instagram-btn {
-  background: #1A1714 !important;
-  color: #F6EBD3 !important;
-}
-
-html[data-theme="light"] .footer .footer__instagram-text {
-  color: #857B6F !important;
+  color: #1A1714 !important;
+  /* TEXTO NEGRO EN BEIGE */
 }
 
 html[data-theme="light"] .footer__bottom {
@@ -1169,6 +1344,7 @@ html[data-theme="light"] .footer .footer__legal-link:hover {
 /* ── 9. CATÁLOGO / PÁGINA CAMPERS (/campers) ── */
 html[data-theme="light"] .catalog-page {
   background: #F2F0EC !important;
+  color: #1F1B17 !important;
 }
 
 html[data-theme="light"] .catalog-hero {
@@ -1188,12 +1364,54 @@ html[data-theme="light"] .catalog-hero__subtitle {
 html[data-theme="light"] .catalog-hero__eyebrow {
   background: #F7EEDC !important;
   border: 1px solid #E8D6B2 !important;
-  color: #1A1714 !important; /* TEXTO NEGRO EN BEIGE */
+  color: #1A1714 !important;
+  /* TEXTO NEGRO EN BEIGE */
   font-weight: 700 !important;
 }
 
+html[data-theme="light"] .catalog__filter-btn {
+  background: #FFFFFF !important;
+  border: 1px solid #EAE5DD !important;
+  color: #5A5248 !important;
+}
+
+html[data-theme="light"] .catalog__filter-btn:hover {
+  border-color: #B8893A !important;
+  color: #1F1B17 !important;
+}
+
+html[data-theme="light"] .catalog__filter-btn--active {
+  background: #1A1714 !important;
+  border-color: #1A1714 !important;
+  color: #F6EBD3 !important;
+}
+
+html[data-theme="light"] .catalog__search-info {
+  color: #5A5248 !important;
+}
+
+html[data-theme="light"] .catalog__search-info strong {
+  color: #1A1714 !important;
+}
+
+html[data-theme="light"] .catalog__pillar-item {
+  background: #FFFFFF !important;
+  border: 1px solid #EAE5DD !important;
+  box-shadow: 0 2px 8px rgba(40, 30, 15, 0.04) !important;
+}
+
+html[data-theme="light"] .catalog__pillar-icon {
+  background: #F7EEDC !important;
+  color: #1A1714 !important;
+}
+
+html[data-theme="light"] .catalog__pillar-text {
+  color: #1F1B17 !important;
+}
+
 /* ── 10. DETALLE DE CAMPER (/campers/[slug]) ── */
-html[data-theme="light"] .camper-detail-page {
+html[data-theme="light"] .camper-detail-page,
+html[data-theme="light"] .camper-detail-v2 {
   background: #F2F0EC !important;
   color: #1F1B17 !important;
 }
@@ -1278,8 +1496,24 @@ html[data-theme="light"] .feature-card__desc {
   color: #5A5248 !important;
 }
 
+html[data-theme="light"] .feature-expand-btn {
+  background: #FFFFFF !important;
+  border: 1px solid #D9D1C4 !important;
+  color: #1F1B17 !important;
+}
+
+html[data-theme="light"] .feature-expand-btn:hover {
+  background: #F7EEDC !important;
+  border-color: #B8893A !important;
+  color: #1A1714 !important;
+}
+
 html[data-theme="light"] .description-paragraph {
   color: #3E3730 !important;
+}
+
+html[data-theme="light"] .description-fade {
+  background: linear-gradient(transparent, #F2F0EC) !important;
 }
 
 html[data-theme="light"] .expand-toggle-btn {
@@ -1302,10 +1536,15 @@ html[data-theme="light"] .floorplan-card {
   border: 1px solid #EAE5DD !important;
 }
 
+html[data-theme="light"] .floorplan-img {
+  background: #FFFFFF !important;
+}
+
 html[data-theme="light"] .floorplan-label {
   background: #F7EEDC !important;
   border: 1px solid #E8D6B2 !important;
-  color: #1A1714 !important; /* TEXTO NEGRO EN BEIGE */
+  color: #1A1714 !important;
+  /* TEXTO NEGRO EN BEIGE */
   font-weight: 700 !important;
 }
 
@@ -1321,7 +1560,8 @@ html[data-theme="light"] .included-check {
 }
 
 html[data-theme="light"] .sidebar-card,
-html[data-theme="light"] .booking-sidebar-card {
+html[data-theme="light"] .booking-sidebar-card,
+html[data-theme="light"] .calculator-card {
   background: #FFFFFF !important;
   border: 1px solid #EAE5DD !important;
   box-shadow: 0 8px 30px rgba(40, 30, 15, 0.08) !important;
@@ -1337,8 +1577,17 @@ html[data-theme="light"] .sidebar-price-amount {
 
 html[data-theme="light"] .sidebar-price-label,
 html[data-theme="light"] .sidebar-price-unit,
-html[data-theme="light"] .sidebar-trust-row {
+html[data-theme="light"] .sidebar-trust-row,
+html[data-theme="light"] .sidebar-response-row {
   color: #5A5248 !important;
+}
+
+html[data-theme="light"] .sidebar-separator {
+  background: #EAE5DD !important;
+}
+
+html[data-theme="light"] .sidebar-include-item {
+  color: #1F1B17 !important;
 }
 
 html[data-theme="light"] .sidebar-cta-btn {
@@ -1365,7 +1614,8 @@ html[data-theme="light"] .price-unit {
 html[data-theme="light"] .cancellation-badge {
   background: #F7EEDC !important;
   border: 1px solid #E8D6B2 !important;
-  color: #1A1714 !important; /* TEXTO NEGRO EN BEIGE */
+  color: #1A1714 !important;
+  /* TEXTO NEGRO EN BEIGE */
   font-weight: 700 !important;
 }
 
@@ -1424,7 +1674,8 @@ html[data-theme="light"] .price-calc__date-val--placeholder {
 
 html[data-theme="light"] .price-calc__schedule-badge {
   background: #F7EEDC !important;
-  color: #1A1714 !important; /* TEXTO NEGRO EN BEIGE */
+  color: #1A1714 !important;
+  /* TEXTO NEGRO EN BEIGE */
   border: 1px solid #E8D6B2 !important;
   font-weight: 700 !important;
 }
@@ -1442,7 +1693,8 @@ html[data-theme="light"] .reservar-hero {
 html[data-theme="light"] .reservar-hero__eyebrow {
   background: #F7EEDC !important;
   border: 1px solid #E8D6B2 !important;
-  color: #1A1714 !important; /* TEXTO NEGRO EN BEIGE */
+  color: #1A1714 !important;
+  /* TEXTO NEGRO EN BEIGE */
   font-weight: 700 !important;
 }
 
@@ -1516,7 +1768,8 @@ html[data-theme="light"] .reservar-status-banner__reset-btn {
 html[data-theme="light"] .reservar-prompt-banner {
   background: #F7EEDC !important;
   border: 1px solid #E8D6B2 !important;
-  color: #1A1714 !important; /* TEXTO NEGRO EN BEIGE */
+  color: #1A1714 !important;
+  /* TEXTO NEGRO EN BEIGE */
   font-weight: 600 !important;
 }
 
@@ -1540,7 +1793,29 @@ html[data-theme="light"] .reservar__filter-btn--active {
 /* ── 12. WIZARD DE RESERVA COMPLETO (/reserva/[slug]) ── */
 html[data-theme="light"] .booking-wizard-root,
 html[data-theme="light"] .wizard-page {
+  --wz-bg: #F2F0EC !important;
+  --wz-surface: #FFFFFF !important;
+  --wz-surface-soft: #FAF8F5 !important;
+  --wz-border: #EAE5DD !important;
+  --wz-chip-bg: #F7F5F1 !important;
+  --wz-chip-border: #EAE5DD !important;
+  --wz-pill-bg: #F7EEDC !important;
+  --wz-pill-border: #E8D6B2 !important;
+  --wz-pill-text: #1A1714 !important;
+  --wz-on-accent: #F6EBD3 !important;
+  --forest-green: #1A1714 !important;
+  --black-matte: #1F1B17 !important;
+  --white: #FFFFFF !important;
+  --gray-50: #F7F5F1 !important;
+  --gray-100: #EFECE6 !important;
+  --gray-200: #EAE5DD !important;
+  --gray-300: #D9D1C4 !important;
+  --gray-400: #8E8477 !important;
+  --gray-500: #5A5248 !important;
+  --gray-600: #3E3730 !important;
   background: #F2F0EC !important;
+  color: #1F1B17 !important;
+  color-scheme: light !important;
 }
 
 /* Wizard Header */
@@ -1581,7 +1856,8 @@ html[data-theme="light"] .wizard-header__camper-sub {
 html[data-theme="light"] .wizard-header__trust-pill {
   background: #F7EEDC !important;
   border: 1px solid #E8D6B2 !important;
-  color: #1A1714 !important; /* TEXTO NEGRO EN BEIGE */
+  color: #1A1714 !important;
+  /* TEXTO NEGRO EN BEIGE */
   font-weight: 700 !important;
 }
 
@@ -1623,7 +1899,8 @@ html[data-theme="light"] .wizard-step-node__title {
 html[data-theme="light"] .step-header__tag {
   background: #F7EEDC !important;
   border: 1px solid #E8D6B2 !important;
-  color: #1A1714 !important; /* TEXTO NEGRO EN BEIGE */
+  color: #1A1714 !important;
+  /* TEXTO NEGRO EN BEIGE */
   font-weight: 700 !important;
 }
 
@@ -1653,7 +1930,8 @@ html[data-theme="light"] .pax-card__desc {
 html[data-theme="light"] .pax-card__icon-box {
   background: #F7EEDC !important;
   border: 1px solid #E8D6B2 !important;
-  color: #1A1714 !important; /* TEXTO / ICONO NEGRO EN BEIGE */
+  color: #1A1714 !important;
+  /* TEXTO / ICONO NEGRO EN BEIGE */
 }
 
 html[data-theme="light"] .pax-btn {
@@ -1674,7 +1952,8 @@ html[data-theme="light"] .pax-value {
 }
 
 html[data-theme="light"] .calendar-section {
-  background: #FAF8F5 !important; /* Arena marfil suave, nunca blanco plano */
+  background: #FAF8F5 !important;
+  /* Arena marfil suave, nunca blanco plano */
   border: 1px solid #E2DBD3 !important;
   box-shadow: 0 4px 16px rgba(40, 30, 15, 0.04) !important;
 }
@@ -1691,7 +1970,8 @@ html[data-theme="light"] .calendar-section__dates-badge {
 html[data-theme="light"] .calendar-section__nights-pill {
   background: #F7EEDC !important;
   border: 1px solid #E8D6B2 !important;
-  color: #1A1714 !important; /* TEXTO NEGRO EN BEIGE */
+  color: #1A1714 !important;
+  /* TEXTO NEGRO EN BEIGE */
   font-weight: 800 !important;
 }
 
@@ -1740,7 +2020,8 @@ html[data-theme="light"] .slot-option-btn__time {
 
 html[data-theme="light"] .slot-option-btn__tag {
   background: #E2DBD3 !important;
-  color: #1A1714 !important; /* TEXTO NEGRO EN BEIGE */
+  color: #1A1714 !important;
+  /* TEXTO NEGRO EN BEIGE */
   font-weight: 700 !important;
 }
 
@@ -1815,7 +2096,8 @@ html[data-theme="light"] .km-card__badge--highlight,
 html[data-theme="light"] .km-card__badge {
   background: #F7EEDC !important;
   border: 1px solid #E8D6B2 !important;
-  color: #1A1714 !important; /* TEXTO NEGRO EN BEIGE */
+  color: #1A1714 !important;
+  /* TEXTO NEGRO EN BEIGE */
   font-weight: 700 !important;
 }
 
@@ -1875,7 +2157,8 @@ html[data-theme="light"] .policy-card__badge--highlight,
 html[data-theme="light"] .policy-card__badge {
   background: #F7EEDC !important;
   border: 1px solid #E8D6B2 !important;
-  color: #1A1714 !important; /* TEXTO NEGRO EN BEIGE */
+  color: #1A1714 !important;
+  /* TEXTO NEGRO EN BEIGE */
   font-weight: 700 !important;
 }
 
@@ -1900,7 +2183,8 @@ html[data-theme="light"] .policy-card__description {
 html[data-theme="light"] .timeline-item__badge--highlight {
   background: #F7EEDC !important;
   border: 1px solid #E8D6B2 !important;
-  color: #1A1714 !important; /* TEXTO NEGRO EN BEIGE */
+  color: #1A1714 !important;
+  /* TEXTO NEGRO EN BEIGE */
   font-weight: 700 !important;
 }
 
@@ -1911,7 +2195,8 @@ html[data-theme="light"] .timeline-item__badge--green {
 
 html[data-theme="light"] .timeline-item__badge--gray {
   background: #EAE5DD !important;
-  color: #1A1714 !important; /* TEXTO NEGRO EN BEIGE */
+  color: #1A1714 !important;
+  /* TEXTO NEGRO EN BEIGE */
   font-weight: 700 !important;
 }
 
@@ -1960,7 +2245,8 @@ html[data-theme="light"] .extra-card--active {
 html[data-theme="light"] .extra-card__badge {
   background: #F7EEDC !important;
   border: 1px solid #E8D6B2 !important;
-  color: #1A1714 !important; /* TEXTO NEGRO EN BEIGE */
+  color: #1A1714 !important;
+  /* TEXTO NEGRO EN BEIGE */
   font-weight: 700 !important;
 }
 
@@ -1994,7 +2280,8 @@ html[data-theme="light"] .qty-val {
 html[data-theme="light"] .btn-add-extra {
   background: #F7EEDC !important;
   border: 1px solid #E8D6B2 !important;
-  color: #1A1714 !important; /* TEXTO NEGRO EN BEIGE */
+  color: #1A1714 !important;
+  /* TEXTO NEGRO EN BEIGE */
   font-weight: 700 !important;
 }
 
@@ -2066,7 +2353,8 @@ html[data-theme="light"] .btn-pay-redsys:hover {
 html[data-theme="light"] .security-badge {
   background: #F7EEDC !important;
   border: 1px solid #E8D6B2 !important;
-  color: #1A1714 !important; /* TEXTO NEGRO EN BEIGE */
+  color: #1A1714 !important;
+  /* TEXTO NEGRO EN BEIGE */
   font-weight: 700 !important;
 }
 
@@ -2084,7 +2372,8 @@ html[data-theme="light"] .summary-heading {
 html[data-theme="light"] .summary-live-indicator {
   background: #F7EEDC !important;
   border: 1px solid #E8D6B2 !important;
-  color: #1A1714 !important; /* TEXTO NEGRO EN BEIGE */
+  color: #1A1714 !important;
+  /* TEXTO NEGRO EN BEIGE */
   font-weight: 700 !important;
 }
 
@@ -2099,14 +2388,16 @@ html[data-theme="light"] .summary-camper-name {
 }
 
 html[data-theme="light"] .summary-brand-tag {
-  color: #1A1714 !important; /* TEXTO NEGRO EN BEIGE */
+  color: #1A1714 !important;
+  /* TEXTO NEGRO EN BEIGE */
   font-weight: 800 !important;
 }
 
 html[data-theme="light"] .stats-pill {
   background: #F7EEDC !important;
   border: 1px solid #E8D6B2 !important;
-  color: #1A1714 !important; /* TEXTO NEGRO EN BEIGE */
+  color: #1A1714 !important;
+  /* TEXTO NEGRO EN BEIGE */
   font-weight: 700 !important;
 }
 
@@ -2152,21 +2443,25 @@ html[data-theme="light"] .summary-price-total {
 html[data-theme="light"] .summary-deposit-box {
   background: #F7EEDC !important;
   border: 1px solid #E8D6B2 !important;
-  color: #1A1714 !important; /* TEXTO NEGRO EN BEIGE */
+  color: #1A1714 !important;
+  /* TEXTO NEGRO EN BEIGE */
 }
 
 html[data-theme="light"] .deposit-box__title {
-  color: #1A1714 !important; /* TEXTO NEGRO EN BEIGE */
+  color: #1A1714 !important;
+  /* TEXTO NEGRO EN BEIGE */
   font-weight: 700 !important;
 }
 
 html[data-theme="light"] .deposit-box__amount {
-  color: #1A1714 !important; /* TEXTO NEGRO EN BEIGE */
+  color: #1A1714 !important;
+  /* TEXTO NEGRO EN BEIGE */
   font-weight: 800 !important;
 }
 
 html[data-theme="light"] .deposit-box__text {
-  color: #1A1714 !important; /* TEXTO NEGRO EN BEIGE */
+  color: #1A1714 !important;
+  /* TEXTO NEGRO EN BEIGE */
 }
 
 html[data-theme="light"] .deposit-box__text strong {
@@ -2190,7 +2485,8 @@ html[data-theme="light"] .summary-included-item {
 html[data-theme="light"] .trust-badge {
   background: #F7EEDC !important;
   border: 1px solid #E8D6B2 !important;
-  color: #1A1714 !important; /* TEXTO NEGRO EN BEIGE */
+  color: #1A1714 !important;
+  /* TEXTO NEGRO EN BEIGE */
   font-weight: 700 !important;
 }
 
@@ -2234,167 +2530,163 @@ html[data-theme="light"] .mobile-price-sub {
   font-weight: 700 !important;
 }
 
+/* Tarjetas adicionales de los 7 pasos (Modelos, Seguro, Extras compactos, Pasajeros, Resumen) */
+html[data-theme="light"] .model-card,
+html[data-theme="light"] .insurance-card,
+html[data-theme="light"] .included-block {
+  background: #FFFFFF !important;
+  border-color: #EAE5DD !important;
+  color: #1F1B17 !important;
+}
+
+html[data-theme="light"] .model-card--selected,
+html[data-theme="light"] .insurance-card--active,
+html[data-theme="light"] .passenger-card--second-driver {
+  border-color: #1A1714 !important;
+}
+
+html[data-theme="light"] .extra-row {
+  background: #FFFFFF !important;
+  border-color: #EAE5DD !important;
+}
+
+html[data-theme="light"] .extra-row--active {
+  border-color: #1A1714 !important;
+  background: #FAF8F5 !important;
+}
+
+html[data-theme="light"] .included-chip,
+html[data-theme="light"] .insurance-feature,
+html[data-theme="light"] .passenger-card,
+html[data-theme="light"] .summary-item-box {
+  background: #F7F5F1 !important;
+  border-color: #EAE5DD !important;
+  color: #1F1B17 !important;
+}
+
+html[data-theme="light"] .summary-total-box {
+  background: #F7EEDC !important;
+  border-color: #E8D6B2 !important;
+  color: #1A1714 !important;
+}
+
 /* ── 13. CONÓCENOS / ABOUT (/conocenos) ── */
 html[data-theme="light"] .about-page {
   background: #F2F0EC !important;
 }
 
-html[data-theme="light"] .about-who-section {
+html[data-theme="light"] .about-content {
   background: #F2F0EC !important;
-}
-
-html[data-theme="light"] .about-pill-label {
-  background: #F7EEDC !important;
-  border: 1px solid #E8D6B2 !important;
-  color: #1A1714 !important; /* TEXTO NEGRO EN BEIGE */
-  font-weight: 700 !important;
-}
-
-html[data-theme="light"] .about-pill-icon {
-  color: #1A1714 !important;
-}
-
-html[data-theme="light"] .about-eyebrow {
-  color: #1A1714 !important;
-  font-weight: 800 !important;
-}
-
-html[data-theme="light"] .about-section-title {
   color: #1F1B17 !important;
 }
 
-html[data-theme="light"] .about-lead-text {
-  color: #2E2822 !important;
-}
-
-html[data-theme="light"] .about-body-text {
-  color: #4A433B !important;
-}
-
-html[data-theme="light"] .about-manifesto-box {
-  background: #F7EEDC !important;
-  border: 1px solid #E8D6B2 !important;
-  box-shadow: 0 4px 16px rgba(40, 30, 15, 0.05) !important;
-}
-
-html[data-theme="light"] .about-manifesto-item {
-  color: #1A1714 !important; /* TEXTO NEGRO EN BEIGE */
-  font-weight: 600 !important;
-}
-
-html[data-theme="light"] .about-dot {
-  background: #1A1714 !important;
-}
-
-html[data-theme="light"] .about-image-card {
-  background: #FFFFFF !important;
-  border: 1px solid #EAE5DD !important;
-  box-shadow: 0 16px 40px rgba(40, 30, 15, 0.10) !important;
-}
-
-html[data-theme="light"] .about-img-glass-badge {
-  background: rgba(247, 245, 241, 0.94) !important;
-  border: 1px solid #E8D6B2 !important;
-  color: #1A1714 !important; /* TEXTO NEGRO EN BEIGE */
-  font-weight: 700 !important;
-}
-
-html[data-theme="light"] .about-gallery-strip {
-  background: #EFECE6 !important;
+/* Apartados Manifiesto en modo claro */
+html[data-theme="light"] .about-manifesto {
   border-top: 1px solid #EAE5DD !important;
   border-bottom: 1px solid #EAE5DD !important;
+  box-shadow: 0 8px 30px rgba(40, 30, 15, 0.05) !important;
 }
 
-html[data-theme="light"] .about-gallery-tagline {
-  color: #1A1714 !important;
-  font-weight: 800 !important;
+html[data-theme="light"] .about-manifesto--dark {
+  background: #FAF8F5 !important;
 }
 
-html[data-theme="light"] .about-gallery-title {
-  color: #1F1B17 !important;
+html[data-theme="light"] .about-manifesto--alt {
+  background: #F4F1EA !important;
 }
 
-html[data-theme="light"] .about-gallery-item {
-  background: #FFFFFF !important;
-  border: 1px solid #EAE5DD !important;
-  box-shadow: 0 12px 30px rgba(40, 30, 15, 0.08) !important;
-}
-
-html[data-theme="light"] .about-gallery-badge {
+html[data-theme="light"] .about-manifesto__kicker {
   background: #F7EEDC !important;
   border: 1px solid #E8D6B2 !important;
-  color: #1A1714 !important; /* TEXTO NEGRO EN BEIGE */
+  color: #1A1714 !important;
   font-weight: 700 !important;
 }
 
-html[data-theme="light"] .about-method-section {
-  background: #F7F5F1 !important;
-}
-
-html[data-theme="light"] .about-method-title {
+html[data-theme="light"] .about-manifesto__title {
   color: #1F1B17 !important;
 }
 
-html[data-theme="light"] .about-quote-text {
-  color: #1A1714 !important;
-  font-weight: 500 !important;
+html[data-theme="light"] .about-manifesto__title-gradient {
+  background: linear-gradient(135deg, #1F1B17 15%, #8A6421 100%) !important;
+  -webkit-background-clip: text !important;
+  -webkit-text-fill-color: transparent !important;
 }
 
-html[data-theme="light"] .about-method-body {
+html[data-theme="light"] .about-manifesto__divider {
+  background: linear-gradient(90deg, #CCA053 0%, transparent 100%) !important;
+}
+
+html[data-theme="light"] .about-manifesto__lines p {
   color: #4A433B !important;
 }
 
-html[data-theme="light"] .about-pillar-card {
-  background: #FFFFFF !important;
-  border: 1px solid #EAE5DD !important;
-  box-shadow: 0 8px 24px rgba(40, 30, 15, 0.05) !important;
+html[data-theme="light"] .about-bullet-row {
+  color: #1F1B17 !important;
 }
 
-html[data-theme="light"] .about-pillar-icon-wrap {
+html[data-theme="light"] .about-check-disc {
   background: #F7EEDC !important;
-  color: #1A1714 !important;
+  border-color: #E8D6B2 !important;
+  color: #8A6421 !important;
 }
 
-html[data-theme="light"] .about-pillar-title {
-  color: #1F1B17 !important;
+html[data-theme="light"] .about-manifesto__punchline {
+  color: #9E7429 !important;
+  font-weight: 700 !important;
 }
 
-html[data-theme="light"] .about-pillar-desc {
-  color: #5A5248 !important;
+/* Difuminado de imágenes hacia los fondos claros */
+html[data-theme="light"] .about-manifesto__img-shadow--left-dark {
+  background: linear-gradient(
+    90deg,
+    #FAF8F5 0%,
+    rgba(250, 248, 245, 0.5) 22%,
+    rgba(250, 248, 245, 0.08) 50%,
+    transparent 100%
+  ) !important;
 }
 
-html[data-theme="light"] .about-philosophy-section {
-  background: #F2F0EC !important;
+html[data-theme="light"] .about-manifesto__img-shadow--right-alt {
+  background: linear-gradient(
+    270deg,
+    #F4F1EA 0%,
+    rgba(244, 241, 234, 0.5) 22%,
+    rgba(244, 241, 234, 0.08) 50%,
+    transparent 100%
+  ) !important;
 }
 
-html[data-theme="light"] .about-step-content p {
-  color: #1F1B17 !important;
+@media (max-width: 860px) {
+  html[data-theme="light"] .about-manifesto__img-shadow--left-dark {
+    background: linear-gradient(
+      180deg,
+      #FAF8F5 0%,
+      rgba(250, 248, 245, 0.2) 20%,
+      transparent 70%,
+      #FAF8F5 100%
+    ) !important;
+  }
+
+  html[data-theme="light"] .about-manifesto__img-shadow--right-alt {
+    background: linear-gradient(
+      180deg,
+      #F4F1EA 0%,
+      rgba(244, 241, 234, 0.2) 20%,
+      transparent 70%,
+      #F4F1EA 100%
+    ) !important;
+  }
 }
 
-html[data-theme="light"] .about-philosophy-conclusion {
-  border-top: 1px solid #EAE5DD !important;
-}
-
-html[data-theme="light"] .about-philosophy-conclusion p {
-  color: #1A1714 !important;
-  font-weight: 600 !important;
-}
-
+/* ── ÚLTIMO APARTADO (CTA): EN MODO CLARO SIN FONDO PROPIO ── */
 html[data-theme="light"] .about-cta-section {
-  background: #EFECE6 !important;
+  background: transparent !important;
 }
 
 html[data-theme="light"] .about-cta-card {
-  background: #FFFFFF !important;
-  border: 1px solid #EAE5DD !important;
-  box-shadow: 0 16px 40px rgba(40, 30, 15, 0.08) !important;
-}
-
-html[data-theme="light"] .about-cta-badge {
-  background: #F7EEDC !important;
-  border: 1px solid #E8D6B2 !important;
-  color: #1A1714 !important; /* TEXTO NEGRO EN BEIGE */
-  font-weight: 700 !important;
+  background: transparent !important;
+  border: none !important;
+  box-shadow: none !important;
 }
 
 html[data-theme="light"] .about-cta-title {
@@ -2405,9 +2697,25 @@ html[data-theme="light"] .about-cta-subtitle {
   color: #5A5248 !important;
 }
 
-html[data-theme="light"] .about-cta-btn {
-  background: #1A1714 !important;
-  color: #F6EBD3 !important;
+html[data-theme="light"] .about-btn-gold,
+html[data-theme="light"] .about-btn-gold-outline {
+  background: #FFFFFF !important;
+  border: 1px solid #EAE5DD !important;
+  color: #1F1B17 !important;
+  box-shadow: 0 1px 4px rgba(40, 30, 15, 0.05) !important;
+}
+
+html[data-theme="light"] .about-btn-gold:hover,
+html[data-theme="light"] .about-btn-gold-outline:hover {
+  background: #F7F5F1 !important;
+  border-color: #D9D1C4 !important;
+  color: #1A1714 !important;
+  box-shadow: 0 2px 8px rgba(40, 30, 15, 0.08) !important;
+}
+
+html[data-theme="light"] .about-btn-gold svg,
+html[data-theme="light"] .about-btn-gold-outline svg {
+  color: #B8893A !important;
 }
 
 /* ── 14. CONTACTO (/contacto) ── */
@@ -2425,7 +2733,8 @@ html[data-theme="light"] .hero-kicker-wrap,
 html[data-theme="light"] .hero-kicker {
   background: #F7EEDC !important;
   border: 1px solid #E8D6B2 !important;
-  color: #1A1714 !important; /* TEXTO NEGRO EN BEIGE */
+  color: #1A1714 !important;
+  /* TEXTO NEGRO EN BEIGE */
   font-weight: 700 !important;
 }
 
@@ -2453,7 +2762,8 @@ html[data-theme="light"] .info-card-sub {
 
 html[data-theme="light"] .info-icon-box {
   background: #F7EEDC !important;
-  color: #1A1714 !important; /* ICONO NEGRO EN BEIGE */
+  color: #1A1714 !important;
+  /* ICONO NEGRO EN BEIGE */
 }
 
 html[data-theme="light"] .info-item-label {
@@ -2472,7 +2782,8 @@ html[data-theme="light"] .info-item-sublink {
 html[data-theme="light"] .info-item-tag {
   background: #F7EEDC !important;
   border: 1px solid #E8D6B2 !important;
-  color: #1A1714 !important; /* TEXTO NEGRO EN BEIGE */
+  color: #1A1714 !important;
+  /* TEXTO NEGRO EN BEIGE */
   font-weight: 700 !important;
 }
 
@@ -2574,7 +2885,8 @@ html[data-theme="light"] .map-frame-wrapper {
 }
 
 html[data-theme="light"] .map-iframe {
-  filter: none !important; /* Mapa Google Maps nítido en modo claro */
+  filter: none !important;
+  /* Mapa Google Maps nítido en modo claro */
 }
 
 html[data-theme="light"] .newsletter-card {
@@ -2617,7 +2929,8 @@ html[data-theme="light"] .venta-hero {
 html[data-theme="light"] .venta-hero__badge {
   background: #F7EEDC !important;
   border: 1px solid #E8D6B2 !important;
-  color: #1A1714 !important; /* TEXTO NEGRO EN BEIGE */
+  color: #1A1714 !important;
+  /* TEXTO NEGRO EN BEIGE */
   font-weight: 700 !important;
   box-shadow: 0 2px 8px rgba(40, 30, 15, 0.06) !important;
 }
@@ -2737,7 +3050,8 @@ html[data-theme="light"] .payment-card {
 html[data-theme="light"] .summary-badge {
   background: #F7EEDC !important;
   border: 1px solid #E8D6B2 !important;
-  color: #1A1714 !important; /* TEXTO NEGRO EN BEIGE */
+  color: #1A1714 !important;
+  /* TEXTO NEGRO EN BEIGE */
   font-weight: 700 !important;
 }
 
@@ -2772,11 +3086,13 @@ html[data-theme="light"] .summary-total__amount {
 html[data-theme="light"] .summary-safety-notice {
   background: #F7EEDC !important;
   border: 1px solid #E8D6B2 !important;
-  color: #1A1714 !important; /* TEXTO NEGRO EN BEIGE */
+  color: #1A1714 !important;
+  /* TEXTO NEGRO EN BEIGE */
 }
 
 html[data-theme="light"] .summary-safety-title {
-  color: #1A1714 !important; /* TEXTO NEGRO EN BEIGE */
+  color: #1A1714 !important;
+  /* TEXTO NEGRO EN BEIGE */
   font-weight: 700 !important;
 }
 
@@ -2815,7 +3131,8 @@ html[data-theme="light"] .success-title {
 html[data-theme="light"] .success-badge {
   background: #F7EEDC !important;
   border: 1px solid #E8D6B2 !important;
-  color: #1A1714 !important; /* TEXTO NEGRO EN BEIGE */
+  color: #1A1714 !important;
+  /* TEXTO NEGRO EN BEIGE */
   font-weight: 700 !important;
 }
 
@@ -2987,7 +3304,8 @@ html[data-theme="light"] .legal-back-btn {
 html[data-theme="light"] .legal-card__icon-wrap {
   background: #F7EEDC !important;
   border: 1px solid #E8D6B2 !important;
-  color: #1A1714 !important; /* ICONO NEGRO EN BEIGE */
+  color: #1A1714 !important;
+  /* ICONO NEGRO EN BEIGE */
 }
 
 html[data-theme="light"] .legal-card__title,
@@ -3142,7 +3460,8 @@ html[data-theme="light"] .reservar-status-banner__reset-btn:hover {
 html[data-theme="light"] .reservar-prompt-banner {
   background: #F7EEDC !important;
   border: 1px solid #E8D6B2 !important;
-  color: #1A1714 !important; /* TEXTO NEGRO EN BEIGE */
+  color: #1A1714 !important;
+  /* TEXTO NEGRO EN BEIGE */
 }
 
 /* Filtros de modelo en /reservar */
@@ -3191,4 +3510,3 @@ html[data-theme="light"] .reservar__pillar-text h4 {
 html[data-theme="light"] .reservar__pillar-text p {
   color: #5A5248 !important;
 }
-

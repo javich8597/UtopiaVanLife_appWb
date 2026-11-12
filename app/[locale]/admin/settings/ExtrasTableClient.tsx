@@ -34,9 +34,12 @@ export interface ExtraItem {
   description_en?: string
   price: number
   price_type: 'per_rental' | 'per_day'
+  category?: string
   icon?: string
   is_active: boolean
 }
+
+const EXTRA_CATEGORIES = ['Equipamiento', 'Confort', 'Deporte'] as const
 
 interface Props {
   initialExtras: ExtraItem[]
@@ -72,6 +75,7 @@ export default function ExtrasTableClient({ initialExtras }: Props) {
     description_es: '',
     price: 25,
     price_type: 'per_rental' as 'per_rental' | 'per_day',
+    category: 'Equipamiento',
     icon: 'package',
     is_active: true,
   })
@@ -94,6 +98,7 @@ export default function ExtrasTableClient({ initialExtras }: Props) {
       description_es: '',
       price: 20,
       price_type: 'per_rental',
+      category: 'Equipamiento',
       icon: 'package',
       is_active: true,
     })
@@ -111,6 +116,7 @@ export default function ExtrasTableClient({ initialExtras }: Props) {
       description_es: extra.description_es || '',
       price: Number(extra.price) || 0,
       price_type: extra.price_type === 'per_day' ? 'per_day' : 'per_rental',
+      category: extra.category || 'Equipamiento',
       icon: extra.icon || 'package',
       is_active: extra.is_active ?? true,
     })
@@ -183,6 +189,7 @@ export default function ExtrasTableClient({ initialExtras }: Props) {
           description_es: formData.description_es.trim(),
           price: Number(formData.price),
           price_type: formData.price_type,
+          category: formData.category,
           icon: formData.icon,
           is_active: formData.is_active,
         }),
@@ -629,6 +636,25 @@ export default function ExtrasTableClient({ initialExtras }: Props) {
                     <option value="per_day">Por día de viaje (diario)</option>
                   </select>
                 </div>
+              </div>
+
+              {/* Categoría */}
+              <div style={{ marginBottom: '14px' }}>
+                <label htmlFor="extra-form-category" style={{ display: 'block', fontSize: '0.8rem', fontWeight: 600, color: 'var(--adm-text)', marginBottom: '4px' }}>
+                  Categoría
+                </label>
+                <select
+                  id="extra-form-category"
+                  name="extra_category"
+                  aria-label="Categoría del extra"
+                  value={formData.category}
+                  onChange={e => setFormData(prev => ({ ...prev, category: e.target.value }))}
+                  style={{ width: '100%', padding: '8px 12px', borderRadius: '8px', border: '1px solid var(--adm-border-strong)', fontSize: '0.875rem', background: 'var(--adm-surface)' }}
+                >
+                  {EXTRA_CATEGORIES.map(cat => (
+                    <option key={cat} value={cat}>{cat}</option>
+                  ))}
+                </select>
               </div>
 
               {/* Descripción */}

@@ -20,7 +20,9 @@ export default function CamperStickyBookingBar({
   onScrollToCalculator
 }: Props) {
   const locale = useLocale()
-  const datesQuery = initialFrom && initialTo ? `?from=${initialFrom}&to=${initialTo}` : ''
+  const datesQuery = initialFrom && initialTo
+    ? `?from=${initialFrom}&to=${initialTo}&step=1`
+    : '?step=1'
 
   return (
     <aside className="sticky-booking-bar" aria-label="Barra de reserva flotante">
@@ -46,11 +48,11 @@ export default function CamperStickyBookingBar({
           </div>
           <div className="guarantee-item">
             <Infinity size={16} className="text-gold" />
-            <span>Km Ilimitados</span>
+            <span>150 km/día incluidos</span>
           </div>
           <div className="guarantee-item">
             <Headphones size={16} className="text-gold" />
-            <span>Asistencia 24h</span>
+            <span>Asistencia 16h</span>
           </div>
         </div>
 
@@ -207,6 +209,46 @@ export default function CamperStickyBookingBar({
           background: #d8bc59;
           transform: translateY(-1px);
           box-shadow: 0 6px 18px rgba(230, 202, 101, 0.35);
+        }
+
+        :global(html[data-theme="light"]) .sticky-booking-bar {
+          background: rgba(250, 250, 247, 0.96);
+          border-top-color: rgba(26, 23, 20, 0.14);
+          box-shadow: 0 -8px 28px rgba(26, 23, 20, 0.12);
+        }
+        :global(html[data-theme="light"]) .price-from,
+        :global(html[data-theme="light"]) .price-unit,
+        :global(html[data-theme="light"]) .cancellation-badge {
+          color: #5C554C;
+        }
+        :global(html[data-theme="light"]) .price-number {
+          color: #6B5514;
+        }
+        :global(html[data-theme="light"]) .guarantees-list {
+          border-left-color: rgba(26, 23, 20, 0.12);
+        }
+        :global(html[data-theme="light"]) .guarantee-item {
+          color: #1F1B17;
+        }
+        :global(html[data-theme="light"] .text-gold) {
+          color: #82681A;
+        }
+        :global(html[data-theme="light"]) .calc-trigger-btn {
+          background: #F4EFE4;
+          border-color: rgba(26, 23, 20, 0.18);
+          color: #1A1714;
+        }
+        :global(html[data-theme="light"]) .calc-trigger-btn:hover {
+          background: #EAE2D2;
+          color: #1A1714;
+        }
+        :global(html[data-theme="light"] .reserve-primary-btn) {
+          background: #1A1714;
+          color: #FAF9F6 !important;
+          box-shadow: 0 4px 14px rgba(26, 23, 20, 0.18);
+        }
+        :global(html[data-theme="light"] .reserve-primary-btn:hover) {
+          background: #2E2923;
         }
 
         /* Desktop: sidebar is visible, so hide bottom bar */

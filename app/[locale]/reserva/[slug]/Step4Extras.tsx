@@ -1,24 +1,7 @@
 'use client'
 
 import React, { useState } from 'react'
-import {
-    Package,
-    Waves,
-    Wifi,
-    Bike,
-    Coffee,
-    BedDouble,
-    Utensils,
-    Flame,
-    Tv,
-    Umbrella,
-    Plus,
-    Minus,
-    Check,
-    CheckCircle2,
-    Compass,
-    SlidersHorizontal,
-} from 'lucide-react'
+import { Plus, Minus, Check, Info } from 'lucide-react'
 import { Step4Data, SelectedWizardExtra, WizardExtraItem } from './types'
 import { formatPrice } from '@/lib/pricing/engine'
 
@@ -26,112 +9,103 @@ interface Step4ExtrasProps {
     data: Step4Data
     availableExtras: WizardExtraItem[]
     totalDays: number
+    includedItems?: string[]
     onChange: (data: Step4Data) => void
 }
 
-const CATEGORIES = ['Todos', 'Equipamiento', 'Deporte', 'Confort'] as const
-type CategoryFilter = typeof CATEGORIES[number]
+const INCLUDED_EQUIPMENT = [
+    'Set de limpieza',
+    'Almohadas, sábanas y toallas',
+    'Dos sillas de camping para exterior',
+    'Menaje completo premium',
+    '2 máscaras de snorkel',
+    'Toldo',
+]
 
-function getExtraIcon(name: string, category: string) {
-    const lower = name.toLowerCase()
-    if (lower.includes('paddle') || lower.includes('sup') || lower.includes('surf')) return <Waves size={20} />
-    if (lower.includes('snorkel') || lower.includes('buceo')) return <Waves size={20} />
-    if (lower.includes('bici') || lower.includes('bicicleta') || lower.includes('portabicicletas')) return <Bike size={20} />
-    if (lower.includes('wifi') || lower.includes('4g') || lower.includes('internet')) return <Wifi size={20} />
-    if (lower.includes('cafetera') || lower.includes('café')) return <Coffee size={20} />
-    if (lower.includes('cama') || lower.includes('nórdico') || lower.includes('toalla')) return <BedDouble size={20} />
-    if (lower.includes('cocina') || lower.includes('silla') || lower.includes('mesa')) return <Utensils size={20} />
-    if (lower.includes('barbacoa') || lower.includes('bbq') || lower.includes('gas')) return <Flame size={20} />
-    if (lower.includes('cine') || lower.includes('proyector')) return <Tv size={20} />
-    if (lower.includes('sombrilla') || lower.includes('toldo')) return <Umbrella size={20} />
-    if (category === 'Deporte') return <Compass size={20} />
-    return <Package size={20} />
-}
+export const ALLOWED_EXTRAS_CATALOG: WizardExtraItem[] = [
+    {
+        id: 'extra-chair-unit',
+        name_es: 'Silla exterior adicional',
+        category: 'Equipamiento',
+        price: 10,
+        price_type: 'per_rental',
+        description: 'Silla plegable ultraligera adicional para exterior (la camper ya incluye 2 sillas de serie).',
+    },
+    {
+        id: 'extra-table-unit',
+        name_es: 'Mesa exterior adicional',
+        category: 'Equipamiento',
+        price: 15,
+        price_type: 'per_rental',
+        description: 'Mesa plegable de aluminio adicional para comer o trabajar en el exterior.',
+    },
+    {
+        id: 'extra-cleaning-set',
+        name_es: 'Set limpieza adicional',
+        category: 'Equipamiento',
+        price: 10,
+        price_type: 'per_rental',
+        description: 'Recambio adicional de productos de limpieza biodegradables, bayetas y estropajos.',
+    },
+    {
+        id: 'extra-bedding-kit',
+        name_es: 'Kit cama adicional',
+        category: 'Confort',
+        price: 20,
+        price_type: 'per_rental',
+        description: 'Juego completo adicional de almohada, sábanas y toallas (la camper ya incluye ropa de cama de serie).',
+    },
+    {
+        id: 'extra-snorkel-mask',
+        name_es: 'Kit snorkel adicional',
+        category: 'Deporte',
+        price: 10,
+        price_type: 'per_rental',
+        description: 'Máscara de snorkel panorámica antivaho adicional (la camper ya incluye 2 máscaras de serie).',
+    },
+    {
+        id: 'extra-paddle-surf',
+        name_es: 'Padelsurf con hinchador',
+        category: 'Deporte',
+        price: 45,
+        price_type: 'per_rental',
+        description: 'Pack completo con tabla de Paddle Surf (SUP) hinchable, remo telescópico, hinchador de doble acción y mochila.',
+    },
+    {
+        id: 'extra-bike-rack',
+        name_es: 'Portabicicletas',
+        category: 'Deporte',
+        price: 40,
+        price_type: 'per_rental',
+        description: 'Soporte homologado en portón trasero con capacidad para transportar hasta 2 bicicletas.',
+    },
+    {
+        id: 'extra-bicycle',
+        name_es: 'Bicicleta',
+        category: 'Deporte',
+        price: 35,
+        price_type: 'per_rental',
+        description: 'Bicicleta de paseo/trekking con casco y candado incluidos para recorrer la isla.',
+    },
+]
 
 export default function Step4Extras({
     data,
     availableExtras,
     totalDays,
+    includedItems,
     onChange,
 }: Step4ExtrasProps) {
-    const [activeCategory, setActiveCategory] = useState<CategoryFilter>('Todos')
+    const [openTooltipId, setOpenTooltipId] = useState<string | null>(null)
     const effectiveDays = Math.max(1, totalDays || 1)
 
-    // Extras de catálogo por defecto si Supabase no tiene aún o están vacíos
-    const fallbackExtras: WizardExtraItem[] = [
-        {
-            id: 'extra-paddle-surf',
-            name_es: 'Tabla Paddle Surf (SUP) hinchable',
-            category: 'Deporte',
-            price: 45,
-            price_type: 'per_rental',
-            description: 'Pack completo con remo telescópico, quilla, hinchador de doble acción y mochila de transporte.',
-        },
-        {
-            id: 'extra-wifi-unlimited',
-            name_es: 'Wi-Fi 4G Portátil con Datos Ilimitados',
-            category: 'Confort',
-            price: 5,
-            price_type: 'per_day',
-            description: 'Módem MiFi autónomo con batería de 12 horas y cobertura 4G/5G en calas y fondeaderos.',
-        },
-        {
-            id: 'extra-bike-rack',
-            name_es: 'Portabicicletas trasero para 2 bicis',
-            category: 'Deporte',
-            price: 40,
-            price_type: 'per_rental',
-            description: 'Soporte homologado Thule fijado sobre portón trasero, compatible con e-bikes.',
-        },
-        {
-            id: 'extra-cine-pack',
-            name_es: 'Pack Cine Bajo las Estrellas',
-            category: 'Confort',
-            price: 35,
-            price_type: 'per_rental',
-            description: 'Mini proyector HD con batería integrada, trípode articulado y pantalla enrollable de 60".',
-        },
-        {
-            id: 'extra-gas-bbq',
-            name_es: 'Kit Barbacoa Portátil de Gas',
-            category: 'Equipamiento',
-            price: 30,
-            price_type: 'per_rental',
-            description: 'Plancha portátil de gas con cartuchos de recambio, pinzas y set de limpieza.',
-        },
-        {
-            id: 'extra-snorkel-premium',
-            name_es: 'Kit Snorkel Pro con Aletas',
-            category: 'Deporte',
-            price: 25,
-            price_type: 'per_rental',
-            description: 'Máscara panorámica antivaho, tubo seco, aletas ajustables y bolsa estanca de 10L.',
-        },
-        {
-            id: 'extra-chairs-extra',
-            name_es: 'Sillas de exterior adicionales (Pack 2)',
-            category: 'Equipamiento',
-            price: 15,
-            price_type: 'per_rental',
-            description: 'Dos sillas plegables ultraligeras de aluminio adicionales para invitados.',
-        },
-        {
-            id: 'extra-bedding-extra',
-            name_es: 'Juego nórdico de sábanas y toallas extra',
-            category: 'Confort',
-            price: 20,
-            price_type: 'per_rental',
-            description: 'Set completo de ropa de cama y toallas de baño para cambio a mitad de viaje.',
-        },
-    ]
-
-    const effectiveCatalog: WizardExtraItem[] = availableExtras && availableExtras.length > 0
+    // Usar extras configurados en la base de datos (panel de admin) y fallback al catálogo estático solo si no hay filas
+    const effectiveCatalog = Array.isArray(availableExtras) && availableExtras.length > 0
         ? availableExtras
-        : fallbackExtras
-
-    const filteredCatalog = activeCategory === 'Todos'
-        ? effectiveCatalog
-        : effectiveCatalog.filter((e) => (e.category || 'Equipamiento') === activeCategory)
+        : ALLOWED_EXTRAS_CATALOG
+    const effectiveIncluded = Array.isArray(includedItems) && includedItems.length > 0
+        ? includedItems
+        : INCLUDED_EQUIPMENT
 
     const isSelected = (extraId: string) => {
         return data.selectedExtras.some((item) => item.id === extraId)
@@ -185,85 +159,96 @@ export default function Step4Extras({
     return (
         <div className="step-extras">
             <div className="step-header">
-                <span className="step-header__tag">PASO 4 DE 5</span>
-                <h2 className="step-header__title">Personaliza tu aventura con experiencias y extras</h2>
-                <p className="step-header__desc">
-                    Añade equipamiento opcional para exprimir al máximo tus días en Mallorca. Todo lo que eliges aquí se suma al total al momento.
-                </p>
+                <span className="step-header__tag">PASO 6 DE 7</span>
+                <h2 className="step-header__title">Material incluido y extras</h2>
             </div>
 
-            {/* Category Filter Tabs */}
-            <div className="category-tabs">
-                {CATEGORIES.map((cat) => (
-                    <button
-                        key={cat}
-                        type="button"
-                        className={`cat-pill ${activeCategory === cat ? 'cat-pill--active' : ''}`}
-                        onClick={() => setActiveCategory(cat)}
-                    >
-                        {cat}
-                    </button>
-                ))}
+            {/* 1. Material Incluido en la Camper */}
+            <div className="included-block">
+                <div className="included-block__header">
+                    <span className="included-block__title">Incluido en tu camper</span>
+                    <span className="included-block__badge">Incluido</span>
+                </div>
+                <div className="included-chips">
+                    {effectiveIncluded.map((item, idx) => (
+                        <div key={idx} className="included-chip">
+                            <Check size={15} strokeWidth={2.2} className="included-chip-icon" />
+                            <span>{item}</span>
+                        </div>
+                    ))}
+                </div>
             </div>
 
-            {/* Extras Grid */}
-            <div className="extras-grid">
-                {filteredCatalog.map((extra) => {
-                    const selected = isSelected(extra.id)
-                    const qty = getSelectedQuantity(extra.id)
-                    const unitPrice = Number(extra.price) || 0
-                    const isDaily = extra.price_type === 'per_day'
-                    const computedTotal = isDaily
-                        ? unitPrice * effectiveDays * Math.max(1, qty || 1)
-                        : unitPrice * Math.max(1, qty || 1)
+            {/* 2. Extras Opcionales Comprimidos */}
+            <div className="extras-section">
+                <h3 className="extras-section__title">Añadir extras opcionales</h3>
 
-                    return (
-                        <div
-                            key={extra.id}
-                            className={`extra-card ${selected ? 'extra-card--selected' : ''}`}
-                            onClick={() => handleToggleExtra(extra)}
-                        >
-                            <div className="extra-card__top">
-                                <div className="extra-card__icon-box">
-                                    {getExtraIcon(extra.name_es, extra.category || '')}
-                                </div>
-                                <span className="extra-card__category-tag">
-                                    {extra.category || 'Equipamiento'}
-                                </span>
-                            </div>
+                <div className="extras-compact-grid">
+                    {effectiveCatalog.map((extra) => {
+                        const selected = isSelected(extra.id)
+                        const qty = getSelectedQuantity(extra.id)
+                        const unitPrice = Number(extra.price) || 0
+                        const isDaily = extra.price_type === 'per_day'
+                        const isTooltipOpen = openTooltipId === extra.id
 
-                            <div className="extra-card__body">
-                                <h4 className="extra-card__title">{extra.name_es}</h4>
-                                {extra.description && (
-                                    <p className="extra-card__description">{extra.description}</p>
-                                )}
+                        return (
+                            <div
+                                key={extra.id}
+                                className={`extra-row ${selected ? 'extra-row--selected' : ''}`}
+                                onClick={() => handleToggleExtra(extra)}
+                            >
+                                <div className="extra-row__info">
+                                    <div className="extra-row__title-wrap">
+                                        <span className="extra-row__title">{extra.name_es || extra.name}</span>
 
-                                <div className="extra-card__pricing">
-                                    <div className="extra-card__price-line">
-                                        <span className="extra-card__price-amount">
-                                            {formatPrice(unitPrice)}
-                                        </span>
-                                        <span className="extra-card__price-type">
-                                            {isDaily ? '/ día' : '/ alquiler'}
+                                        {(extra.description || (extra as any).description_es) && (
+                                            <div
+                                                className="tooltip-wrapper"
+                                                onMouseEnter={() => setOpenTooltipId(extra.id)}
+                                                onMouseLeave={() =>
+                                                    setOpenTooltipId((prev) => (prev === extra.id ? null : prev))
+                                                }
+                                                onClick={(e) => {
+                                                    e.stopPropagation()
+                                                    setOpenTooltipId((prev) =>
+                                                        prev === extra.id ? null : extra.id
+                                                    )
+                                                }}
+                                            >
+                                                <button
+                                                    type="button"
+                                                    className="info-icon-btn"
+                                                    aria-label={`Más información sobre ${extra.name_es || extra.name}`}
+                                                    aria-expanded={isTooltipOpen}
+                                                >
+                                                    <Info size={13} />
+                                                </button>
+
+                                                {isTooltipOpen && (
+                                                    <div className="tooltip-bubble" role="tooltip">
+                                                        {extra.description || (extra as any).description_es}
+                                                    </div>
+                                                )}
+                                            </div>
+                                        )}
+                                    </div>
+
+                                    <div className="extra-row__price-line">
+                                        <span className="extra-row__price">{formatPrice(unitPrice)}</span>
+                                        <span className="extra-row__unit">
+                                            {isDaily ? `/día (${formatPrice(unitPrice * effectiveDays)} total)` : '/alquiler'}
                                         </span>
                                     </div>
-                                    {isDaily && (
-                                        <span className="extra-card__total-calc">
-                                            Total: {formatPrice(unitPrice * effectiveDays)} ({effectiveDays} días)
-                                        </span>
-                                    )}
                                 </div>
-                            </div>
 
-                            <div className="extra-card__footer" onClick={(e) => e.stopPropagation()}>
-                                {selected ? (
-                                    <div className="extra-selected-controls">
+                                <div className="extra-row__actions" onClick={(e) => e.stopPropagation()}>
+                                    {selected ? (
                                         <div className="extra-qty-counter">
                                             <button
                                                 type="button"
                                                 className="qty-btn"
                                                 onClick={(e) => handleQuantityChange(extra.id, -1, e)}
-                                                title="Quitar uno"
+                                                aria-label="Restar unidad"
                                             >
                                                 <Minus size={12} />
                                             </button>
@@ -272,300 +257,336 @@ export default function Step4Extras({
                                                 type="button"
                                                 className="qty-btn"
                                                 onClick={(e) => handleQuantityChange(extra.id, 1, e)}
-                                                title="Añadir otro"
+                                                aria-label="Sumar unidad"
                                             >
                                                 <Plus size={12} />
                                             </button>
                                         </div>
-
+                                    ) : (
                                         <button
                                             type="button"
-                                            className="btn-remove-extra"
+                                            className="btn-add-compact"
                                             onClick={() => handleToggleExtra(extra)}
                                         >
-                                            Quitar
+                                            <Plus size={13} />
+                                            <span>Añadir</span>
                                         </button>
-                                    </div>
-                                ) : (
-                                    <button
-                                        type="button"
-                                        className="btn-add-extra"
-                                        onClick={() => handleToggleExtra(extra)}
-                                    >
-                                        <Plus size={14} />
-                                        <span>Añadir al viaje</span>
-                                    </button>
-                                )}
+                                    )}
+                                </div>
                             </div>
-                        </div>
-                    )
-                })}
+                        )
+                    })}
+                </div>
             </div>
 
             <style jsx>{`
                 .step-extras {
                     display: flex;
                     flex-direction: column;
-                    gap: var(--space-6);
+                    gap: var(--space-4, 16px);
                 }
 
                 .step-header {
-                    margin-bottom: var(--space-2);
+                    margin-bottom: 2px;
                 }
 
                 .step-header__tag {
                     display: inline-block;
-                    font-size: 11px;
+                    font-size: 10px;
                     font-weight: 700;
                     letter-spacing: 0.08em;
-                    color: var(--forest-green);
-                    background: rgba(204, 160, 83, 0.08);
-                    padding: 3px 8px;
+                    color: var(--wz-pill-text);
+                    background: var(--wz-pill-bg);
+                    border: 1px solid var(--wz-pill-border);
+                    padding: 2px 8px;
                     border-radius: var(--radius-sm);
-                    margin-bottom: var(--space-2);
+                    margin-bottom: 4px;
                 }
 
                 .step-header__title {
                     font-family: var(--font-display);
-                    font-size: var(--text-2xl);
+                    font-size: var(--text-xl, 20px);
                     font-weight: 700;
                     color: var(--black-matte);
-                    margin-bottom: var(--space-2);
-                    line-height: 1.25;
+                    margin: 0;
+                    line-height: 1.2;
                 }
 
-                .step-header__desc {
-                    font-size: var(--text-sm);
-                    color: var(--gray-600);
-                    line-height: 1.6;
-                }
-
-                .category-tabs {
-                    display: flex;
-                    gap: 8px;
-                    overflow-x: auto;
-                    padding-bottom: 4px;
-                }
-
-                .cat-pill {
-                    border: 1px solid var(--gray-200);
+                /* Material Incluido */
+                .included-block {
                     background: var(--wz-surface);
-                    color: var(--gray-600);
+                    border: 1px solid var(--gray-200);
+                    border-radius: var(--radius-lg, 12px);
+                    padding: 12px 14px;
+                    display: flex;
+                    flex-direction: column;
+                    gap: 8px;
+                }
+
+                .included-block__header {
+                    display: flex;
+                    align-items: center;
+                    justify-content: space-between;
+                    gap: 8px;
+                }
+
+                .included-block__title {
                     font-size: 12px;
-                    font-weight: 600;
-                    padding: 6px 14px;
-                    border-radius: var(--radius-full);
-                    cursor: pointer;
-                    transition: all 0.2s ease;
-                    white-space: nowrap;
+                    font-weight: 700;
+                    text-transform: uppercase;
+                    letter-spacing: 0.04em;
+                    color: var(--gray-600);
                 }
 
-                .cat-pill:hover {
-                    border-color: var(--forest-green);
-                    color: var(--black-matte);
+                .included-block__badge {
+                    font-size: 11px;
+                    font-weight: 700;
+                    padding: 2px 8px;
+                    border-radius: 999px;
+                    background: var(--wz-pill-bg);
+                    color: var(--wz-pill-text);
+                    border: 1px solid var(--wz-pill-border);
                 }
 
-                .cat-pill--active {
-                    background: var(--forest-green);
-                    border-color: var(--forest-green);
-                    color: var(--wz-on-accent);
-                }
-
-                .extras-grid {
+                .included-chips {
                     display: grid;
-                    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-                    gap: var(--space-4);
+                    grid-template-columns: 1fr 1fr;
+                    column-gap: 24px;
+                    row-gap: 0;
                 }
 
-                .extra-card {
+                .included-chip {
+                    display: flex;
+                    align-items: center;
+                    gap: 10px;
+                    font-size: 12.5px;
+                    color: var(--black-matte);
+                    background: transparent;
+                    border: none;
+                    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+                    border-radius: 0;
+                    padding: 8px 0;
+                }
+
+                :global(.included-chip-icon) {
+                    color: #d4a742;
+                    flex-shrink: 0;
+                }
+
+                :global(html[data-theme="light"]) .included-chip {
+                    border-bottom-color: rgba(26, 23, 20, 0.08);
+                }
+
+                :global(html[data-theme="light"]) :global(.included-chip-icon) {
+                    color: #b38827;
+                }
+
+                @media (max-width: 640px) {
+                    .included-chips {
+                        grid-template-columns: 1fr;
+                    }
+                }
+
+                /* Extras Comprimidos */
+                .extras-section {
+                    display: flex;
+                    flex-direction: column;
+                    gap: 8px;
+                }
+
+                .extras-section__title {
+                    font-size: 12px;
+                    font-weight: 700;
+                    text-transform: uppercase;
+                    letter-spacing: 0.04em;
+                    color: var(--gray-600);
+                    margin: 0;
+                }
+
+                .extras-compact-grid {
+                    display: grid;
+                    grid-template-columns: 1fr 1fr;
+                    gap: 8px;
+                }
+
+                .extra-row {
                     background: var(--wz-surface);
                     border: 1.5px solid var(--gray-200);
-                    border-radius: var(--radius-xl);
-                    padding: var(--space-4);
+                    border-radius: var(--radius-md, 10px);
+                    padding: 10px 12px;
                     display: flex;
-                    flex-direction: column;
+                    align-items: center;
                     justify-content: space-between;
+                    gap: 10px;
                     cursor: pointer;
-                    box-shadow: 0 2px 10px rgba(255, 255, 255, 0.02);
-                    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+                    transition: all 0.18s ease;
+                    min-height: 48px;
                 }
 
-                .extra-card:hover {
+                .extra-row:hover {
                     border-color: var(--forest-green-light);
-                    transform: translateY(-2px);
-                    box-shadow: 0 6px 20px rgba(255, 255, 255, 0.05);
                 }
 
-                .extra-card--selected {
+                .extra-row--selected {
                     border-color: var(--forest-green);
-                    background: var(--wz-surface);
-                    box-shadow: 0 0 0 2px rgba(204, 160, 83, 0.15), 0 6px 20px rgba(204, 160, 83, 0.05);
+                    background: var(--wz-pill-bg);
                 }
 
-                .extra-card__top {
-                    display: flex;
-                    align-items: center;
-                    justify-content: space-between;
-                    margin-bottom: var(--space-3);
-                }
-
-                .extra-card__icon-box {
-                    width: 38px;
-                    height: 38px;
-                    border-radius: var(--radius-md);
-                    background: rgba(204, 160, 83, 0.06);
-                    color: var(--forest-green);
-                    display: flex;
-                    align-items: center;
-                    justify-content: center;
-                }
-
-                .extra-card--selected .extra-card__icon-box {
-                    background: var(--forest-green);
-                    color: var(--wz-on-accent);
-                }
-
-                .extra-card__category-tag {
-                    font-size: 10px;
-                    font-weight: 700;
-                    letter-spacing: 0.04em;
-                    color: var(--gray-500);
-                    background: rgba(255, 255, 255, 0.04);
-                    padding: 2px 8px;
-                    border-radius: var(--radius-full);
-                }
-
-                .extra-card__body {
-                    flex: 1;
-                    display: flex;
-                    flex-direction: column;
-                    margin-bottom: var(--space-3);
-                }
-
-                .extra-card__title {
-                    font-size: var(--text-sm);
-                    font-weight: 700;
-                    color: var(--black-matte);
-                    margin-bottom: 4px;
-                    line-height: 1.35;
-                }
-
-                .extra-card__description {
-                    font-size: 11px;
-                    color: var(--gray-600);
-                    line-height: 1.5;
-                    margin-bottom: var(--space-3);
-                    flex: 1;
-                }
-
-                .extra-card__pricing {
+                .extra-row__info {
                     display: flex;
                     flex-direction: column;
                     gap: 2px;
+                    min-width: 0;
+                    flex: 1;
                 }
 
-                .extra-card__price-line {
+                .extra-row__title-wrap {
+                    display: flex;
+                    align-items: center;
+                    gap: 6px;
+                }
+
+                .extra-row__title {
+                    font-size: 12.5px;
+                    font-weight: 700;
+                    color: var(--black-matte);
+                    line-height: 1.25;
+                }
+
+                .tooltip-wrapper {
+                    position: relative;
+                    display: inline-flex;
+                    align-items: center;
+                    flex-shrink: 0;
+                }
+
+                .info-icon-btn {
+                    width: 20px;
+                    height: 20px;
+                    border-radius: 50%;
+                    border: 1px solid var(--gray-300);
+                    background: var(--wz-chip-bg);
+                    color: var(--gray-600);
+                    display: inline-flex;
+                    align-items: center;
+                    justify-content: center;
+                    cursor: pointer;
+                    padding: 0;
+                    transition: all 0.15s ease;
+                }
+
+                .info-icon-btn:hover {
+                    color: var(--forest-green);
+                    border-color: var(--forest-green);
+                }
+
+                .tooltip-bubble {
+                    position: absolute;
+                    bottom: calc(100% + 8px);
+                    left: 50%;
+                    transform: translateX(-50%);
+                    width: 230px;
+                    background: var(--wz-surface);
+                    border: 1px solid var(--forest-green);
+                    color: var(--black-matte);
+                    font-size: 11px;
+                    font-weight: 500;
+                    line-height: 1.45;
+                    padding: 8px 10px;
+                    border-radius: 8px;
+                    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.25);
+                    z-index: 40;
+                    pointer-events: none;
+                }
+
+                .extra-row__price-line {
                     display: flex;
                     align-items: baseline;
                     gap: 4px;
                 }
 
-                .extra-card__price-amount {
-                    font-size: var(--text-lg);
-                    font-weight: 700;
+                .extra-row__price {
+                    font-size: 12.5px;
+                    font-weight: 800;
                     color: var(--forest-green);
                 }
 
-                .extra-card__price-type {
+                .extra-row__unit {
                     font-size: 11px;
                     color: var(--gray-500);
-                    font-weight: 500;
                 }
 
-                .extra-card__total-calc {
-                    font-size: 10px;
-                    color: var(--gray-500);
+                .extra-row__actions {
+                    flex-shrink: 0;
                 }
 
-                .extra-card__footer {
-                    border-top: 1px solid var(--gray-100);
-                    padding-top: var(--space-3);
-                }
-
-                .btn-add-extra {
-                    width: 100%;
+                .btn-add-compact {
                     border: 1px solid var(--gray-300);
-                    background: var(--wz-surface);
+                    background: var(--wz-chip-bg);
                     color: var(--black-matte);
-                    font-size: 12px;
-                    font-weight: 600;
-                    padding: 8px 12px;
-                    border-radius: var(--radius-md);
+                    font-size: 11.5px;
+                    font-weight: 700;
+                    padding: 6px 10px;
+                    border-radius: var(--radius-sm, 7px);
                     cursor: pointer;
-                    display: flex;
+                    display: inline-flex;
                     align-items: center;
-                    justify-content: center;
-                    gap: 6px;
-                    transition: all 0.2s ease;
+                    gap: 4px;
+                    transition: all 0.18s ease;
+                    min-height: 32px;
                 }
 
-                .btn-add-extra:hover {
+                .btn-add-compact:hover {
                     background: var(--forest-green);
                     border-color: var(--forest-green);
                     color: var(--wz-on-accent);
                 }
 
-                .extra-selected-controls {
-                    display: flex;
-                    align-items: center;
-                    justify-content: space-between;
-                    gap: 8px;
-                }
-
                 .extra-qty-counter {
-                    display: flex;
+                    display: inline-flex;
                     align-items: center;
-                    gap: 6px;
-                    background: var(--wz-bg);
-                    border: 1px solid var(--gray-200);
-                    border-radius: var(--radius-full);
-                    padding: 2px 6px;
+                    gap: 5px;
+                    background: var(--wz-surface);
+                    border: 1px solid var(--forest-green);
+                    border-radius: 999px;
+                    padding: 2px 5px;
                 }
 
                 .qty-btn {
-                    width: 22px;
-                    height: 22px;
+                    width: 24px;
+                    height: 24px;
                     border-radius: 50%;
-                    border: none;
-                    background: var(--wz-surface);
+                    border: 1px solid var(--gray-200);
+                    background: var(--wz-chip-bg);
                     color: var(--black-matte);
                     display: flex;
                     align-items: center;
                     justify-content: center;
                     cursor: pointer;
-                    box-shadow: 0 1px 2px rgba(255, 255, 255, 0.08);
                 }
 
                 .qty-val {
-                    font-size: 11px;
+                    font-size: 11.5px;
                     font-weight: 700;
                     color: var(--black-matte);
-                    min-width: 16px;
+                    min-width: 14px;
                     text-align: center;
                 }
 
-                .btn-remove-extra {
-                    border: none;
-                    background: transparent;
-                    color: var(--error);
-                    font-size: 11px;
-                    font-weight: 600;
-                    cursor: pointer;
-                    padding: 4px;
+                :global(.text-forest) {
+                    color: var(--forest-green);
+                    flex-shrink: 0;
                 }
 
-                .btn-remove-extra:hover {
-                    text-decoration: underline;
+                @media (max-width: 860px) {
+                    .extras-compact-grid {
+                        grid-template-columns: 1fr;
+                    }
+
+                    .tooltip-bubble {
+                        left: 0;
+                        transform: none;
+                    }
                 }
             `}</style>
         </div>

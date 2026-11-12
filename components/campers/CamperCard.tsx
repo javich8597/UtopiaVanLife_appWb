@@ -484,7 +484,7 @@ export default function CamperCard({
           line-height: 1;
         }
         .camper-card__price-amount {
-          font-family: var(--font-display);
+          font-family: var(--font-sans);
           font-size: 1.65rem;
           font-weight: 700;
           color: var(--forest-green);
@@ -497,24 +497,25 @@ export default function CamperCard({
           margin-top: 0px;
         }
 
-        /* Specs en recuadro */
+        /* Specs estilo fila con divisor */
         .camper-card__specs {
           display: grid;
           grid-template-columns: repeat(2, minmax(0, 1fr));
-          gap: 8px;
+          column-gap: 20px;
+          row-gap: 0;
           padding-top: var(--space-1);
         }
         .camper-card__spec {
-          display: inline-flex;
+          display: flex;
           align-items: center;
-          gap: 7px;
-          font-size: 0.76rem;
+          gap: 10px;
+          font-size: 0.8rem;
           font-weight: 500;
           color: var(--gray-800);
-          background: #FDFBF8;
-          border: 1px solid var(--gray-200);
-          padding: 7px 11px;
-          border-radius: 12px;
+          background: transparent;
+          border: none;
+          border-bottom: 1px solid rgba(0, 0, 0, 0.08);
+          padding: 10px 0;
           min-width: 0;
         }
         .camper-card__spec--wide {
@@ -529,7 +530,7 @@ export default function CamperCard({
           white-space: normal;
         }
         :global(.camper-card__spec-icon) {
-          color: var(--forest-green);
+          color: #d4a742;
           flex-shrink: 0;
         }
 
@@ -606,12 +607,13 @@ export default function CamperCard({
         }
 
         .camper-card--dark .camper-card__spec {
-          background: #0B0C0E;
-          border-color: rgba(255, 255, 255, 0.1);
-          color: #E2E8F0;
+          background: transparent;
+          border: none;
+          border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+          color: rgba(255, 255, 255, 0.88);
         }
         .camper-card--dark :global(.camper-card__spec-icon) {
-          color: #CCA053;
+          color: #d4a742;
         }
         .camper-card--dark .camper-card__btn {
           background: linear-gradient(135deg, #CCA053 0%, #B2883B 100%);

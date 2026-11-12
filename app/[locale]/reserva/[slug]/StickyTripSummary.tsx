@@ -322,9 +322,7 @@ function TripSummaryContent({
 
                 <div className="summary-dates-card">
                     <div className="summary-date-row">
-                        <div className="summary-date-icon">
-                            <CalendarIcon size={14} className="text-forest" />
-                        </div>
+                        <CalendarIcon size={15} strokeWidth={1.8} className="summary-gold-icon" />
                         <div className="summary-date-details">
                             <span className="summary-date-label">Recogida:</span>
                             <span className="summary-date-val">
@@ -334,9 +332,7 @@ function TripSummaryContent({
                     </div>
 
                     <div className="summary-date-row">
-                        <div className="summary-date-icon">
-                            <Clock size={14} className="text-forest" />
-                        </div>
+                        <Clock size={15} strokeWidth={1.8} className="summary-gold-icon" />
                         <div className="summary-date-details">
                             <span className="summary-date-label">Devolución:</span>
                             <span className="summary-date-val">
@@ -426,7 +422,7 @@ function TripSummaryContent({
                 <div className="summary-item-box">
                     <div className="summary-breakdown-row">
                         <span className="summary-row-label summary-row-label--with-icon">
-                            <Gauge size={13} className="text-forest" />
+                            <Gauge size={15} strokeWidth={1.8} className="summary-gold-icon" />
                             <span>{step2.kmPackage === 'unlimited' ? 'Kilometraje Ilimitado' : '150 km / día incluidos'}</span>
                         </span>
                         <span className="summary-row-val">
@@ -447,7 +443,7 @@ function TripSummaryContent({
                 <div className="summary-item-box">
                     <div className="summary-breakdown-row">
                         <span className="summary-row-label summary-row-label--with-icon">
-                            <ShieldCheck size={13} className="text-forest" />
+                            <ShieldCheck size={15} strokeWidth={1.8} className="summary-gold-icon" />
                             <span>
                                 {step3.depositOption === 'flex_1000'
                                     ? `Seguro Flex (+${flexDepositRatePerDay} €/día)`
@@ -492,7 +488,7 @@ function TripSummaryContent({
                 <div className="summary-item-box">
                     <div className="summary-breakdown-row">
                         <span className="summary-row-label summary-row-label--with-icon">
-                            <RefreshCw size={13} className="text-forest" />
+                            <RefreshCw size={15} strokeWidth={1.8} className="summary-gold-icon" />
                             <span>Cancelación {step3.cancellationPolicy === 'flexible' ? 'Flex' : 'Estándar'}</span>
                         </span>
                         <span className="summary-row-val">
@@ -517,7 +513,7 @@ function TripSummaryContent({
                         <div className="summary-extras-group">
                             <div className="summary-extras-header">
                                 <span className="summary-row-label summary-row-label--with-icon">
-                                    <Package size={13} className="text-forest" />
+                                    <Package size={15} strokeWidth={1.8} className="summary-gold-icon" />
                                     <span>Extras seleccionados ({breakdown.itemizedExtras.length})</span>
                                 </span>
                                 <span className="summary-row-val">+{formatPrice(breakdown.extrasTotal)}</span>
@@ -534,7 +530,7 @@ function TripSummaryContent({
                     ) : (
                         <div className="summary-breakdown-row">
                             <span className="summary-row-label summary-row-label--with-icon">
-                                <Package size={13} className="text-forest" />
+                                <Package size={15} strokeWidth={1.8} className="summary-gold-icon" />
                                 <span>Sin extras opcionales</span>
                             </span>
                             <span className="summary-row-val">0,00 €</span>
@@ -587,7 +583,7 @@ function TripSummaryContent({
                 <ul className="summary-included-list">
                     {includedServices.map((item, i) => (
                         <li key={i} className="summary-included-item">
-                            <Check size={13} className="text-forest summary-included-icon" />
+                            <Check size={14} strokeWidth={2.2} className="summary-included-icon" />
                             <span>{item}</span>
                         </li>
                     ))}
@@ -649,13 +645,14 @@ function TripSummaryContent({
                 }
 
                 .summary-item-box {
-                    background: var(--wz-chip-bg);
-                    border: 1px solid var(--wz-chip-border);
-                    border-radius: var(--radius-md);
-                    padding: 9px 11px;
+                    background: transparent;
+                    border: none;
+                    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+                    border-radius: 0;
+                    padding: 8px 0;
                     display: flex;
                     flex-direction: column;
-                    gap: 5px;
+                    gap: 6px;
                 }
 
                 /* Camper card */
@@ -663,10 +660,11 @@ function TripSummaryContent({
                     display: flex;
                     align-items: center;
                     gap: var(--space-3);
-                    background: var(--wz-chip-bg);
-                    border: 1px solid var(--wz-chip-border);
-                    border-radius: var(--radius-md);
-                    padding: 9px 11px;
+                    background: transparent;
+                    border: none;
+                    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+                    border-radius: 0;
+                    padding: 8px 0;
                 }
 
                 .summary-camper-thumb {
@@ -692,7 +690,7 @@ function TripSummaryContent({
                     font-size: 9px;
                     font-weight: 700;
                     letter-spacing: 0.08em;
-                    color: var(--forest-green);
+                    color: #d4a742;
                 }
 
                 .summary-camper-name {
@@ -718,16 +716,17 @@ function TripSummaryContent({
                     display: flex;
                     flex-direction: column;
                     gap: 6px;
-                    background: var(--wz-chip-bg);
-                    border: 1px solid var(--wz-chip-border);
-                    border-radius: var(--radius-md);
-                    padding: 10px 11px;
+                    background: transparent;
+                    border: none;
+                    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+                    border-radius: 0;
+                    padding: 8px 0;
                 }
 
                 .summary-date-row {
                     display: flex;
                     align-items: center;
-                    gap: 8px;
+                    gap: 10px;
                 }
 
                 .summary-date-details {
@@ -754,7 +753,6 @@ function TripSummaryContent({
                     gap: 6px;
                     margin-top: 2px;
                     padding-top: 6px;
-                    border-top: 1px solid var(--gray-200);
                 }
 
                 .stats-pill {
@@ -781,7 +779,7 @@ function TripSummaryContent({
                     gap: 5px;
                     margin-top: 4px;
                     padding-top: 6px;
-                    border-top: 1px dashed var(--gray-200);
+                    border-top: 1px dashed rgba(255, 255, 255, 0.08);
                 }
 
                 .summary-breakdown-row {
@@ -791,6 +789,25 @@ function TripSummaryContent({
                     gap: 8px;
                     font-size: 12px;
                     color: var(--gray-700);
+                }
+
+                :global(.summary-gold-icon) {
+                    color: #d4a742;
+                    flex-shrink: 0;
+                }
+
+                :global(html[data-theme="light"]) .summary-item-box,
+                :global(html[data-theme="light"]) .summary-camper-card,
+                :global(html[data-theme="light"]) .summary-dates-card {
+                    border-bottom-color: rgba(26, 23, 20, 0.08);
+                }
+
+                :global(html[data-theme="light"]) .summary-sub-breakdown {
+                    border-top-color: rgba(26, 23, 20, 0.08);
+                }
+
+                :global(html[data-theme="light"]) :global(.summary-gold-icon) {
+                    color: #b38827;
                 }
 
                 .summary-breakdown-row--muted {
@@ -969,21 +986,35 @@ function TripSummaryContent({
                     margin: 0;
                     display: flex;
                     flex-direction: column;
-                    gap: 5px;
+                    gap: 0;
                 }
 
                 .summary-included-item {
                     display: flex;
-                    align-items: flex-start;
-                    gap: 6px;
-                    font-size: 11px;
+                    align-items: center;
+                    gap: 8px;
+                    font-size: 11.5px;
                     color: var(--gray-600);
                     line-height: 1.35;
+                    padding: 6px 0;
+                    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+                }
+
+                .summary-included-item:last-child {
+                    border-bottom: none;
                 }
 
                 :global(.summary-included-icon) {
+                    color: #d4a742;
                     flex-shrink: 0;
-                    margin-top: 2px;
+                }
+
+                :global(html[data-theme="light"]) .summary-included-item {
+                    border-bottom-color: rgba(26, 23, 20, 0.08);
+                }
+
+                :global(html[data-theme="light"]) :global(.summary-included-icon) {
+                    color: #b38827;
                 }
 
                 /* Trust Footer */

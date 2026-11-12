@@ -159,11 +159,11 @@ export default function AboutPreview() {
 
         .about-preview__header-title {
           font-family: var(--font-display, inherit);
-          font-size: clamp(2.4rem, 4.5vw, 3.4rem);
-          font-weight: 800;
+          font-size: clamp(2.6rem, 4.8vw, 3.65rem);
+          font-weight: 500;
           color: #FFFFFF;
-          letter-spacing: -0.025em;
-          line-height: 1.12;
+          letter-spacing: -0.02em;
+          line-height: 1.08;
           margin: 0;
         }
 
@@ -216,10 +216,10 @@ export default function AboutPreview() {
         }
 
         .about-band__title {
-          font-size: clamp(1.65rem, 2.8vw, 2.2rem);
-          font-weight: 800;
-          line-height: 1.18;
-          letter-spacing: -0.02em;
+          font-size: clamp(1.75rem, 3vw, 2.35rem);
+          font-weight: 500;
+          line-height: 1.15;
+          letter-spacing: -0.015em;
           color: #FFFFFF;
           margin: 0 0 20px;
           text-wrap: balance;

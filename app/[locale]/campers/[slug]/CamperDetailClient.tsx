@@ -180,7 +180,9 @@ export default function CamperDetailClient({
               <span>Volver a Campers</span>
             </Link>
           </div>
-          <CamperModelSwitcher currentSlug={slug} />
+          <div className="header-switcher-mobile">
+            <CamperModelSwitcher currentSlug={slug} />
+          </div>
         </div>
       </section>
 
@@ -253,6 +255,10 @@ export default function CamperDetailClient({
 
         {/* Sidebar (desktop fixed/sticky while scrolling left content) */}
         <aside className="booking-sidebar">
+          <div className="sidebar-switcher-wrap">
+            <CamperModelSwitcher currentSlug={slug} />
+          </div>
+
           <div className="sidebar-card">
             <div className="sidebar-card-accent" />
 
@@ -459,6 +465,25 @@ export default function CamperDetailClient({
           top: 88px;
           align-self: start;
           height: fit-content;
+        }
+        .sidebar-switcher-wrap {
+          margin-bottom: 12px;
+          display: flex;
+        }
+        .sidebar-switcher-wrap :global(.camper-model-switcher) {
+          width: 100%;
+          display: flex;
+          justify-content: stretch;
+          padding: 4px;
+        }
+        .sidebar-switcher-wrap :global(.model-pill) {
+          flex: 1;
+          justify-content: center;
+          text-align: center;
+          padding: 7px 12px;
+        }
+        .header-switcher-mobile {
+          display: none;
         }
         .sidebar-card {
           position: relative;
@@ -683,6 +708,9 @@ export default function CamperDetailClient({
 
         /* ── Responsive ── */
         @media (max-width: 860px) {
+          .header-switcher-mobile {
+            display: block;
+          }
           .page-layout {
             grid-template-columns: 1fr;
             gap: 0;

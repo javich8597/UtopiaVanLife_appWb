@@ -171,10 +171,10 @@ export default function Step4Extras({
                 </div>
                 <div className="included-chips">
                     {effectiveIncluded.map((item, idx) => (
-                        <span key={idx} className="included-chip">
-                            <Check size={12} className="text-forest" />
+                        <div key={idx} className="included-chip">
+                            <Check size={15} strokeWidth={2.2} className="included-chip-icon" />
                             <span>{item}</span>
-                        </span>
+                        </div>
                     ))}
                 </div>
             </div>
@@ -349,21 +349,42 @@ export default function Step4Extras({
                 }
 
                 .included-chips {
-                    display: flex;
-                    flex-wrap: wrap;
-                    gap: 6px;
+                    display: grid;
+                    grid-template-columns: 1fr 1fr;
+                    column-gap: 24px;
+                    row-gap: 0;
                 }
 
                 .included-chip {
-                    display: inline-flex;
+                    display: flex;
                     align-items: center;
-                    gap: 5px;
-                    font-size: 11.5px;
+                    gap: 10px;
+                    font-size: 12.5px;
                     color: var(--black-matte);
-                    background: var(--wz-chip-bg);
-                    border: 1px solid var(--wz-chip-border);
-                    padding: 4px 10px;
-                    border-radius: 999px;
+                    background: transparent;
+                    border: none;
+                    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+                    border-radius: 0;
+                    padding: 8px 0;
+                }
+
+                :global(.included-chip-icon) {
+                    color: #d4a742;
+                    flex-shrink: 0;
+                }
+
+                :global(html[data-theme="light"]) .included-chip {
+                    border-bottom-color: rgba(26, 23, 20, 0.08);
+                }
+
+                :global(html[data-theme="light"]) :global(.included-chip-icon) {
+                    color: #b38827;
+                }
+
+                @media (max-width: 640px) {
+                    .included-chips {
+                        grid-template-columns: 1fr;
+                    }
                 }
 
                 /* Extras Comprimidos */

@@ -84,9 +84,10 @@ export default function FeaturedCampers() {
 
       <style jsx>{`
         .featured {
-          background-color: #0B0C0E;
-          padding-block: 90px;
-          border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+          position: relative;
+          background: #0E1013;
+          padding-block: 104px;
+          border-bottom: 1px solid rgba(255, 255, 255, 0.08);
         }
         .featured__header {
           display: flex;
@@ -117,11 +118,11 @@ export default function FeaturedCampers() {
         }
         .featured__title {
           font-family: var(--font-display, inherit);
-          font-size: clamp(2.4rem, 4.5vw, 3.4rem);
-          font-weight: 800;
+          font-size: clamp(2.6rem, 4.8vw, 3.65rem);
+          font-weight: 500;
           color: #FFFFFF;
-          letter-spacing: -0.025em;
-          line-height: 1.12;
+          letter-spacing: -0.02em;
+          line-height: 1.08;
           margin: 0;
         }
         .featured__subtitle {
@@ -140,11 +141,9 @@ export default function FeaturedCampers() {
         }
         .featured__grid {
           display: grid;
-          grid-template-columns: repeat(2, minmax(0, 480px));
+          grid-template-columns: repeat(2, minmax(0, 1fr));
           gap: 32px;
           width: 100%;
-          max-width: 1020px;
-          justify-content: center;
         }
 
         /* CTA */

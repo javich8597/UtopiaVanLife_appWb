@@ -77,7 +77,7 @@ const SHOWCASE_ITEMS: ShowcaseItemConfig[] = [
     subtitleKey: 'card7_subtitle',
     tagKey: 'card7_tag',
     badgeKey: 'card7_badge',
-    image: '/images/campers/space/interior/space-cinema-projector-lounge.webp',
+    image: '/images/experiences/exp-cinema-movie.jpg',
     href: '/campers/space',
   },
   {
@@ -98,7 +98,7 @@ export default function Rotating3DShowcase() {
   const [rotationAngle, setRotationAngle] = useState(0)
   const [isDragging, setIsDragging] = useState(false)
   const [isHovered, setIsHovered] = useState(false)
-  
+
   const dragStartX = useRef(0)
   const dragStartAngle = useRef(0)
   const dragDistanceRef = useRef(0)
@@ -118,9 +118,9 @@ export default function Rotating3DShowcase() {
       const delta = timestamp - lastTimeRef.current
       lastTimeRef.current = timestamp
 
-      // If not dragging and not hovered, advance gentle auto-rotation
+      // If not dragging and not hovered, advance gentle auto-rotation (velocidad muy suave y pausada)
       if (!isDragging && !isHovered) {
-        setRotationAngle(prev => (prev - (delta * 0.016)) % 360)
+        setRotationAngle(prev => (prev - (delta * 0.007)) % 360)
       }
 
       animFrameId.current = requestAnimationFrame(animate)
@@ -181,7 +181,7 @@ export default function Rotating3DShowcase() {
       </div>
 
       {/* 3D Scene Viewport */}
-      <div 
+      <div
         ref={containerRef}
         className="showcase-viewport"
         onPointerDown={handlePointerDown}
@@ -191,7 +191,7 @@ export default function Rotating3DShowcase() {
         onMouseEnter={() => setIsHovered(true)}
         onMouseLeave={() => setIsHovered(false)}
       >
-        <div 
+        <div
           className="showcase-cylinder"
           style={{
             transform: `rotateY(${rotationAngle}deg)`,
@@ -218,10 +218,11 @@ export default function Rotating3DShowcase() {
                       src={item.image}
                       alt={title}
                       fill
-                      sizes="(max-width: 640px) 270px, 360px"
+                      sizes="(max-width: 640px) 640px, 1080px"
+                      quality={95}
                       className="showcase-card__img"
                       style={{ objectFit: 'cover', objectPosition: 'center' }}
-                      loading="lazy"
+                      loading="eager"
                     />
                     <div className="showcase-card__scrim" />
 
@@ -252,11 +253,12 @@ export default function Rotating3DShowcase() {
       <style jsx>{`
         .showcase-section {
           position: relative;
-          padding-top: var(--space-20);
-          padding-bottom: var(--space-24);
-          background: linear-gradient(180deg, #0B0C0E 0%, #0d120f 16%, #0d120f 84%, #0B0C0E 100%);
+          padding-top: var(--space-16);
+          padding-bottom: var(--space-16);
+          background: #0B0C0E;
           color: #ffffff;
           overflow: hidden;
+          border-bottom: 1px solid rgba(255, 255, 255, 0.08);
         }
 
         .showcase-header {
@@ -266,8 +268,8 @@ export default function Rotating3DShowcase() {
           text-align: center;
           max-width: 680px;
           margin-inline: auto;
-          margin-bottom: var(--space-12);
-          gap: 14px;
+          margin-bottom: var(--space-16);
+          gap: 16px;
           position: relative;
           z-index: 2;
         }
@@ -289,11 +291,11 @@ export default function Rotating3DShowcase() {
 
         .showcase-title {
           font-family: var(--font-display, inherit);
-          font-size: clamp(2.4rem, 4.5vw, 3.4rem);
-          font-weight: 800;
+          font-size: clamp(2.6rem, 4.8vw, 3.65rem);
+          font-weight: 500;
           color: #FFFFFF;
-          letter-spacing: -0.025em;
-          line-height: 1.12;
+          letter-spacing: -0.02em;
+          line-height: 1.08;
           margin: 0;
         }
 
@@ -321,8 +323,8 @@ export default function Rotating3DShowcase() {
         .showcase-viewport {
           position: relative;
           width: 100%;
-          height: 500px;
-          perspective: 1200px;
+          height: 420px;
+          perspective: 1150px;
           display: flex;
           align-items: center;
           justify-content: center;
@@ -339,29 +341,29 @@ export default function Rotating3DShowcase() {
         /* The 3D Rotating Cylinder */
         .showcase-cylinder {
           position: relative;
-          width: 370px;
-          height: 350px;
+          width: 345px;
+          height: 295px;
           transform-style: preserve-3d;
           transition: transform 0.05s linear;
           will-change: transform;
-          --cylinder-radius: 480px;
+          --cylinder-radius: 445px;
         }
 
-        /* Each Card Facet - Formato cuadrado equilibrado */
+        /* Each Card Facet - Formato panorámico/compacto equilibrado */
         .showcase-card {
           position: absolute;
           inset: 0;
-          width: 360px;
-          height: 340px;
+          width: 335px;
+          height: 285px;
           margin: auto;
           transform-style: preserve-3d;
           backface-visibility: hidden;
           -webkit-backface-visibility: hidden;
-          border-radius: 20px;
+          border-radius: 18px;
           overflow: hidden;
           background: rgba(20, 24, 22, 0.85);
           border: 1px solid rgba(255, 255, 255, 0.14);
-          box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4);
+          box-shadow: 0 16px 36px rgba(0, 0, 0, 0.4);
           transition: border-color 220ms ease, box-shadow 220ms ease;
         }
 
@@ -494,28 +496,39 @@ export default function Rotating3DShowcase() {
         /* Mobile Adjustments (<= 640px) */
         @media (max-width: 640px) {
           .showcase-section {
-            padding-top: var(--space-14);
-            padding-bottom: var(--space-16);
+            padding-top: var(--space-10);
+            padding-bottom: var(--space-12);
           }
           .showcase-viewport {
-            height: 380px;
-            perspective: 850px;
+            height: 310px;
+            perspective: 800px;
           }
           .showcase-cylinder {
-            width: 280px;
-            height: 260px;
-            --cylinder-radius: 340px;
+            width: 230px;
+            height: 200px;
+            --cylinder-radius: 290px;
           }
           .showcase-card {
-            width: 260px;
-            height: 240px;
-            border-radius: 16px;
+            width: 220px;
+            height: 190px;
+            border-radius: 14px;
+          }
+          .showcase-card__tag {
+            top: 10px;
+            left: 10px;
+            padding: 3px 8px;
+            font-size: 0.65rem;
+          }
+          .showcase-card__content {
+            padding: 12px;
           }
           .showcase-card__heading {
-            font-size: 0.95rem;
+            font-size: 0.88rem;
+            margin-bottom: 2px;
           }
           .showcase-card__text {
-            font-size: 0.72rem;
+            font-size: 0.68rem;
+            line-height: 1.25;
           }
         }
       `}</style>

@@ -589,7 +589,7 @@ export default function CampersClient({ initialCampers, liveStatus = {} }: Props
           flex-direction: column;
         }
         .fleet-card__price strong {
-          font-family: var(--font-heading);
+          font-family: var(--font-sans);
           font-size: 1.15rem;
           color: var(--adm-text);
           font-variant-numeric: tabular-nums;

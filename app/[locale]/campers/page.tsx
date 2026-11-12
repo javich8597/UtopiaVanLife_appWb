@@ -171,7 +171,6 @@ function CatalogContent() {
                     border: 1px solid rgba(255, 255, 255, 0.08);
                     box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4);
                     width: 100%;
-                    max-width: 1020px;
                     margin-bottom: 32px;
                 }
 
@@ -246,11 +245,9 @@ function CatalogContent() {
 
                 .catalog__grid {
                     display: grid;
-                    grid-template-columns: repeat(2, minmax(0, 480px));
+                    grid-template-columns: repeat(2, minmax(0, 1fr));
                     gap: 32px;
                     width: 100%;
-                    max-width: 1020px;
-                    justify-content: center;
                 }
 
                 .catalog__skeleton-card {
@@ -260,9 +257,10 @@ function CatalogContent() {
                     border: 1px solid rgba(255, 255, 255, 0.08);
                 }
 
-                @media (max-width: 960px) {
+                @media (max-width: 860px) {
                     .catalog__grid {
                         grid-template-columns: minmax(0, 500px);
+                        gap: 24px;
                     }
                 }
 

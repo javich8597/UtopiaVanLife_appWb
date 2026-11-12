@@ -16,7 +16,6 @@ import {
   HelpCircle,
   MessageCircle,
   Check,
-  Zap,
   type LucideIcon,
 } from 'lucide-react'
 import { useLocale } from 'next-intl'
@@ -35,15 +34,6 @@ const CATEGORY_ICONS: Record<string, LucideIcon> = {
 
 // 4 essential questions shown by default so users are never overloaded
 const CURATED_DEFAULT_IDS = ['faq-1', 'faq-12', 'faq-14', 'faq-21']
-
-const QUICK_SEARCH_TAGS = [
-  { label_es: 'Fianza', label_en: 'Deposit', query: 'fianza' },
-  { label_es: 'Seguro a todo riesgo', label_en: 'Full insurance', query: 'seguro' },
-  { label_es: 'Pernocta en Mallorca', label_en: 'Overnight in Mallorca', query: 'pernocta' },
-  { label_es: 'Autonomía Victron', label_en: 'Solar autonomy', query: 'autonomía' },
-  { label_es: 'Carnet de conducir', label_en: 'Driver license', query: 'carnet' },
-  { label_es: 'Qué incluye', label_en: 'What is included', query: 'incluye' },
-]
 
 export default function FAQAccordionList({
   showSearch = true,
@@ -182,11 +172,6 @@ export default function FAQAccordionList({
     })
   }
 
-  const handleQuickTagClick = (tagQuery: string) => {
-    setSearchQuery(tagQuery)
-    setShowAll(true)
-  }
-
   const clearSearch = () => {
     setSearchQuery('')
   }
@@ -233,30 +218,6 @@ export default function FAQAccordionList({
               </button>
             )}
           </div>
-
-          {/* Quick Search Tag Pills */}
-          <div className="faq-quick-tags">
-            <span className="faq-quick-label">
-              <Zap size={13} className="text-sand" />
-              {isEs ? 'Consultas rápidas:' : 'Quick topics:'}
-            </span>
-            <div className="faq-quick-chips">
-              {QUICK_SEARCH_TAGS.map(t => {
-                const label = isEs ? t.label_es : t.label_en
-                const isSelected = searchQuery.toLowerCase() === t.query.toLowerCase()
-                return (
-                  <button
-                    key={t.query}
-                    type="button"
-                    onClick={() => handleQuickTagClick(t.query)}
-                    className={`faq-quick-chip ${isSelected ? 'faq-quick-chip--active' : ''}`}
-                  >
-                    {label}
-                  </button>
-                )
-              })}
-            </div>
-          </div>
         </div>
       )}
 
@@ -288,38 +249,38 @@ export default function FAQAccordionList({
         </div>
       )}
 
-      {/* Controls: count & expand/collapse all */}
-      <div className="faq-controls">
-        <span className="faq-results-count">
-          {isSearching ? (
-            isEs ? (
-              <>
-                Se encontraron <strong>{displayItems.length}</strong> {displayItems.length === 1 ? 'respuesta' : 'respuestas'} para &ldquo;{searchQuery}&rdquo;
-              </>
-            ) : (
-              <>
-                Found <strong>{displayItems.length}</strong> {displayItems.length === 1 ? 'result' : 'results'} for &ldquo;{searchQuery}&rdquo;
-              </>
-            )
-          ) : !showAll && activeCategory === 'all' ? (
-            isEs ? 'Preguntas esenciales más consultadas' : 'Essential most requested questions'
-          ) : (
-            isEs ? `${displayItems.length} preguntas disponibles` : `${displayItems.length} questions available`
-          )}
-        </span>
+      {/* Controls: count (when searching/expanded) & expand/collapse all */}
+      {(isSearching || showAll || activeCategory !== 'all' || displayItems.length > 1) && (
+        <div className="faq-controls">
+          <span className="faq-results-count">
+            {isSearching ? (
+              isEs ? (
+                <>
+                  Se encontraron <strong>{displayItems.length}</strong> {displayItems.length === 1 ? 'respuesta' : 'respuestas'} para &ldquo;{searchQuery}&rdquo;
+                </>
+              ) : (
+                <>
+                  Found <strong>{displayItems.length}</strong> {displayItems.length === 1 ? 'result' : 'results'} for &ldquo;{searchQuery}&rdquo;
+                </>
+              )
+            ) : (showAll || activeCategory !== 'all') ? (
+              isEs ? `${displayItems.length} preguntas disponibles` : `${displayItems.length} questions available`
+            ) : null}
+          </span>
 
-        {displayItems.length > 1 && (
-          <div className="faq-toggle-actions">
-            <button type="button" onClick={expandAll} className="faq-action-link">
-              {isEs ? 'Expandir todas' : 'Expand all'}
-            </button>
-            <span className="faq-action-sep">•</span>
-            <button type="button" onClick={collapseAll} className="faq-action-link">
-              {isEs ? 'Cerrar todas' : 'Collapse all'}
-            </button>
-          </div>
-        )}
-      </div>
+          {displayItems.length > 1 && (
+            <div className="faq-toggle-actions">
+              <button type="button" onClick={expandAll} className="faq-action-link">
+                {isEs ? 'Expandir todas' : 'Expand all'}
+              </button>
+              <span className="faq-action-sep">•</span>
+              <button type="button" onClick={collapseAll} className="faq-action-link">
+                {isEs ? 'Cerrar todas' : 'Collapse all'}
+              </button>
+            </div>
+          )}
+        </div>
+      )}
 
       {/* Questions Accordion List */}
       <div className="faq-list">
@@ -466,11 +427,11 @@ export default function FAQAccordionList({
 
         :global(.faq-title) {
           font-family: var(--font-display, inherit);
-          font-size: clamp(2.4rem, 4.5vw, 3.4rem);
-          font-weight: 800;
+          font-size: clamp(2.6rem, 4.8vw, 3.65rem);
+          font-weight: 500;
           color: #1F1B17;
-          letter-spacing: -0.025em;
-          line-height: 1.12;
+          letter-spacing: -0.02em;
+          line-height: 1.08;
           margin: 0;
         }
 
@@ -544,55 +505,6 @@ export default function FAQAccordionList({
         .faq-search-clear:hover {
           background: var(--gray-200);
           color: var(--black-matte);
-        }
-
-        /* Quick Search Tag Pills */
-        .faq-quick-tags {
-          display: flex;
-          align-items: center;
-          flex-wrap: wrap;
-          gap: 8px;
-          padding-inline: 8px;
-        }
-
-        .faq-quick-label {
-          display: inline-flex;
-          align-items: center;
-          gap: 4px;
-          font-size: 0.76rem;
-          font-weight: 600;
-          color: var(--gray-500);
-          text-transform: uppercase;
-          letter-spacing: 0.04em;
-        }
-
-        .faq-quick-chips {
-          display: flex;
-          flex-wrap: wrap;
-          gap: 6px;
-        }
-
-        .faq-quick-chip {
-          background: white;
-          border: 1px solid var(--gray-200);
-          border-radius: 999px;
-          padding: 4px 12px;
-          font-size: 0.78rem;
-          color: var(--gray-700);
-          cursor: pointer;
-          transition: all 180ms ease;
-        }
-
-        .faq-quick-chip:hover {
-          border-color: var(--forest-green);
-          color: var(--forest-green);
-          background: rgba(45, 58, 45, 0.04);
-        }
-
-        .faq-quick-chip--active {
-          background: var(--forest-green);
-          border-color: var(--forest-green);
-          color: white;
         }
 
         /* Categories Filter */
@@ -692,29 +604,24 @@ export default function FAQAccordionList({
           color: var(--gray-300);
         }
 
-        /* FAQ List */
+        /* FAQ List - Minimalist Hairline Accordion */
         .faq-list {
           display: flex;
           flex-direction: column;
-          gap: 12px;
+          gap: 0;
         }
 
         .faq-card {
-          background: white;
-          border: 1px solid var(--gray-200);
-          border-radius: var(--radius-xl);
+          background: transparent;
+          border: none;
+          border-bottom: 1px solid var(--gray-200);
+          border-radius: 0;
           overflow: hidden;
-          transition: border-color 200ms ease, box-shadow 200ms ease;
+          transition: border-color 200ms ease;
         }
 
-        .faq-card:hover {
-          border-color: rgba(45, 58, 45, 0.3);
-          box-shadow: 0 6px 20px rgba(0, 0, 0, 0.03);
-        }
-
-        .faq-card--open {
-          border-color: rgba(45, 58, 45, 0.35);
-          box-shadow: 0 8px 24px rgba(45, 58, 45, 0.06);
+        .faq-card:first-child {
+          border-top: 1px solid var(--gray-200);
         }
 
         .faq-card__header {
@@ -722,8 +629,8 @@ export default function FAQAccordionList({
           display: flex;
           align-items: center;
           justify-content: space-between;
-          gap: 16px;
-          padding: 20px 24px;
+          gap: 20px;
+          padding: 22px 4px;
           background: none;
           border: none;
           cursor: pointer;
@@ -734,40 +641,39 @@ export default function FAQAccordionList({
           display: flex;
           flex-direction: column;
           align-items: flex-start;
-          gap: 6px;
+          gap: 4px;
         }
 
         .faq-card__category-chip {
           display: inline-block;
-          font-size: 0.68rem;
+          font-family: var(--font-sans);
+          font-size: 0.65rem;
           font-weight: 600;
           text-transform: uppercase;
-          letter-spacing: 0.05em;
-          color: var(--forest-green);
-          background: rgba(45, 58, 45, 0.06);
-          padding: 2px 8px;
-          border-radius: 4px;
+          letter-spacing: 0.12em;
+          color: var(--gray-400);
+          background: transparent;
+          padding: 0;
         }
 
         .faq-card__question {
-          font-size: 1.05rem;
-          font-weight: 600;
+          font-family: var(--font-sans);
+          font-size: 1.1rem;
+          font-weight: 500;
+          letter-spacing: -0.01em;
           color: var(--black-matte);
           margin: 0;
-          line-height: 1.35;
+          line-height: 1.4;
+          transition: color 180ms ease;
         }
 
         .faq-card__chevron-wrap {
           flex-shrink: 0;
-          width: 32px;
-          height: 32px;
-          border-radius: 50%;
-          background: var(--gray-100);
           display: flex;
           align-items: center;
           justify-content: center;
-          color: var(--gray-600);
-          transition: background 200ms ease;
+          color: var(--gray-500);
+          transition: color 180ms ease;
         }
 
         :global(.faq-card__chevron) {
@@ -779,12 +685,10 @@ export default function FAQAccordionList({
         }
 
         .faq-card__body {
-          padding: 0 24px 22px;
+          padding: 0 4px 22px;
           color: var(--gray-700);
-          font-size: 0.94rem;
-          line-height: 1.65;
-          border-top: 1px solid var(--gray-100);
-          padding-top: 16px;
+          font-size: 0.95rem;
+          line-height: 1.68;
         }
 
         :global(.faq-answer-p) {
@@ -906,18 +810,17 @@ export default function FAQAccordionList({
         /* Mobile Responsive */
         @media (max-width: 640px) {
           .faq-card__header {
-            padding: 16px 18px;
+            padding: 18px 2px;
+          }
+          .faq-card__question {
+            font-size: 1rem;
           }
           .faq-card__body {
-            padding: 0 18px 18px;
-          }
-          .faq-quick-tags {
-            flex-direction: column;
-            align-items: flex-start;
+            padding: 0 2px 18px;
           }
         }
 
-        /* ── Dark Luxury Variant (matching Home & Camper Detail) ── */
+        /* ── Dark Luxury Editorial Variant (matching Home & Venta) ── */
         .faq-experience--dark .faq-eyebrow-pill {
           background: rgba(204, 160, 83, 0.12);
           border-color: rgba(204, 160, 83, 0.35);
@@ -926,123 +829,160 @@ export default function FAQAccordionList({
         .faq-experience--dark :global(.faq-title) {
           color: #FFFFFF;
           font-family: var(--font-display, inherit);
-          font-weight: 800;
+          font-weight: 500;
         }
         .faq-experience--dark .faq-subtitle {
           color: #94A3B8;
         }
         .faq-experience--dark .faq-search-bar {
-          background: #131518;
-          border-color: rgba(255, 255, 255, 0.12);
-          box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4);
+          background: rgba(19, 21, 24, 0.85);
+          border: 1px solid rgba(255, 255, 255, 0.1);
+          padding: 12px 20px;
+          box-shadow: 0 12px 32px rgba(0, 0, 0, 0.45);
         }
         .faq-experience--dark .faq-search-bar:focus-within {
-          border-color: #CCA053;
-          box-shadow: 0 0 0 3px rgba(204, 160, 83, 0.2);
+          border-color: rgba(204, 160, 83, 0.65);
+          box-shadow: 0 0 0 3px rgba(204, 160, 83, 0.15), 0 14px 36px rgba(0, 0, 0, 0.55);
         }
         .faq-experience--dark .faq-search-input {
           color: #FFFFFF;
+          font-size: 0.96rem;
         }
         .faq-experience--dark .faq-search-input::placeholder {
-          color: rgba(255, 255, 255, 0.4);
+          color: #64748B;
         }
         .faq-experience--dark :global(.faq-search-icon) {
           color: #CCA053;
         }
         .faq-experience--dark .faq-search-clear {
-          background: rgba(255, 255, 255, 0.1);
-          color: rgba(255, 255, 255, 0.7);
+          background: rgba(255, 255, 255, 0.08);
+          color: #94A3B8;
         }
-        .faq-experience--dark .faq-quick-chip {
-          background: #131518;
-          border-color: rgba(255, 255, 255, 0.1);
-          color: rgba(255, 255, 255, 0.7);
-        }
-        .faq-experience--dark .faq-quick-chip:hover {
-          border-color: #CCA053;
-          color: #CCA053;
-        }
-        .faq-experience--dark .faq-quick-chip--active {
-          background: #CCA053;
-          border-color: #CCA053;
-          color: #0B0C0E;
-          font-weight: 700;
+        .faq-experience--dark .faq-search-clear:hover {
+          background: rgba(204, 160, 83, 0.2);
+          color: #FFFFFF;
         }
         .faq-experience--dark .faq-cat-btn {
           background: #131518;
-          border-color: rgba(255, 255, 255, 0.1);
-          color: rgba(255, 255, 255, 0.75);
+          border-color: rgba(255, 255, 255, 0.08);
+          color: #94A3B8;
         }
         .faq-experience--dark .faq-cat-btn:hover {
-          border-color: rgba(204, 160, 83, 0.5);
+          border-color: rgba(204, 160, 83, 0.4);
           color: #FFFFFF;
         }
         .faq-experience--dark .faq-cat-btn--active {
-          background: #CCA053;
-          border-color: #CCA053;
-          color: #0B0C0E;
+          background: rgba(204, 160, 83, 0.15);
+          border-color: rgba(204, 160, 83, 0.5);
+          color: #E8CA7C;
           font-weight: 700;
         }
         .faq-experience--dark .faq-cat-badge {
-          background: rgba(255, 255, 255, 0.1);
-          color: rgba(255, 255, 255, 0.75);
+          background: rgba(255, 255, 255, 0.08);
+          color: #94A3B8;
         }
         .faq-experience--dark .faq-cat-badge--active {
-          background: rgba(0, 0, 0, 0.2);
-          color: #0B0C0E;
+          background: rgba(204, 160, 83, 0.25);
+          color: #E8CA7C;
         }
         .faq-experience--dark .faq-results-count {
-          color: rgba(255, 255, 255, 0.5);
+          color: #64748B;
         }
         .faq-experience--dark .faq-results-count strong {
-          color: #CCA053;
+          color: #E8CA7C;
         }
         .faq-experience--dark .faq-action-link {
-          color: #CCA053;
+          color: #94A3B8;
+          text-decoration: none;
+          transition: color 160ms ease;
+        }
+        .faq-experience--dark .faq-action-link:hover {
+          color: #E8CA7C;
+        }
+        .faq-experience--dark .faq-action-sep {
+          color: rgba(255, 255, 255, 0.18);
         }
         .faq-experience--dark .faq-card {
-          background: #131518;
-          border-color: rgba(255, 255, 255, 0.08);
-          border-radius: 18px;
+          background: transparent;
+          border: none;
+          border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+          border-radius: 0;
+          box-shadow: none;
+          transition: border-color 220ms ease;
+        }
+        .faq-experience--dark .faq-card:first-child {
+          border-top: 1px solid rgba(255, 255, 255, 0.08);
         }
         .faq-experience--dark .faq-card:hover {
-          border-color: rgba(204, 160, 83, 0.35);
+          background: transparent;
+          border-bottom-color: rgba(204, 160, 83, 0.35);
         }
         .faq-experience--dark .faq-card--open {
-          border-color: rgba(204, 160, 83, 0.5);
-          box-shadow: 0 12px 36px rgba(0, 0, 0, 0.5);
+          background: transparent;
+          border-bottom-color: rgba(204, 160, 83, 0.45);
+          box-shadow: none;
         }
         .faq-experience--dark .faq-card__category-chip {
-          background: rgba(204, 160, 83, 0.12);
-          color: #CCA053;
+          color: rgba(204, 160, 83, 0.72);
+          background: transparent;
         }
         .faq-experience--dark .faq-card__question {
-          color: #FFFFFF;
+          color: #F8FAFC;
+          font-family: var(--font-sans);
+          font-weight: 500;
+          letter-spacing: -0.01em;
+        }
+        .faq-experience--dark .faq-card:hover .faq-card__question,
+        .faq-experience--dark .faq-card--open .faq-card__question {
+          color: #E8CA7C;
         }
         .faq-experience--dark .faq-card__chevron-wrap {
-          background: rgba(255, 255, 255, 0.08);
-          color: rgba(255, 255, 255, 0.75);
+          background: transparent;
+          border: none;
+          color: #94A3B8;
+          transition: color 200ms ease;
+        }
+        .faq-experience--dark .faq-card:hover .faq-card__chevron-wrap,
+        .faq-experience--dark .faq-card--open .faq-card__chevron-wrap {
+          background: transparent;
+          border: none;
+          color: #E8CA7C;
         }
         .faq-experience--dark .faq-card__body {
-          color: rgba(255, 255, 255, 0.72);
-          border-color: rgba(255, 255, 255, 0.07);
+          color: #94A3B8;
+          border: none;
         }
         .faq-experience--dark :global(.faq-bullet-icon) {
-          background: rgba(204, 160, 83, 0.15);
+          background: rgba(204, 160, 83, 0.14);
           color: #CCA053;
         }
         .faq-experience--dark :global(.faq-strong-highlight) {
-          color: #FFFFFF;
+          color: #F8FAFC;
         }
         .faq-experience--dark .faq-view-all-btn {
-          background: #CCA053;
-          border-color: #CCA053;
-          color: #0B0C0E;
+          background: rgba(204, 160, 83, 0.08);
+          border: 1px solid rgba(204, 160, 83, 0.4);
+          color: #E8CA7C;
           font-weight: 700;
+          padding: 13px 28px;
+          box-shadow: none;
         }
         .faq-experience--dark .faq-view-all-btn:hover {
-          background: #d8ad5e;
-          box-shadow: 0 6px 20px rgba(204, 160, 83, 0.35);
+          background: rgba(204, 160, 83, 0.18);
+          border-color: #CCA053;
+          color: #FFFFFF;
+          transform: translateY(-2px);
+          box-shadow: 0 8px 24px rgba(0, 0, 0, 0.35);
+        }
+        .faq-experience--dark .faq-empty-state {
+          background: #131518;
+          border-color: rgba(255, 255, 255, 0.1);
+        }
+        .faq-experience--dark .faq-empty-title {
+          color: #FFFFFF;
+        }
+        .faq-experience--dark .faq-empty-text {
+          color: #94A3B8;
         }
       `}</style>
     </div>

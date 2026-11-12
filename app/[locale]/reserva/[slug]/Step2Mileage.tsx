@@ -53,7 +53,7 @@ export default function Step2Mileage({
 
                     <div className="km-card__features">
                         <div className="km-feature">
-                            <Check size={13} className="text-forest" />
+                            <Check size={15} strokeWidth={2.2} className="km-feature-icon" />
                             <span><strong>{includedTotalKm} km totales</strong> acumulables en tu estancia</span>
                         </div>
                         <div className="km-feature km-feature--sub">
@@ -88,11 +88,11 @@ export default function Step2Mileage({
 
                     <div className="km-card__features">
                         <div className="km-feature">
-                            <Check size={13} className="text-forest" />
+                            <Check size={15} strokeWidth={2.2} className="km-feature-icon" />
                             <span>Kilómetros sin límite durante los {effectiveDays} días (+15 €/día)</span>
                         </div>
                         <div className="km-feature">
-                            <Check size={13} className="text-forest" />
+                            <Check size={15} strokeWidth={2.2} className="km-feature-icon" />
                             <span>Sin cargos por exceso de kilometraje</span>
                         </div>
                     </div>
@@ -217,22 +217,45 @@ export default function Step2Mileage({
                 .km-card__features {
                     display: flex;
                     flex-direction: column;
-                    gap: 6px;
-                    border-top: 1px solid var(--gray-100);
-                    padding-top: 10px;
+                    gap: 0;
+                    border-top: 1px solid rgba(255, 255, 255, 0.08);
+                    padding-top: 4px;
                 }
 
                 .km-feature {
                     display: flex;
                     align-items: center;
-                    gap: 7px;
-                    font-size: 12px;
+                    gap: 10px;
+                    font-size: 12.5px;
                     color: var(--black-matte);
+                    padding: 8px 0;
+                    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+                }
+
+                .km-feature:last-child {
+                    border-bottom: none;
                 }
 
                 .km-feature--sub {
                     color: var(--gray-500);
                     font-size: 11px;
+                }
+
+                :global(.km-feature-icon) {
+                    color: #d4a742;
+                    flex-shrink: 0;
+                }
+
+                :global(html[data-theme="light"]) .km-card__features {
+                    border-top-color: rgba(26, 23, 20, 0.08);
+                }
+
+                :global(html[data-theme="light"]) .km-feature {
+                    border-bottom-color: rgba(26, 23, 20, 0.08);
+                }
+
+                :global(html[data-theme="light"]) :global(.km-feature-icon) {
+                    color: #b38827;
                 }
 
                 .km-feature__dot {

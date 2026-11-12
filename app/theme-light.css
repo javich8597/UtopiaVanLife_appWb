@@ -663,18 +663,24 @@ html[data-theme="light"] .booking-cal__legend {
 }
 
 html[data-theme="light"] .booking-cal__legend-icon--am {
-  background: linear-gradient(135deg, rgba(248, 113, 113, 0.35) 50%, #FAF8F5 50%) !important;
-  border-color: #D9D1C4 !important;
+  background: linear-gradient(135deg, rgba(184, 137, 58, 0.55) 50%, #FAF8F5 50%) !important;
+  border-color: #B8893A !important;
 }
 
 html[data-theme="light"] .booking-cal__legend-icon--pm {
-  background: linear-gradient(135deg, #FAF8F5 50%, rgba(248, 113, 113, 0.35) 50%) !important;
-  border-color: #D9D1C4 !important;
+  background: linear-gradient(135deg, #FAF8F5 50%, rgba(184, 137, 58, 0.55) 50%) !important;
+  border-color: #B8893A !important;
 }
 
 /* ── 7. SECCIONES DE LA HOME (CAMPERS, 3D, WHY, EXPERIENCIAS, FAQ) ── */
+html[data-theme="light"] .home-main::before {
+  opacity: 0.022 !important;
+}
+
 html[data-theme="light"] .featured {
-  background: #F2F0EC !important;
+  background:
+    radial-gradient(ellipse 75% 45% at 50% 0%, rgba(204, 160, 83, 0.09) 0%, transparent 70%),
+    linear-gradient(180deg, #F5F2EC 0%, #EFEBE3 100%) !important;
 }
 
 html[data-theme="light"] .featured__title {
@@ -1128,14 +1134,21 @@ html[data-theme="light"] .faq-subtitle {
 
 html[data-theme="light"] .faq-card,
 html[data-theme="light"] .faq-experience--dark .faq-card {
-  background: #FFFFFF !important;
-  border: 1px solid #EAE5DD !important;
-  box-shadow: 0 2px 8px rgba(40, 30, 15, 0.04) !important;
+  background: transparent !important;
+  border: none !important;
+  border-bottom: 1px solid #EAE5DD !important;
+  border-radius: 0 !important;
+  box-shadow: none !important;
+}
+
+html[data-theme="light"] .faq-card:first-child,
+html[data-theme="light"] .faq-experience--dark .faq-card:first-child {
+  border-top: 1px solid #EAE5DD !important;
 }
 
 html[data-theme="light"] .faq-card:hover,
 html[data-theme="light"] .faq-experience--dark .faq-card:hover {
-  border-color: #D9D1C4 !important;
+  border-bottom-color: #B8893A !important;
 }
 
 html[data-theme="light"] .faq-card__question,
@@ -1146,14 +1159,14 @@ html[data-theme="light"] .faq-experience--dark .faq-card__question {
 html[data-theme="light"] .faq-card__chevron-wrap,
 html[data-theme="light"] .faq-experience--dark .faq-card__chevron,
 html[data-theme="light"] .faq-experience--dark .faq-card__chevron-wrap {
-  color: #1A1714 !important;
-  background: #F7F5F1 !important;
+  color: #5A5248 !important;
+  background: transparent !important;
 }
 
 html[data-theme="light"] .faq-card__body,
 html[data-theme="light"] .faq-experience--dark .faq-card__body {
   color: #5A5248 !important;
-  border-top: 1px solid #EAE5DD !important;
+  border-top: none !important;
 }
 
 html[data-theme="light"] .faq-strong-highlight,
@@ -1163,16 +1176,18 @@ html[data-theme="light"] .faq-experience--dark .faq-strong-highlight {
 
 html[data-theme="light"] .faq-card__category-chip,
 html[data-theme="light"] .faq-experience--dark .faq-card__category-chip {
-  background: #F7EEDC !important;
-  border: 1px solid #E8D6B2 !important;
-  color: #1A1714 !important;
-  /* TEXTO NEGRO EN BEIGE */
-  font-weight: 700 !important;
+  background: transparent !important;
+  border: none !important;
+  color: #8A6626 !important;
+  padding: 0 !important;
+  font-weight: 600 !important;
 }
 
 /* Reseñas de clientes */
 html[data-theme="light"] .reviews-section {
-  background: #F7F5F1 !important;
+  background:
+    radial-gradient(ellipse 75% 50% at 50% 100%, rgba(204, 160, 83, 0.08) 0%, transparent 72%),
+    linear-gradient(180deg, #F7F5F1 0%, #EFEAE1 100%) !important;
   border-top: 1px solid #EAE5DD !important;
 }
 

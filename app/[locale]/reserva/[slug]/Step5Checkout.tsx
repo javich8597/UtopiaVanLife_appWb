@@ -9,16 +9,11 @@ import {
     AlertCircle,
     Loader2,
     Building,
-    Mail,
-    Phone,
     User,
     Users,
     UserCheck,
     MapPin,
     Sparkles,
-    Calendar,
-    Award,
-    Check,
 } from 'lucide-react'
 import { Step5Customer, WizardCamper, Step1Data, Step2Data, Step3Data, Step4Data, BookingPassenger, DepositOption } from './types'
 import { validateStep5, validateDriverAge, validateDrivingLicense } from './types'
@@ -161,11 +156,6 @@ export default function Step5Checkout({
         }
     }
 
-    const handleDepositToggle = (option: DepositOption) => {
-        const next = { ...customer, depositOption: option }
-        onChange(next)
-    }
-
     const handleTravelersCountChange = (newCount: number) => {
         const currentPassengers = [...(customer.passengers || [])]
         const needed = Math.max(0, newCount - 1)
@@ -303,9 +293,7 @@ export default function Step5Checkout({
                     postalCode: customer.postalCode.trim(),
                     country: customer.country.trim(),
                     travelersCount: currentTravelersCount,
-                    // El 2º conductor vale con cualquier modalidad, así que su casilla se envía tal cual
                     passengers: (customer.passengers || []).slice(0, Math.max(0, currentTravelersCount - 1)),
-                    // El 2º conductor "solo" se envía únicamente si su bloque está visible (y por tanto validado)
                     secondDriverSoloEnabled: soloSecondDriverVisible && Boolean(customer.secondDriverSoloEnabled),
                     secondDriverSolo: soloSecondDriverVisible && customer.secondDriverSoloEnabled ? customer.secondDriverSolo : undefined,
                     notes: customer.specialNotes || '',
@@ -374,12 +362,12 @@ export default function Step5Checkout({
             {/* Header */}
             <div className="step-header">
                 <span className="step-header__tag">PASO 7 DE 7</span>
-                <h2 className="step-header__title">Datos de los viajeros y pago</h2>
+                <h2 className="step-header__title">Datos y pago</h2>
             </div>
 
             {submitError && (
                 <div className="alert-box alert-box--error" role="alert">
-                    <AlertCircle size={18} />
+                    <AlertCircle size={16} />
                     <span>{submitError}</span>
                 </div>
             )}
@@ -388,7 +376,7 @@ export default function Step5Checkout({
                 {/* ── 1. Grupo Conductor Principal ── */}
                 <div className="form-group-card">
                     <div className="form-group-card__header">
-                        <User size={18} className="text-forest" />
+                        <User size={15} className="text-forest" />
                         <h4 className="form-group-card__title">Conductor Principal (Titular de la reserva)</h4>
                     </div>
 
@@ -442,7 +430,7 @@ export default function Step5Checkout({
                             </label>
                             <select
                                 id="input-travelersCount"
-                                className={`field-input ${fieldErrors.travelersCount ? 'field-input--error' : ''}`}
+                                className={`field-input field-select ${fieldErrors.travelersCount ? 'field-input--error' : ''}`}
                                 value={currentTravelersCount}
                                 onChange={(e) => handleTravelersCountChange(Number(e.target.value))}
                                 disabled={isSubmitting}
@@ -463,18 +451,15 @@ export default function Step5Checkout({
                             <label htmlFor="input-birthDate" className="field-label">
                                 Fecha de nacimiento (Conductor) *
                             </label>
-                            <div className="input-with-icon">
-                                <Calendar size={16} className="input-icon" />
-                                <input
-                                    id="input-birthDate"
-                                    type="date"
-                                    className={`field-input field-input--has-icon ${fieldErrors.birthDate ? 'field-input--error' : ''}`}
-                                    value={customer.birthDate || ''}
-                                    onChange={(e) => handleInputChange('birthDate', e.target.value)}
-                                    disabled={isSubmitting}
-                                    required
-                                />
-                            </div>
+                            <input
+                                id="input-birthDate"
+                                type="date"
+                                className={`field-input ${fieldErrors.birthDate ? 'field-input--error' : ''}`}
+                                value={customer.birthDate || ''}
+                                onChange={(e) => handleInputChange('birthDate', e.target.value)}
+                                disabled={isSubmitting}
+                                required
+                            />
                             {fieldErrors.birthDate ? (
                                 <span className="field-error-text">{fieldErrors.birthDate}</span>
                             ) : currentAge !== null && currentAge >= 25 ? (
@@ -491,18 +476,15 @@ export default function Step5Checkout({
                             <label htmlFor="input-licenseDate" className="field-label">
                                 Fecha expedición carnet B (Conductor) *
                             </label>
-                            <div className="input-with-icon">
-                                <Award size={16} className="input-icon" />
-                                <input
-                                    id="input-licenseDate"
-                                    type="date"
-                                    className={`field-input field-input--has-icon ${fieldErrors.licenseDate ? 'field-input--error' : ''}`}
-                                    value={customer.licenseDate || ''}
-                                    onChange={(e) => handleInputChange('licenseDate', e.target.value)}
-                                    disabled={isSubmitting}
-                                    required
-                                />
-                            </div>
+                            <input
+                                id="input-licenseDate"
+                                type="date"
+                                className={`field-input ${fieldErrors.licenseDate ? 'field-input--error' : ''}`}
+                                value={customer.licenseDate || ''}
+                                onChange={(e) => handleInputChange('licenseDate', e.target.value)}
+                                disabled={isSubmitting}
+                                required
+                            />
                             {fieldErrors.licenseDate ? (
                                 <span className="field-error-text">{fieldErrors.licenseDate}</span>
                             ) : currentLicenseYears !== null && currentLicenseYears >= 2 ? (
@@ -519,19 +501,16 @@ export default function Step5Checkout({
                             <label htmlFor="input-email" className="field-label">
                                 Correo Electrónico *
                             </label>
-                            <div className="input-with-icon">
-                                <Mail size={16} className="input-icon" />
-                                <input
-                                    id="input-email"
-                                    type="email"
-                                    className={`field-input field-input--has-icon ${fieldErrors.email ? 'field-input--error' : ''}`}
-                                    placeholder="tunombre@email.com"
-                                    value={customer.email}
-                                    onChange={(e) => handleInputChange('email', e.target.value)}
-                                    disabled={isSubmitting}
-                                    required
-                                />
-                            </div>
+                            <input
+                                id="input-email"
+                                type="email"
+                                className={`field-input ${fieldErrors.email ? 'field-input--error' : ''}`}
+                                placeholder="tunombre@email.com"
+                                value={customer.email}
+                                onChange={(e) => handleInputChange('email', e.target.value)}
+                                disabled={isSubmitting}
+                                required
+                            />
                             {fieldErrors.email ? (
                                 <span className="field-error-text">{fieldErrors.email}</span>
                             ) : (
@@ -559,19 +538,16 @@ export default function Step5Checkout({
                                         </option>
                                     ))}
                                 </select>
-                                <div className="input-with-icon phone-number-wrap">
-                                    <Phone size={16} className="input-icon" />
-                                    <input
-                                        id="input-phone"
-                                        type="tel"
-                                        className={`field-input field-input--has-icon ${fieldErrors.phone ? 'field-input--error' : ''}`}
-                                        placeholder="600 000 000"
-                                        value={customer.phone}
-                                        onChange={(e) => handleInputChange('phone', e.target.value)}
-                                        disabled={isSubmitting}
-                                        required
-                                    />
-                                </div>
+                                <input
+                                    id="input-phone"
+                                    type="tel"
+                                    className={`field-input phone-number-input ${fieldErrors.phone ? 'field-input--error' : ''}`}
+                                    placeholder="600 000 000"
+                                    value={customer.phone}
+                                    onChange={(e) => handleInputChange('phone', e.target.value)}
+                                    disabled={isSubmitting}
+                                    required
+                                />
                             </div>
                             {fieldErrors.phone ? (
                                 <span className="field-error-text">{fieldErrors.phone}</span>
@@ -586,9 +562,9 @@ export default function Step5Checkout({
                 {additionalPaxCount > 0 && (
                     <div className="passengers-section">
                         <div className="passengers-section__header">
-                            <Users size={18} className="text-forest" />
+                            <Users size={15} className="text-forest" />
                             <h4 className="passengers-section__title">
-                                Datos de los pasajeros acompañantes ({additionalPaxCount} {additionalPaxCount === 1 ? 'persona' : 'personas'})
+                                Pasajeros acompañantes ({additionalPaxCount} {additionalPaxCount === 1 ? 'persona' : 'personas'})
                             </h4>
                         </div>
                         <p className="passengers-section__desc">
@@ -614,12 +590,12 @@ export default function Step5Checkout({
                                     <div key={idx} className={`passenger-card ${is2ndDriver ? 'passenger-card--second-driver' : ''}`}>
                                         <div className="passenger-card__header">
                                             <div className="passenger-card__tag">
-                                                <User size={15} />
+                                                <User size={14} />
                                                 <span>Pasajero {pNum} (Acompañante)</span>
                                             </div>
                                             {is2ndDriver && (
                                                 <span className="passenger-driver-badge">
-                                                    <UserCheck size={13} />
+                                                    <UserCheck size={12} />
                                                     2º Conductor Autorizado
                                                 </span>
                                             )}
@@ -671,18 +647,15 @@ export default function Step5Checkout({
                                                 <label htmlFor={`input-passenger_${pNum}_birthDate`} className="field-label">
                                                     Fecha de nacimiento *
                                                 </label>
-                                                <div className="input-with-icon">
-                                                    <Calendar size={16} className="input-icon" />
-                                                    <input
-                                                        id={`input-passenger_${pNum}_birthDate`}
-                                                        type="date"
-                                                        className={`field-input field-input--has-icon ${fieldErrors[`passenger_${pNum}_birthDate`] ? 'field-input--error' : ''}`}
-                                                        value={passenger.birthDate || ''}
-                                                        onChange={(e) => handlePassengerChange(idx, 'birthDate', e.target.value)}
-                                                        disabled={isSubmitting}
-                                                        required
-                                                    />
-                                                </div>
+                                                <input
+                                                    id={`input-passenger_${pNum}_birthDate`}
+                                                    type="date"
+                                                    className={`field-input ${fieldErrors[`passenger_${pNum}_birthDate`] ? 'field-input--error' : ''}`}
+                                                    value={passenger.birthDate || ''}
+                                                    onChange={(e) => handlePassengerChange(idx, 'birthDate', e.target.value)}
+                                                    disabled={isSubmitting}
+                                                    required
+                                                />
                                                 {fieldErrors[`passenger_${pNum}_birthDate`] ? (
                                                     <span className="field-error-text">{fieldErrors[`passenger_${pNum}_birthDate`]}</span>
                                                 ) : pAge !== null ? (
@@ -722,19 +695,16 @@ export default function Step5Checkout({
                                                             <label htmlFor={`input-passenger_${pNum}_driverLicenseId`} className="field-label">
                                                                 Número del permiso de conducir (Pasajero {pNum}) *
                                                             </label>
-                                                            <div className="input-with-icon">
-                                                                <CreditCard size={16} className="input-icon" />
-                                                                <input
-                                                                    id={`input-passenger_${pNum}_driverLicenseId`}
-                                                                    type="text"
-                                                                    className={`field-input field-input--has-icon ${fieldErrors[`passenger_${pNum}_driverLicenseId`] ? 'field-input--error' : ''}`}
-                                                                    placeholder="Ej. 12345678-Z"
-                                                                    value={passenger.driverLicenseId || ''}
-                                                                    onChange={(e) => handlePassengerChange(idx, 'driverLicenseId', e.target.value)}
-                                                                    disabled={isSubmitting}
-                                                                    required
-                                                                />
-                                                            </div>
+                                                            <input
+                                                                id={`input-passenger_${pNum}_driverLicenseId`}
+                                                                type="text"
+                                                                className={`field-input ${fieldErrors[`passenger_${pNum}_driverLicenseId`] ? 'field-input--error' : ''}`}
+                                                                placeholder="Ej. 12345678-Z"
+                                                                value={passenger.driverLicenseId || ''}
+                                                                onChange={(e) => handlePassengerChange(idx, 'driverLicenseId', e.target.value)}
+                                                                disabled={isSubmitting}
+                                                                required
+                                                            />
                                                             {fieldErrors[`passenger_${pNum}_driverLicenseId`] ? (
                                                                 <span className="field-error-text">{fieldErrors[`passenger_${pNum}_driverLicenseId`]}</span>
                                                             ) : (
@@ -744,20 +714,17 @@ export default function Step5Checkout({
 
                                                         <div className="form-field">
                                                             <label htmlFor={`input-passenger_${pNum}_licenseDate`} className="field-label">
-                                                                Fecha expedición carnet de conducir B (Pasajero {pNum}) *
+                                                                Fecha expedición carnet B (Pasajero {pNum}) *
                                                             </label>
-                                                            <div className="input-with-icon">
-                                                                <Award size={16} className="input-icon" />
-                                                                <input
-                                                                    id={`input-passenger_${pNum}_licenseDate`}
-                                                                    type="date"
-                                                                    className={`field-input field-input--has-icon ${fieldErrors[`passenger_${pNum}_licenseDate`] ? 'field-input--error' : ''}`}
-                                                                    value={passenger.licenseDate || ''}
-                                                                    onChange={(e) => handlePassengerChange(idx, 'licenseDate', e.target.value)}
-                                                                    disabled={isSubmitting}
-                                                                    required
-                                                                />
-                                                            </div>
+                                                            <input
+                                                                id={`input-passenger_${pNum}_licenseDate`}
+                                                                type="date"
+                                                                className={`field-input ${fieldErrors[`passenger_${pNum}_licenseDate`] ? 'field-input--error' : ''}`}
+                                                                value={passenger.licenseDate || ''}
+                                                                onChange={(e) => handlePassengerChange(idx, 'licenseDate', e.target.value)}
+                                                                disabled={isSubmitting}
+                                                                required
+                                                            />
                                                             {fieldErrors[`passenger_${pNum}_licenseDate`] && (
                                                                 <span className="field-error-text">{fieldErrors[`passenger_${pNum}_licenseDate`]}</span>
                                                             )}
@@ -795,12 +762,12 @@ export default function Step5Checkout({
                 {soloSecondDriverVisible && (
                     <div className="form-group-card form-group-card--solo-second-driver">
                         <div className="form-group-card__header">
-                            <UserCheck size={18} className="text-forest" />
+                            <UserCheck size={15} className="text-forest" />
                             <h4 className="form-group-card__title">
                                 2º Conductor Autorizado Opcional ({secondDriverIncluded ? 'incluido con Seguro Flex' : `+${secondDriverRatePerDay} €/día con Seguro Estándar`})
                             </h4>
                         </div>
-                        <p className="deposit-section-intro">
+                        <p className="section-intro-text">
                             {secondDriverPriceLabel} Si alguien más va a conducir la camper durante tu viaje, puedes añadir sus datos ahora:
                         </p>
 
@@ -872,18 +839,15 @@ export default function Step5Checkout({
                                             <label htmlFor="input-secondDriverSolo_birthDate" className="field-label">
                                                 Fecha de nacimiento (2º Conductor) *
                                             </label>
-                                            <div className="input-with-icon">
-                                                <Calendar size={16} className="input-icon" />
-                                                <input
-                                                    id="input-secondDriverSolo_birthDate"
-                                                    type="date"
-                                                    className={`field-input field-input--has-icon ${fieldErrors.secondDriverSolo_birthDate ? 'field-input--error' : ''}`}
-                                                    value={customer.secondDriverSolo?.birthDate || ''}
-                                                    onChange={(e) => handleSoloSecondDriverChange('birthDate', e.target.value)}
-                                                    disabled={isSubmitting}
-                                                    required
-                                                />
-                                            </div>
+                                            <input
+                                                id="input-secondDriverSolo_birthDate"
+                                                type="date"
+                                                className={`field-input ${fieldErrors.secondDriverSolo_birthDate ? 'field-input--error' : ''}`}
+                                                value={customer.secondDriverSolo?.birthDate || ''}
+                                                onChange={(e) => handleSoloSecondDriverChange('birthDate', e.target.value)}
+                                                disabled={isSubmitting}
+                                                required
+                                            />
                                             {fieldErrors.secondDriverSolo_birthDate && (
                                                 <span className="field-error-text">{fieldErrors.secondDriverSolo_birthDate}</span>
                                             )}
@@ -893,19 +857,16 @@ export default function Step5Checkout({
                                             <label htmlFor="input-secondDriverSolo_driverLicenseId" className="field-label">
                                                 Número del permiso de conducir (2º Conductor) *
                                             </label>
-                                            <div className="input-with-icon">
-                                                <CreditCard size={16} className="input-icon" />
-                                                <input
-                                                    id="input-secondDriverSolo_driverLicenseId"
-                                                    type="text"
-                                                    className={`field-input field-input--has-icon ${fieldErrors.secondDriverSolo_driverLicenseId ? 'field-input--error' : ''}`}
-                                                    placeholder="Ej. 12345678-Z"
-                                                    value={customer.secondDriverSolo?.driverLicenseId || ''}
-                                                    onChange={(e) => handleSoloSecondDriverChange('driverLicenseId', e.target.value)}
-                                                    disabled={isSubmitting}
-                                                    required
-                                                />
-                                            </div>
+                                            <input
+                                                id="input-secondDriverSolo_driverLicenseId"
+                                                type="text"
+                                                className={`field-input ${fieldErrors.secondDriverSolo_driverLicenseId ? 'field-input--error' : ''}`}
+                                                placeholder="Ej. 12345678-Z"
+                                                value={customer.secondDriverSolo?.driverLicenseId || ''}
+                                                onChange={(e) => handleSoloSecondDriverChange('driverLicenseId', e.target.value)}
+                                                disabled={isSubmitting}
+                                                required
+                                            />
                                             {fieldErrors.secondDriverSolo_driverLicenseId ? (
                                                 <span className="field-error-text">{fieldErrors.secondDriverSolo_driverLicenseId}</span>
                                             ) : (
@@ -917,18 +878,15 @@ export default function Step5Checkout({
                                             <label htmlFor="input-secondDriverSolo_licenseDate" className="field-label">
                                                 Fecha expedición carnet B (2º Conductor) *
                                             </label>
-                                            <div className="input-with-icon">
-                                                <Award size={16} className="input-icon" />
-                                                <input
-                                                    id="input-secondDriverSolo_licenseDate"
-                                                    type="date"
-                                                    className={`field-input field-input--has-icon ${fieldErrors.secondDriverSolo_licenseDate ? 'field-input--error' : ''}`}
-                                                    value={customer.secondDriverSolo?.licenseDate || ''}
-                                                    onChange={(e) => handleSoloSecondDriverChange('licenseDate', e.target.value)}
-                                                    disabled={isSubmitting}
-                                                    required
-                                                />
-                                            </div>
+                                            <input
+                                                id="input-secondDriverSolo_licenseDate"
+                                                type="date"
+                                                className={`field-input ${fieldErrors.secondDriverSolo_licenseDate ? 'field-input--error' : ''}`}
+                                                value={customer.secondDriverSolo?.licenseDate || ''}
+                                                onChange={(e) => handleSoloSecondDriverChange('licenseDate', e.target.value)}
+                                                disabled={isSubmitting}
+                                                required
+                                            />
                                             {fieldErrors.secondDriverSolo_licenseDate && (
                                                 <span className="field-error-text">{fieldErrors.secondDriverSolo_licenseDate}</span>
                                             )}
@@ -961,7 +919,7 @@ export default function Step5Checkout({
                 {/* ── 3. Dirección de Facturación y Contrato ── */}
                 <div className="form-group-card">
                     <div className="form-group-card__header">
-                        <MapPin size={18} className="text-forest" />
+                        <MapPin size={15} className="text-forest" />
                         <h4 className="form-group-card__title">Dirección de facturación y contrato</h4>
                     </div>
 
@@ -1048,10 +1006,10 @@ export default function Step5Checkout({
                     </div>
                 </div>
 
-                {/* ── 5. Peticiones o Notas Especiales ── */}
+                {/* ── 4. Peticiones o Notas Especiales ── */}
                 <div className="form-group-card">
                     <div className="form-group-card__header">
-                        <Sparkles size={18} className="text-forest" />
+                        <Sparkles size={15} className="text-forest" />
                         <h4 className="form-group-card__title">Notas especiales o detalles del viaje</h4>
                     </div>
 
@@ -1069,11 +1027,11 @@ export default function Step5Checkout({
                     </div>
                 </div>
 
-                {/* ── 6. Checkboxes Obligatorios Desglosados e Independientes ── */}
+                {/* ── 5. Checkboxes Obligatorios Desglosados e Independientes ── */}
                 <div className="legal-consent-card">
                     <div className="legal-consent-header">
-                        <ShieldCheck size={16} className="text-forest" />
-                        <span className="legal-consent-title">Consentimientos y condiciones obligatorias de reserva</span>
+                        <ShieldCheck size={15} className="text-forest" />
+                        <span className="legal-consent-title">Consentimientos y condiciones obligatorias</span>
                     </div>
 
                     {/* Checkbox 1: Términos y Condiciones */}
@@ -1149,7 +1107,7 @@ export default function Step5Checkout({
                     </div>
                 </div>
 
-                {/* ── 7. Botón de Pago Redsys TPV Virtual ── */}
+                {/* ── 6. Botón de Pago Redsys TPV Virtual ── */}
                 <div className="submit-section">
                     <button
                         type="submit"
@@ -1158,12 +1116,12 @@ export default function Step5Checkout({
                     >
                         {isSubmitting ? (
                             <>
-                                <Loader2 size={20} className="spinner" />
+                                <Loader2 size={18} className="spinner" />
                                 <span>Conectando con Redsys CaixaBank...</span>
                             </>
                         ) : (
                             <>
-                                <Lock size={18} />
+                                <Lock size={16} />
                                 <span>Pagar {formatPrice(totalPayable)} con Redsys (100% Seguro)</span>
                             </>
                         )}
@@ -1171,16 +1129,16 @@ export default function Step5Checkout({
 
                     <div className="payment-security-badges">
                         <div className="security-badge">
-                            <ShieldCheck size={14} className="text-forest" />
+                            <ShieldCheck size={13} className="text-forest" />
                             <span>Cifrado SSL 256 bits</span>
                         </div>
                         <div className="security-badge">
-                            <CreditCard size={14} className="text-forest" />
-                            <span>Tarjetas Visa, Mastercard & Bizum</span>
+                            <CreditCard size={13} className="text-forest" />
+                            <span>Visa, Mastercard & Bizum</span>
                         </div>
                         <div className="security-badge">
-                            <Building size={14} className="text-forest" />
-                            <span>TPV Virtual CaixaBank Oficial</span>
+                            <Building size={13} className="text-forest" />
+                            <span>TPV CaixaBank Oficial</span>
                         </div>
                     </div>
                 </div>
@@ -1190,54 +1148,48 @@ export default function Step5Checkout({
                 .step-checkout {
                     display: flex;
                     flex-direction: column;
-                    gap: var(--space-6, 24px);
+                    gap: var(--space-4, 16px);
                 }
 
                 .step-header {
-                    margin-bottom: var(--space-2, 8px);
+                    margin-bottom: 2px;
                 }
 
                 .step-header__tag {
                     display: inline-block;
-                    font-size: 11px;
+                    font-size: 10px;
                     font-weight: 700;
                     letter-spacing: 0.08em;
                     color: var(--wz-pill-text);
                     background: var(--wz-pill-bg);
                     border: 1px solid var(--wz-pill-border);
-                    padding: 3px 8px;
-                    border-radius: var(--radius-sm, 6px);
-                    margin-bottom: var(--space-2, 8px);
+                    padding: 2px 8px;
+                    border-radius: var(--radius-sm);
+                    margin-bottom: 4px;
                 }
 
                 .step-header__title {
-                    font-family: var(--font-display, inherit);
-                    font-size: var(--text-2xl, 24px);
+                    font-family: var(--font-display);
+                    font-size: var(--text-xl, 20px);
                     font-weight: 700;
                     color: var(--black-matte);
-                    margin-bottom: var(--space-2, 8px);
-                    line-height: 1.25;
-                }
-
-                .step-header__desc {
-                    font-size: var(--text-sm, 14px);
-                    color: var(--gray-600);
-                    line-height: 1.6;
+                    margin: 0;
+                    line-height: 1.2;
                 }
 
                 .alert-box {
                     display: flex;
                     align-items: center;
-                    gap: 10px;
-                    padding: 12px 16px;
+                    gap: 8px;
+                    padding: 10px 14px;
                     border-radius: var(--radius-md, 8px);
-                    font-size: var(--text-sm, 14px);
+                    font-size: 13px;
                     font-weight: 500;
                 }
 
                 .alert-box--error {
-                    background: rgba(239, 68, 68, 0.15);
-                    border: 1px solid rgba(239, 68, 68, 0.4);
+                    background: rgba(239, 68, 68, 0.12);
+                    border: 1px solid rgba(239, 68, 68, 0.35);
                     color: #ef4444;
                 }
 
@@ -1250,154 +1202,39 @@ export default function Step5Checkout({
                 .checkout-form {
                     display: flex;
                     flex-direction: column;
-                    gap: var(--space-5, 20px);
+                    gap: 14px;
                 }
 
                 .form-group-card {
                     background: var(--wz-surface);
                     border: 1px solid var(--gray-200);
                     border-radius: var(--radius-xl, 16px);
-                    padding: var(--space-5, 20px);
+                    padding: 16px 18px;
+                    box-shadow: 0 4px 18px rgba(0, 0, 0, 0.04);
                 }
 
                 .form-group-card__header {
                     display: flex;
                     align-items: center;
-                    gap: 10px;
-                    margin-bottom: var(--space-4, 16px);
-                    padding-bottom: var(--space-3, 12px);
+                    gap: 8px;
+                    margin-bottom: 14px;
+                    padding-bottom: 10px;
                     border-bottom: 1px solid var(--gray-100);
                 }
 
                 .form-group-card__title {
-                    font-size: var(--text-sm, 14px);
+                    font-size: 13.5px;
                     font-weight: 700;
                     color: var(--black-matte);
                     margin: 0;
+                    letter-spacing: -0.01em;
                 }
 
-                .deposit-section-intro {
-                    font-size: 13px;
+                .section-intro-text {
+                    font-size: 12.5px;
                     color: var(--gray-600);
                     line-height: 1.5;
-                    margin-bottom: 16px;
-                }
-
-                /* Deposit Options Grid */
-                .deposit-options-grid {
-                    display: grid;
-                    grid-template-columns: 1fr 1fr;
-                    gap: 14px;
-                    margin-bottom: 8px;
-                }
-
-                .deposit-card {
-                    display: flex;
-                    flex-direction: column;
-                    gap: 8px;
-                    padding: 16px;
-                    border-radius: 12px;
-                    background: var(--wz-chip-bg);
-                    border: 1.5px solid var(--wz-chip-border);
-                    cursor: pointer;
-                    transition: all 0.2s ease;
-                    min-height: 44px;
-                    user-select: none;
-                }
-
-                .deposit-card:hover {
-                    border-color: var(--forest-green);
-                }
-
-                .deposit-card--selected {
-                    border-color: var(--forest-green);
-                    background: var(--wz-pill-bg);
-                }
-
-                .deposit-card-top {
-                    display: flex;
-                    align-items: flex-start;
-                    gap: 12px;
-                }
-
-                .deposit-radio-circle {
-                    width: 20px;
-                    height: 20px;
-                    border-radius: 9999px;
-                    border: 2px solid var(--gray-400);
-                    display: flex;
-                    align-items: center;
-                    justify-content: center;
-                    flex-shrink: 0;
-                    margin-top: 2px;
-                    transition: border-color 0.2s ease;
-                }
-
-                .deposit-card--selected .deposit-radio-circle {
-                    border-color: var(--forest-green);
-                }
-
-                .deposit-radio-inner {
-                    width: 10px;
-                    height: 10px;
-                    border-radius: 9999px;
-                    background: var(--forest-green);
-                }
-
-                .deposit-card-headings {
-                    display: flex;
-                    flex-direction: column;
-                    gap: 3px;
-                    flex: 1;
-                }
-
-                .deposit-title-row {
-                    display: flex;
-                    align-items: center;
-                    justify-content: space-between;
-                    gap: 8px;
-                    flex-wrap: wrap;
-                }
-
-                .deposit-title {
-                    font-size: 14px;
-                    font-weight: 700;
-                    color: var(--black-matte);
-                }
-
-                .deposit-subtitle {
-                    font-size: 11px;
-                    color: var(--gray-600);
-                    font-weight: 500;
-                }
-
-                .deposit-badge {
-                    display: inline-block;
-                    font-size: 10px;
-                    font-weight: 700;
-                    letter-spacing: 0.02em;
-                    padding: 2px 8px;
-                    border-radius: 9999px;
-                }
-
-                .deposit-badge--standard {
-                    background: var(--wz-chip-bg);
-                    border: 1px solid var(--wz-chip-border);
-                    color: var(--gray-600);
-                }
-
-                .deposit-badge--gold {
-                    background: var(--wz-pill-bg);
-                    color: var(--wz-pill-text);
-                    border: 1px solid var(--wz-pill-border);
-                }
-
-                .deposit-desc {
-                    font-size: 12px;
-                    color: var(--gray-600);
-                    line-height: 1.45;
-                    margin: 0;
-                    padding-left: 32px;
+                    margin: 0 0 12px 0;
                 }
 
                 /* Passengers Section */
@@ -1405,58 +1242,63 @@ export default function Step5Checkout({
                     background: var(--wz-surface);
                     border: 1px solid var(--gray-200);
                     border-radius: var(--radius-xl, 16px);
-                    padding: var(--space-5, 20px);
+                    padding: 16px 18px;
                     display: flex;
                     flex-direction: column;
-                    gap: 16px;
+                    gap: 12px;
+                    box-shadow: 0 4px 18px rgba(0, 0, 0, 0.04);
                 }
 
                 .passengers-section__header {
                     display: flex;
                     align-items: center;
-                    gap: 10px;
+                    gap: 8px;
+                    padding-bottom: 8px;
+                    border-bottom: 1px solid var(--gray-100);
                 }
 
                 .passengers-section__title {
-                    font-size: var(--text-sm, 14px);
+                    font-size: 13.5px;
                     font-weight: 700;
                     color: var(--black-matte);
                     margin: 0;
+                    letter-spacing: -0.01em;
                 }
 
                 .passengers-section__desc {
-                    font-size: 13px;
+                    font-size: 12px;
                     color: var(--gray-600);
-                    line-height: 1.5;
+                    line-height: 1.45;
                     margin: 0;
                 }
 
                 .passengers-cards-list {
                     display: flex;
                     flex-direction: column;
-                    gap: 16px;
+                    gap: 12px;
                 }
 
                 .passenger-card {
                     background: var(--wz-chip-bg);
                     border: 1px solid var(--wz-chip-border);
                     border-radius: 12px;
-                    padding: 16px;
+                    padding: 14px 16px;
                     display: flex;
                     flex-direction: column;
-                    gap: 14px;
-                    transition: border-color 0.2s ease;
+                    gap: 12px;
+                    transition: all 0.2s ease;
                 }
 
                 .passenger-card--second-driver {
                     border-color: var(--forest-green);
+                    background: var(--wz-surface-soft);
                 }
 
                 .passenger-card__header {
                     display: flex;
                     align-items: center;
                     justify-content: space-between;
-                    gap: 10px;
+                    gap: 8px;
                     flex-wrap: wrap;
                     padding-bottom: 8px;
                     border-bottom: 1px solid var(--gray-200);
@@ -1466,7 +1308,7 @@ export default function Step5Checkout({
                     display: inline-flex;
                     align-items: center;
                     gap: 6px;
-                    font-size: 13px;
+                    font-size: 12.5px;
                     font-weight: 700;
                     color: var(--black-matte);
                 }
@@ -1479,35 +1321,35 @@ export default function Step5Checkout({
                     font-weight: 700;
                     color: var(--wz-pill-text);
                     background: var(--wz-pill-bg);
-                    padding: 3px 10px;
+                    padding: 3px 9px;
                     border-radius: 9999px;
                     border: 1px solid var(--wz-pill-border);
                 }
 
                 /* Second Driver Toggle Box */
                 .second-driver-toggle-box {
-                    background: var(--wz-chip-bg);
+                    background: var(--wz-surface-soft);
                     border: 1px solid var(--wz-pill-border);
                     border-radius: 10px;
-                    padding: 12px 14px;
+                    padding: 10px 12px;
                     display: flex;
                     flex-direction: column;
-                    gap: 12px;
+                    gap: 10px;
                 }
 
                 .driver-toggle-label {
                     display: flex;
                     align-items: flex-start;
-                    gap: 12px;
+                    gap: 10px;
                     cursor: pointer;
                     user-select: none;
-                    min-height: 44px;
+                    min-height: 40px;
                 }
 
                 .driver-toggle-checkbox {
                     margin-top: 3px;
-                    width: 18px;
-                    height: 18px;
+                    width: 17px;
+                    height: 17px;
                     accent-color: var(--forest-green);
                     cursor: pointer;
                     flex-shrink: 0;
@@ -1520,9 +1362,13 @@ export default function Step5Checkout({
                 }
 
                 .driver-toggle-title {
-                    font-size: 13px;
+                    font-size: 12.5px;
                     font-weight: 700;
                     color: var(--black-matte);
+                    display: inline-flex;
+                    align-items: center;
+                    flex-wrap: wrap;
+                    gap: 6px;
                 }
 
                 .driver-toggle-sub {
@@ -1531,18 +1377,15 @@ export default function Step5Checkout({
                     line-height: 1.4;
                 }
 
-                /* Etiqueta del precio del 2º conductor: "incluido" con Flex, "+5 €/día" con Estándar */
                 .driver-toggle-price {
                     display: inline-block;
-                    margin-left: 8px;
-                    padding: 2px 8px;
+                    padding: 1px 7px;
                     border-radius: 999px;
-                    font-size: 10px;
+                    font-size: 9.5px;
                     font-weight: 700;
                     letter-spacing: 0.02em;
                     text-transform: uppercase;
                     white-space: nowrap;
-                    vertical-align: middle;
                     background: rgba(46, 125, 93, 0.18);
                     color: #7fd6ac;
                 }
@@ -1570,7 +1413,7 @@ export default function Step5Checkout({
                 .solo-second-driver-fields {
                     display: flex;
                     flex-direction: column;
-                    gap: 12px;
+                    gap: 10px;
                     padding-top: 10px;
                     border-top: 1px solid var(--gray-200);
                 }
@@ -1578,13 +1421,13 @@ export default function Step5Checkout({
                 .driver-verification-status {
                     display: flex;
                     flex-wrap: wrap;
-                    gap: 8px;
+                    gap: 6px;
                 }
 
                 .verification-pill {
                     font-size: 11px;
                     font-weight: 600;
-                    padding: 4px 10px;
+                    padding: 3px 9px;
                     border-radius: 6px;
                 }
 
@@ -1616,13 +1459,13 @@ export default function Step5Checkout({
                 .form-grid {
                     display: grid;
                     grid-template-columns: 1fr 1fr;
-                    gap: var(--space-4, 16px);
+                    gap: 12px 14px;
                 }
 
                 .form-field {
                     display: flex;
                     flex-direction: column;
-                    gap: 6px;
+                    gap: 4px;
                 }
 
                 .form-field--span-2 {
@@ -1630,21 +1473,26 @@ export default function Step5Checkout({
                 }
 
                 .field-label {
-                    font-size: 12px;
+                    font-size: 11.5px;
                     font-weight: 600;
                     color: var(--black-matte);
+                    letter-spacing: -0.01em;
                 }
 
                 .field-input {
-                    height: 44px;
-                    padding: 0 var(--space-3, 12px);
-                    border: 1.5px solid var(--gray-200);
+                    height: 42px;
+                    padding: 0 12px;
+                    border: 1px solid var(--gray-200);
                     border-radius: var(--radius-md, 8px);
-                    font-size: var(--text-sm, 14px);
+                    font-size: 13.5px;
                     color: var(--black-matte);
                     background: var(--wz-chip-bg);
                     transition: all 0.2s ease;
                     outline: none;
+                }
+
+                .field-select {
+                    cursor: pointer;
                 }
 
                 .field-input:focus {
@@ -1659,39 +1507,23 @@ export default function Step5Checkout({
                 }
 
                 .field-textarea {
-                    padding: var(--space-3, 12px);
-                    border: 1.5px solid var(--gray-200);
+                    padding: 10px 12px;
+                    border: 1px solid var(--gray-200);
                     border-radius: var(--radius-md, 8px);
-                    font-size: var(--text-sm, 14px);
+                    font-size: 13.5px;
                     color: var(--black-matte);
                     background: var(--wz-chip-bg);
                     font-family: inherit;
                     resize: vertical;
                     outline: none;
+                    min-height: 72px;
+                    transition: all 0.2s ease;
                 }
 
                 .field-textarea:focus {
                     border-color: var(--forest-green);
                     background: var(--wz-surface);
                     box-shadow: 0 0 0 3px var(--wz-pill-bg);
-                }
-
-                .input-with-icon {
-                    position: relative;
-                    display: flex;
-                    align-items: center;
-                }
-
-                .input-icon {
-                    position: absolute;
-                    left: 12px;
-                    color: var(--gray-400);
-                    pointer-events: none;
-                }
-
-                .field-input--has-icon {
-                    padding-left: 38px;
-                    width: 100%;
                 }
 
                 /* Phone with Country Prefix */
@@ -1701,38 +1533,43 @@ export default function Step5Checkout({
                     align-items: center;
                 }
 
+                .phone-number-input {
+                    flex: 1;
+                    width: 100%;
+                }
+
                 .phone-prefix-select {
-                    height: 44px;
-                    padding: 0 10px;
-                    border: 1.5px solid var(--gray-200);
+                    height: 42px;
+                    padding: 0 8px;
+                    border: 1px solid var(--gray-200);
                     border-radius: var(--radius-md, 8px);
                     background: var(--wz-chip-bg);
                     color: var(--black-matte);
-                    font-size: 13px;
+                    font-size: 12.5px;
                     font-weight: 500;
                     outline: none;
                     cursor: pointer;
-                    min-width: 110px;
+                    min-width: 105px;
                     transition: border-color 0.2s ease;
                 }
 
                 .phone-prefix-select:focus {
                     border-color: var(--forest-green);
+                    box-shadow: 0 0 0 3px var(--wz-pill-bg);
                 }
 
-                .phone-number-wrap {
-                    flex: 1;
-                }
 
                 .field-hint {
                     font-size: 11px;
                     color: var(--gray-500);
+                    line-height: 1.35;
                 }
 
                 .field-success-hint {
                     font-size: 11px;
                     color: #34d399;
                     font-weight: 600;
+                    line-height: 1.35;
                 }
 
                 :global(html[data-theme="light"]) .field-success-hint {
@@ -1743,6 +1580,7 @@ export default function Step5Checkout({
                     font-size: 11px;
                     color: #ef4444;
                     font-weight: 600;
+                    line-height: 1.35;
                 }
 
                 .field-error-text--checkbox {
@@ -1755,22 +1593,23 @@ export default function Step5Checkout({
                     background: var(--wz-surface);
                     border: 1px solid var(--gray-200);
                     border-radius: var(--radius-lg, 12px);
-                    padding: 18px 20px;
+                    padding: 14px 16px;
                     display: flex;
                     flex-direction: column;
-                    gap: 16px;
+                    gap: 10px;
+                    box-shadow: 0 4px 18px rgba(0, 0, 0, 0.04);
                 }
 
                 .legal-consent-header {
                     display: flex;
                     align-items: center;
                     gap: 8px;
-                    padding-bottom: 10px;
+                    padding-bottom: 8px;
                     border-bottom: 1px solid var(--gray-100);
                 }
 
                 .legal-consent-title {
-                    font-size: 13px;
+                    font-size: 12.5px;
                     font-weight: 700;
                     color: var(--black-matte);
                 }
@@ -1778,23 +1617,23 @@ export default function Step5Checkout({
                 .checkbox-block {
                     display: flex;
                     flex-direction: column;
-                    gap: 4px;
+                    gap: 2px;
                 }
 
                 .checkbox-row {
                     display: flex;
                     align-items: flex-start;
-                    gap: 12px;
+                    gap: 10px;
                     cursor: pointer;
-                    min-height: 44px;
-                    padding: 4px 0;
+                    min-height: 38px;
+                    padding: 2px 0;
                     user-select: none;
                 }
 
                 .checkbox-row input[type='checkbox'] {
                     margin-top: 3px;
-                    width: 18px;
-                    height: 18px;
+                    width: 16px;
+                    height: 16px;
                     accent-color: var(--forest-green);
                     cursor: pointer;
                     flex-shrink: 0;
@@ -1803,7 +1642,7 @@ export default function Step5Checkout({
                 .checkbox-label {
                     font-size: 12px;
                     color: var(--gray-600);
-                    line-height: 1.5;
+                    line-height: 1.45;
                 }
 
                 .legal-link {
@@ -1821,31 +1660,33 @@ export default function Step5Checkout({
                 .submit-section {
                     display: flex;
                     flex-direction: column;
-                    gap: var(--space-3, 12px);
+                    gap: 10px;
+                    margin-top: 4px;
                 }
 
                 .btn-pay-redsys {
-                    height: 54px;
+                    height: 50px;
                     min-height: 44px;
                     border: none;
                     background: var(--forest-green);
                     color: var(--wz-on-accent);
-                    font-size: var(--text-base, 16px);
-                    font-weight: 800;
-                    letter-spacing: 0.02em;
+                    font-size: 15px;
+                    font-weight: 700;
+                    letter-spacing: 0.01em;
                     border-radius: var(--radius-lg, 12px);
                     cursor: pointer;
                     display: flex;
                     align-items: center;
                     justify-content: center;
                     gap: 10px;
-                    box-shadow: 0 4px 14px rgba(204, 160, 83, 0.2);
-                    transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+                    box-shadow: 0 4px 14px rgba(204, 160, 83, 0.22);
+                    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
                 }
 
                 .btn-pay-redsys:hover:not(:disabled) {
                     background: var(--forest-green-light);
                     transform: translateY(-1px);
+                    box-shadow: 0 6px 18px rgba(204, 160, 83, 0.3);
                 }
 
                 .btn-pay-redsys:disabled {
@@ -1866,14 +1707,14 @@ export default function Step5Checkout({
                     display: flex;
                     flex-wrap: wrap;
                     justify-content: center;
-                    gap: var(--space-4, 16px);
-                    padding: var(--space-2, 8px) 0;
+                    gap: 12px 16px;
+                    padding: 4px 0;
                 }
 
                 .security-badge {
-                    display: flex;
+                    display: inline-flex;
                     align-items: center;
-                    gap: 6px;
+                    gap: 5px;
                     font-size: 11px;
                     color: var(--gray-600);
                     font-weight: 500;
@@ -1884,15 +1725,10 @@ export default function Step5Checkout({
                 }
 
                 /* Responsive Rules per AGENTS.md */
-                @media (max-width: 860px) {
-                    .deposit-options-grid {
-                        grid-template-columns: 1fr;
-                    }
-                }
-
                 @media (max-width: 640px) {
                     .form-grid {
                         grid-template-columns: 1fr;
+                        gap: 10px;
                     }
                     .form-field--span-2 {
                         grid-column: span 1;
@@ -1904,13 +1740,15 @@ export default function Step5Checkout({
                     .phone-prefix-select {
                         width: 100%;
                     }
-                    .deposit-desc {
-                        padding-left: 0;
-                    }
                     .payment-security-badges {
                         flex-direction: column;
                         align-items: center;
-                        gap: 8px;
+                        gap: 6px;
+                    }
+                    .form-group-card,
+                    .passengers-section,
+                    .legal-consent-card {
+                        padding: 14px 14px;
                     }
                 }
             `}</style>

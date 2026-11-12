@@ -128,7 +128,7 @@ export default function RevenueChart({ monthlyData }: Props) {
           color: var(--adm-text-2);
         }
         .rev__total {
-          font-family: var(--font-heading);
+          font-family: var(--font-sans);
           font-size: 1.5rem;
           font-weight: 600;
           color: var(--adm-text);

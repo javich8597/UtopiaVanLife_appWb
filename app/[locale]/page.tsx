@@ -11,7 +11,7 @@ export default function HomePage() {
   return (
     <>
       <Navbar />
-      <main>
+      <main className="home-main">
         <HeroSection />
         <FeaturedCampers />
         <Rotating3DShowcase />

@@ -265,7 +265,7 @@ export default function Step2Model({
                             <ul className="model-card__features">
                                 {highlights.map((feat, idx) => (
                                     <li key={idx} className="model-feature-item">
-                                        <Check size={12} className="text-forest model-feature-icon" />
+                                        <Check size={14} strokeWidth={2.2} className="model-feature-icon" />
                                         <span>{feat}</span>
                                     </li>
                                 ))}
@@ -548,21 +548,40 @@ export default function Step2Model({
                     margin: 0;
                     display: flex;
                     flex-direction: column;
-                    gap: 4px;
-                    border-top: 1px solid var(--gray-100);
-                    padding-top: 8px;
+                    gap: 0;
+                    border-top: 1px solid rgba(255, 255, 255, 0.08);
+                    padding-top: 4px;
                 }
 
                 .model-feature-item {
                     display: flex;
                     align-items: center;
-                    gap: 6px;
-                    font-size: 11.5px;
+                    gap: 8px;
+                    font-size: 12px;
                     color: var(--gray-600);
+                    padding: 6px 0;
+                    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+                }
+
+                .model-feature-item:last-child {
+                    border-bottom: none;
                 }
 
                 :global(.model-feature-icon) {
+                    color: #d4a742;
                     flex-shrink: 0;
+                }
+
+                :global(html[data-theme="light"]) .model-card__features {
+                    border-top-color: rgba(26, 23, 20, 0.08);
+                }
+
+                :global(html[data-theme="light"]) .model-feature-item {
+                    border-bottom-color: rgba(26, 23, 20, 0.08);
+                }
+
+                :global(html[data-theme="light"]) :global(.model-feature-icon) {
+                    color: #b38827;
                 }
 
                 .model-select-btn {

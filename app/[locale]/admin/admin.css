@@ -744,7 +744,7 @@
 .adm-stat .adm-icon-dot { grid-area: icon; width: 48px; height: 48px; }
 .adm-stat__value {
   grid-area: value;
-  font-family: var(--font-heading);
+  font-family: var(--font-sans);
   font-size: 1.75rem;
   font-weight: 700;
   line-height: 1.1;

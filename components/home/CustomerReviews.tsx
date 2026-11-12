@@ -107,9 +107,9 @@ export default function CustomerReviews() {
       <style jsx>{`
         .reviews-section {
           position: relative;
-          background: #0E1013;
-          padding-block: 88px;
-          border-top: 1px solid rgba(255, 255, 255, 0.06);
+          background: #0B0C0E;
+          padding-block: 96px;
+          border-top: 1px solid rgba(255, 255, 255, 0.08);
           overflow: hidden;
         }
 
@@ -126,11 +126,11 @@ export default function CustomerReviews() {
 
         .reviews__title {
           font-family: var(--font-display, inherit);
-          font-size: clamp(2.4rem, 4.5vw, 3.4rem);
-          font-weight: 800;
+          font-size: clamp(2.6rem, 4.8vw, 3.65rem);
+          font-weight: 500;
           color: #FFFFFF;
-          letter-spacing: -0.025em;
-          line-height: 1.12;
+          letter-spacing: -0.02em;
+          line-height: 1.08;
           margin: 0;
         }
 

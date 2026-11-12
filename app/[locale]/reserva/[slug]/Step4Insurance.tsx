@@ -73,7 +73,7 @@ export default function Step4Insurance({
 
                     <div className="policy-card__features-list">
                         <div className="feature-item">
-                            <Lock size={14} className="text-forest" />
+                            <Lock size={15} strokeWidth={1.8} className="feature-item-icon" />
                             <div className="feature-item__text">
                                 <span className="feature-item__title">Fianza reembolsable {formatDepositEuros(standardDepositAmount)}</span>
                                 <span className="feature-item__sub">Retención con tarjeta al recoger (no se cobra hoy)</span>
@@ -81,7 +81,7 @@ export default function Step4Insurance({
                         </div>
 
                         <div className="feature-item">
-                            <ShieldCheck size={14} className="text-forest" />
+                            <ShieldCheck size={15} strokeWidth={1.8} className="feature-item-icon" />
                             <div className="feature-item__text">
                                 <span className="feature-item__title">Seguro a Todo Riesgo</span>
                                 <span className="feature-item__sub">Daños propios y a terceros · Franquicia 1.000 €</span>
@@ -89,7 +89,7 @@ export default function Step4Insurance({
                         </div>
 
                         <div className="feature-item">
-                            <PhoneCall size={14} className="text-forest" />
+                            <PhoneCall size={15} strokeWidth={1.8} className="feature-item-icon" />
                             <div className="feature-item__text">
                                 <span className="feature-item__title">Asistencia en viaje y telefónica (16 h)</span>
                                 <span className="feature-item__sub">Gastos de gestión incluidos</span>
@@ -97,7 +97,7 @@ export default function Step4Insurance({
                         </div>
 
                         <div className="feature-item">
-                            <UserCheck size={14} className="text-forest" />
+                            <UserCheck size={15} strokeWidth={1.8} className="feature-item-icon" />
                             <div className="feature-item__text">
                                 <span className="feature-item__title">1 conductor incluido</span>
                                 <span className="feature-item__sub">Mín. 25 años y 2 años carnet B · 2º conductor +{secondDriverRatePerDay} €/día</span>
@@ -138,7 +138,7 @@ export default function Step4Insurance({
 
                     <div className="policy-card__features-list">
                         <div className="feature-item feature-item--highlight">
-                            <Lock size={14} className="text-forest" />
+                            <Lock size={15} strokeWidth={1.8} className="feature-item-icon" />
                             <div className="feature-item__text">
                                 <span className="feature-item__title">Fianza reducida · {formatDepositEuros(flexDepositAmount)}</span>
                                 <span className="feature-item__sub">Menor retención con tarjeta al recoger</span>
@@ -146,7 +146,7 @@ export default function Step4Insurance({
                         </div>
 
                         <div className="feature-item feature-item--highlight">
-                            <UserCheck size={14} className="text-forest" />
+                            <UserCheck size={15} strokeWidth={1.8} className="feature-item-icon" />
                             <div className="feature-item__text">
                                 <span className="feature-item__title">2º conductor autorizado incluido</span>
                                 <span className="feature-item__sub">Sin suplemento adicional (mín. 25 años y 2 años carnet B)</span>
@@ -154,7 +154,7 @@ export default function Step4Insurance({
                         </div>
 
                         <div className="feature-item">
-                            <ShieldCheck size={14} className="text-forest" />
+                            <ShieldCheck size={15} strokeWidth={1.8} className="feature-item-icon" />
                             <div className="feature-item__text">
                                 <span className="feature-item__title">Seguro a Todo Riesgo</span>
                                 <span className="feature-item__sub">Daños propios y a terceros · Franquicia 1.000 €</span>
@@ -162,7 +162,7 @@ export default function Step4Insurance({
                         </div>
 
                         <div className="feature-item">
-                            <PhoneCall size={14} className="text-forest" />
+                            <PhoneCall size={15} strokeWidth={1.8} className="feature-item-icon" />
                             <div className="feature-item__text">
                                 <span className="feature-item__title">Asistencia en viaje y telefónica (16 h)</span>
                                 <span className="feature-item__sub">Gastos de gestión incluidos</span>
@@ -302,42 +302,61 @@ export default function Step4Insurance({
                 .policy-card__features-list {
                     display: flex;
                     flex-direction: column;
-                    gap: 8px;
-                    border-top: 1px solid var(--gray-100);
-                    padding-top: 10px;
+                    gap: 0;
+                    border-top: 1px solid rgba(255, 255, 255, 0.08);
+                    padding-top: 4px;
                 }
 
                 .feature-item {
                     display: flex;
                     align-items: flex-start;
-                    gap: 9px;
-                    background: var(--wz-chip-bg);
-                    border: 1px solid var(--wz-chip-border);
-                    border-radius: 9px;
-                    padding: 8px 10px;
+                    gap: 12px;
+                    background: transparent;
+                    border: none;
+                    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+                    border-radius: 0;
+                    padding: 10px 0;
                 }
 
                 .feature-item--highlight {
-                    background: var(--wz-pill-bg);
-                    border-color: var(--wz-pill-border);
+                    background: transparent;
+                }
+
+                .feature-item-icon {
+                    color: #d4a742;
+                    flex-shrink: 0;
+                    margin-top: 2px;
                 }
 
                 .feature-item__text {
                     display: flex;
                     flex-direction: column;
-                    gap: 1px;
+                    gap: 2px;
                 }
 
                 .feature-item__title {
-                    font-size: 12px;
+                    font-size: 12.5px;
                     font-weight: 700;
                     color: var(--black-matte);
+                    line-height: 1.3;
                 }
 
                 .feature-item__sub {
                     font-size: 11px;
                     color: var(--gray-600);
                     line-height: 1.35;
+                }
+
+                :global(html[data-theme="light"]) .policy-card__features-list {
+                    border-top-color: rgba(26, 23, 20, 0.08);
+                }
+
+                :global(html[data-theme="light"]) .feature-item {
+                    border-bottom-color: rgba(26, 23, 20, 0.08);
+                }
+
+                :global(html[data-theme="light"]) .feature-item-icon {
+                    color: #b38827;
                 }
 
                 :global(.text-forest) {

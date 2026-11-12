@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import { Link, useRouter } from '@/i18n/routing'
-import { LogOut, Globe, SunMoon } from 'lucide-react'
+import { LogOut, Globe, SunMoon, Mail } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
 
 interface Props {
@@ -45,6 +45,17 @@ export default function AdminSidebarFooterClient({ themeToggle, showSignOut = fa
           {themeToggle}
         </div>
       )}
+
+      <a
+        href="https://webmail.dondominio.com/"
+        target="_blank"
+        rel="noopener noreferrer"
+        className="admin-footer-link"
+        title="Abrir correo corporativo (info@utopiavanlife.com)"
+      >
+        <Mail size={20} />
+        <span>Correo corporativo</span>
+      </a>
 
       <Link href="/" target="_blank" className="admin-footer-link">
         <Globe size={20} />

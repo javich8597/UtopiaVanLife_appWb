@@ -297,9 +297,6 @@ export default function CampersPage() {
                 {/* Centered Header */}
                 <section className="catalog-hero">
                     <div className="container catalog-hero__container">
-                        <div className="catalog-hero__eyebrow">
-                            <span>{t('flota')} · BOUTIQUE CAMPERS MALLORCA</span>
-                        </div>
                         <h1 className="catalog-hero__title">
                             {t('title')}
                         </h1>
@@ -328,6 +325,8 @@ export default function CampersPage() {
                 }
 
                 .catalog-hero {
+                    position: relative;
+                    overflow: hidden;
                     background: radial-gradient(ellipse 80% 60% at 50% -20%, rgba(204, 160, 83, 0.12), transparent 70%), #0B0C0E;
                     padding: 5rem 0 3.5rem;
                     border-bottom: 1px solid rgba(255, 255, 255, 0.08);
@@ -335,7 +334,21 @@ export default function CampersPage() {
                     text-align: center;
                 }
 
+                .catalog-hero::before {
+                    content: '';
+                    position: absolute;
+                    inset: 0;
+                    background-image: url('/images/lifestyle/newsletter-adventure-hero.jpg');
+                    background-size: cover;
+                    background-position: center 75%;
+                    opacity: 0.6;
+                    pointer-events: none;
+                    z-index: 0;
+                }
+
                 .catalog-hero__container {
+                    position: relative;
+                    z-index: 1;
                     display: flex;
                     flex-direction: column;
                     align-items: center;

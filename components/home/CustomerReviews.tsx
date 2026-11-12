@@ -108,7 +108,7 @@ export default function CustomerReviews() {
         .reviews-section {
           position: relative;
           background: #0B0C0E;
-          padding-block: 96px;
+          padding-block: 48px;
           border-top: 1px solid rgba(255, 255, 255, 0.08);
           overflow: hidden;
         }
@@ -312,7 +312,7 @@ export default function CustomerReviews() {
 
         @media (max-width: 640px) {
           .reviews-section {
-            padding-block: 64px;
+            padding-block: 36px;
           }
 
           .reviews__header {

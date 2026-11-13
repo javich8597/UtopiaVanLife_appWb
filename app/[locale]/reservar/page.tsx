@@ -1019,7 +1019,7 @@ function ReservarContent() {
                         right: auto !important;
                         bottom: auto !important;
                         translate: -50% 0 !important;
-                        max-width: min(340px, calc(100vw - 32px)) !important;
+                        max-width: min(400px, calc(100vw - 24px)) !important;
                         width: 100% !important;
                         max-height: none !important;
                         overflow: visible !important;

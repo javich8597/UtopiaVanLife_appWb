@@ -155,9 +155,8 @@ export default function AboutHero() {
         }
 
         :global(.about-hero__logo-img) {
-          width: clamp(280px, 32vw, 460px);
+          width: clamp(280px, 32vw, 435px);
           height: auto;
-          max-height: 125px;
           object-fit: contain;
           filter: drop-shadow(0 4px 28px rgba(0, 0, 0, 0.8));
           display: block;
@@ -268,8 +267,7 @@ export default function AboutHero() {
             max-width: 100%;
           }
           :global(.about-hero__logo-img) {
-            width: clamp(230px, 58vw, 340px);
-            max-height: 95px;
+            width: clamp(230px, 58vw, 330px);
           }
           .about-hero__logo-wrap {
             margin-bottom: 1.6rem;
@@ -296,8 +294,7 @@ export default function AboutHero() {
             padding: 6.5rem 0 3.5rem;
           }
           :global(.about-hero__logo-img) {
-            width: clamp(200px, 64vw, 280px);
-            max-height: 80px;
+            width: clamp(200px, 64vw, 275px);
           }
           .about-hero__logo-wrap {
             margin-bottom: 1.35rem;

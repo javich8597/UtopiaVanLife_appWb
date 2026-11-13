@@ -17,7 +17,7 @@ const nextConfig: NextConfig = {
           { key: 'X-Frame-Options', value: 'SAMEORIGIN' },
           { key: 'Referrer-Policy', value: 'strict-origin-when-cross-origin' },
           { key: 'Permissions-Policy', value: 'camera=(), microphone=(), geolocation=(self)' },
-          { key: 'Content-Security-Policy', value: "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval'; style-src 'self' 'unsafe-inline' fonts.googleapis.com; font-src 'self' fonts.gstatic.com; img-src 'self' data: blob: images.unsplash.com *.supabase.co pexels.com *.pexels.com nomade-nation.com www.utopiavanlife.com utopiavanlife.com; media-src 'self' videos.pexels.com *.pexels.com; connect-src 'self' api.mapbox.com events.mapbox.com *.supabase.co sis-t.redsys.es sis.redsys.es; form-action 'self' https://sis-t.redsys.es:25443 https://sis.redsys.es;" }
+          { key: 'Content-Security-Policy', value: "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval'; style-src 'self' 'unsafe-inline' fonts.googleapis.com api.mapbox.com; font-src 'self' fonts.gstatic.com; img-src 'self' data: blob: images.unsplash.com *.supabase.co pexels.com *.pexels.com nomade-nation.com www.utopiavanlife.com utopiavanlife.com api.mapbox.com *.tiles.mapbox.com *.tile.openstreetmap.org; media-src 'self' videos.pexels.com *.pexels.com; connect-src 'self' api.mapbox.com events.mapbox.com *.supabase.co sis-t.redsys.es sis.redsys.es; worker-src 'self' blob:; frame-src 'self' blob: https://maps.google.com https://www.google.com; form-action 'self' https://sis-t.redsys.es:25443 https://sis.redsys.es;" }
         ],
       },
     ];

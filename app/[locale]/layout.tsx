@@ -10,7 +10,14 @@ import StyledJsxRegistry from '@/components/layout/StyledJsxRegistry';
 import { SITE_THEME_COOKIE, SiteTheme } from '@/lib/theme/siteTheme';
 import { SiteThemeProvider } from '@/lib/theme/siteThemeContext';
 
+const siteUrl = (
+  process.env.NEXT_PUBLIC_APP_URL ||
+  process.env.NEXT_PUBLIC_SITE_URL ||
+  'https://utopiavanlife.com'
+).replace(/\/$/, '');
+
 export const metadata: Metadata = {
+  metadataBase: new URL(siteUrl),
   title: 'Utopia Van Life | Alquiler de Campers en Mallorca',
   description: 'Descubre Mallorca como nunca antes. Alquila una camper premium y vive una experiencia única de calma y aventura lujosa.',
   keywords: 'alquiler camper mallorca, van life mallorca, autocaravana mallorca, road trip mallorca',

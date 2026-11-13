@@ -794,7 +794,7 @@ export default function BookingWizardClient({
                         gap: var(--space-6);
                     }
                     .wizard-summary-column {
-                        display: none;
+                        display: contents;
                     }
                 }
 

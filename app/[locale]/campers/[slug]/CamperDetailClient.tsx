@@ -6,7 +6,6 @@ import {
   ChevronRight,
   Clock
 } from 'lucide-react'
-import PriceCalculator from '@/components/booking/PriceCalculator'
 import BookingCalendar, { BlockedRange } from '@/components/booking/BookingCalendar'
 import { BlockedSlot } from '@/lib/booking/availability'
 import {
@@ -226,29 +225,62 @@ export default function CamperDetailClient({
 
           <CamperIncluded items={content.included} />
 
-          {/* Mobile-only PriceCalculator */}
+          {/* Mobile-only Availability Calendar (same as desktop sidebar) */}
           <div className="mobile-calculator-section" ref={bookingSectionRef}>
             <div className="section-divider-row">
               <h3 className="section-divider-title">RESERVA TU AVENTURA</h3>
               <div className="section-divider-line" />
             </div>
-            <div className="calculator-card">
-              <PriceCalculator
-                camperSlug={slug}
-                depositAmount={standardDepositAmount}
-                flexDepositAmount={flexDepositAmount}
-                flexDepositRatePerDay={flexDepositRatePerDay}
-                secondDriverRatePerDay={secondDriverRatePerDay}
-                seasons={effectiveSeasons}
-                availableExtras={effectiveExtras}
-                initialFrom={initialFrom}
-                initialTo={initialTo}
-                maxGuests={camper.specs?.seats || (slug === 'space' ? 2 : 3)}
-                seasonsV2={seasonsV2}
-                seasonPeriods={seasonPeriods}
-                durationDiscounts={durationDiscounts}
-                camperBasePrice={basePrice}
-              />
+            <div className="sidebar-card">
+              <div className="sidebar-card-accent" />
+
+              <div className="sidebar-response-row">
+                <Clock size={14} className="sidebar-icon-muted" />
+                <span>Sin compromiso · Respuesta en menos de 24h</span>
+              </div>
+
+              <div className="sidebar-price-header">
+                <div className="sidebar-price-block">
+                  <span className="sidebar-price-label">desde</span>
+                  <span className="sidebar-price-amount">{basePrice}€</span>
+                  <span className="sidebar-price-unit">/ noche</span>
+                </div>
+                {sidebarBreakdown && sidebarBreakdown.numNights > 0 && (
+                  <div className="sidebar-estimated-total">
+                    <span>{formatPrice(sidebarBreakdown.totalWithoutDeposit)}</span>
+                    <span className="sidebar-estimated-nights"> · {sidebarBreakdown.numNights} {sidebarBreakdown.numNights === 1 ? 'noche' : 'noches'}</span>
+                  </div>
+                )}
+              </div>
+
+              <div className="sidebar-calendar-wrap">
+                <BookingCalendar
+                  startDate={sidebarStartDate}
+                  startSlot={sidebarStartSlot}
+                  endDate={sidebarEndDate}
+                  endSlot={sidebarEndSlot}
+                  onChange={(start, sSlot, end, eSlot) => {
+                    setSidebarStartDate(start)
+                    setSidebarStartSlot(sSlot)
+                    setSidebarEndDate(end)
+                    setSidebarEndSlot(eSlot)
+                  }}
+                  blockedSlots={blockedSlots}
+                  blockedRanges={blockedRanges}
+                  minNights={sidebarMinNights}
+                  showSlots={false}
+                  showDoneButton={false}
+                  monthsCount={1}
+                />
+              </div>
+
+              <Link
+                href={sidebarBookingHref}
+                className="sidebar-cta-btn"
+              >
+                <span>Reservar esta Camper</span>
+                <ChevronRight size={16} />
+              </Link>
             </div>
           </div>
         </div>

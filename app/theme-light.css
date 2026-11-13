@@ -1506,9 +1506,10 @@ html[data-theme="light"] .floorplan-label {
 }
 
 html[data-theme="light"] .included-item {
-  background: #FFFFFF !important;
-  border: 1px solid #EAE5DD !important;
-  color: #1F1B17 !important;
+  background: transparent !important;
+  border: none !important;
+  border-bottom: 1px solid rgba(26, 23, 20, 0.1) !important;
+  color: #1A1714 !important;
 }
 
 html[data-theme="light"] .included-check {

@@ -203,6 +203,11 @@ export default function StickyTripSummary({
                 }
 
                 /* Mobile Drawer */
+                @media (max-width: 960px) {
+                    .sticky-summary-desktop {
+                        display: none;
+                    }
+                }
                 .mobile-summary-backdrop {
                     position: fixed;
                     inset: 0;

@@ -36,7 +36,21 @@ export default function Footer() {
               <li><Link href="/campers" className="footer__link">Ver flota</Link></li>
               <li><Link href="/campers/neo" className="footer__link">Camper NEO</Link></li>
               <li><Link href="/campers/space" className="footer__link">Camper SPACE</Link></li>
-              <li><Link href="/#faqs" className="footer__link">FAQs</Link></li>
+              <li>
+                <Link
+                  href="/#faqs"
+                  className="footer__link"
+                  onClick={(e) => {
+                    const el = document.getElementById('faqs')
+                    if (el) {
+                      e.preventDefault()
+                      el.scrollIntoView({ behavior: 'smooth', block: 'start' })
+                    }
+                  }}
+                >
+                  FAQs
+                </Link>
+              </li>
             </ul>
           </div>
 

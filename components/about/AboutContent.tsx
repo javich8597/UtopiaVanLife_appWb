@@ -391,9 +391,8 @@ export default function AboutContent() {
           background: linear-gradient(
             90deg,
             #0B0C0E 0%,
-            rgba(11, 12, 14, 0.4) 22%,
-            rgba(11, 12, 14, 0.08) 50%,
-            transparent 100%
+            rgba(11, 12, 14, 0.45) 8%,
+            transparent 20%
           );
           pointer-events: none;
         }
@@ -405,9 +404,8 @@ export default function AboutContent() {
           background: linear-gradient(
             270deg,
             #0E1013 0%,
-            rgba(14, 16, 19, 0.4) 22%,
-            rgba(14, 16, 19, 0.08) 50%,
-            transparent 100%
+            rgba(14, 16, 19, 0.45) 8%,
+            transparent 20%
           );
           pointer-events: none;
         }

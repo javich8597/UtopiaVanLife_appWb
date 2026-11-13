@@ -51,6 +51,14 @@ function ReservarContent() {
 
     const searchContainerRef = useRef<HTMLDivElement>(null)
     const calendarPopoverRef = useRef<HTMLDivElement>(null)
+    const resultsRef = useRef<HTMLDivElement>(null)
+    const hasInitialAutoScrolled = useRef(false)
+
+    const scrollToResultsOnMobile = () => {
+        if (typeof window !== 'undefined' && window.innerWidth <= 860) {
+            resultsRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+        }
+    }
     const salidaRef = useRef<HTMLDivElement>(null)
     const llegadaRef = useRef<HTMLDivElement>(null)
 
@@ -108,6 +116,14 @@ function ReservarContent() {
             .finally(() => setLoading(false))
     }, [startDate, endDate])
 
+    // En móvil, al llegar desde Inicio con fechas en la URL, bajar automáticamente a los resultados
+    useEffect(() => {
+        if (!loading && initialFrom && initialTo && !hasInitialAutoScrolled.current) {
+            hasInitialAutoScrolled.current = true
+            setTimeout(scrollToResultsOnMobile, 120)
+        }
+    }, [loading, initialFrom, initialTo])
+
     // Dates selected handler from calendar popover
     const handleDatesChange = (start: string, _startSlot: DaySlot, end: string, _endSlot: DaySlot) => {
         setStartDate(start)
@@ -115,7 +131,8 @@ function ReservarContent() {
         if (start && end) {
             setTimeout(() => {
                 setIsCalendarOpen(false)
-            }, 200)
+                scrollToResultsOnMobile()
+            }, 220)
             updateUrlParams(start, end, pax)
         }
     }
@@ -133,6 +150,9 @@ function ReservarContent() {
         updateUrlParams(startDate, endDate, pax)
         if (!startDate || !endDate) {
             setIsCalendarOpen(true)
+        } else {
+            setIsCalendarOpen(false)
+            scrollToResultsOnMobile()
         }
     }
 
@@ -355,6 +375,7 @@ function ReservarContent() {
             </div>
 
             {/* Availability Banner or Selection Prompt */}
+            <div ref={resultsRef} style={{ scrollMarginTop: '84px' }}>
             {hasDates ? (
                 <div className="reservar-status-banner">
                     <div className="reservar-status-banner__info">
@@ -380,6 +401,7 @@ function ReservarContent() {
                     </span>
                 </div>
             )}
+            </div>
 
             {/* Quick Fleet Model Filter Pills Centered */}
             {availableCampers.length > 0 && (

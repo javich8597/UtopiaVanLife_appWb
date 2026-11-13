@@ -300,9 +300,6 @@ export default function CampersPage() {
                         <h1 className="catalog-hero__title">
                             {t('title')}
                         </h1>
-                        <p className="catalog-hero__subtitle">
-                            {t('subtitle')}
-                        </p>
                     </div>
                 </section>
 

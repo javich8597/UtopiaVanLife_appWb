@@ -142,7 +142,7 @@ export default function Navbar({ alwaysVisible = false }: { alwaysVisible?: bool
           {/* CTA + Menu */}
           <div className="navbar__actions">
             {/* Theme Toggle Pill (Dark / Light) */}
-            <ThemeToggle variant="full" />
+            <ThemeToggle variant="compact" />
 
             {/* Discreet Language Switcher */}
             <LanguageSwitcher isSolid={true} />
@@ -223,7 +223,7 @@ export default function Navbar({ alwaysVisible = false }: { alwaysVisible?: bool
 
             {/* Mobile controls (Theme Toggle + Language Switcher) */}
             <div className="mobile-menu__controls">
-              <ThemeToggle variant="full" />
+              <ThemeToggle variant="compact" />
               <LanguageSwitcher isMobile />
             </div>
 

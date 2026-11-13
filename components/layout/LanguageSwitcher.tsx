@@ -131,7 +131,7 @@ export default function LanguageSwitcher({ isSolid = true, isMobile = false }: P
                 onClick={() => selectLocale(loc.code)}
                 className={`mobile-lang-btn ${isSelected ? 'mobile-lang-btn--selected' : ''}`}
               >
-                <FlagIcon code={loc.code} size={13} />
+                <FlagIcon code={loc.code} size={11} />
                 <span>{loc.short}</span>
               </button>
             )
@@ -155,21 +155,22 @@ export default function LanguageSwitcher({ isSolid = true, isMobile = false }: P
           }
           .mobile-lang-grid {
             display: grid;
-            grid-template-columns: repeat(4, 1fr);
-            gap: 6px;
+            grid-template-columns: repeat(4, minmax(0, 1fr));
+            gap: 5px;
           }
           .mobile-lang-btn {
             display: flex;
             align-items: center;
             justify-content: center;
-            gap: 6px;
-            padding: 8px 4px;
+            gap: 4px;
+            min-width: 0;
+            padding: 6px 4px;
             border-radius: var(--radius-md);
             border: 1px solid rgba(255, 255, 255, 0.1);
             background: #131518;
             color: rgba(255, 255, 255, 0.85);
             font-weight: 500;
-            font-size: 0.82rem;
+            font-size: 0.74rem;
             cursor: pointer;
             transition: all 160ms cubic-bezier(0.23, 1, 0.32, 1);
           }

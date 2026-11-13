@@ -66,12 +66,11 @@ export default function BookingCalendar({
     const [isMobileScreen, setIsMobileScreen] = useState(false)
 
     useEffect(() => {
-        const checkMobile = () => {
-            setIsMobileScreen(window.innerWidth <= 860)
-        }
-        checkMobile()
-        window.addEventListener('resize', checkMobile)
-        return () => window.removeEventListener('resize', checkMobile)
+        const mq = window.matchMedia('(max-width: 860px)')
+        const update = () => setIsMobileScreen(mq.matches)
+        update()
+        mq.addEventListener('change', update)
+        return () => mq.removeEventListener('change', update)
     }, [])
 
     const activeMonthsCount = isMobileScreen ? 1 : (monthsCount ?? (variant === 'hero' ? 2 : 1))
@@ -227,10 +226,10 @@ export default function BookingCalendar({
                         {!startDate
                             ? '① Elige fecha de salida'
                             : !endDate
-                            ? `② Elige fecha de regreso (mín. ${minNights} noches)`
-                            : isHero || !showSlots
-                            ? '✓ Fechas listas'
-                            : '③ Confirma tus horarios y pulsa "Listo"'}
+                                ? `② Elige fecha de regreso (mín. ${minNights} noches)`
+                                : isHero || !showSlots
+                                    ? '✓ Fechas listas'
+                                    : '③ Confirma tus horarios y pulsa "Listo"'}
                     </span>
                 </div>
             )}
@@ -324,17 +323,12 @@ export default function BookingCalendar({
                                                 onClick={() => handleDayClick(dateStr)}
                                                 onMouseEnter={() => !endDate && startDate && setHoverDate(dateStr)}
                                                 onMouseLeave={() => setHoverDate(null)}
-                                                className={`booking-cal__day ${
-                                                    isFullBlocked ? 'booking-cal__day--disabled' : ''
-                                                } ${
-                                                    slotStatus === 'morning_blocked' ? 'booking-cal__day--morning-blocked' : ''
-                                                } ${
-                                                    slotStatus === 'afternoon_blocked' ? 'booking-cal__day--afternoon-blocked' : ''
-                                                } ${
-                                                    isStart ? 'booking-cal__day--start' : ''
-                                                } ${isEnd ? 'booking-cal__day--end' : ''} ${
-                                                    inRange ? 'booking-cal__day--in-range' : ''
-                                                }`}
+                                                className={`booking-cal__day ${isFullBlocked ? 'booking-cal__day--disabled' : ''
+                                                    } ${slotStatus === 'morning_blocked' ? 'booking-cal__day--morning-blocked' : ''
+                                                    } ${slotStatus === 'afternoon_blocked' ? 'booking-cal__day--afternoon-blocked' : ''
+                                                    } ${isStart ? 'booking-cal__day--start' : ''
+                                                    } ${isEnd ? 'booking-cal__day--end' : ''} ${inRange ? 'booking-cal__day--in-range' : ''
+                                                    }`}
                                             >
                                                 <span className="booking-cal__day-number">{format(day, 'd')}</span>
                                             </button>
@@ -461,14 +455,14 @@ export default function BookingCalendar({
                     padding: 13px 16px 12px;
                     user-select: none;
                     width: 100%;
-                    max-width: 320px;
+                    max-width: 100%;
                     margin: 0 auto;
                     box-shadow: 0 6px 24px rgba(0, 0, 0, 0.08);
                     box-sizing: border-box;
                 }
                 .booking-cal--two-months {
-                    max-width: 580px;
-                    width: 580px;
+                    width: 100%;
+                    max-width: min(620px, 100%);
                 }
                 .booking-cal--hero {
                     border-radius: 16px;
@@ -476,12 +470,12 @@ export default function BookingCalendar({
                     box-sizing: border-box;
                 }
                 .booking-cal--hero:not(.booking-cal--two-months) {
-                    width: 320px;
-                    max-width: calc(100vw - 32px);
+                    width: min(340px, calc(100vw - 24px));
+                    max-width: 100%;
                 }
                 .booking-cal--hero.booking-cal--two-months {
-                    width: 580px;
-                    max-width: calc(100vw - 32px);
+                    width: min(580px, calc(100vw - 32px));
+                    max-width: 100%;
                 }
                 .booking-cal--hero .booking-cal__grid {
                     gap: 2px 0;
@@ -490,9 +484,11 @@ export default function BookingCalendar({
                     display: flex;
                     align-items: flex-start;
                     gap: 16px;
+                    width: 100%;
                 }
                 .booking-cal__month-col {
                     flex: 1;
+                    width: 100%;
                     min-width: 0;
                 }
                 .booking-cal__months-divider {
@@ -638,9 +634,10 @@ export default function BookingCalendar({
                 /* Leyenda */
                 .booking-cal__legend {
                     display: flex;
+                    flex-wrap: wrap;
                     justify-content: space-between;
                     align-items: center;
-                    gap: 6px;
+                    gap: 6px 10px;
                     margin-top: 10px;
                     padding-top: 8px;
                     border-top: 1px solid rgba(255, 255, 255, 0.1);
@@ -882,21 +879,22 @@ export default function BookingCalendar({
                 }
                 @media (max-width: 860px) {
                     .booking-cal {
-                        width: 100% !important;
-                        max-width: 330px !important;
-                        padding: 12px 14px 10px !important;
-                        box-sizing: border-box !important;
+                        width: 100%;
+                        max-width: 100%;
+                        padding: 12px 14px 10px;
+                        box-sizing: border-box;
                     }
                     .booking-cal--two-months {
-                        width: 100% !important;
-                        max-width: 330px !important;
+                        width: 100%;
+                        max-width: 100%;
                     }
                     .booking-cal--hero {
-                        width: 100% !important;
-                        max-width: 330px !important;
+                        width: 100%;
+                        max-width: min(400px, calc(100vw - 24px));
                     }
                     .booking-cal__months-wrap {
                         flex-direction: column;
+                        align-items: stretch;
                         gap: 0;
                         max-height: none;
                         overflow-y: visible;
@@ -907,6 +905,32 @@ export default function BookingCalendar({
                     .hide-desktop {
                         visibility: visible;
                         pointer-events: auto;
+                    }
+                }
+                @media (max-width: 640px) {
+                    .booking-cal {
+                        padding: 12px;
+                    }
+                    .booking-cal__nav-btn {
+                        width: 34px;
+                        height: 34px;
+                    }
+                    .booking-cal__day-number {
+                        width: min(34px, 88%);
+                        height: min(34px, 88%);
+                    }
+                    .booking-cal__clear-btn,
+                    .booking-cal__done-btn {
+                        min-height: 40px;
+                    }
+                }
+                @media (max-width: 420px) {
+                    .booking-cal__slot-buttons {
+                        grid-template-columns: 1fr;
+                    }
+                    .booking-cal__slot-text,
+                    .booking-cal__slot-badge {
+                        white-space: normal;
                     }
                 }
             `}</style>

@@ -260,7 +260,8 @@ export default function CamperStickyBookingBar({
 
         /* Mobile Rules per AGENTS.md */
         @media (max-width: 860px) {
-          .guarantees-list {
+          .guarantees-list,
+          .cancellation-badge {
             display: none;
           }
         }

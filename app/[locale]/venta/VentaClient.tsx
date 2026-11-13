@@ -964,7 +964,7 @@ export default function VentaClient() {
         :global(.venta-hero__bg-img) {
           object-fit: cover;
           object-position: center 40%;
-          opacity: 0.5;
+          opacity: 0.75;
         }
 
         .venta-hero__overlay {

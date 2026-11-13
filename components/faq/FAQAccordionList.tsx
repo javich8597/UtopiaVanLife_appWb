@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useMemo } from 'react'
+import { useState, useMemo, useRef } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import {
   ChevronDown,
@@ -57,6 +57,7 @@ export default function FAQAccordionList({
   const locale = useLocale()
   const isEs = locale === 'es'
 
+  const containerRef = useRef<HTMLDivElement>(null)
   const [activeCategory, setActiveCategory] = useState<string>(initialCategory)
   const [searchQuery, setSearchQuery] = useState('')
   const [showAll, setShowAll] = useState(false)
@@ -177,7 +178,7 @@ export default function FAQAccordionList({
   }
 
   return (
-    <div className={`faq-experience ${variant === 'dark' ? 'faq-experience--dark' : ''}`}>
+    <div ref={containerRef} className={`faq-experience ${variant === 'dark' ? 'faq-experience--dark' : ''}`}>
       {/* Header */}
       <div className="faq-header">
         <Heading className="faq-title">
@@ -217,34 +218,6 @@ export default function FAQAccordionList({
                 <X size={16} />
               </button>
             )}
-          </div>
-        </div>
-      )}
-
-      {/* Categories Filter Pills (Visible when expanded or searched) */}
-      {showCategories && (showAll || isSearching) && (
-        <div className="faq-categories-container">
-          <div className="faq-categories-scroll">
-            {FAQ_CATEGORIES.map(cat => {
-              const Icon = CATEGORY_ICONS[cat.id] || HelpCircle
-              const isActive = activeCategory === cat.id
-              const count = categoryCounts[cat.id] || 0
-
-              return (
-                <button
-                  key={cat.id}
-                  type="button"
-                  onClick={() => setActiveCategory(cat.id)}
-                  className={`faq-cat-btn ${isActive ? 'faq-cat-btn--active' : ''}`}
-                >
-                  <Icon size={15} className="faq-cat-icon" />
-                  <span>{isEs ? cat.name_es : cat.name_en}</span>
-                  <span className={`faq-cat-badge ${isActive ? 'faq-cat-badge--active' : ''}`}>
-                    {count}
-                  </span>
-                </button>
-              )
-            })}
           </div>
         </div>
       )}
@@ -374,7 +347,17 @@ export default function FAQAccordionList({
         <div className="faq-view-all-wrap">
           <button
             type="button"
-            onClick={() => setShowAll(prev => !prev)}
+            onClick={() => {
+              if (showAll) {
+                setShowAll(false)
+                setTimeout(() => {
+                  const target = document.getElementById('faqs') || containerRef.current
+                  target?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+                }, 60)
+              } else {
+                setShowAll(true)
+              }
+            }}
             className="faq-view-all-btn"
           >
             <span>

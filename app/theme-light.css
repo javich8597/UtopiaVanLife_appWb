@@ -1209,34 +1209,11 @@ html[data-theme="light"] .faq-experience--dark .faq-card__category-chip {
   font-weight: 600 !important;
 }
 
-/* Reseñas de clientes */
-html[data-theme="light"] .reviews-section {
-  background:
-    radial-gradient(ellipse 75% 50% at 50% 100%, rgba(204, 160, 83, 0.08) 0%, transparent 72%),
-    linear-gradient(180deg, #F7F5F1 0%, #EFEAE1 100%) !important;
-  border-top: 1px solid #EAE5DD !important;
-}
-
+/* Reseñas de clientes: mantener la misma foto de fondo y letras en modo claro y oscuro */
 html[data-theme="light"] .reviews__eyebrow-pill {
   background: #F7EEDC !important;
   border: 1px solid #E8D6B2 !important;
   color: #1A1714 !important;
-}
-
-html[data-theme="light"] .reviews__title {
-  color: #1F1B17 !important;
-}
-
-html[data-theme="light"] .reviews__subtitle {
-  color: #5A5248 !important;
-}
-
-html[data-theme="light"] .reviews-fade--left {
-  background: linear-gradient(to right, #F7F5F1 0%, transparent 100%) !important;
-}
-
-html[data-theme="light"] .reviews-fade--right {
-  background: linear-gradient(to left, #F7F5F1 0%, transparent 100%) !important;
 }
 
 html[data-theme="light"] .review-card {
@@ -1347,27 +1324,7 @@ html[data-theme="light"] .catalog-page {
   color: #1F1B17 !important;
 }
 
-html[data-theme="light"] .catalog-hero {
-  background: #F7F5F1 !important;
-  border-bottom: 1px solid #EAE5DD !important;
-  color: #1F1B17 !important;
-}
-
-html[data-theme="light"] .catalog-hero__title {
-  color: #1F1B17 !important;
-}
-
-html[data-theme="light"] .catalog-hero__subtitle {
-  color: #5A5248 !important;
-}
-
-html[data-theme="light"] .catalog-hero__eyebrow {
-  background: #F7EEDC !important;
-  border: 1px solid #E8D6B2 !important;
-  color: #1A1714 !important;
-  /* TEXTO NEGRO EN BEIGE */
-  font-weight: 700 !important;
-}
+/* Catálogo hero: mantener el mismo fondo/foto y letras que el formato oscuro */
 
 html[data-theme="light"] .catalog__filter-btn {
   background: #FFFFFF !important;
@@ -1685,26 +1642,7 @@ html[data-theme="light"] .reservar-page {
   background: #F2F0EC !important;
 }
 
-html[data-theme="light"] .reservar-hero {
-  background: #F7F5F1 !important;
-  border-bottom: 1px solid #EAE5DD !important;
-}
-
-html[data-theme="light"] .reservar-hero__eyebrow {
-  background: #F7EEDC !important;
-  border: 1px solid #E8D6B2 !important;
-  color: #1A1714 !important;
-  /* TEXTO NEGRO EN BEIGE */
-  font-weight: 700 !important;
-}
-
-html[data-theme="light"] .reservar-hero__title {
-  color: #1F1B17 !important;
-}
-
-html[data-theme="light"] .reservar-hero__subtitle {
-  color: #5A5248 !important;
-}
+/* Reservar hero: mantener el mismo fondo/foto y letras que el formato oscuro */
 
 html[data-theme="light"] .reservar-search__bar {
   background: rgba(255, 255, 255, 0.96) !important;
@@ -2588,11 +2526,15 @@ html[data-theme="light"] .about-manifesto {
 }
 
 html[data-theme="light"] .about-manifesto--dark {
-  background: #FAF8F5 !important;
+  background: #FAF7F0 !important;
 }
 
 html[data-theme="light"] .about-manifesto--alt {
-  background: #F4F1EA !important;
+  background: #EAE2D3 !important;
+}
+
+html[data-theme="light"] .about-manifesto:nth-of-type(3) {
+  background: #F2ECE0 !important;
 }
 
 html[data-theme="light"] .about-manifesto__kicker {
@@ -2635,46 +2577,55 @@ html[data-theme="light"] .about-manifesto__punchline {
   font-weight: 700 !important;
 }
 
-/* Difuminado de imágenes hacia los fondos claros */
+/* Difuminado de imágenes hacia los fondos claros (corto y limpio) */
 html[data-theme="light"] .about-manifesto__img-shadow--left-dark {
-  background: linear-gradient(
-    90deg,
-    #FAF8F5 0%,
-    rgba(250, 248, 245, 0.5) 22%,
-    rgba(250, 248, 245, 0.08) 50%,
-    transparent 100%
-  ) !important;
+  background: linear-gradient(90deg,
+      #FAF7F0 0%,
+      rgba(250, 247, 240, 0.45) 8%,
+      transparent 20%) !important;
 }
 
+html[data-theme="light"] .about-manifesto--alt .about-manifesto__img-shadow--right-alt,
 html[data-theme="light"] .about-manifesto__img-shadow--right-alt {
-  background: linear-gradient(
-    270deg,
-    #F4F1EA 0%,
-    rgba(244, 241, 234, 0.5) 22%,
-    rgba(244, 241, 234, 0.08) 50%,
-    transparent 100%
-  ) !important;
+  background: linear-gradient(270deg,
+      #EAE2D3 0%,
+      rgba(234, 226, 211, 0.45) 8%,
+      transparent 20%) !important;
+}
+
+html[data-theme="light"] .about-manifesto:nth-of-type(3) .about-manifesto__img-shadow--left-dark {
+  background: linear-gradient(90deg,
+      #F2ECE0 0%,
+      rgba(242, 236, 224, 0.45) 8%,
+      transparent 20%) !important;
 }
 
 @media (max-width: 860px) {
   html[data-theme="light"] .about-manifesto__img-shadow--left-dark {
-    background: linear-gradient(
-      180deg,
-      #FAF8F5 0%,
-      rgba(250, 248, 245, 0.2) 20%,
-      transparent 70%,
-      #FAF8F5 100%
-    ) !important;
+    background: linear-gradient(180deg,
+        #FAF7F0 0%,
+        rgba(250, 247, 240, 0.25) 10%,
+        transparent 22%,
+        transparent 82%,
+        #FAF7F0 100%) !important;
   }
 
   html[data-theme="light"] .about-manifesto__img-shadow--right-alt {
-    background: linear-gradient(
-      180deg,
-      #F4F1EA 0%,
-      rgba(244, 241, 234, 0.2) 20%,
-      transparent 70%,
-      #F4F1EA 100%
-    ) !important;
+    background: linear-gradient(180deg,
+        #EAE2D3 0%,
+        rgba(234, 226, 211, 0.25) 10%,
+        transparent 22%,
+        transparent 82%,
+        #EAE2D3 100%) !important;
+  }
+
+  html[data-theme="light"] .about-manifesto:nth-of-type(3) .about-manifesto__img-shadow--left-dark {
+    background: linear-gradient(180deg,
+        #F2ECE0 0%,
+        rgba(242, 236, 224, 0.25) 10%,
+        transparent 22%,
+        transparent 82%,
+        #F2ECE0 100%) !important;
   }
 }
 
@@ -2724,28 +2675,7 @@ html[data-theme="light"] .contact-main {
   background: #F2F0EC !important;
 }
 
-html[data-theme="light"] .contact-hero {
-  background: #F7F5F1 !important;
-  border-bottom: 1px solid #EAE5DD !important;
-}
-
-html[data-theme="light"] .hero-kicker-wrap,
-html[data-theme="light"] .hero-kicker {
-  background: #F7EEDC !important;
-  border: 1px solid #E8D6B2 !important;
-  color: #1A1714 !important;
-  /* TEXTO NEGRO EN BEIGE */
-  font-weight: 700 !important;
-}
-
-html[data-theme="light"] .contact-hero .hero-title {
-  color: #1F1B17 !important;
-}
-
-html[data-theme="light"] .contact-hero .hero-subtitle {
-  color: #1A1714 !important;
-  font-weight: 500 !important;
-}
+/* Contacta con nosotros hero: mantener el mismo fondo/foto y letras que el formato oscuro */
 
 html[data-theme="light"] .info-card {
   background: #FFFFFF !important;
@@ -3025,24 +2955,20 @@ html[data-theme="light"] .venta-manifesto__punchline {
 }
 
 html[data-theme="light"] .venta-manifesto__img-shadow {
-  background: linear-gradient(
-    90deg,
-    #F7F5F1 0%,
-    rgba(247, 245, 241, 0.45) 22%,
-    rgba(247, 245, 241, 0.08) 50%,
-    transparent 100%
-  ) !important;
+  background: linear-gradient(90deg,
+      #F7F5F1 0%,
+      rgba(247, 245, 241, 0.45) 22%,
+      rgba(247, 245, 241, 0.08) 50%,
+      transparent 100%) !important;
 }
 
 @media (max-width: 860px) {
   html[data-theme="light"] .venta-manifesto__img-shadow {
-    background: linear-gradient(
-      180deg,
-      #F7F5F1 0%,
-      rgba(247, 245, 241, 0.25) 20%,
-      transparent 70%,
-      #F7F5F1 100%
-    ) !important;
+    background: linear-gradient(180deg,
+        #F7F5F1 0%,
+        rgba(247, 245, 241, 0.25) 20%,
+        transparent 70%,
+        #F7F5F1 100%) !important;
   }
 }
 
@@ -3615,25 +3541,6 @@ html[data-theme="light"] .legal-link {
 /* ── 19. PÁGINA PÚBLICA DE RESERVA (/reservar) ── */
 html[data-theme="light"] .reservar-page {
   background: #F2F0EC !important;
-}
-
-html[data-theme="light"] .reservar-hero {
-  background: radial-gradient(ellipse 80% 60% at 50% -20%, rgba(204, 160, 83, 0.15), transparent 70%), #F2F0EC !important;
-  border-bottom: 1px solid #E2DBD3 !important;
-  color: #1A1714 !important;
-}
-
-html[data-theme="light"] .reservar-hero__eyebrow span {
-  color: #857B6F !important;
-  font-weight: 700 !important;
-}
-
-html[data-theme="light"] .reservar-hero__title {
-  color: #1A1714 !important;
-}
-
-html[data-theme="light"] .reservar-hero__subtitle {
-  color: #5A5248 !important;
 }
 
 /* Buscador flotante en /reservar */

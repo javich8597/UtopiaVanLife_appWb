@@ -121,7 +121,21 @@ export default function Navbar({ alwaysVisible = false }: { alwaysVisible?: bool
             <li><Link href="/reservar" className="navbar__link navbar__link--reservar">{t('bookNow')}</Link></li>
             <li><Link href="/venta" className="navbar__link">{t('venta')}</Link></li>
             <li><Link href="/conocenos" className="navbar__link">{t('about')}</Link></li>
-            <li><Link href="/#faqs" className="navbar__link">{t('faq')}</Link></li>
+            <li>
+              <Link
+                href="/#faqs"
+                className="navbar__link"
+                onClick={(e) => {
+                  const el = document.getElementById('faqs')
+                  if (el) {
+                    e.preventDefault()
+                    el.scrollIntoView({ behavior: 'smooth', block: 'start' })
+                  }
+                }}
+              >
+                {t('faq')}
+              </Link>
+            </li>
             <li><Link href="/contacto" className="navbar__link">{t('contact')}</Link></li>
           </ul>
 
@@ -186,7 +200,21 @@ export default function Navbar({ alwaysVisible = false }: { alwaysVisible?: bool
               <li><Link href="/reservar" onClick={() => setMenuOpen(false)} className="mobile-menu__link--reservar">{t('bookNow')}</Link></li>
               <li><Link href="/venta" onClick={() => setMenuOpen(false)}>{t('venta')}</Link></li>
               <li><Link href="/conocenos" onClick={() => setMenuOpen(false)}>{t('about')}</Link></li>
-              <li><Link href="/#faqs" onClick={() => setMenuOpen(false)}>{t('faq')}</Link></li>
+              <li>
+                <Link
+                  href="/#faqs"
+                  onClick={(e) => {
+                    setMenuOpen(false)
+                    const el = document.getElementById('faqs')
+                    if (el) {
+                      e.preventDefault()
+                      el.scrollIntoView({ behavior: 'smooth', block: 'start' })
+                    }
+                  }}
+                >
+                  {t('faq')}
+                </Link>
+              </li>
               <li><Link href="/contacto" onClick={() => setMenuOpen(false)}>{t('contact')}</Link></li>
               {isAdmin && (
                 <li><Link href="/admin" onClick={() => setMenuOpen(false)} className="mobile-menu__link--admin">🛡️ Panel Admin</Link></li>

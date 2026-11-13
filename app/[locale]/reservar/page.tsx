@@ -1108,9 +1108,9 @@ export default function ReservarPage() {
                     content: '';
                     position: absolute;
                     inset: 0;
-                    background-image: url('/images/lifestyle/newsletter-adventure-hero.jpg');
+                    background-image: url('/images/about/transit.jpg');
                     background-size: cover;
-                    background-position: center 75%;
+                    background-position: center;
                     opacity: 0.6;
                     pointer-events: none;
                     z-index: 0;

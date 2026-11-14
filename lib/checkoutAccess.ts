@@ -135,7 +135,9 @@ export interface VerifiableBooking {
 }
 
 export interface VerifiableProfile {
+    driver_license_id?: string | null
     driver_license_issue_date?: string | null
+    driver_license_expiry_date?: string | null
     birth_date?: string | null
 }
 
@@ -167,7 +169,9 @@ export function buildVerifiedBooking(
         customerPhone: booking.customer_phone || '',
         customerDni: booking.customer_dni || '',
         customerAddress: booking.customer_address || '',
+        driverLicenseId: details.profile?.driver_license_id || null,
         driverLicenseIssueDate: details.profile?.driver_license_issue_date || null,
+        driverLicenseExpiryDate: details.profile?.driver_license_expiry_date || null,
         birthDate: details.profile?.birth_date || null,
     }
 }

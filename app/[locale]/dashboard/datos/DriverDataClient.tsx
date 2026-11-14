@@ -2,7 +2,7 @@
 
 import { useState, ChangeEvent } from 'react'
 import { useSearchParams } from 'next/navigation'
-import { useRouter } from '@/i18n/routing'
+import { Link, useRouter } from '@/i18n/routing'
 import Image from 'next/image'
 import { 
   ShieldCheck, 
@@ -26,7 +26,7 @@ import {
 import { validateDriverLicense } from '@/lib/contracts/licenseValidator'
 import { prepareDocumentsForUpload } from '@/lib/compressDocumentImage'
 import { interpretUploadResponse, MAX_SOURCE_FILE_BYTES } from '@/lib/documentUploadBudget'
-import { formatTripRange, type SecondDriverBooking } from '@/lib/user/secondDriverBookings'
+import { formatTripRange, mayUploadSecondDriverPhotos, type SecondDriverBooking } from '@/lib/user/secondDriverBookings'
 
 // Esta pantalla está en español: mismos textos que CheckoutSuccess en messages/es.json
 const FILES_TOO_LARGE_MESSAGE = 'Tus archivos pesan demasiado para enviarlos juntos (unos 4 MB en total). Haz otra foto de los documentos o súbelos en formato JPG: los PDF y algunas fotos HEIC no se pueden reducir. Lo que has escrito sigue aquí.'
@@ -98,14 +98,36 @@ export default function DriverDataClient({ user, profile, rejectionReason, secon
   const [secondLicenseFront, setSecondLicenseFront] = useState<UploadedFilePreview>({ file: null, previewUrl: null })
   const [secondLicenseBack, setSecondLicenseBack] = useState<UploadedFilePreview>({ file: null, previewUrl: null })
 
-  // Cambiar de reserva cambia a la persona: sus datos salen de la ficha elegida y las fotos
-  // elegidas no se arrastran
+  // El titular debe haber informado al 2º conductor (no tiene cuenta y no le escribimos nosotros:
+  // art. 14 RGPD) ANTES de elegir sus fotos. Mientras no lo confirme, los selectores de archivo del
+  // 2º conductor están bloqueados y sus fotos no viajan. Es solo de esta pantalla: no se guarda
+  const [secondDriverInformed, setSecondDriverInformed] = useState(false)
+
+  // Cambiar de reserva cambia a la persona: sus datos salen de la ficha elegida, las fotos
+  // elegidas no se arrastran y hay que volver a confirmar que se ha informado a la nueva persona
   const handleSelectBooking = (bookingId: string) => {
     const next = secondDriverBookings.find(b => b.bookingId === bookingId)
     if (!next || bookingId === selectedBookingId) return
     setSelectedBookingId(bookingId)
+    setSecondDriverInformed(false)
     setSecondLicenseFront({ file: null, previewUrl: null })
     setSecondLicenseBack({ file: null, previewUrl: null })
+  }
+
+  // Desmarcar la confirmación retira las fotos ya elegidas: no se envía nada que se haya elegido
+  // sin haber informado a la persona
+  const handleInformedChange = (checked: boolean) => {
+    setSecondDriverInformed(checked)
+    if (!checked) {
+      setSecondLicenseFront({ file: null, previewUrl: null })
+      setSecondLicenseBack({ file: null, previewUrl: null })
+    }
+  }
+
+  // Apagar el interruptor también retira la confirmación y las fotos elegidas
+  const handleSecondDriverToggle = (checked: boolean) => {
+    setHasSecondDriver(checked)
+    if (!checked) handleInformedChange(false)
   }
 
   // Estado del formulario
@@ -169,7 +191,8 @@ export default function DriverDataClient({ user, profile, rejectionReason, secon
     addFile('dni_back', dniBack.file)
     addFile('license_front', licenseFront.file)
     addFile('license_back', licenseBack.file)
-    if (hasSecondDriver) {
+    // Las fotos del 2º conductor solo viajan si el titular confirmó que le ha informado
+    if (mayUploadSecondDriverPhotos(hasSecondDriver, secondDriverInformed)) {
       addFile('second_license_front', secondLicenseFront.file)
       addFile('second_license_back', secondLicenseBack.file)
     }
@@ -725,7 +748,7 @@ export default function DriverDataClient({ user, profile, rejectionReason, secon
                 type="checkbox"
                 checked={hasSecondDriver}
                 disabled={!secondDriverBooking}
-                onChange={e => setHasSecondDriver(e.target.checked)}
+                onChange={e => handleSecondDriverToggle(e.target.checked)}
               />
               <span className="custom-switch-slider" />
             </label>
@@ -827,12 +850,55 @@ export default function DriverDataClient({ user, profile, rejectionReason, secon
                 </div>
               </div>
 
+              {/* Aviso de privacidad: va ANTES de los selectores de archivo y los bloquea hasta confirmarlo */}
+              <div className="second-driver-notice" role="group" aria-labelledby="secondDriverNoticeTitle">
+                <div className="second-driver-notice__head">
+                  <ShieldCheck size={18} className="second-driver-notice__icon" />
+                  <h3 id="secondDriverNoticeTitle" className="second-driver-notice__title">
+                    Antes de subir su carnet, avísale
+                  </h3>
+                </div>
+                <p id="secondDriverNoticeText" className="second-driver-notice__text">
+                  {secondDriverFullName || 'La persona autorizada'} no tiene cuenta con nosotros y no le hemos escrito.
+                  Por eso tienes que haberle informado tú de que sus documentos se envían a Utopia Van Life
+                  para el contrato de alquiler y el seguro. Puede ver cómo tratamos sus datos en la{' '}
+                  <Link href="/legal/privacidad" target="_blank" rel="noopener noreferrer" className="second-driver-notice__link">
+                    política de privacidad
+                  </Link>{' '}
+                  (se abre en otra pestaña: lo que has escrito aquí no se pierde).
+                </p>
+                <p className="second-driver-notice__terms">
+                  <strong>Plazos:</strong> las fotos de su carnet se borran 100 días después de la devolución y los
+                  datos del registro de viajeros (Real Decreto 933/2021) se conservan 3 años.
+                </p>
+                <label className="second-driver-confirm" htmlFor="secondDriverInformed">
+                  <input
+                    id="secondDriverInformed"
+                    name="secondDriverInformed"
+                    type="checkbox"
+                    checked={secondDriverInformed}
+                    onChange={e => handleInformedChange(e.target.checked)}
+                    aria-describedby="secondDriverNoticeText"
+                    className="second-driver-confirm__box"
+                  />
+                  <span className="second-driver-confirm__text">
+                    He informado a {secondDriverFullName || 'esa persona'} de que sus documentos se envían a Utopia Van Life
+                    y de cómo se tratan sus datos.
+                  </span>
+                </label>
+              </div>
+
               {/* Subida carnet segundo conductor */}
               <div className="second-driver-upload-section">
                 <span className="dropzone-section-title">CARNET DEL SEGUNDO CONDUCTOR</span>
                 <p className="second-driver-saved-note">
                   Si ya enviaste las fotos de su carnet, siguen guardadas: no hace falta subirlas otra vez. Solo súbelas de nuevo si quieres cambiarlas.
                 </p>
+                {!secondDriverInformed && (
+                  <p className="second-driver-gate-hint" role="status">
+                    Marca la casilla de arriba para poder elegir las fotos.
+                  </p>
+                )}
                 <div className="dropzone-grid-2">
                   <div className="dropzone-card">
                     <span className="dropzone-card-label">Anverso (Frontal)</span>
@@ -846,10 +912,10 @@ export default function DriverDataClient({ user, profile, rejectionReason, secon
                         </div>
                       </div>
                     ) : (
-                      <label className="dropzone-empty" htmlFor="secondLicenseFrontInput">
+                      <label className={`dropzone-empty ${secondDriverInformed ? '' : 'dropzone-empty--locked'}`} htmlFor="secondLicenseFrontInput">
                         <UploadCloud size={24} className="dropzone-empty-icon" />
                         <span className="dropzone-empty-cta"><FolderOpen size={14} /> Subir Frontal</span>
-                        <input id="secondLicenseFrontInput" name="secondLicenseFrontInput" aria-label="Subir anverso carnet conductor 2" type="file" accept=".jpg,.jpeg,.png,.pdf,.heic" onChange={e => handleFileSelect(e, setSecondLicenseFront)} className="file-input-hidden" />
+                        <input id="secondLicenseFrontInput" name="secondLicenseFrontInput" aria-label="Subir anverso carnet conductor 2" type="file" accept=".jpg,.jpeg,.png,.pdf,.heic" disabled={!secondDriverInformed} onChange={e => handleFileSelect(e, setSecondLicenseFront)} className="file-input-hidden" />
                       </label>
                     )}
                   </div>
@@ -866,10 +932,10 @@ export default function DriverDataClient({ user, profile, rejectionReason, secon
                         </div>
                       </div>
                     ) : (
-                      <label className="dropzone-empty" htmlFor="secondLicenseBackInput">
+                      <label className={`dropzone-empty ${secondDriverInformed ? '' : 'dropzone-empty--locked'}`} htmlFor="secondLicenseBackInput">
                         <UploadCloud size={24} className="dropzone-empty-icon" />
                         <span className="dropzone-empty-cta"><FolderOpen size={14} /> Subir Reverso</span>
-                        <input id="secondLicenseBackInput" name="secondLicenseBackInput" aria-label="Subir reverso carnet conductor 2" type="file" accept=".jpg,.jpeg,.png,.pdf,.heic" onChange={e => handleFileSelect(e, setSecondLicenseBack)} className="file-input-hidden" />
+                        <input id="secondLicenseBackInput" name="secondLicenseBackInput" aria-label="Subir reverso carnet conductor 2" type="file" accept=".jpg,.jpeg,.png,.pdf,.heic" disabled={!secondDriverInformed} onChange={e => handleFileSelect(e, setSecondLicenseBack)} className="file-input-hidden" />
                       </label>
                     )}
                   </div>
@@ -1680,6 +1746,109 @@ export default function DriverDataClient({ user, profile, rejectionReason, secon
           margin-top: var(--space-4);
         }
 
+        /* Aviso de privacidad del 2º conductor (art. 14 RGPD) */
+        .second-driver-notice {
+          display: flex;
+          flex-direction: column;
+          gap: 10px;
+          margin-top: var(--space-4);
+          padding: 16px 18px;
+          background: var(--usr-amber-soft);
+          border: 1px solid var(--usr-amber-line);
+          border-radius: 12px;
+        }
+
+        .second-driver-notice__head {
+          display: flex;
+          align-items: center;
+          gap: 8px;
+        }
+
+        :global(.second-driver-notice__icon) {
+          flex-shrink: 0;
+          color: var(--usr-amber);
+        }
+
+        .second-driver-notice__title {
+          margin: 0;
+          font-size: 0.95rem;
+          font-weight: 700;
+          color: var(--usr-text);
+          line-height: 1.3;
+        }
+
+        .second-driver-notice__text,
+        .second-driver-notice__terms {
+          margin: 0;
+          font-size: 0.84rem;
+          line-height: 1.5;
+          color: var(--usr-text);
+          overflow-wrap: anywhere;
+        }
+
+        :global(.second-driver-notice__link) {
+          color: var(--usr-text);
+          font-weight: 700;
+          text-decoration: underline;
+          text-underline-offset: 2px;
+        }
+
+        .second-driver-confirm {
+          display: flex;
+          align-items: flex-start;
+          gap: 12px;
+          min-height: 44px;
+          padding: 10px 12px;
+          margin-top: 2px;
+          background: var(--usr-surface);
+          border: 1.5px solid var(--usr-amber-line);
+          border-radius: 10px;
+          cursor: pointer;
+        }
+
+        .second-driver-confirm__box {
+          flex-shrink: 0;
+          width: 22px;
+          height: 22px;
+          margin: 1px 0 0;
+          accent-color: var(--usr-primary-bg);
+          cursor: pointer;
+        }
+
+        .second-driver-confirm__box:focus-visible {
+          outline: 3px solid var(--usr-gold);
+          outline-offset: 2px;
+        }
+
+        .second-driver-confirm__text {
+          font-size: 0.86rem;
+          font-weight: 700;
+          line-height: 1.45;
+          color: var(--usr-text);
+          overflow-wrap: anywhere;
+        }
+
+        .second-driver-gate-hint {
+          margin: -4px 0 12px;
+          font-size: 0.78rem;
+          font-weight: 700;
+          line-height: 1.45;
+          color: var(--usr-amber);
+        }
+
+        .dropzone-empty--locked {
+          opacity: 0.55;
+          cursor: not-allowed;
+          border-style: solid;
+        }
+
+        .dropzone-empty--locked:hover {
+          border-color: var(--usr-border-strong);
+          background: var(--usr-surface-2);
+          transform: none;
+          box-shadow: none;
+        }
+
         :global(.alert-icon) {
           flex-shrink: 0;
           margin-top: 2px;
@@ -1771,6 +1940,12 @@ export default function DriverDataClient({ user, profile, rejectionReason, secon
           .trip-option {
             min-height: 60px;
             padding: 12px;
+          }
+          .second-driver-notice {
+            padding: 14px;
+          }
+          .second-driver-confirm {
+            min-height: 48px;
           }
         }
       `}</style>

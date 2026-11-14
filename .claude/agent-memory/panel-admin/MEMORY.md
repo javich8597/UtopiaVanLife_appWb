@@ -2,3 +2,4 @@
 - [Editar archivos CRLF](feedback_edit_crlf_files.md) — evitar heredocs/node -e con cadenas multilínea; usar scripts con Write
 - [Segundo conductor en el panel](project_second_driver_docs_admin.md) — fotos por reserva, recorte, subida anterior, avisos desde Storage
 - [Paso del segundo conductor en la entrega](project_second_driver_handover_step.md) — casillas en checklist jsonb, ficha editable por admin, migraciones sin aplicar
+- [Tarea semanal y pantalla de purga](project_retention_cron_screen.md) — Vercel Cron lunes, ran_by NULL = tarea, simulación = 1 pasada, migración 20261115 sin aplicar

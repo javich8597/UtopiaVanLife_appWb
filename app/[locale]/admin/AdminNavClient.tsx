@@ -1,7 +1,7 @@
 'use client'
 
 import { Link, usePathname } from '@/i18n/routing'
-import { Calendar, LayoutDashboard, Truck, Settings, Users as UsersIcon, BookOpen, ShieldCheck, FileText } from 'lucide-react'
+import { Calendar, LayoutDashboard, Truck, Settings, Users as UsersIcon, BookOpen, ShieldCheck, FileText, Archive } from 'lucide-react'
 
 export interface AdminNavCounts {
   pendingBookings?: number
@@ -16,6 +16,7 @@ export const navItems = [
   { label: 'Clientes', short: 'Clientes', href: '/admin/users', icon: UsersIcon, exact: false, countKey: null, group: 'main' },
   { label: 'Flota', short: 'Flota', href: '/admin/campers', icon: Truck, exact: false, countKey: null, group: 'config' },
   { label: 'Contrato', short: 'Contrato', href: '/admin/contrato', icon: FileText, exact: false, countKey: null, group: 'config' },
+  { label: 'Conservación', short: 'Datos', href: '/admin/conservacion', icon: Archive, exact: false, countKey: null, group: 'config' },
   { label: 'Ajustes', short: 'Ajustes', href: '/admin/settings', icon: Settings, exact: false, countKey: null, group: 'config' },
 ] as const
 

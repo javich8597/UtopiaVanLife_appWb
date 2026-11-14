@@ -49,7 +49,7 @@ export const RETENTION_MAX_LIMIT = 500
 const REMOVE_CHUNK = 100
 
 /** Migración que crea la constancia. Se nombra en el 409 para que se sepa qué aplicar */
-const RETENTION_MIGRATION = 'supabase/migrations/20261110_document_retention_policy.sql'
+export const RETENTION_MIGRATION = 'supabase/migrations/20261110_document_retention_policy.sql'
 
 /** Quién lanza la pasada. `id` es null cuando la lanza la tarea programada: ninguna persona */
 export interface RetentionActor {
@@ -114,6 +114,8 @@ interface HolderReport {
 }
 
 export async function runRetentionPass(
+  // El cliente de Supabase con la clave de servicio, que el llamador ya ha comprobado. `any` como en el resto del archivo
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   db: any,
   input: RetentionPassInput,
   actor: RetentionActor

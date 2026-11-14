@@ -1,5 +1,8 @@
 import { SECOND_DRIVER_RATE_PER_DAY } from '@/lib/pricing/engine'
 
+export const CAMPER_SUPPORTED_LOCALES = ['es', 'en', 'fr', 'de'] as const
+export type CamperLocaleCode = (typeof CAMPER_SUPPORTED_LOCALES)[number]
+
 export interface CamperGalleryItem {
   src: string
   tag: string
@@ -20,6 +23,20 @@ export interface CamperFeatureItem {
   icon: string
   label: string
   value: string
+}
+
+export interface CamperLocaleTranslation {
+  tagline?: string
+  summarySpecs?: CamperCardSummarySpec[]
+  pills?: CamperCardPill[]
+  wizardHighlights?: string[]
+  galleryTags?: string[]
+  inlineDescImageAlt?: string
+  description?: string
+  descriptionParagraphs?: string[]
+  features?: CamperFeatureItem[]
+  technicalFeatures?: CamperFeatureItem[]
+  included?: string[]
 }
 
 export interface CamperRentalConfig {
@@ -323,18 +340,31 @@ export function buildDefaultSummarySpecs(camper: any): CamperCardSummarySpec[] {
 
 export function splitDescriptionParagraphs(text?: string | null): string[] {
   if (typeof text !== 'string') return []
-  return text
+  const byDoubleNewline = text
     .split(/\n\s*\n/)
+    .map(p => p.trim())
+    .filter(Boolean)
+  if (byDoubleNewline.length > 1) return byDoubleNewline
+  return text
+    .split(/\n/)
     .map(p => p.trim())
     .filter(Boolean)
 }
 
-export function resolveCamperContent(camper: any): CamperResolvedContent {
+export function resolveCamperContent(camper: any, locale: string = 'es'): CamperResolvedContent {
+  const normalizedLocale = (CAMPER_SUPPORTED_LOCALES.includes(locale as CamperLocaleCode)
+    ? locale
+    : 'es') as CamperLocaleCode
   const slug = String(camper?.slug || 'neo').toLowerCase()
   const name = String(camper?.name || slug.toUpperCase())
   const preset = getPreset(slug)
   const specs = (camper?.specs && typeof camper.specs === 'object') ? camper.specs : {}
   const card = (specs?.card && typeof specs.card === 'object') ? specs.card : {}
+  const translations = (specs?.translations && typeof specs.translations === 'object') ? specs.translations : {}
+  const locData: CamperLocaleTranslation =
+    translations[normalizedLocale] && typeof translations[normalizedLocale] === 'object'
+      ? translations[normalizedLocale]
+      : {}
 
   const seats = asNonEmptyNumber(specs.seats) ?? preset.defaultSeats
   const beds = asNonEmptyNumber(specs.beds) ?? preset.defaultBeds
@@ -538,25 +568,115 @@ export function resolveCamperContent(camper: any): CamperResolvedContent {
   // 5. Alquiler
   const rental = resolveCamperRentalConfig(camper)
 
+  // 6. Sobrescritura por idioma (cuando hay traducción en specs.translations[locale] o description_en)
+  const locParagraphs =
+    Array.isArray(locData.descriptionParagraphs) && locData.descriptionParagraphs.some(p => typeof p === 'string' && p.trim())
+      ? locData.descriptionParagraphs.filter((p): p is string => typeof p === 'string' && p.trim().length > 0)
+      : (typeof locData.description === 'string' && locData.description.trim()
+        ? splitDescriptionParagraphs(locData.description)
+        : (normalizedLocale === 'en' && typeof camper?.description_en === 'string' && camper.description_en.trim()
+          ? splitDescriptionParagraphs(camper.description_en)
+          : null))
+
+  const finalDescriptionParagraphs =
+    locParagraphs && locParagraphs.length > 0 ? locParagraphs : descriptionParagraphs
+
+  const finalTagline =
+    typeof locData.tagline === 'string' && locData.tagline.trim()
+      ? locData.tagline.trim()
+      : tagline
+
+  const finalSummarySpecs =
+    Array.isArray(locData.summarySpecs) && locData.summarySpecs.some(s => s && typeof s.text === 'string' && s.text.trim())
+      ? locData.summarySpecs
+        .filter((s: any) => s && typeof s.text === 'string' && s.text.trim())
+        .map((s: any, idx: number) => ({
+          icon: String(s.icon || summarySpecs[idx]?.icon || 'zap'),
+          text: String(s.text),
+          wide: typeof s.wide === 'boolean' ? s.wide : Boolean(summarySpecs[idx]?.wide),
+        }))
+      : summarySpecs
+
+  const finalPills =
+    Array.isArray(locData.pills) && locData.pills.some(p => p && typeof p.label === 'string' && p.label.trim())
+      ? locData.pills
+        .filter((p: any) => p && typeof p.label === 'string' && p.label.trim())
+        .map((p: any, idx: number) => ({
+          icon: String(p.icon || pills[idx]?.icon || 'zap'),
+          label: String(p.label),
+        }))
+      : pills
+
+  const finalWizardHighlights =
+    Array.isArray(locData.wizardHighlights) && locData.wizardHighlights.some(h => typeof h === 'string' && h.trim())
+      ? locData.wizardHighlights.filter((h): h is string => typeof h === 'string' && h.trim().length > 0)
+      : wizardHighlights
+
+  const finalGalleryImages =
+    Array.isArray(locData.galleryTags) && locData.galleryTags.length > 0
+      ? galleryImages.map((img, idx) => ({
+        src: img.src,
+        tag:
+          typeof locData.galleryTags?.[idx] === 'string' && locData.galleryTags[idx].trim()
+            ? locData.galleryTags[idx].trim()
+            : img.tag,
+      }))
+      : galleryImages
+
+  const finalInlineImage =
+    typeof locData.inlineDescImageAlt === 'string' && locData.inlineDescImageAlt.trim()
+      ? { src: descriptionInlineImage.src, alt: locData.inlineDescImageAlt.trim() }
+      : descriptionInlineImage
+
+  const finalFeatures =
+    Array.isArray(locData.features) && locData.features.some(f => f && typeof f.label === 'string' && f.label.trim())
+      ? locData.features
+        .filter((f: any) => f && typeof f.label === 'string' && f.label.trim())
+        .map((f: any, idx: number) => ({
+          icon: String(f.icon || features[idx]?.icon || 'zap'),
+          label: String(f.label),
+          value: String(f.value || ''),
+        }))
+      : features
+
+  const finalTechnicalFeatures =
+    Array.isArray(locData.technicalFeatures) && locData.technicalFeatures.some(f => f && typeof f.label === 'string' && f.label.trim())
+      ? locData.technicalFeatures
+        .filter((f: any) => f && typeof f.label === 'string' && f.label.trim())
+        .map((f: any, idx: number) => ({
+          icon: String(f.icon || technicalFeatures[idx]?.icon || 'gauge'),
+          label: String(f.label),
+          value: String(f.value || ''),
+        }))
+      : technicalFeatures
+
+  const finalIncluded =
+    Array.isArray(locData.included) && locData.included.some(i => typeof i === 'string' && i.trim())
+      ? locData.included.filter((i): i is string => typeof i === 'string' && i.trim().length > 0)
+      : rental.included
+
   return {
     slug,
     name,
     card: {
-      tagline,
-      summarySpecs,
-      pills,
-      wizardHighlights,
+      tagline: finalTagline,
+      summarySpecs: finalSummarySpecs,
+      pills: finalPills,
+      wizardHighlights: finalWizardHighlights,
     },
     thumbnailUrl,
-    galleryImages,
+    galleryImages: finalGalleryImages,
     cardImages,
-    descriptionParagraphs,
-    descriptionInlineImage,
+    descriptionParagraphs: finalDescriptionParagraphs,
+    descriptionInlineImage: finalInlineImage,
     floorplanDay,
     floorplanNight,
-    features,
-    technicalFeatures,
-    rental,
-    included: rental.included,
+    features: finalFeatures,
+    technicalFeatures: finalTechnicalFeatures,
+    rental: {
+      ...rental,
+      included: finalIncluded,
+    },
+    included: finalIncluded,
   }
 }

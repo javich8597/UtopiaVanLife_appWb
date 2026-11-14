@@ -206,10 +206,13 @@ export default function HeroSection() {
 
       {/* Contenido Editorial Central */}
       <div className="hero__content">
-        {/* Gran Titular Icónico UTOPIA / VAN LIFE */}
+        {/* Logo principal de Utopia Van Life */}
         <h1 className="hero__title">
-          <span className="hero__title-line hero__title-line--cream">UTOPIA</span>
-          <span className="hero__title-line hero__title-line--gold">VAN LIFE</span>
+          <span
+            className="hero__logo-mask"
+            role="img"
+            aria-label="Utopia Van Life"
+          />
         </h1>
 
         {/* Barra de Selección Flotante Glassmorphic */}
@@ -498,32 +501,32 @@ export default function HeroSection() {
           margin-bottom: -4px;
         }
 
-        /* Gran Titular UTOPIA / VAN LIFE */
+        /* Logo principal en el Hero */
         .hero__title {
           display: flex;
-          flex-direction: column;
           align-items: center;
           justify-content: center;
-          gap: 0;
-          margin: 0;
-          line-height: 0.92;
+          margin: 0 0 var(--space-2);
+          width: 100%;
+          filter: drop-shadow(0 4px 24px rgba(0, 0, 0, 0.75));
         }
-        .hero__title-line {
-          font-family: var(--font-display);
-          font-size: clamp(3.4rem, 8.8vw, 6.6rem);
-          font-weight: 800;
-          letter-spacing: -0.015em;
-          text-transform: uppercase;
+        .hero__logo-mask {
           display: block;
-          line-height: 0.94;
-        }
-        .hero__title-line--cream {
-          color: #F5EFEB;
-          text-shadow: 0 4px 30px rgba(0, 0, 0, 0.6);
-        }
-        .hero__title-line--gold {
-          color: #CCA053;
-          text-shadow: 0 4px 30px rgba(0, 0, 0, 0.6);
+          /* TAMAÑO ESCRITORIO: cambia el mínimo (380px), fluido (64vw) y máximo (780px) */
+          width: clamp(380px, 64vw, 780px);
+          max-width: 100%;
+          aspect-ratio: 2400 / 598;
+          /* COLOR BEIX UNIFORME: cambia este hexadecimal para probar otros tonos */
+          background: #E8D5B7;
+          -webkit-mask-image: url('/images/logo-hero-bold-white.png');
+          mask-image: url('/images/logo-hero-bold-white.png');
+          -webkit-mask-size: contain;
+          mask-size: contain;
+          -webkit-mask-repeat: no-repeat;
+          mask-repeat: no-repeat;
+          -webkit-mask-position: center;
+          mask-position: center;
+          user-select: none;
         }
 
         /* Subtítulo poético */
@@ -748,8 +751,9 @@ export default function HeroSection() {
             overflow-x: clip;
             overflow-y: visible;
           }
-          .hero__title-line {
-            font-size: clamp(2.8rem, 11vw, 4.4rem);
+          .hero__logo-mask {
+            /* TAMAÑO MÓVIL: cambia el mínimo (280px), fluido (90vw) y máximo (440px) */
+            width: clamp(280px, 90vw, 440px);
           }
           .hero__subtitle {
             font-size: 0.98rem;

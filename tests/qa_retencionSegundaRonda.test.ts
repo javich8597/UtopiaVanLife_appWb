@@ -276,7 +276,10 @@ describe('QA 2ª ronda: el criterio de sellado', () => {
         // Y la respuesta lo dice, además de la fila
         const carpeta = res.json.folders.find((f: any) => f.scope === 'booking_images')
         assert.equal(carpeta.sealed, 'reviewed')
-        assert.match(res.json.reviewedWarning, /REVISADA y no como purgada/)
+        assert.match(res.json.reviewedWarning, /REVISADAS y no como purgadas/)
+        // El aviso NOMBRA la reserva: antes era un texto fijo y no había lista por la que volver
+        assert.match(res.json.reviewedWarning, new RegExp(B_VIEJA))
+        assert.deepEqual(res.json.reviewedOnly, [B_VIEJA])
 
         // La reserva ya no vuelve a salir de candidata: `reviewed` es lo que hace avanzar el barrido
         const segunda = await send({ confirm: true })

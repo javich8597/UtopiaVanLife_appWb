@@ -100,6 +100,14 @@
 --   siempre verdadera y dejaba pasar cualquier escritura sin JWT. Hallazgo de `seguridad-auditor` y
 --   `qa-verificador`, 2026-11-12.)
 --
+--   AVISO PARA EL FUTURO: no crear NUNCA una función SECURITY DEFINER cuyo dueño sea `service_role`.
+--   Dentro de ella `current_user` valdría `service_role` y el segundo disyuntivo de este trigger la
+--   dejaría pasar, así que cualquiera que pudiera llamarla podría sellar una purga que no ocurrió.
+--   Hoy no existe ninguna (pedido de `seguridad-auditor`, 2026-11-12). Para comprobarlo:
+--     SELECT p.proname, pg_get_userbyid(p.proowner) AS dueno
+--     FROM pg_proc p JOIN pg_namespace n ON n.oid = p.pronamespace
+--     WHERE n.nspname = 'public' AND p.prosecdef AND pg_get_userbyid(p.proowner) = 'service_role';
+--
 -- public.retention_purge_log (tabla nueva, RLS activada aquí):
 --                  anon   cliente dueño   otro cliente   admin   service role
 --   SELECT         NO     NO              NO             SÍ      SÍ
@@ -195,6 +203,11 @@ BEGIN
     -- en cada pasada (sin user_id, o con una reserva viva sin fechas en su cuenta)
     bookings_sealed integer NOT NULL DEFAULT 0,
     candidates_stalled integer NOT NULL DEFAULT 0,
+    -- Reservas con archivos borrados de los que NO se pudo dejar constancia en su fila (tendría que
+    -- estar siempre vacío: la sonda de sello rechaza la ejecución antes de borrar), y reservas ya
+    -- revisadas cuya marca de «purgada» se cerró al purgar la carpeta de cuenta de su titular
+    seal_failed jsonb NOT NULL DEFAULT '[]'::jsonb,
+    closed_by_holder jsonb NOT NULL DEFAULT '[]'::jsonb,
     -- Rutas de Storage y nombres de columna. NUNCA valores de datos personales: ni el nombre de un
     -- archivo que la purga no reconoce, porque el nombre también puede serlo
     detail jsonb NOT NULL DEFAULT '[]'::jsonb
@@ -328,8 +341,22 @@ $retention$;
 --   2. Repetir con { "bookingId": "<una reserva antigua concreta>" } y revisar a mano la lista.
 --      Ojo: en ese modo dirigido NO se toca la carpeta de cuenta del titular, y la respuesta lo dice
 --      en policy.holderFoldersExcluded. Para incluirla hace falta pasar también "userId".
+--   2bis. ANTES del primer borrado de verdad: comprobar que la ruta puede ESCRIBIR la constancia.
+--      Ya no es una apuesta, y esto es lo que hace que el paso 3 no sea destructivo si el trigger
+--      está mal calibrado: antes de borrar un solo archivo, la ruta escribe un recuento imposible
+--      (-1) en una reserva candidata y lo deshace. Si el trigger lo rechaza (42501), responde 409
+--      con `sealProbe: "failed"` y NO BORRA NADA.
+--      Hasta esta versión, los archivos se borraban primero y se sellaba después: un trigger mal
+--      calibrado dejaba las fotos borradas, `sealed: 0` y un 200 sin ningún aviso, así que este paso
+--      3 habría destruido las fotos de esa reserva justo al probar que todo funcionaba (hallazgo de
+--      `seguridad-auditor`, 2026-11-12).
+--      Para verlo funcionar a propósito: con la sesión de un ADMINISTRADOR (clave anon) la ruta
+--      responde 503 antes de llegar aquí; con la clave de servicio, si se desactivara el rol
+--      service_role en el trigger, la respuesta sería ese 409. En la práctica basta comprobar que la
+--      respuesta del paso 3 trae `sealProbe: "ok"`.
 --   3. Solo entonces, { "bookingId": "<esa reserva>", "confirm": true }. Escribe en Storage real y
---      en la base: es irreversible.
+--      en la base: es irreversible. Comprobar en la respuesta `sealProbe: "ok"`, `sealed` igual al
+--      número de carpetas de reserva resueltas y que NO trae `sealWarning`.
 --   4. Repetir el paso 3 tal cual: tiene que responder summary.files = 0 y summary.columns = 0 sin
 --      ningún error (idempotencia).
 --   5. Con la sesión de un cliente dueño de una reserva, un UPDATE sobre
@@ -343,7 +370,9 @@ $retention$;
 --      en `stalledWarning`, y el aviso de `truncated` cambia de texto cuando ninguna puede avanzar.
 --   8. Si la respuesta trae `reviewedWarning`, alguna reserva quedó `reviewed` y no `purged`: su
 --      cuenta conserva la carpeta del titular por otra reserva viva. Es correcto, pero quien audite
---      no puede leer esa reserva como «sin ninguna imagen».
+--      no puede leer esa reserva como «sin ninguna imagen». El aviso trae sus `bookingId` en
+--      `reviewedOnly`, y su marca de purgada se cierra sola cuando venza el plazo de esa cuenta: en
+--      esa pasada la respuesta las lista en `closedByHolder`.
 --
 -- REVERTIR (quita la constancia y la protección; NO devuelve nada de lo ya borrado, que es
 -- irreversible). Antes del ALTER, en la misma transacción:  SET LOCAL ROLE service_role;

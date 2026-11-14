@@ -25,6 +25,8 @@ Dos reglas que salieron de la auditoría de `seguridad-auditor` y `qa-verificado
 - **Una marca no puede afirmar más de lo que pasó.** Las fotos del titular viven en una carpeta de CUENTA, así que una reserva vencida puede quedar «revisada» (su subcarpeta limpia) sin estar «purgada» (el DNI del titular sigue ahí por otra reserva viva). Son dos columnas distintas.
 - **Un aviso no puede mandar repetir un bucle que no termina.** Hay candidatas que nunca se pueden marcar (sin `user_id`, o con una reserva viva sin fechas en su cuenta): la respuesta las cuenta aparte y dice que repetir no las arregla.
 - **Una reserva `pending` abandonada no alarga ningún plazo de conservación** (`isAbandonedPending`). Si contara, bastaría empezar una reserva con fechas lejanas y no pagarla para que el DNI de un tercero sobreviviera a sus 100 días.
+- **No se borra nada antes de probar que se puede escribir la constancia**: [[probar-el-permiso-antes-de-borrar]].
+- **Una marca que solo se puede cerrar a mano no sirve de constancia.** Una reserva que queda «revisada» porque su cuenta conserva la carpeta del titular tiene que cerrarse sola cuando esa carpeta se purgue; si no, la columna nunca llega al sí y una auditoría no puede afirmar nada. Y cualquier aviso sobre filas pendientes tiene que **nombrarlas**.
 
 Pendiente del criterio de Javier (no decidido el 2026-11-10):
 

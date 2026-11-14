@@ -768,6 +768,31 @@ describe('Ruta /api/admin/retention/documents', () => {
             'hay una lectura de testigo sin ningún filtro')
     })
 
+    /**
+     * `filterPurged` dependía de que TODO estuviera listo, así que si lo único que faltaba era la
+     * tabla del registro la consulta dejaba de filtrar y la simulación exageraba lo que queda por
+     * purgar (hallazgo C-2 de `seguridad-auditor`). Las columnas son lo único que decide si se puede
+     * filtrar por ellas.
+     */
+    it('si solo falta la tabla del registro, las consultas siguen filtrando por las columnas', async () => {
+        freeze('2026-09-18T10:00:00Z')
+        // Una reserva ya revisada: con el filtro no es candidata; sin él, se contaría otra vez
+        fake.tables.bookings = [vieja({ identity_images_reviewed_at: '2026-09-18T08:00:00Z' })]
+        fake.failures.table = 'retention_purge_log'
+        fake.failures.method = 'GET'
+
+        const res = await send()
+        assert.equal(res.status, 200)
+        assert.equal(res.json.schema.columnsReady, true, 'las columnas están')
+        assert.equal(res.json.schema.ready, false, 'pero falta la tabla del registro')
+        assert.deepEqual(res.json.schema.missing, ['la tabla retention_purge_log'])
+
+        const candidatas = fake.requests.filter(r => r.path === '/rest/v1/bookings' && r.query.get('order'))
+        assert.equal(candidatas.filter(c => c.query.get('identity_images_reviewed_at') === 'is.null').length, 2,
+            'sigue filtrando: faltar el registro no cambia qué columnas existen')
+        assert.equal(res.json.reviewed, 0, 'y la simulación no exagera lo que queda')
+    })
+
     it('con la base migrada sí filtra, y el filtro es `reviewed`, no `purged`', async () => {
         freeze('2026-09-18T10:00:00Z')
         await send()
@@ -806,7 +831,7 @@ describe('Ruta /api/admin/retention/documents', () => {
     it('con la constancia aplicada, una base lista no avisa de nada', async () => {
         freeze('2026-09-18T10:00:00Z')
         const res = await send()
-        assert.deepEqual(res.json.schema, { ready: true, verified: true, missing: [] })
+        assert.deepEqual(res.json.schema, { ready: true, columnsReady: true, verified: true, missing: [] })
     })
 
     /* -------------------------------------------------------------- */
@@ -1087,13 +1112,19 @@ describe('Ruta /api/admin/retention/documents', () => {
         freeze('2026-09-18T10:00:00Z')
         // `scope_user_id` es de tipo uuid y la carpeta de Storage es el id de la cuenta:
         // `isSafeSegment` dejaba pasar cualquier texto sin barras
-        // Una cadena vacía es «no me has pasado cliente» y se trata como tal, no como un id malo
-        for (const userId of ['no-soy-un-uuid', 'contracts', '..', `${CLIENTE} `]) {
+        // La cadena vacía también: antes era falsa, se colaba como «sin filtro de cliente» y
+        // ampliaba el alcance a toda la base registrándolo en blanco (hallazgo QA-RET-11)
+        for (const userId of ['no-soy-un-uuid', 'contracts', '..', `${CLIENTE} `, '']) {
             const res = await send({ userId, confirm: true })
             assert.equal(res.status, 400, `«${userId}» no puede pasar`)
             assert.equal(res.json.error, 'Cliente no válido')
         }
         assert.deepEqual(fake.storagePaths('documents'), [...FOTOS_RESERVA, ...FOTOS_TITULAR, ...AJENA].sort())
+
+        // No pasar la clave sigue siendo el barrido general: eso no cambia
+        const general = await send()
+        assert.equal(general.status, 200)
+        assert.equal(general.json.scope.userId, null)
     })
 
     it('con `bookingId` y `userId` juntos sí se incluye la carpeta de cuenta', async () => {
@@ -1103,6 +1134,102 @@ describe('Ruta /api/admin/retention/documents', () => {
         assert.equal(res.json.holders.length, 1)
         assert.ok(!res.json.policy.holderFoldersExcluded)
         assert.deepEqual(fake.storagePaths('documents'), [...AJENA].sort())
+    })
+
+    /* -------------------------------------------------------------- */
+    /* Sonda de sello: no se borra nada si no se puede dejar constancia */
+    /* -------------------------------------------------------------- */
+
+    /** Tumba los `PATCH` a `bookings` a partir del enésimo (1 = el primero de todos) */
+    const tumbarSello = (desde: number) => {
+        const instalado = globalThis.fetch
+        let n = 0
+        globalThis.fetch = (async (input: RequestInfo | URL, init?: RequestInit) => {
+            const req = input instanceof Request ? input : new Request(input, init)
+            if (req.method === 'PATCH' && new URL(req.url).pathname === '/rest/v1/bookings') {
+                n++
+                if (n >= desde) {
+                    // Lo que responde PostgREST cuando el trigger rechaza la escritura
+                    return new Response(
+                        JSON.stringify({ code: '42501', message: 'No autorizado a modificar la constancia de purga' }),
+                        { status: 403, headers: { 'content-type': 'application/json' } }
+                    )
+                }
+            }
+            return instalado(req)
+        }) as typeof fetch
+        return () => { globalThis.fetch = instalado }
+    }
+
+    /**
+     * El fallo que hacía destructiva la comprobación funcional de la migración: los archivos se
+     * borraban ANTES de sellar, así que un trigger mal calibrado dejaba las fotos borradas, un
+     * `sealed: 0` y un 200 sin ningún aviso. Mi «falla cerrado» era falso (hallazgo de
+     * `seguridad-auditor`, 2026-11-12).
+     */
+    it('si no se puede escribir la constancia, responde 409 y NO borra ni un archivo', async () => {
+        freeze('2026-09-18T10:00:00Z')
+        const restaurar = tumbarSello(1)
+        const res = await send({ confirm: true })
+        restaurar()
+
+        assert.equal(res.status, 409)
+        assert.equal(res.json.sealProbe, 'failed')
+        assert.match(res.json.error, /No se ha borrado nada/)
+        assert.match(res.json.error, /SET LOCAL ROLE service_role/, 'y dice qué hacer')
+        assert.match(res.json.error, /protect_bookings_retention_columns/)
+        assert.deepEqual(res.json.summary, { files: 0, columns: 0, bookings: 0, holders: 0 })
+
+        assert.deepEqual(fake.storagePaths('documents'), [...FOTOS_RESERVA, ...FOTOS_TITULAR, ...AJENA].sort(),
+            'Storage intacto: es lo que antes se perdía')
+        assert.equal(fake.requests.filter(r => r.method === 'DELETE').length, 0)
+        assert.deepEqual(fake.tables.retention_purge_log, [])
+    })
+
+    it('la sonda no deja rastro cuando sale bien', async () => {
+        freeze('2026-09-18T10:00:00Z')
+        const res = await send({ confirm: true })
+        assert.equal(res.json.sealProbe, 'ok')
+        // El recuento acaba con el valor de verdad, no con el -1 de la prueba
+        assert.equal(row().identity_images_purged_count, 3)
+
+        // Y la prueba fue un cambio REAL de valor: el trigger solo salta con IS DISTINCT FROM, así
+        // que un patch idéntico no probaría nada
+        const sonda = fake.requests.filter(r =>
+            r.method === 'PATCH' && r.path === '/rest/v1/bookings' &&
+            typeof (r.body as any)?.identity_images_purged_count === 'number' &&
+            (r.body as any).identity_images_purged_count < 0)
+        assert.equal(sonda.length, 1, 'una sola escritura con un recuento imposible')
+        assert.equal((sonda[0].body as any).identity_images_purged_count, -1)
+    })
+
+    it('sin nada que borrar no hace falta sonda: no se escribe de más', async () => {
+        freeze('2026-09-18T10:00:00Z')
+        fake.storageObjects.documents = []
+        const res = await send({ confirm: true })
+        assert.equal(res.json.sealProbe, 'skipped')
+        assert.equal(res.json.summary.files, 0)
+        assert.ok(res.json.sealed > 0, 'y aun así se deja constancia de la revisión')
+    })
+
+    it('si el sello falla después de la sonda, lo dice: no se puede quedar en un 200 callado', async () => {
+        freeze('2026-09-18T10:00:00Z')
+        // La sonda son los dos primeros PATCH; el tercero es el sello de la reserva
+        const restaurar = tumbarSello(3)
+        const res = await send({ confirm: true })
+        restaurar()
+
+        assert.equal(res.status, 200)
+        assert.equal(res.json.sealProbe, 'ok', 'la sonda pasó')
+        assert.ok(res.json.summary.files > 0, 'y los archivos sí se borraron')
+        assert.equal(res.json.sealed, 0)
+        assert.deepEqual(res.json.sealFailed, [B_VIEJA])
+        assert.match(res.json.sealWarning, /sin poder dejar constancia/)
+        assert.match(res.json.sealWarning, new RegExp(B_VIEJA))
+        assert.match(res.json.sealWarning, /volverán a salir como candidatas/)
+        // Lo borrado sí consta en el registro de la ejecución, que es la otra constancia
+        assert.equal(fake.tables.retention_purge_log.length, 1)
+        assert.ok((fake.tables.retention_purge_log[0].seal_failed as string[]).includes(B_VIEJA))
     })
 
     /* -------------------------------------------------------------- */
@@ -1240,6 +1367,21 @@ describe('Migración 20261110: lo que tiene que decir antes de aplicarse', () =>
 
     it('el registro guarda el alcance con el que se lanzó la purga', () => {
         for (const column of ['scope_booking_id', 'scope_user_id', 'scope_limit', 'scope_truncated', 'candidates_reviewed', 'holder_folders_included']) {
+            assert.match(sql, new RegExp(`\\b${column}\\b`), `falta ${column} en retention_purge_log`)
+        }
+    })
+
+    it('avisa de que una función SECURITY DEFINER de service_role abriría el trigger', () => {
+        assert.match(sql, /no crear NUNCA una función SECURITY DEFINER cuyo dueño sea `service_role`/i)
+        assert.match(sql, /prosecdef AND pg_get_userbyid\(p\.proowner\) = 'service_role'/, 'con la consulta para comprobarlo')
+    })
+
+    it('la comprobación funcional ya no es una apuesta: la sonda va antes del primer borrado', () => {
+        assert.match(sql, /sealProbe/)
+        assert.match(sql, /NO BORRA NADA/)
+        assert.match(sql, /sealWarning/)
+        assert.match(sql, /closedByHolder/)
+        for (const column of ['seal_failed', 'closed_by_holder']) {
             assert.match(sql, new RegExp(`\\b${column}\\b`), `falta ${column} en retention_purge_log`)
         }
     })

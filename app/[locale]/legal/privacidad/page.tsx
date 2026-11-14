@@ -44,7 +44,7 @@ export default function PrivacyPage() {
             <h2 className="legal-heading">3. Tus Derechos</h2>
             <p className="legal-text">
               De conformidad con el Reglamento General de Protección de Datos (RGPD) y la LOPDGDD, puedes ejercer en cualquier momento tus derechos de acceso, rectificación, supresión, limitación del tratamiento, portabilidad y oposición remitiendo tu solicitud a{' '}
-              <a href="mailto:hola@utopiavanlife.com" className="legal-link">hola@utopiavanlife.com</a>.
+              <a href="mailto:info@utopiavanlife.com" className="legal-link">info@utopiavanlife.com</a>.
             </p>
           </section>
         </LegalLayout>

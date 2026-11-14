@@ -2,14 +2,14 @@
 
 import { useState } from 'react'
 import Image from 'next/image'
-import { 
-  Mail, 
-  Phone, 
-  MapPin, 
-  Check, 
-  Instagram, 
-  MessageCircle, 
-  Clock, 
+import {
+  Mail,
+  Phone,
+  MapPin,
+  Check,
+  Instagram,
+  MessageCircle,
+  Clock,
   Send,
   Sparkles
 } from 'lucide-react'
@@ -79,7 +79,7 @@ export default function ContactClient({ t }: ContactClientProps) {
       <section className="contact-main">
         <div className="container">
           <div className="contact-grid">
-            
+
             {/* Left Column: Direct Info & Channels */}
             <aside className="contact-info-panel">
               <div className="info-card">
@@ -88,7 +88,7 @@ export default function ContactClient({ t }: ContactClientProps) {
 
                 {/* Direct items */}
                 <div className="info-items-stack">
-                  
+
                   {/* Phone & WhatsApp */}
                   <div className="info-item">
                     <div className="info-icon-box">
@@ -98,9 +98,9 @@ export default function ContactClient({ t }: ContactClientProps) {
                       <span className="info-item-label">{t.phone}</span>
                       <div className="phone-row">
                         <a href="tel:+34611560916" className="info-item-value info-item-link">+34 611 560 916</a>
-                        <a 
-                          href="https://wa.me/34611560916?text=Hola%20Utopia%20Van%20Life,%20me%20gustar%C3%ADa%20solicitar%20informaci%C3%B3n" 
-                          target="_blank" 
+                        <a
+                          href="https://wa.me/34611560916?text=Hola%20Utopia%20Van%20Life,%20me%20gustar%C3%ADa%20solicitar%20informaci%C3%B3n"
+                          target="_blank"
                           rel="noopener noreferrer"
                           className="whatsapp-btn"
                           title="Abrir chat de WhatsApp"
@@ -120,7 +120,6 @@ export default function ContactClient({ t }: ContactClientProps) {
                     <div className="info-item-content">
                       <span className="info-item-label">{t.email}</span>
                       <a href="mailto:info@utopiavanlife.com" className="info-item-value info-item-link">info@utopiavanlife.com</a>
-                      <a href="mailto:administracion@utopiavanlife.com" className="info-item-sublink">administracion@utopiavanlife.com</a>
                     </div>
                   </div>
 
@@ -290,7 +289,7 @@ export default function ContactClient({ t }: ContactClientProps) {
             </div>
             <p className="map-subtitle">Polígono Son Oms, Palma (a 5 minutos del Aeropuerto PMI)</p>
           </div>
-          
+
           <div className="map-frame-wrapper">
             <iframe
               loading="lazy"

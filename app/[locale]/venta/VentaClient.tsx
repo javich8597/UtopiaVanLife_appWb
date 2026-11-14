@@ -717,13 +717,6 @@ export default function VentaClient() {
                   <span>info@utopiavanlife.com</span>
                 </a>
 
-                <a href="mailto:administracion@utopiavanlife.com" className="venta-contact-item">
-                  <div className="venta-contact-icon-wrap">
-                    <Mail size={18} />
-                  </div>
-                  <span>administracion@utopiavanlife.com</span>
-                </a>
-
                 <a href="tel:+34611560916" className="venta-contact-item">
                   <div className="venta-contact-icon-wrap">
                     <Phone size={18} />

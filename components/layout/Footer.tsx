@@ -23,9 +23,9 @@ export default function Footer() {
               <a href={`https://wa.me/${process.env.NEXT_PUBLIC_WHATSAPP_NUMBER || '34600000000'}`} target="_blank" rel="noopener noreferrer" className="footer__social-btn" aria-label="WhatsApp">
                 <MessageCircle size={17} />
               </a>
-              <a href="mailto:hola@utopiavanlife.com" className="footer__social-btn" aria-label="Email">
-                <Mail size={17} />
-              </a>
+                <a href="mailto:info@utopiavanlife.com" className="footer__social-btn" aria-label="Email">
+                  <Mail size={17} />
+                </a>
             </div>
           </div>
 
@@ -71,12 +71,6 @@ export default function Footer() {
                 <a href="mailto:info@utopiavanlife.com" className="footer__contact-link">
                   <Mail size={15} className="footer__contact-icon" />
                   <span>info@utopiavanlife.com</span>
-                </a>
-              </li>
-              <li>
-                <a href="mailto:administracion@utopiavanlife.com" className="footer__contact-link">
-                  <Mail size={15} className="footer__contact-icon" />
-                  <span>administracion@utopiavanlife.com</span>
                 </a>
               </li>
               <li>

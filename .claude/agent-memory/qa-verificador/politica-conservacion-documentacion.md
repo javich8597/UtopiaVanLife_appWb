@@ -1,6 +1,6 @@
 ---
 name: politica-conservacion-documentacion
-description: Política de conservación (100 días imágenes / 3 años datos legales): estado tras la 2ª ronda, qué quedó arreglado, el bucle que no termina y el sello que no significa lo que parece
+description: Política de conservación (100 días imágenes / 3 años datos legales): estado tras la 5ª ronda (tarea semanal y pantalla), qué quedó arreglado, la atascada que bloquea la cola y el sello que no significa lo que parece
 metadata:
   type: project
 ---
@@ -17,6 +17,10 @@ Dos rondas de verificación (2026-11-10 y 2026-11-12) sobre `lib/booking/dataRet
 
 **QA-RET-10, cerrado; el texto de abajo queda como historia de por qué existen las dos marcas**: una reserva que queda solo «revisada» **no vuelve nunca al barrido general** (el filtro es por `reviewed_at`). Cuando la cuenta se purga del todo más tarde, por otra reserva, su `identity_images_purged_at` **se queda a null para siempre** aunque de ella no quede nada en el bucket. La única salida es pedirla a mano con `bookingId` **y** `userId` a la vez (solo con `bookingId` no se cierra), y `reviewedWarning` es un texto genérico que **no nombra ninguna reserva**: no hay lista por la que ir. No es un bucle infinito —el barrido termina— pero una auditoría por `identity_images_purged_at IS NOT NULL` no llega nunca al sí.
 
+**5ª ronda (2026-11-14, commit `5fb55a0`): ya hay quien la dispara.** `vercel.json` programa `GET /api/cron/retention/documents` los lunes a las 03:00 UTC; el cuerpo de la purga está en `lib/admin/retentionPass.ts` (lo comparten la ruta de admin y la tarea) y el bucle, el secreto y el modo en `lib/admin/retentionCron.ts`. Comprobado: el movimiento de 874 líneas **no cambió nada medido** (11 de 12 mutaciones del núcleo siguen muriendo con los tests de las cuatro rondas, que siguen entrando por la ruta de admin); la tarea **arranca en simulación** y solo borra con `RETENTION_CRON_CONFIRM` exactamente `true`; el secreto se compara con `timingSafeEqual` sobre SHA-256 y sin `CRON_SECRET` deniega siempre; el bucle **termina** por los cinco caminos (`completa`, `simulacion_acotada`, `solo_atascadas`, `tope_vueltas`, `tope_tiempo`, `sin_avance`) y el `truncatedWarning` que no terminaba ya está acotado. La pantalla es `/admin/conservacion` y hay historial en `retention_cron_runs` (migración `20261115`, PREPARADA SIN APLICAR).
+
+**Límite nuevo y abierto (QA-RET-15): una atascada en la CABEZA de la cola para la purga de todo lo que viene detrás.** Las candidatas salen por `end_date.asc`, así que las reservas que nunca se pueden marcar (sin `user_id`, o cuya cuenta tiene una reserva viva sin fechas) y que además son las más antiguas se quedan delante en cada pasada: `advanceable` es 0, la tarea para con `solo_atascadas` y las reservas purgables de detrás conservan sus fotos semana tras semana. Falla cerrado (no borra de más), pero el plazo de 100 días deja de cumplirse y el único rastro es el aviso de la ejecución, que **no dice cuántas quedan detrás**. Reproducido en `tests/qa_retencionQuintaRonda.test.ts`.
+
 **Lo que sigue abierto:**
 
 - **El bucle de `truncatedWarning` no termina.** El aviso dice «vuelve a ejecutar hasta que truncated sea false», pero una reserva que **nunca se puede sellar** vuelve a salir en cada pasada: sin `user_id`, o cuya cuenta tiene una reserva viva sin fechas (`undatable_booking`), o con la carpeta ilegible. Con 60 de esas y tope 50, tres pasadas seguidas dan `truncated: true` y **cero escrituras**. Cuando sí se pueden sellar, 60 candidatas se acaban en 2 pasadas.
@@ -29,4 +33,4 @@ Dos rondas de verificación (2026-11-10 y 2026-11-12) sobre `lib/booking/dataRet
 
 **Why:** es el único borrado irreversible del proyecto y Storage no tiene papelera.
 
-**How to apply:** al tocar la purga, pasar `tests/qa_retencionDocumentacion.test.ts` y `tests/qa_retencionSegundaRonda.test.ts`, y repetir las mutaciones de `>=` a `>` en `isPurgeDayDue` y de `Europe/Madrid` a `UTC` en `madridDay`. Ver [[mutar-para-validar-tests]], [[dias-civiles-de-madrid-en-tests]] y [[regla-y-pantalla-segundo-conductor]] (el plazo de SUBIDA es otro: se cierra el día después de la devolución, no a los 100 días).
+**How to apply:** al tocar la purga, pasar las cinco rondas (`tests/qa_retencion{Documentacion,SegundaRonda,TerceraRonda,CuartaRonda,QuintaRonda}.test.ts`) y repetir las mutaciones de `>=` a `>` en `isPurgeDayDue` y de `Europe/Madrid` a `UTC` en `madridDay`. Ver [[mutar-para-validar-tests]], [[dias-civiles-de-madrid-en-tests]] y [[regla-y-pantalla-segundo-conductor]] (el plazo de SUBIDA es otro: se cierra el día después de la devolución, no a los 100 días).

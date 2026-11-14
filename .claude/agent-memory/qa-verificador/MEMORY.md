@@ -4,5 +4,6 @@
 - [Mutar para validar tests](mutar-para-validar-tests.md) — receta de mutación en copia (copiar los `??`, CRLF, reloj fijo) y las mutaciones que sobrevivieron en verde
 - [Regla y pantalla del 2º conductor](regla-y-pantalla-segundo-conductor.md) — las dos listas que deciden el plazo de subida, ya alineadas; orden de la regla y trampa del fixture compartido
 - [Suite con un test inestable](suite-con-test-inestable.md) — el `Expires` de checkoutRoute ya está arreglado: la suite vuelve a ser reproducible
-- [Política de conservación de documentación](politica-conservacion-documentacion.md) — 2ª ronda: lo arreglado, el bucle de `truncated` que no termina, el 409 detrás de la consulta
+- [Política de conservación de documentación](politica-conservacion-documentacion.md) — 5ª ronda: tarea semanal y pantalla; la atascada que bloquea la cola; el 409 detrás de la consulta
+- [Render de pantallas sin props](render-de-pantallas-sin-props.md) — sembrar `useState` por orden para probar una pantalla con datos sin navegador; los `grep` no miden guardas
 - [Días civiles de Madrid en los tests](dias-civiles-de-madrid-en-tests.md) — `madridDay` + `addDaysToDay`; `toISOString` y `setDate` ya han roto tests tres veces

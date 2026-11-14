@@ -22,12 +22,16 @@ export const CHECKOUT_IP_WINDOW_MS = 15 * 60 * 1000
 export const MAX_DOCUMENT_UPLOADS_PER_IP = 10
 export const DOCUMENT_UPLOAD_IP_WINDOW_MS = 15 * 60 * 1000
 
+export const MAX_ACCOUNT_ACTIVATIONS_PER_IP = 10
+export const ACCOUNT_ACTIVATION_WINDOW_MS = 15 * 60 * 1000
+
 const MAX_TRACKED_IPS = 10000
 
 /** Un contador por tipo de intento: el checkout y la subida no se gastan el límite entre ellos */
 const buckets = {
     checkout: new Map<string, { count: number; resetAt: number }>(),
     documentUpload: new Map<string, { count: number; resetAt: number }>(),
+    accountActivation: new Map<string, { count: number; resetAt: number }>(),
 }
 
 export function clientIp(headers: Headers): string | null {
@@ -89,4 +93,9 @@ export function documentUploadBucketKey(ip: string | null, userId: string | null
 /** Apunta un envío de documentación. Devuelve false si esa clave ya ha llegado al límite */
 export function registerDocumentUploadAttempt(key: string | null, now: number = Date.now()): boolean {
     return registerAttempt(buckets.documentUpload, MAX_DOCUMENT_UPLOADS_PER_IP, DOCUMENT_UPLOAD_IP_WINDOW_MS, key, now)
+}
+
+/** Apunta una activación de cuenta post-pago. Devuelve false si esa clave ya ha llegado al límite */
+export function registerAccountActivationAttempt(key: string | null, now: number = Date.now()): boolean {
+    return registerAttempt(buckets.accountActivation, MAX_ACCOUNT_ACTIVATIONS_PER_IP, ACCOUNT_ACTIVATION_WINDOW_MS, key, now)
 }

@@ -2,6 +2,8 @@ import type { SupabaseClient } from '@supabase/supabase-js'
 import { isRedsysSuccess, isValidRedsysOrderId, RedsysNotificationParams } from './redsys'
 import { isBookingRangeFree } from './booking/calendarLogic'
 import { activePaymentAlerts } from './admin/bookingStatus'
+import { isSmtpConfigured } from './email/smtpClient'
+import { sendBookingConfirmationEmails } from './email/bookingConfirmationEmail'
 
 /**
  * Qué hacer con una notificación de Redsys ya firmada y válida.
@@ -20,7 +22,9 @@ export interface RedsysBookingRow {
     payment_status?: string | null
     total_price?: number | string | null
     notes?: string | null
+    customer_name?: string | null
     customer_email?: string | null
+    customer_phone?: string | null
     payment_intent_id?: string | null
     pickup_time?: string | null
     dropoff_time?: string | null
@@ -262,8 +266,58 @@ async function ensureBlock(db: SupabaseClient, booking: RedsysBookingRow, sessio
     if (insertErr) throw new Error(insertErr.message)
 }
 
-async function sendAccessLink(db: SupabaseClient, booking: RedsysBookingRow): Promise<boolean> {
+async function resolveCamperName(db: SupabaseClient, camperId: string): Promise<string | null> {
     try {
+        const { data } = await db.from('campers').select('name').eq('id', camperId).maybeSingle()
+        return typeof data?.name === 'string' && data.name.trim() ? data.name.trim() : null
+    } catch {
+        return null
+    }
+}
+
+async function resolveMagicDashboardUrl(db: SupabaseClient, email: string, appUrl: string): Promise<string> {
+    const fallback = `${appUrl}/es/dashboard`
+    try {
+        const generateLink = (db.auth as { admin?: { generateLink?: Function } })?.admin?.generateLink
+        if (!generateLink) return fallback
+
+        const { data, error } = await db.auth.admin.generateLink({
+            type: 'magiclink',
+            email,
+        })
+        const tokenHash = data?.properties?.hashed_token
+        if (error || !tokenHash) return fallback
+
+        return `${appUrl}/auth/confirm?token_hash=${encodeURIComponent(tokenHash)}&type=magiclink&next=${encodeURIComponent('/es/dashboard')}`
+    } catch {
+        return fallback
+    }
+}
+
+async function sendAccessLink(db: SupabaseClient, booking: RedsysBookingRow, orderId: string): Promise<boolean> {
+    try {
+        if (isSmtpConfigured()) {
+            const appUrl = (process.env.NEXT_PUBLIC_APP_URL || 'https://utopiavanlife.com').replace(/\/$/, '')
+            const [camperName, dashboardUrl] = await Promise.all([
+                resolveCamperName(db, booking.camper_id),
+                resolveMagicDashboardUrl(db, booking.customer_email!, appUrl),
+            ])
+            const sent = await sendBookingConfirmationEmails({
+                bookingId: booking.id,
+                orderId: booking.payment_intent_id || orderId,
+                customerName: booking.customer_name,
+                customerEmail: booking.customer_email!,
+                customerPhone: booking.customer_phone,
+                camperName,
+                startDate: booking.start_date,
+                endDate: booking.end_date,
+                totalPrice: booking.total_price,
+                dashboardUrl,
+                adminUrl: `${appUrl}/es/admin`,
+            })
+            if (sent) return true
+        }
+
         const { error } = await db.auth.signInWithOtp({
             email: booking.customer_email!,
             options: { shouldCreateUser: false },
@@ -481,7 +535,7 @@ async function applyToBooking(
     let linkNoteUnsaved = false
 
     if (sendsLink) {
-        linkFailed = !await sendAccessLink(db, booking)
+        linkFailed = !await sendAccessLink(db, booking, orderId)
 
         if (!linkFailed) {
             // Tras la llamada de red otra notificación puede haber escrito las notas: se quita la línea

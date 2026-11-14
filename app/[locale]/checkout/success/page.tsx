@@ -18,8 +18,12 @@ import {
   ShieldCheck,
   Clock,
   Mail,
-  MessageCircle
+  MessageCircle,
+  Lock,
+  Eye,
+  EyeOff
 } from 'lucide-react'
+import { createClient as createBrowserClient } from '@/lib/supabase/client'
 import { validateDriverLicense } from '@/lib/contracts/licenseValidator'
 import { prepareDocumentsForUpload } from '@/lib/compressDocumentImage'
 import { interpretUploadResponse, type PrepareResult } from '@/lib/documentUploadBudget'
@@ -49,12 +53,18 @@ function SuccessContent() {
   )
   const whatsappUrl = `https://wa.me/${whatsappNumber}?text=${whatsappText}`
 
-  // Steps: 1 (Personal & License Data), 2 (Upload 4 Document Photos), 3 (Completed)
-  const [step, setStep] = useState<1 | 2 | 3>(1)
+  // Steps: 0 (Create Password if new sessionless checkout), 1 (Personal & License Data), 2 (Upload 4 Document Photos), 3 (Completed)
+  const [step, setStep] = useState<0 | 1 | 2 | 3>(1)
+  const [sessionChecked, setSessionChecked] = useState(false)
+  const [needsPasswordSetup, setNeedsPasswordSetup] = useState(false)
+  const [accountPassword, setAccountPassword] = useState('')
+  const [accountPasswordConfirm, setAccountPasswordConfirm] = useState('')
+  const [showAccountPassword, setShowAccountPassword] = useState(false)
+  const [isActivatingAccount, setIsActivatingAccount] = useState(false)
   const [isSubmitting, setIsSubmitting] = useState(false)
   // Reduciendo las fotos en el navegador antes de enviarlas
   const [isPreparing, setIsPreparing] = useState(false)
-  const isBusy = isSubmitting || isPreparing
+  const isBusy = isSubmitting || isPreparing || isActivatingAccount
   const [errorMessage, setErrorMessage] = useState<string | null>(null)
   const [warningMessage, setWarningMessage] = useState<string | null>(null)
 
@@ -70,6 +80,30 @@ function SuccessContent() {
   const [driverLicenseExpiryDate, setDriverLicenseExpiryDate] = useState('')
   const [address, setAddress] = useState('')
   const [phone, setPhone] = useState('')
+
+  // Comprobar si el navegador ya tiene sesión activa en Supabase
+  useEffect(() => {
+    let active = true
+    const supabase = createBrowserClient()
+    supabase.auth
+      .getUser()
+      .then(({ data }) => {
+        if (!active) return
+        const hasSession = Boolean(data?.user)
+        setNeedsPasswordSetup(!hasSession)
+        setStep(prev => (prev === 3 ? 3 : hasSession ? 1 : 0))
+        setSessionChecked(true)
+      })
+      .catch(() => {
+        if (!active) return
+        setNeedsPasswordSetup(true)
+        setStep(0)
+        setSessionChecked(true)
+      })
+    return () => {
+      active = false
+    }
+  }, [])
 
   // Verify payment status with server / Redsys HMAC
   useEffect(() => {
@@ -192,6 +226,45 @@ function SuccessContent() {
     }
   }
 
+  const handleActivateAccount = async (e: React.FormEvent) => {
+    e.preventDefault()
+    if (isBusy) return
+
+    if (accountPassword.length < 8) {
+      setErrorMessage('La contraseña debe tener al menos 8 caracteres.')
+      return
+    }
+    if (accountPassword !== accountPasswordConfirm) {
+      setErrorMessage('Las contraseñas no coinciden. Revísalas e inténtalo de nuevo.')
+      return
+    }
+
+    setErrorMessage(null)
+    setIsActivatingAccount(true)
+
+    try {
+      const response = await fetch(`/api/bookings/activate-account?order=${encodeURIComponent(orderId)}`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ password: accountPassword }),
+      })
+      const json = await response.json().catch(() => ({}))
+
+      if (!response.ok || !json.success) {
+        setErrorMessage(json.error || 'No se pudo activar tu cuenta. Inténtalo de nuevo.')
+        return
+      }
+
+      setAccountPassword('')
+      setAccountPasswordConfirm('')
+      setStep(1)
+    } catch {
+      setErrorMessage('Error de conexión al guardar tu contraseña. Inténtalo de nuevo.')
+    } finally {
+      setIsActivatingAccount(false)
+    }
+  }
+
   const handleGoToStep2 = (e: React.FormEvent) => {
     e.preventDefault()
     if (!fullName || !dniNie || !driverLicenseId || !driverLicenseIssueDate || !driverLicenseExpiryDate || !address || !phone) {
@@ -284,7 +357,7 @@ function SuccessContent() {
     }
   }
 
-  if (paymentPhase === 'verifying' || paymentPhase === 'confirming') {
+  if (paymentPhase === 'verifying' || paymentPhase === 'confirming' || (!sessionChecked && paymentPhase === 'paid')) {
     return (
       <div className="success-loading-wrap">
         <div className="success-spinner" />
@@ -500,8 +573,7 @@ function SuccessContent() {
             El administrador revisará tus datos para aprobar la reserva. En cuanto esté confirmada, tendrás acceso a tu contrato oficial auto-rellenado para firma y descarga.
           </p>
           <p className="success-completed-desc">
-            Te hemos enviado un email con un enlace para entrar directamente en tu reserva, sin contraseña.
-            Si no te llega, <Link href="/auth/recuperar">crea tu contraseña aquí</Link> con el email de la reserva.
+            Tu sesión ya está iniciada{bookingDetails?.customerEmail ? ` con ${bookingDetails.customerEmail}` : ''}. También te hemos enviado un correo de confirmación de Utopia Van Life con el resumen de tu reserva.
           </p>
           <div className="success-completed-actions">
             <Link href="/dashboard/documentos" className="btn-gold">
@@ -529,21 +601,34 @@ function SuccessContent() {
         <div className="success-card">
           {/* Step Progress Indicators */}
           <div className="step-indicators">
+            {needsPasswordSetup && (
+              <>
+                <div className="step-item">
+                  <div className={`step-disc ${step === 0 ? 'step-disc--active' : 'step-disc--done'}`}>
+                    {step === 0 ? '1' : '✓'}
+                  </div>
+                  <span className={`step-label ${step === 0 ? 'step-label--active' : ''}`}>
+                    1. Crear Contraseña
+                  </span>
+                </div>
+                <div className={`step-line ${step >= 1 ? 'step-line--active' : ''}`} />
+              </>
+            )}
             <div className="step-item">
-              <div className={`step-disc ${step === 1 ? 'step-disc--active' : 'step-disc--done'}`}>
-                {step === 1 ? '1' : '✓'}
+              <div className={`step-disc ${step === 1 ? 'step-disc--active' : step > 1 ? 'step-disc--done' : ''}`}>
+                {step > 1 ? '✓' : needsPasswordSetup ? '2' : '1'}
               </div>
               <span className={`step-label ${step === 1 ? 'step-label--active' : ''}`}>
-                1. Datos del Conductor
+                {needsPasswordSetup ? '2. Datos del Conductor' : '1. Datos del Conductor'}
               </span>
             </div>
             <div className={`step-line ${step === 2 ? 'step-line--active' : ''}`} />
             <div className="step-item">
               <div className={`step-disc ${step === 2 ? 'step-disc--active' : ''}`}>
-                2
+                {needsPasswordSetup ? '3' : '2'}
               </div>
               <span className={`step-label ${step === 2 ? 'step-label--active' : ''}`}>
-                2. Subir DNI y Carnet (4 caras)
+                {needsPasswordSetup ? '3. Subir DNI y Carnet (4 caras)' : '2. Subir DNI y Carnet (4 caras)'}
               </span>
             </div>
           </div>
@@ -562,7 +647,91 @@ function SuccessContent() {
             </div>
           )}
 
-          {step === 1 ? (
+          {step === 0 ? (
+            <form onSubmit={handleActivateAccount} className="docs-form">
+              <h3 className="docs-form-heading">
+                Crea tu contraseña para gestionar tu reserva
+              </h3>
+              <p className="docs-form-sub">
+                Hemos creado tu cuenta en Utopia Van Life con el email de tu reserva. Elige una contraseña ahora para dejar tu sesión iniciada y poder entrar siempre que quieras a tu área de cliente.
+              </p>
+
+              <div className="account-email-box">
+                <Mail size={18} className="account-email-icon" />
+                <div className="account-email-copy">
+                  <span className="account-email-label">Email de tu cuenta</span>
+                  <strong className="account-email-value">
+                    {bookingDetails.customerEmail || 'El email indicado en tu reserva'}
+                  </strong>
+                </div>
+              </div>
+
+              <div className="docs-form-grid">
+                <div>
+                  <label htmlFor="checkout-account-password" className="docs-label">
+                    Nueva Contraseña (mín. 8 caracteres) *
+                  </label>
+                  <div className="password-input-wrap">
+                    <input
+                      id="checkout-account-password"
+                      type={showAccountPassword ? 'text' : 'password'}
+                      required
+                      minLength={8}
+                      autoComplete="new-password"
+                      placeholder="Mínimo 8 caracteres"
+                      value={accountPassword}
+                      onChange={e => setAccountPassword(e.target.value)}
+                      className="docs-input docs-input--with-toggle"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowAccountPassword(v => !v)}
+                      className="password-toggle-btn"
+                      aria-label={showAccountPassword ? 'Ocultar contraseña' : 'Mostrar contraseña'}
+                    >
+                      {showAccountPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                    </button>
+                  </div>
+                </div>
+
+                <div>
+                  <label htmlFor="checkout-account-password-confirm" className="docs-label">
+                    Confirmar Contraseña *
+                  </label>
+                  <div className="password-input-wrap">
+                    <input
+                      id="checkout-account-password-confirm"
+                      type={showAccountPassword ? 'text' : 'password'}
+                      required
+                      minLength={8}
+                      autoComplete="new-password"
+                      placeholder="Repite la contraseña"
+                      value={accountPasswordConfirm}
+                      onChange={e => setAccountPasswordConfirm(e.target.value)}
+                      className="docs-input docs-input--with-toggle"
+                    />
+                  </div>
+                </div>
+              </div>
+
+              <p className="password-hint">
+                <Lock size={14} />
+                <span>Al pulsar continuar activarás tu cuenta, iniciarás sesión automáticamente y pasarás a tus datos del conductor.</span>
+              </p>
+
+              <div className="docs-form-footer docs-form-footer--end">
+                <button
+                  type="submit"
+                  disabled={isBusy}
+                  aria-busy={isActivatingAccount}
+                  className="btn-gold"
+                >
+                  <span>{isActivatingAccount ? 'Activando cuenta...' : 'Crear contraseña y continuar'}</span>
+                  <ArrowRight size={16} />
+                </button>
+              </div>
+            </form>
+          ) : step === 1 ? (
             <form onSubmit={handleGoToStep2} className="docs-form">
               <h3 className="docs-form-heading">
                 Datos del Arrendatario Principal
@@ -1071,6 +1240,77 @@ function SuccessContent() {
           box-shadow: 0 0 0 3px rgba(204, 160, 83, 0.18);
         }
 
+        .docs-input--with-toggle {
+          padding-right: 44px;
+        }
+
+        .account-email-box {
+          display: flex;
+          align-items: center;
+          gap: 12px;
+          padding: 14px 16px;
+          border-radius: 12px;
+          border: 1px solid rgba(204, 160, 83, 0.28);
+          background: rgba(204, 160, 83, 0.08);
+          margin-bottom: 20px;
+        }
+
+        :global(.account-email-icon) {
+          color: #CCA053;
+          flex-shrink: 0;
+        }
+
+        .account-email-copy {
+          display: flex;
+          flex-direction: column;
+          gap: 2px;
+          min-width: 0;
+        }
+
+        .account-email-label {
+          font-size: 0.78rem;
+          color: #94A3B8;
+        }
+
+        .account-email-value {
+          color: #FFFFFF;
+          font-size: 0.95rem;
+          word-break: break-word;
+        }
+
+        .password-input-wrap {
+          position: relative;
+          display: flex;
+          align-items: center;
+        }
+
+        .password-toggle-btn {
+          position: absolute;
+          right: 10px;
+          background: transparent;
+          border: none;
+          color: #94A3B8;
+          cursor: pointer;
+          padding: 6px;
+          display: inline-flex;
+          align-items: center;
+          justify-content: center;
+          transition: color 0.2s ease;
+        }
+
+        .password-toggle-btn:hover {
+          color: #CCA053;
+        }
+
+        .password-hint {
+          display: flex;
+          align-items: center;
+          gap: 8px;
+          color: #94A3B8;
+          font-size: 0.84rem;
+          margin: 0 0 8px;
+        }
+
         .docs-form-footer {
           display: flex;
           justify-content: space-between;
@@ -1080,6 +1320,10 @@ function SuccessContent() {
           border-top: 1px solid rgba(255, 255, 255, 0.08);
           padding-top: 24px;
           margin-top: 12px;
+        }
+
+        .docs-form-footer--end {
+          justify-content: flex-end;
         }
 
         .docs-form-footer-right {

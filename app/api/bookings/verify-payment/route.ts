@@ -115,7 +115,7 @@ async function processPaymentVerification(params: {
         if (await isBookingOwnerSession(booking.user_id)) {
             const { data: profile } = await supabase
                 .from('users')
-                .select('driver_license_issue_date, birth_date')
+                .select('driver_license_id, driver_license_issue_date, driver_license_expiry_date, birth_date')
                 .eq('id', booking.user_id)
                 .maybeSingle()
             details = { profile }

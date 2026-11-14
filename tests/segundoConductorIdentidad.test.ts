@@ -10,11 +10,13 @@ import {
     closedPickupBookingIds,
     isPickupHandoverClosed,
     isUploadWindowOpen,
+    madridDay,
     sameDriverName,
     secondDriverRequirementError,
     uploadableSecondDriverBookings,
     uploadWindowState,
 } from '../lib/booking/secondDriver'
+import { addDaysToDay } from '../lib/booking/dataRetention'
 import { MAX_DOCUMENT_UPLOADS_PER_IP, registerDocumentUploadAttempt } from '../lib/booking/checkoutRateLimit'
 
 /**
@@ -271,11 +273,22 @@ describe('Subida: el nombre del 2º conductor es el de la ficha de la reserva', 
         assert.deepEqual(fake.writesTo('bookings'), [], 'no se escribe en el viaje fuera de plazo')
     })
 
-/** Día de hace `days` días, para situar un viaje dentro o fuera del plazo */
+/**
+ * Día de hace `days` días EN EUROPE/MADRID, que es como cuenta el dominio (`madridDay`).
+ *
+ * Con `toISOString()` estos tests se caían entre las 23:00 y medianoche de Madrid en invierno: UTC
+ * ya era el día siguiente, así que una reserva que se devuelve HOY salía como devuelta ayer.
+ *
+ * Y con `setDate(getDate() - days)` seguían fallando, porque esa resta es en la zona de la MÁQUINA y
+ * solo el formateo era de Madrid: con TZ=UTC, Tokio, Nueva York o Los Ángeles, `daysAgoDay(1)` a las
+ * 00:30 de Madrid del 2026-03-30 (el día siguiente al cambio de primavera, que solo tiene 23 horas)
+ * devolvía el 28 en lugar del 29 (comprobado por `qa-verificador`, 2026-11-12). Se calcula el día
+ * civil de Madrid PRIMERO y se le restan días civiles con la aritmética del proyecto, que no pasa
+ * por la zona de nadie. `tests/qa_retencionSegundaRonda.test.ts` fija que esas dos funciones dan lo
+ * mismo en cualquier `TZ`.
+ */
 function daysAgoDay(days: number): string {
-    const date = new Date()
-    date.setDate(date.getDate() - days)
-    return date.toISOString().slice(0, 10)
+    return addDaysToDay(madridDay(new Date()), -days)
 }
 
     // El titular sí puede guardar SUS datos sin arrastrar al 2º conductor de aquel viaje: el

@@ -339,6 +339,8 @@ export default function ContractSignModal({ booking, profile, onClose, onSigned,
                     <p><strong>Responsable:</strong> {contractData.rgpdText.responsable}</p>
                     <p><strong>Finalidad:</strong> {contractData.rgpdText.finalidad}</p>
                     <p><strong>Legitimación:</strong> {contractData.rgpdText.legitimacion}</p>
+                    {/* La conservación va aquí y en el PDF firmado: el cliente tiene que leer el plazo ANTES de firmar (art. 13.2.a RGPD) */}
+                    <p><strong>Conservación:</strong> {contractData.rgpdText.conservacion}</p>
                     <p><strong>Derechos:</strong> {contractData.rgpdText.derechos}</p>
                   </div>
                 </div>

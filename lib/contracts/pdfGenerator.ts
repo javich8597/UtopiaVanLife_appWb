@@ -380,7 +380,31 @@ export async function generateOfficialContractPdfBlob(
   // ─────────────────────────────────────────────────────────────
   // CLÁUSULA RGPD & BLOQUE FINAL DE FIRMAS
   // ─────────────────────────────────────────────────────────────
-  yPos = checkPageBreak(90, yPos)
+  // El recuadro RGPD incluye la CONSERVACIÓN (art. 13.2.a RGPD): el PDF se la saltaba aunque el
+  // motor la construye (`rgpdText.conservacion`), así que el documento firmado no decía durante
+  // cuánto tiempo se guarda nada. Los plazos íntegros van además en el artículo 31.
+  const rgpdContent = [
+    `• Responsable: ${data.rgpdText.responsable}`,
+    `• Finalidad: ${data.rgpdText.finalidad}`,
+    `• Legitimación: ${data.rgpdText.legitimacion}`,
+    `• Conservación: ${data.rgpdText.conservacion}`,
+    `• Destinatarios: ${data.rgpdText.destinatarios}`,
+    `• Derechos y Contacto: ${data.rgpdText.derechos}`
+  ]
+
+  // La altura del recuadro se calcula con las líneas REALES: antes era fija (25 mm) y el salto entre
+  // entradas también (4.2 mm), así que una entrada que ocupaba dos líneas se escribía encima de la
+  // siguiente y se salía de la caja. La conservación ocupa varias líneas.
+  pdf.setFont('helvetica', 'normal')
+  pdf.setFontSize(6.8)
+  const rgpdLineHeight = 3.1
+  const rgpdEntryGap = 1.1
+  const rgpdBlocks = rgpdContent.map(line => pdf.splitTextToSize(line, 168) as string[])
+  const rgpdTextHeight = rgpdBlocks.reduce((total, block) => total + block.length * rgpdLineHeight, 0)
+    + rgpdEntryGap * Math.max(0, rgpdBlocks.length - 1)
+  const rgpdBoxHeight = rgpdTextHeight + 7
+
+  yPos = checkPageBreak(rgpdBoxHeight + 65, yPos)
 
   // Título RGPD
   pdf.setFont('helvetica', 'bold')
@@ -391,28 +415,19 @@ export async function generateOfficialContractPdfBlob(
 
   pdf.setFillColor(...bgSoft)
   pdf.setDrawColor(...borderLight)
-  pdf.roundedRect(18, yPos, 174, 25, 2, 2, 'FD')
+  pdf.roundedRect(18, yPos, 174, rgpdBoxHeight, 2, 2, 'FD')
 
   pdf.setFont('helvetica', 'normal')
   pdf.setFontSize(6.8)
   pdf.setTextColor(...slateDark)
 
-  const rgpdContent = [
-    `• Responsable: ${data.rgpdText.responsable}`,
-    `• Finalidad: ${data.rgpdText.finalidad}`,
-    `• Legitimación: ${data.rgpdText.legitimacion}`,
-    `• Destinatarios: ${data.rgpdText.destinatarios}`,
-    `• Derechos y Contacto: ${data.rgpdText.derechos}`
-  ]
-
   let rgpdY = yPos + 4.5
-  for (const line of rgpdContent) {
-    const splitLine = pdf.splitTextToSize(line, 168)
-    pdf.text(splitLine, 22, rgpdY)
-    rgpdY += 4.2
+  for (const block of rgpdBlocks) {
+    pdf.text(block, 22, rgpdY)
+    rgpdY += block.length * rgpdLineHeight + rgpdEntryGap
   }
 
-  yPos += 30
+  yPos += rgpdBoxHeight + 5
 
   // Bloque Formal de Firma de las Partes
   yPos = checkPageBreak(65, yPos)

@@ -4,7 +4,8 @@ import { readFileSync } from 'node:fs'
 import { NextRequest } from 'next/server'
 import { installFakeSupabase, Row } from './helpers/fakeSupabase'
 import { POST } from '../app/api/upload-driver-docs/route'
-import { bookingSecondDriver } from '../lib/booking/secondDriver'
+import { bookingSecondDriver, madridDay } from '../lib/booking/secondDriver'
+import { addDaysToDay } from '../lib/booking/dataRetention'
 import { adminBookingSecondDriver } from '../lib/admin/bookingBreakdown'
 import { generateContractData } from '../lib/contracts/contractEngine'
 
@@ -206,16 +207,27 @@ describe('Subida: de quién es la reserva que autoriza', () => {
         assert.deepEqual(storageUploads(), [])
         assert.deepEqual(bookingPatches(), [])
     })
-/** Día de hace `days` días, para situar un viaje dentro o fuera del plazo */
+/**
+ * Día de hace `days` días EN EUROPE/MADRID, que es como cuenta el dominio (`madridDay`).
+ *
+ * Con `toISOString()` estos tests se caían entre las 23:00 y medianoche de Madrid en invierno: UTC
+ * ya era el día siguiente, así que una reserva que se devuelve HOY salía como devuelta ayer.
+ *
+ * Y con `setDate(getDate() - days)` seguían fallando, porque esa resta es en la zona de la MÁQUINA y
+ * solo el formateo era de Madrid: con TZ=UTC, Tokio, Nueva York o Los Ángeles, `daysAgo(1)` a las
+ * 00:30 de Madrid del 2026-03-30 (el día siguiente al cambio de primavera, que solo tiene 23 horas)
+ * devolvía el 28 en lugar del 29 (comprobado por `qa-verificador`, 2026-11-12). Se calcula el día
+ * civil de Madrid PRIMERO y se le restan días civiles con la aritmética del proyecto, que no pasa
+ * por la zona de nadie. `tests/qa_retencionSegundaRonda.test.ts` fija que esas dos funciones dan lo
+ * mismo en cualquier `TZ`.
+ */
 function daysAgo(days: number): string {
-    const date = new Date()
-    date.setDate(date.getDate() - days)
-    return date.toISOString().slice(0, 10)
+    return addDaysToDay(madridDay(new Date()), -days)
 }
 
 
     it('un viaje en curso sigue autorizando la subida', async () => {
-        const today = new Date().toISOString().slice(0, 10)
+        const today = daysAgo(0)
         fake.tables.bookings = [paidBooking({ status: 'active', start_date: today, end_date: today })]
 
         const { status, json } = await upload(form())

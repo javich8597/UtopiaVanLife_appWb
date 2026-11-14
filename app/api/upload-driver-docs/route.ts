@@ -14,6 +14,10 @@ import {
     LIVE_BOOKING_STATUSES,
     sameDocument,
     sameDriverName,
+    SECOND_DRIVER_INFORMED_COLUMN,
+    secondDriverInformedColumnMissing,
+    secondDriverInformedPatch,
+    secondDriverInformedRejection,
     secondDriverLicenseConflict,
     secondDriverNameConflict,
     secondDriverRequirementError,
@@ -130,6 +134,23 @@ export async function POST(request: NextRequest) {
     const secondDriverDniBack = formData.get('second_dni_back') as File | null
     const secondDriverLicenseFront = formData.get('second_license_front') as File | null
     const secondDriverLicenseBack = formData.get('second_license_back') as File | null
+
+    // El 2º conductor no tiene cuenta, no guardamos ningún contacto suyo y sus documentos los sube
+    // otra persona: la información del art. 14 del RGPD se la da el TITULAR, que lo confirma con una
+    // casilla en /dashboard/datos. Esa confirmación tiene que VIAJAR, porque el art. 5.2 del RGPD
+    // exige poder demostrar el cumplimiento: sin ella, sus fotos no se aceptan.
+    //
+    // Se comprueba aquí, con el formulario ya en la mano y ANTES de leer el perfil, de pasarlo a
+    // revisión, de tocar `bookings` y de escribir nada en Storage: la pantalla bloquea los selectores
+    // de foto, pero eso no frena una petición a mano ni un navegador con el JS antiguo en caché.
+    const secondDriverInformed = formData.get('secondDriverInformed') === 'true'
+    const hasFileContent = (file: File | null) => !!file && typeof file !== 'string' && file.size > 0
+    const sendsSecondDriverPhotos = [secondDriverDniFront, secondDriverDniBack, secondDriverLicenseFront, secondDriverLicenseBack]
+      .some(hasFileContent)
+    const informedRejection = secondDriverInformedRejection(sendsSecondDriverPhotos, secondDriverInformed)
+    if (informedRejection) {
+      return NextResponse.json({ error: informedRejection }, { status: 400 })
+    }
 
     // Validate license dates
     const validation = validateDriverLicense(driverLicenseIssueDate, driverLicenseExpiryDate)
@@ -433,6 +454,14 @@ export async function POST(request: NextRequest) {
       // guardar el formulario sin ninguna foto suya la ponía igual (hallazgo N1) y dejaba al admin
       // sin saber que faltaba la documentación de esa persona
       if (secondDriverPhotos) bookingPayload.second_driver_docs_uploaded_at = new Date().toISOString()
+
+      // Constancia de que el titular declaró haber informado a esa persona. Va en la MISMA escritura
+      // que su ficha: si el UPDATE no entra, no queda ni ficha ni constancia. Si ya constaba no se
+      // reescribe (vale la primera declaración) y si la columna no existe no se escribe nada
+      Object.assign(bookingPayload, secondDriverInformedPatch(secondDriverBooking, secondDriverInformed))
+      if (secondDriverInformed && secondDriverInformedColumnMissing(secondDriverBooking)) {
+        console.warn(`upload-driver-docs: no se puede dejar constancia del aviso al 2º conductor, falta bookings.${SECOND_DRIVER_INFORMED_COLUMN} (¿migración 20261114 sin aplicar?)`)
+      }
 
       const { error: bookingUpdateErr } = await supabaseAdmin
         .from('bookings')

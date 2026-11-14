@@ -34,9 +34,17 @@ vez (ver «Dónde vive cada plazo»); hay tests que se ponen rojos si uno se des
 - **2026-11-14** — **La política se publica ya**, sabiendo que los plazos no se ejecutan
   todavía, y el desfase se documenta aquí.
 - **2026-11-14** — **Se guarda constancia** de que el titular confirmó haber informado al 2º
-  conductor (en marcha cuando se escribe esto).
+  conductor: `bookings.second_driver_informed_declared_at`, migración
+  `20261114_booking_second_driver_informed.sql` (también sin aplicar). Es la **declaración del
+  titular**, no el consentimiento de esa persona, y vale la primera: volver a enviar no la renueva.
+  Cambiar de 2º conductor en el panel la deja en `NULL`. Sin esa confirmación, la subida rechaza
+  sus fotos, así que la casilla dejó de ser un aviso y es un control.
 - **2026-11-14** — El **artículo 16 del contrato (GPS)** se deja como está, aunque use la
   misma fórmula vacía («conforme a normativa aplicable») que se quitó del artículo 31.
+
+- **2026-11-14** — La purga se ejecutará **una vez por semana**, de madrugada, y **en simulación**
+  las primeras semanas: dejará apuntado qué habría borrado, para revisarlo antes de darle permiso.
+  Repite hasta vaciar la cola, porque cada pasada mira 50 candidatas.
 
 ## Lo que NO se ejecuta hoy
 
@@ -46,7 +54,10 @@ Esto es el desfase entre lo publicado y lo real. Por orden de importancia:
    (`app/api/admin/retention/documents/route.ts`) y nunca se ha ejecutado. No hay tarea
    programada ni botón en el panel: hace falta un `POST` a mano. Y **por defecto simula**:
    dice qué borraría sin borrar nada, a propósito, para que el estreno no fuera a ciegas.
-2. **La migración `20261110_document_retention_policy.sql` está PREPARADA, SIN APLICAR**, así
+2. **Cuatro migraciones están PREPARADAS, SIN APLICAR**, y van en este orden: `20261108`
+   (columnas del 2º conductor), `20261109` (su auditoría), `20261114` (la constancia del aviso,
+   que aborta sola si falta la 20261108) y `20261110` (la retención). En particular,
+   **`20261110_document_retention_policy.sql` está PREPARADA, SIN APLICAR**, así
    que las columnas de constancia y la tabla `retention_purge_log` no existen en la base. Sin
    ellas la purga responde **409 y no borra nada**, también a propósito: no se borran fotos de
    DNI si no se puede dejar constancia de que se borraron.

@@ -244,6 +244,11 @@ export default function DriverDataClient({ user, profile, rejectionReason, secon
         formData.append('secondDriverFullName', secondDriverFullName)
         formData.append('secondDriverDni', secondDriverDni)
         formData.append('secondDriverLicense', secondDriverLicense)
+        // La confirmación de haber informado a esa persona viaja con el envío: la ruta no acepta sus
+        // fotos sin ella y deja constancia de la declaración en la reserva (art. 5.2 RGPD)
+        if (mayUploadSecondDriverPhotos(hasSecondDriver, secondDriverInformed)) {
+          formData.append('secondDriverInformed', 'true')
+        }
 
         selected.forEach(([field], index) => {
           if (field.startsWith('second_')) formData.append(field, preparedFiles[index])

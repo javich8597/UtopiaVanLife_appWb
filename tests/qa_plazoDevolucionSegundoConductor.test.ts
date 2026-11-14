@@ -419,6 +419,9 @@ describe('Subida: la ruta cierra el plazo el día de la devolución', () => {
         data.append('secondDriverFullName', 'Luis Pérez')
         data.append('secondDriverDni', 'AB123456')
         data.append('secondDriverLicense', 'B-99')
+        // La confirmación de haber informado al 2º conductor: sin ella la ruta no acepta sus
+        // fotos (art. 5.2 RGPD). La regla se prueba en tests/constanciaAvisoSegundoConductor.test.ts
+        data.append('secondDriverInformed', 'true')
         for (const [key, value] of Object.entries(fields)) data.set(key, value)
         return data
     }

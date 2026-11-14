@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server'
 import { isValidServiceRoleKey } from '@/lib/admin/auth'
+import { secondDriverInformedReset } from '@/lib/booking/secondDriver'
 import { requireAdmin } from '@/lib/admin/requireAdmin'
 import {
   secondDriverRecordBlock,
@@ -71,9 +72,15 @@ export async function POST(request: Request) {
     const alreadyStored = (Object.keys(patch) as Array<keyof typeof patch>).every(key => booking[key] === patch[key])
     if (alreadyStored) return NextResponse.json({ success: true, changed: [], booking: pick(booking) })
 
+    // Si la reserva pasa a autorizar a OTRA persona, la constancia de que el titular declaró haber
+    // informado al 2º conductor deja de valer: informó a quien constaba antes. Solo se escribe si la
+    // columna existe en la fila (migración 20261114, preparada sin aplicar) y si había algo que
+    // invalidar; no entra en `missingColumns` para no bloquear la edición de la ficha por ella
+    const informedReset = secondDriverInformedReset(booking, changed.includes('nombre') || changed.includes('documento'))
+
     const { data: updated, error: updateError } = await db
       .from('bookings')
-      .update({ ...patch, second_driver_updated_by: auth.user.id, second_driver_updated_at: new Date().toISOString() })
+      .update({ ...patch, ...informedReset, second_driver_updated_by: auth.user.id, second_driver_updated_at: new Date().toISOString() })
       .eq('id', bookingId)
       .select(RETURNED_COLUMNS)
     if (updateError) throw new Error(updateError.message)

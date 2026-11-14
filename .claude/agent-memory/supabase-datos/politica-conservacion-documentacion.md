@@ -1,6 +1,6 @@
 ---
 name: politica-conservacion-documentacion
-description: Decisión de Javier (2026-11-10) sobre los dos plazos de conservación de la documentación de identidad, y qué quedó pendiente de su criterio
+description: Plazos de conservación de la documentación de identidad (100 días / 3 años / 6 años), reglas de cualquier purga futura y qué sigue pendiente del criterio de Javier
 metadata:
   type: project
 ---
@@ -28,9 +28,11 @@ Dos reglas que salieron de la auditoría de `seguridad-auditor` y `qa-verificado
 - **No se borra nada antes de probar que se puede escribir la constancia**: [[probar-el-permiso-antes-de-borrar]].
 - **Una marca que solo se puede cerrar a mano no sirve de constancia.** Una reserva que queda «revisada» porque su cuenta conserva la carpeta del titular tiene que cerrarse sola cuando esa carpeta se purgue; si no, la columna nunca llega al sí y una auditoría no puede afirmar nada. Y cualquier aviso sobre filas pendientes tiene que **nombrarlas**.
 
-Pendiente del criterio de Javier (no decidido el 2026-11-10):
+Ya decidido por Javier y escrito en `docs/conservacion-de-datos.md` (leer ese documento antes de opinar de plazos; es la fuente de verdad desde el 2026-11-14): el contrato y la firma se conservan **6 años** desde la devolución (art. 30 CCom), el plazo de 100 días **vence el propio día 100**, el perfil no caduca y la cuenta solo se borra si el cliente lo pide.
 
-1. Plazo para la firma del contrato (`bookings.contract_signature`) y el PDF de `documents/contracts/`. No son datos del registro de viajeros y los plazos civiles y fiscales son más largos que 3 años, así que quedaron fuera de la purga.
-2. Si el día 100 es el de borrado (devolución D → se borra en D+100) o si quiere «100 días completos y se borra el 101».
-3. Purga de los datos de identidad del perfil (`public.users`) a los 3 años: por ahora solo se listan, porque vaciar el perfil es de hecho borrar la cuenta.
-4. Quién dispara la purga: no hay cron ni `pg_cron` en el repositorio, así que la política no se ejecuta sola.
+Sigue pendiente del criterio de Javier:
+
+1. Purga de los datos de identidad del perfil (`public.users`): no caduca por decisión suya, así que lo que falta es el **procedimiento de borrado de cuenta**, que hoy no existe.
+2. Quién dispara la purga: no hay cron ni `pg_cron` en el repositorio, así que la política no se ejecuta sola.
+
+**Las constancias de cumplimiento no se purgan con el dato que acreditan** (decisión mía del 2026-11-14 al añadir `bookings.second_driver_informed_declared_at`, migración 20261114). `BOOKING_LEGAL_DATA_COLUMNS` enumera columnas por su nombre, así que una columna nueva queda fuera de la purga por omisión: eso es lo correcto para una fecha y hora, que no identifica a nadie y tiene que durar más que el dato que prueba (art. 5.2 RGPD). Antes de meter una columna `second_driver_*` nueva en esa lista, decidir si es dato o si es prueba.

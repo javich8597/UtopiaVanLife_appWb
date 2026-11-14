@@ -461,3 +461,75 @@ export function secondDriverRequirementError(
 
     return null
 }
+
+/* -------------------------------------------------------------------------- */
+/* Constancia de que el titular declaró haber informado al 2º conductor        */
+/* -------------------------------------------------------------------------- */
+
+/**
+ * Columna de `bookings` donde consta que el TITULAR declaró haber informado a esa persona
+ * (migración 20261114_booking_second_driver_informed.sql, preparada sin aplicar).
+ *
+ * El nombre es deliberado: es la declaración del titular, nunca el consentimiento del 2º conductor.
+ * Esa persona no tiene cuenta, no guardamos ningún contacto suyo y no le escribimos nosotros: la
+ * información del art. 14 del RGPD se la da el titular, y lo que nosotros podemos acreditar es
+ * habérselo pedido y cuándo lo confirmó (art. 5.2 del RGPD: hay que poder DEMOSTRARLO).
+ */
+export const SECOND_DRIVER_INFORMED_COLUMN = 'second_driver_informed_declared_at'
+
+/** Lo que se responde al cliente si sus fotos llegan sin esa confirmación */
+export const SECOND_DRIVER_NOT_INFORMED_MESSAGE =
+    'Antes de enviar las fotos del segundo conductor tienes que confirmar que le has informado de que sus documentos se envían a Utopia Van Life y de cómo se tratan sus datos.'
+
+/**
+ * Motivo para rechazar el envío, o null si se admite. La casilla de `/dashboard/datos` bloquea los
+ * selectores de foto, pero eso es una garantía de la pantalla: el control es este, porque una
+ * petición a mano (o un navegador con el JS antiguo en caché) no pasa por esa pantalla.
+ */
+export function secondDriverInformedRejection(secondDriverPhotos: boolean, informed: boolean): string | null {
+    return secondDriverPhotos && !informed ? SECOND_DRIVER_NOT_INFORMED_MESSAGE : null
+}
+
+/** ¿La fila leída con `select('*')` NO trae la columna? Entonces la migración 20261114 no está aplicada */
+export function secondDriverInformedColumnMissing(booking: unknown): boolean {
+    const row = asRow(booking)
+    return !row || !(SECOND_DRIVER_INFORMED_COLUMN in row)
+}
+
+/**
+ * Lo que hay que escribir en la reserva para dejar constancia, o `{}` si no hay nada que escribir.
+ *
+ * No se escribe nada si:
+ *   - el titular no mandó la confirmación (entonces sus fotos ya se han rechazado antes);
+ *   - la columna no viene en la fila: la migración 20261114 no está aplicada y escribirla haría
+ *     fallar el UPDATE entero, con él los datos de la ficha (mismo criterio que 20261108/20261109);
+ *   - ya constaba: vale la PRIMERA declaración. Volver a guardar no la renueva, y reescribirla
+ *     borraría la fecha que de verdad acredita cuándo se pidió.
+ */
+export function secondDriverInformedPatch(
+    booking: unknown,
+    informed: boolean,
+    now: Date = new Date()
+): Record<string, string> {
+    if (!informed) return {}
+    const row = asRow(booking)
+    if (!row || secondDriverInformedColumnMissing(row)) return {}
+    if (row[SECOND_DRIVER_INFORMED_COLUMN]) return {}
+    return { [SECOND_DRIVER_INFORMED_COLUMN]: now.toISOString() }
+}
+
+/**
+ * Lo que hay que escribir para INVALIDAR la constancia porque la reserva pasa a autorizar a otra
+ * persona, o `{}` si no hay nada que invalidar.
+ *
+ * El titular informó a quien constaba entonces: si el backoffice cambia el nombre o el documento del
+ * 2º conductor, esa declaración ya no dice nada de la persona nueva y dejarla puesta sería peor que
+ * no tenerla (acreditaría un aviso que nadie dio). La constancia es por RESERVA, así que vive y
+ * muere con la ficha de esa reserva.
+ */
+export function secondDriverInformedReset(booking: unknown, personChanged: boolean): Record<string, null> {
+    if (!personChanged) return {}
+    const row = asRow(booking)
+    if (!row || secondDriverInformedColumnMissing(row) || !row[SECOND_DRIVER_INFORMED_COLUMN]) return {}
+    return { [SECOND_DRIVER_INFORMED_COLUMN]: null }
+}

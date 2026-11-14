@@ -721,6 +721,9 @@ describe('Subida: multipart real contra la ruta', () => {
         data.append('secondDriverFullName', 'Á'.repeat(120))
         data.append('secondDriverDni', 'A'.repeat(20))
         data.append('secondDriverLicense', 'B'.repeat(30))
+        // La confirmación de haber informado al 2º conductor: sin ella la ruta no acepta sus
+        // fotos (art. 5.2 RGPD). La regla se prueba en tests/constanciaAvisoSegundoConductor.test.ts
+        data.append('secondDriverInformed', 'true')
         return data
     }
 

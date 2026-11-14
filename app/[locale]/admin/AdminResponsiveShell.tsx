@@ -75,11 +75,16 @@ export default function AdminResponsiveShell({ userEmail, counts = {}, initialTh
   const plusRef = useDismiss(isPlusOpen, () => setIsPlusOpen(false))
   const userRef = useDismiss(isUserOpen, () => setIsUserOpen(false))
 
-  // El tema se guarda en cookie para que el servidor lo pinte sin parpadeo en la siguiente carga
+  // El tema se guarda en cookie y se sincroniza en <html> para que las previsualizaciones compartan el tema activo
   const changeTheme = (next: AdminTheme) => {
     setTheme(next)
     document.cookie = `${ADMIN_THEME_COOKIE}=${next}; path=/; max-age=31536000; samesite=lax`
+    document.documentElement.setAttribute('data-theme', next)
   }
+
+  useEffect(() => {
+    document.documentElement.setAttribute('data-theme', theme)
+  }, [theme])
 
   // Cerrar menús al cambiar de ruta
   useEffect(() => {

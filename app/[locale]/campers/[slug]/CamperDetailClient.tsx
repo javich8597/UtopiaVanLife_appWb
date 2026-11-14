@@ -61,7 +61,7 @@ export default function CamperDetailClient({
   const [lightboxIndex, setLightboxIndex] = useState(0)
 
   const slug = camper.slug?.toLowerCase() || 'space'
-  const content = useMemo(() => resolveCamperContent(camper), [camper])
+  const content = useMemo(() => resolveCamperContent(camper, locale), [camper, locale])
   const basePrice = content.rental.basePricePerNight
   const {
     standardDepositAmount,

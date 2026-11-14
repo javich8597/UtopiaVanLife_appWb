@@ -1,6 +1,7 @@
 'use client'
 
 import { useRef, useState } from 'react'
+import { useLocale } from 'next-intl'
 import { Link } from '@/i18n/routing'
 import Image from 'next/image'
 import {
@@ -59,6 +60,7 @@ interface CamperCardProps {
   variant?: 'light' | 'dark'
   customHref?: string
   ctaText?: string
+  locale?: string
 }
 
 export default function CamperCard({
@@ -76,7 +78,16 @@ export default function CamperCard({
   variant = 'dark',
   customHref,
   ctaText,
+  locale: localeProp,
 }: CamperCardProps) {
+  let contextLocale = 'es'
+  try {
+    // eslint-disable-next-line react-hooks/rules-of-hooks
+    contextLocale = useLocale()
+  } catch {
+    contextLocale = 'es'
+  }
+  const activeLocale = localeProp || contextLocale
   const href = customHref || `/campers/${slug}${searchParams ? `?${searchParams}` : ''}`
   const videoRef = useRef<HTMLVideoElement>(null)
   const [isPlayingVideo, setIsPlayingVideo] = useState(false)
@@ -96,7 +107,7 @@ export default function CamperCard({
     images,
     specs,
     deposit_amount,
-  })
+  }, activeLocale)
 
   const subtitleTagline = resolved.card.tagline
 

@@ -215,3 +215,122 @@ describe('Checkout server-side con fianza y extras configurados desde admin', ()
   })
 })
 
+describe('Editor admin dividido (Edición + Preview) y reordenación drag-and-drop + flechas', () => {
+  it('reordena listas correctamente con reorderItem y moveItem sin mutar el array original', async () => {
+    const fs = await import('node:fs')
+    const path = await import('node:path')
+    const { reorderItem, moveItem } = await import('@/app/[locale]/admin/campers/CamperEditorModal')
+
+    const original = ['A', 'B', 'C', 'D']
+    const dragged = reorderItem(original, 0, 2)
+    assert.deepEqual(dragged, ['B', 'C', 'A', 'D'])
+    assert.deepEqual(original, ['A', 'B', 'C', 'D'])
+
+    const movedUp = moveItem(original, 2, -1)
+    assert.deepEqual(movedUp, ['A', 'C', 'B', 'D'])
+
+    const outOfBounds = reorderItem(original, 0, 10)
+    assert.deepEqual(outOfBounds, original)
+
+    const modalSrc = fs.readFileSync(
+      path.resolve(process.cwd(), 'app/[locale]/admin/campers/CamperEditorModal.tsx'),
+      'utf8'
+    )
+    const previewSrc = fs.readFileSync(
+      path.resolve(process.cwd(), 'app/[locale]/admin/campers/CamperEditorPreview.tsx'),
+      'utf8'
+    )
+
+    assert.match(modalSrc, /\.ced-workspace\s*\{[\s\S]*grid-template-columns:\s*minmax\(0,\s*1fr\)\s*minmax\(0,\s*1fr\)/)
+    assert.match(modalSrc, /<CamperEditorPreview/)
+    assert.match(modalSrc, /GripVertical/)
+
+    const expectedLists = [
+      'summarySpecs',
+      'pills',
+      'wizardHighlights',
+      'galleryItems',
+      'features',
+      'technicalFeatures',
+      'includedItems',
+    ]
+    for (const key of expectedLists) {
+      assert.ok(modalSrc.includes(`getDragItemProps('${key}'`), `Falta drag-and-drop en ${key}`)
+    }
+
+    // Selector compacto de iconos directamente con SVG
+    assert.ok(modalSrc.includes('CompactIconPicker'))
+    // Un solo recuadro grande para la descripción
+    assert.ok(modalSrc.includes('ced-description-single'))
+    assert.ok(modalSrc.includes('ced-textarea-large'))
+    // Selector multi-idioma y botón de traducción automática
+    assert.ok(modalSrc.includes('handleAutoTranslate'))
+    assert.ok(modalSrc.includes('Traducir desde ES'))
+
+    assert.ok(previewSrc.includes('<CamperCard'))
+    assert.ok(previewSrc.includes('variant={previewTheme}'))
+    assert.ok(previewSrc.includes('<CamperFeaturePills'))
+    assert.ok(previewSrc.includes('<CamperGalleryGrid'))
+    assert.ok(previewSrc.includes('<CamperDescription'))
+    assert.ok(previewSrc.includes('<CamperFeatureGrid'))
+    assert.ok(previewSrc.includes('<Step4Insurance'))
+    assert.ok(previewSrc.includes('<CamperIncluded'))
+    assert.ok(previewSrc.includes('detectAdminTheme'))
+    assert.ok(!previewSrc.includes('style={{'), 'CamperEditorPreview no debe usar inline styles')
+  })
+
+  it('resuelve contenido multi-idioma (ES, EN, FR, DE) y traduce desde español', async () => {
+    const { translateTextOffline } = await import('@/lib/campers/autoTranslate')
+
+    assert.equal(
+      translateTextOffline('Cocina + nevera 86L', 'en'),
+      'Kitchen + 86L fridge'
+    )
+    assert.equal(
+      translateTextOffline('Cocina + nevera 86L', 'fr'),
+      'Cuisine + frigo 86L'
+    )
+    assert.equal(
+      translateTextOffline('Cocina + nevera 86L', 'de'),
+      'Küche + 86L Kühlschrank'
+    )
+
+    const camperMulti = {
+      name: 'NEO',
+      slug: 'neo',
+      description_es: 'Descripción en español\n\nSegundo párrafo ES',
+      specs: {
+        card: {
+          tagline: 'Eslogan en español',
+        },
+        translations: {
+          en: {
+            tagline: 'English tagline from admin',
+            descriptionParagraphs: ['First English paragraph', 'Second English paragraph'],
+            pills: [{ icon: 'zap', label: 'Pro 540Ah Electrical System' }],
+          },
+          fr: {
+            tagline: 'Slogan français depuis admin',
+          },
+          de: {
+            tagline: 'Deutscher Slogan aus Admin',
+          },
+        },
+      },
+    }
+
+    const esResolved = resolveCamperContent(camperMulti, 'es')
+    const enResolved = resolveCamperContent(camperMulti, 'en')
+    const frResolved = resolveCamperContent(camperMulti, 'fr')
+    const deResolved = resolveCamperContent(camperMulti, 'de')
+
+    assert.equal(esResolved.card.tagline, 'Eslogan en español')
+    assert.equal(enResolved.card.tagline, 'English tagline from admin')
+    assert.deepEqual(enResolved.descriptionParagraphs, ['First English paragraph', 'Second English paragraph'])
+    assert.equal(enResolved.card.pills[0].label, 'Pro 540Ah Electrical System')
+    assert.equal(frResolved.card.tagline, 'Slogan français depuis admin')
+    assert.equal(deResolved.card.tagline, 'Deutscher Slogan aus Admin')
+  })
+})
+
+

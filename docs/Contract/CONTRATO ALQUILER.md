@@ -456,11 +456,13 @@ La base legal para el tratamiento es:
 
 ### Conservación de los datos
 
-Los datos se conservarán:
+Cada categoría de datos tiene su propio plazo, contado siempre desde la devolución del vehículo:
 
-*   Durante la relación contractual
-*   Durante los plazos legales aplicables (fiscales, contables, etc.)
-*   Mientras no se solicite su supresión cuando proceda
+*   **Imágenes de los documentos de identidad:** las fotografías del DNI, NIE o pasaporte y del permiso de conducir, tanto del ARRENDATARIO como del segundo conductor autorizado, se eliminan de forma irreversible a los 100 días desde la devolución del vehículo.
+*   **Datos del registro de viajeros:** los datos de identificación que el ARRENDADOR está obligado a registrar y comunicar conforme al Real Decreto 933/2021 se conservan 3 años desde la devolución del vehículo, que es el plazo del artículo 5.3 de esa norma, y después se suprimen de la reserva.
+*   **Contrato de alquiler firmado y firma del ARRENDATARIO:** se conservan 6 años desde la devolución del vehículo, por ser el plazo de conservación de los contratos y sus justificantes que impone el artículo 30 del Código de Comercio. En el contrato figuran también el nombre y el documento del segundo conductor autorizado, si lo hubo.
+*   **Facturación y justificantes de pago:** se conservan durante los plazos de conservación contable, mercantil y fiscal aplicables, con independencia de que la cuenta de cliente siga existiendo.
+*   **Ficha de cliente y cuenta:** los datos del perfil del ARRENDATARIO se conservan mientras exista su cuenta, que se suprime únicamente a petición del propio ARRENDATARIO.
 
 ### Destinatarios
 

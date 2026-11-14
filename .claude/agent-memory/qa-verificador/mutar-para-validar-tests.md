@@ -31,6 +31,11 @@ Tercera ronda del **2026-11-10** (política de conservación), 44 mutaciones; cu
 - **Añadir un `.filter(f => true)` delante de un filtro real no muta nada**: es un no-op y el «SOBREVIVE» no significa nada.
 - **Un guarda redundante sobrevive y debe sobrevivir.** Cuatro mutaciones de `route.ts` sobrevivieron porque otra condición ya tapaba el caso (una reserva bloqueada nunca es `due`; una carpeta ilegible siempre sale con `files: []`). Antes de escribir un test para matar una mutación, comprobar que cambia algo observable; si no, anotarla como defensa en profundidad.
 
+Cuarta ronda, **2026-11-12** (arreglos de la política de conservación), 26 mutaciones y 25 muertas. Dos lecciones:
+
+- **Un bucle por tandas necesita TRES tandas para distinguir `break` de `continue`.** El autor afirmó que ese cambio «sobrevive por ser inocuo»: es falso, cambia lo borrado de 100 a 150 archivos. Con 150 archivos (2 tandas) no se ve; con 250 (tandas de 100, 100 y 50) y la segunda caída, sí. Regla: para probar un bucle acotado hay que pasar del doble del tope, no llegar justo.
+- **Una rama que solo se recorre con el fallo en la PRIMERA iteración necesita su propio caso.** `if (deleted.length > 0)` antes de registrar sobrevivía porque todos los tests tumbaban la segunda tanda; tumbando la primera se ve que, sin ese guarda, queda una fila de cumplimiento con `items: []` y `logged: true` sin haber borrado nada.
+
 Lo que **sí** destapó el barrido: dos comprobaciones de plazo de la ruta (`plan.imageDue` en los pasos 2 y 3) y los dos `.eq('id', …)` de los `UPDATE` no tenían ningún test, porque todos los casos usaban UNA sola reserva y ninguno usaba el atajo `{ bookingId }`, que **se salta el filtro de fechas**. Regla nueva: **todo `UPDATE` con filtro se prueba con DOS filas**, una que debe cambiar y otra que no.
 
 **How to apply:** un tope numérico se escribe en el test (`assert.equal(MAX, 10)` y un bucle de 10), nunca se recorre la constante. Un valor por defecto se prueba con la clave AUSENTE, no con `false`. Un filtro por estado se prueba con una fila que pase el filtro por fecha, y al revés. Una comprobación que hace la ruta se prueba por la ruta, no solo por la función. Ver también [[tests-que-copian-el-paso-5]] y [[verificar-arbol-en-movimiento]].

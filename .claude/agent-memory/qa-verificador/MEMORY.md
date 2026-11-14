@@ -3,5 +3,6 @@
 - [Tests que pasan con y sin el cambio](tests-que-copian-el-paso-5.md) — copias del paso 5, nombres heredados, aserciones ancladas a una pantalla; fronteras vivas del 2º conductor
 - [Mutar para validar tests](mutar-para-validar-tests.md) — receta de mutación en copia (copiar los `??`, CRLF, reloj fijo) y las mutaciones que sobrevivieron en verde
 - [Regla y pantalla del 2º conductor](regla-y-pantalla-segundo-conductor.md) — las dos listas que deciden el plazo de subida, ya alineadas; orden de la regla y trampa del fixture compartido
-- [Suite con un test inestable](suite-con-test-inestable.md) — el `Set-Cookie` con `Expires` de checkoutRoute falla por el reloj: un rojo puede no ser del cambio
-- [Política de conservación de documentación](politica-conservacion-documentacion.md) — 100 días / 3 años: borrado a medias sin traza, tope sin orden, nadie llama a la ruta, el atajo `bookingId`
+- [Suite con un test inestable](suite-con-test-inestable.md) — el `Expires` de checkoutRoute ya está arreglado: la suite vuelve a ser reproducible
+- [Política de conservación de documentación](politica-conservacion-documentacion.md) — 2ª ronda: lo arreglado, el bucle de `truncated` que no termina, el 409 detrás de la consulta
+- [Días civiles de Madrid en los tests](dias-civiles-de-madrid-en-tests.md) — `madridDay` + `addDaysToDay`; `toISOString` y `setDate` ya han roto tests tres veces

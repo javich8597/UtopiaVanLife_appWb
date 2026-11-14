@@ -20,7 +20,13 @@ Hallazgos de estructura que condicionan cualquier purga futura (comprobar que si
 Dos reglas que salieron de la auditoría de `seguridad-auditor` y `qa-verificador` (2026-11-10) y que valen para cualquier purga futura:
 
 - **No se borra nada si no se puede dejar constancia.** La ruta comprueba antes que existen las columnas de constancia y la tabla del registro, y responde 409 si falta algo. Storage no tiene papelera: borrar fotos de DNI sin rastro es peor que no borrarlas.
-- **El sello de purga solo lo pone el rol `service_role`**, nunca un admin con su sesión del navegador: si no, se puede declarar purgada una reserva cuyas fotos siguen ahí. Por lo mismo, la tabla del registro no tiene política de `INSERT`.
+- **El sello de purga solo lo pone el rol `service_role`**, nunca un admin con su sesión del navegador: si no, se puede declarar purgada una reserva cuyas fotos siguen ahí. Por lo mismo, la tabla del registro no tiene política de `INSERT`. Cómo se comprueba el rol sin equivocarse: [[guardas-dentro-de-security-definer]].
+- **La comprobación del esquema va antes de construir las consultas.** Filtrar por una columna que no existe es un `42703` en PostgREST, y eso convierte el 409 que explica qué migración falta en un 500 genérico, justo en la base sin migrar para la que se escribió.
+- **Una marca no puede afirmar más de lo que pasó.** Las fotos del titular viven en una carpeta de CUENTA, así que una reserva vencida puede quedar «revisada» (su subcarpeta limpia) sin estar «purgada» (el DNI del titular sigue ahí por otra reserva viva). Son dos columnas distintas.
+- **Un aviso no puede mandar repetir un bucle que no termina.** Hay candidatas que nunca se pueden marcar (sin `user_id`, o con una reserva viva sin fechas en su cuenta): la respuesta las cuenta aparte y dice que repetir no las arregla.
+- **Una reserva `pending` abandonada no alarga ningún plazo de conservación** (`isAbandonedPending`). Si contara, bastaría empezar una reserva con fechas lejanas y no pagarla para que el DNI de un tercero sobreviviera a sus 100 días.
+- **No se borra nada antes de probar que se puede escribir la constancia**: [[probar-el-permiso-antes-de-borrar]].
+- **Una marca que solo se puede cerrar a mano no sirve de constancia.** Una reserva que queda «revisada» porque su cuenta conserva la carpeta del titular tiene que cerrarse sola cuando esa carpeta se purgue; si no, la columna nunca llega al sí y una auditoría no puede afirmar nada. Y cualquier aviso sobre filas pendientes tiene que **nombrarlas**.
 
 Pendiente del criterio de Javier (no decidido el 2026-11-10):
 

@@ -219,7 +219,12 @@ describe('Respuesta de verify-payment', () => {
 
     it('con acceso devuelve lo necesario para rellenar el formulario', () => {
         const result = buildVerifiedBooking(booking, ORDER, {
-            profile: { driver_license_issue_date: '2015-01-01', birth_date: '1985-02-02' },
+            profile: {
+                driver_license_id: 'B-12345678',
+                driver_license_issue_date: '2015-01-01',
+                driver_license_expiry_date: '2030-01-01',
+                birth_date: '1985-02-02',
+            },
         })
 
         assert.deepEqual(result, {
@@ -236,7 +241,9 @@ describe('Respuesta de verify-payment', () => {
             customerPhone: '600000000',
             customerDni: '12345678Z',
             customerAddress: 'Calle Mayor 1',
+            driverLicenseId: 'B-12345678',
             driverLicenseIssueDate: '2015-01-01',
+            driverLicenseExpiryDate: '2030-01-01',
             birthDate: '1985-02-02',
         })
     })
@@ -245,6 +252,8 @@ describe('Respuesta de verify-payment', () => {
         const result = buildVerifiedBooking(booking, ORDER, { profile: null })
 
         assert.ok('customerDni' in result)
+        assert.equal('driverLicenseId' in result && result.driverLicenseId, null)
         assert.equal('driverLicenseIssueDate' in result && result.driverLicenseIssueDate, null)
+        assert.equal('driverLicenseExpiryDate' in result && result.driverLicenseExpiryDate, null)
     })
 })

@@ -3,9 +3,10 @@
 import { useEffect, useState, Suspense } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import Link from 'next/link'
-import { useTranslations } from 'next-intl'
+import { useTranslations, useLocale } from 'next-intl'
 import Navbar from '@/components/layout/Navbar'
 import Footer from '@/components/layout/Footer'
+import DatePicker from '@/components/ui/DatePicker'
 import {
   CheckCircle2,
   Ticket,
@@ -31,6 +32,12 @@ type PaymentPhase = 'verifying' | 'confirming' | 'paid' | 'review' | 'delayed' |
 
 function SuccessContent() {
   const t = useTranslations('CheckoutSuccess')
+  const locale = useLocale()
+  const [todayDate] = useState(() => new Date())
+  const [defaultLicenseIssueViewDate] = useState(() => new Date(new Date().getFullYear() - 6, 0, 1))
+  const [minLicenseExpiryDate] = useState(() => new Date(2000, 0, 1))
+  const [maxLicenseExpiryDate] = useState(() => new Date(new Date().getFullYear() + 25, 11, 31))
+  const [defaultLicenseExpiryViewDate] = useState(() => new Date(new Date().getFullYear() + 5, 0, 1))
   const router = useRouter()
   const searchParams = useSearchParams()
   const orderId = searchParams.get('order') || searchParams.get('orderId') || searchParams.get('payment_intent') || ''
@@ -95,7 +102,9 @@ function SuccessContent() {
             if (json.booking.customerDni) setDniNie(json.booking.customerDni)
             if (json.booking.customerPhone) setPhone(json.booking.customerPhone)
             if (json.booking.customerAddress) setAddress(json.booking.customerAddress)
+            if (json.booking.driverLicenseId) setDriverLicenseId(json.booking.driverLicenseId)
             if (json.booking.driverLicenseIssueDate) setDriverLicenseIssueDate(json.booking.driverLicenseIssueDate)
+            if (json.booking.driverLicenseExpiryDate) setDriverLicenseExpiryDate(json.booking.driverLicenseExpiryDate)
           }
           return
         }
@@ -614,24 +623,33 @@ function SuccessContent() {
 
               <div className="docs-form-grid">
                 <div>
-                  <label className="docs-label">Fecha de Expedición del Carnet *</label>
-                  <input
-                    type="date"
-                    required
+                  <label htmlFor="checkout-driverLicenseIssueDate" className="docs-label">Fecha de Expedición del Carnet *</label>
+                  <DatePicker
+                    id="checkout-driverLicenseIssueDate"
+                    surface="dark"
                     value={driverLicenseIssueDate}
-                    onChange={e => setDriverLicenseIssueDate(e.target.value)}
-                    className="docs-input"
+                    onChange={setDriverLicenseIssueDate}
+                    maxDate={todayDate}
+                    defaultViewDate={defaultLicenseIssueViewDate}
+                    placeholder="Seleccionar fecha de expedición"
+                    locale={locale}
+                    required
                   />
                 </div>
 
                 <div>
-                  <label className="docs-label">Fecha de Caducidad del Carnet *</label>
-                  <input
-                    type="date"
-                    required
+                  <label htmlFor="checkout-driverLicenseExpiryDate" className="docs-label">Fecha de Caducidad del Carnet *</label>
+                  <DatePicker
+                    id="checkout-driverLicenseExpiryDate"
+                    surface="dark"
                     value={driverLicenseExpiryDate}
-                    onChange={e => setDriverLicenseExpiryDate(e.target.value)}
-                    className="docs-input"
+                    onChange={setDriverLicenseExpiryDate}
+                    minDate={minLicenseExpiryDate}
+                    maxDate={maxLicenseExpiryDate}
+                    defaultViewDate={defaultLicenseExpiryViewDate}
+                    placeholder="Seleccionar fecha de caducidad"
+                    locale={locale}
+                    required
                   />
                 </div>
               </div>

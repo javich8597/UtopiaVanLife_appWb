@@ -19,6 +19,7 @@ import { Step5Customer, WizardCamper, Step1Data, Step2Data, Step3Data, Step4Data
 import { validateStep5, validateDriverAge, validateDrivingLicense } from './types'
 import { formatPhoneWithPrefix } from '@/lib/driverDocuments'
 import { formatPrice, SECOND_DRIVER_RATE_PER_DAY } from '@/lib/pricing/engine'
+import DatePicker from '@/components/ui/DatePicker'
 
 interface Step5CheckoutProps {
     camper: WizardCamper
@@ -68,6 +69,9 @@ export default function Step5Checkout({
     onSuccessfulSubmit,
 }: Step5CheckoutProps) {
     const locale = useLocale()
+    const [todayDate] = useState(() => new Date())
+    const [defaultBirthViewDate] = useState(() => new Date(new Date().getFullYear() - 30, 0, 1))
+    const [defaultLicenseViewDate] = useState(() => new Date(new Date().getFullYear() - 6, 0, 1))
     const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({})
     const [submitError, setSubmitError] = useState<string | null>(null)
     const [isSubmitting, setIsSubmitting] = useState(false)
@@ -451,13 +455,16 @@ export default function Step5Checkout({
                             <label htmlFor="input-birthDate" className="field-label">
                                 Fecha de nacimiento (Conductor) *
                             </label>
-                            <input
+                            <DatePicker
                                 id="input-birthDate"
-                                type="date"
-                                className={`field-input ${fieldErrors.birthDate ? 'field-input--error' : ''}`}
                                 value={customer.birthDate || ''}
-                                onChange={(e) => handleInputChange('birthDate', e.target.value)}
+                                onChange={(val) => handleInputChange('birthDate', val)}
+                                hasError={!!fieldErrors.birthDate}
                                 disabled={isSubmitting}
+                                maxDate={todayDate}
+                                defaultViewDate={defaultBirthViewDate}
+                                placeholder="Seleccionar fecha de nacimiento"
+                                locale={locale}
                                 required
                             />
                             {fieldErrors.birthDate ? (
@@ -476,13 +483,16 @@ export default function Step5Checkout({
                             <label htmlFor="input-licenseDate" className="field-label">
                                 Fecha expedición carnet B (Conductor) *
                             </label>
-                            <input
+                            <DatePicker
                                 id="input-licenseDate"
-                                type="date"
-                                className={`field-input ${fieldErrors.licenseDate ? 'field-input--error' : ''}`}
                                 value={customer.licenseDate || ''}
-                                onChange={(e) => handleInputChange('licenseDate', e.target.value)}
+                                onChange={(val) => handleInputChange('licenseDate', val)}
+                                hasError={!!fieldErrors.licenseDate}
                                 disabled={isSubmitting}
+                                maxDate={todayDate}
+                                defaultViewDate={defaultLicenseViewDate}
+                                placeholder="Seleccionar fecha de expedición"
+                                locale={locale}
                                 required
                             />
                             {fieldErrors.licenseDate ? (
@@ -647,13 +657,16 @@ export default function Step5Checkout({
                                                 <label htmlFor={`input-passenger_${pNum}_birthDate`} className="field-label">
                                                     Fecha de nacimiento *
                                                 </label>
-                                                <input
+                                                <DatePicker
                                                     id={`input-passenger_${pNum}_birthDate`}
-                                                    type="date"
-                                                    className={`field-input ${fieldErrors[`passenger_${pNum}_birthDate`] ? 'field-input--error' : ''}`}
                                                     value={passenger.birthDate || ''}
-                                                    onChange={(e) => handlePassengerChange(idx, 'birthDate', e.target.value)}
+                                                    onChange={(val) => handlePassengerChange(idx, 'birthDate', val)}
+                                                    hasError={!!fieldErrors[`passenger_${pNum}_birthDate`]}
                                                     disabled={isSubmitting}
+                                                    maxDate={todayDate}
+                                                    defaultViewDate={defaultBirthViewDate}
+                                                    placeholder="Seleccionar fecha de nacimiento"
+                                                    locale={locale}
                                                     required
                                                 />
                                                 {fieldErrors[`passenger_${pNum}_birthDate`] ? (
@@ -716,13 +729,16 @@ export default function Step5Checkout({
                                                             <label htmlFor={`input-passenger_${pNum}_licenseDate`} className="field-label">
                                                                 Fecha expedición carnet B (Pasajero {pNum}) *
                                                             </label>
-                                                            <input
+                                                            <DatePicker
                                                                 id={`input-passenger_${pNum}_licenseDate`}
-                                                                type="date"
-                                                                className={`field-input ${fieldErrors[`passenger_${pNum}_licenseDate`] ? 'field-input--error' : ''}`}
                                                                 value={passenger.licenseDate || ''}
-                                                                onChange={(e) => handlePassengerChange(idx, 'licenseDate', e.target.value)}
+                                                                onChange={(val) => handlePassengerChange(idx, 'licenseDate', val)}
+                                                                hasError={!!fieldErrors[`passenger_${pNum}_licenseDate`]}
                                                                 disabled={isSubmitting}
+                                                                maxDate={todayDate}
+                                                                defaultViewDate={defaultLicenseViewDate}
+                                                                placeholder="Seleccionar fecha de expedición"
+                                                                locale={locale}
                                                                 required
                                                             />
                                                             {fieldErrors[`passenger_${pNum}_licenseDate`] && (
@@ -839,13 +855,16 @@ export default function Step5Checkout({
                                             <label htmlFor="input-secondDriverSolo_birthDate" className="field-label">
                                                 Fecha de nacimiento (2º Conductor) *
                                             </label>
-                                            <input
+                                            <DatePicker
                                                 id="input-secondDriverSolo_birthDate"
-                                                type="date"
-                                                className={`field-input ${fieldErrors.secondDriverSolo_birthDate ? 'field-input--error' : ''}`}
                                                 value={customer.secondDriverSolo?.birthDate || ''}
-                                                onChange={(e) => handleSoloSecondDriverChange('birthDate', e.target.value)}
+                                                onChange={(val) => handleSoloSecondDriverChange('birthDate', val)}
+                                                hasError={!!fieldErrors.secondDriverSolo_birthDate}
                                                 disabled={isSubmitting}
+                                                maxDate={todayDate}
+                                                defaultViewDate={defaultBirthViewDate}
+                                                placeholder="Seleccionar fecha de nacimiento"
+                                                locale={locale}
                                                 required
                                             />
                                             {fieldErrors.secondDriverSolo_birthDate && (
@@ -878,13 +897,16 @@ export default function Step5Checkout({
                                             <label htmlFor="input-secondDriverSolo_licenseDate" className="field-label">
                                                 Fecha expedición carnet B (2º Conductor) *
                                             </label>
-                                            <input
+                                            <DatePicker
                                                 id="input-secondDriverSolo_licenseDate"
-                                                type="date"
-                                                className={`field-input ${fieldErrors.secondDriverSolo_licenseDate ? 'field-input--error' : ''}`}
                                                 value={customer.secondDriverSolo?.licenseDate || ''}
-                                                onChange={(e) => handleSoloSecondDriverChange('licenseDate', e.target.value)}
+                                                onChange={(val) => handleSoloSecondDriverChange('licenseDate', val)}
+                                                hasError={!!fieldErrors.secondDriverSolo_licenseDate}
                                                 disabled={isSubmitting}
+                                                maxDate={todayDate}
+                                                defaultViewDate={defaultLicenseViewDate}
+                                                placeholder="Seleccionar fecha de expedición"
+                                                locale={locale}
                                                 required
                                             />
                                             {fieldErrors.secondDriverSolo_licenseDate && (

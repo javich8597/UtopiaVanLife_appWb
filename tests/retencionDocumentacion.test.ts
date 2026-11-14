@@ -276,6 +276,71 @@ describe('Conservación: la carpeta del titular es de la CUENTA, no de la reserv
         assert.equal(decision.purgeDay, '')
     })
 
+    /**
+     * Una `pending` abandonada no puede alargar la conservación de la carpeta de cuenta.
+     *
+     * Entre las fotos de esa carpeta están las `second_*` sueltas de las subidas antiguas, que son de
+     * UN TERCERO. Si una reserva sin pagar contara, cualquiera podría empezar una reserva con fechas
+     * lejanas, no pagarla nunca y hacer que el DNI de ese tercero sobreviviera a sus 100 días
+     * (hallazgo de `seguridad-auditor`, 2026-11-12).
+     */
+    it('una reserva `pending` abandonada no alarga la conservación de la carpeta del titular', () => {
+        freeze('2026-09-18T10:00:00Z')
+        const vencida = booking()
+        const abandonada = booking({
+            id: B_FUTURA,
+            status: 'pending',
+            payment_status: 'pending',
+            start_date: '2028-06-01',
+            end_date: '2028-06-08',
+            // Creada hace mucho más que el margen de Redsys y nunca pagada
+            created_at: '2026-05-01T10:00:00Z',
+            notes: null,
+        })
+
+        const decision = holderImagePurgeDecision([vencida, abandonada])
+        assert.equal(decision.due, true, 'la abandonada no cuenta')
+        assert.equal(decision.purgeDay, DIA_100, 'el plazo es el de la última reserva que SÍ cuenta')
+    })
+
+    it('pero una `pending` recién creada, o pagada, o con un cobro a revisar, sí cuenta', () => {
+        freeze('2026-09-18T10:00:00Z')
+        const vencida = booking()
+        const futura = (extra: Row) => booking({
+            id: B_FUTURA, status: 'pending', start_date: '2028-06-01', end_date: '2028-06-08', ...extra,
+        })
+
+        // Recién creada: el cliente puede estar pagando ahora mismo
+        assert.equal(holderImagePurgeDecision([vencida, futura({
+            payment_status: 'pending', created_at: '2026-09-18T09:30:00Z',
+        })]).due, false, 'una pending viva cuenta')
+
+        // Pagada, a la espera de que el admin la confirme
+        assert.equal(holderImagePurgeDecision([vencida, futura({
+            payment_status: 'paid', created_at: '2026-05-01T10:00:00Z',
+        })]).due, false, 'una pending pagada cuenta')
+
+        // Con un cobro sin conciliar: hay dinero de por medio, nunca es abandonada
+        assert.equal(holderImagePurgeDecision([vencida, futura({
+            payment_status: 'pending', created_at: '2026-05-01T10:00:00Z',
+            notes: '[PAGO A REVISAR] importe distinto',
+        })]).due, false, 'una pending con aviso de cobro cuenta')
+
+        // Sin `created_at` no se puede situar: se conserva, que es el error reversible
+        assert.equal(holderImagePurgeDecision([vencida, futura({
+            payment_status: 'pending', created_at: null,
+        })]).due, false, 'sin fecha de creación se conserva')
+    })
+
+    it('si TODAS las reservas de la cuenta son pending abandonadas, la carpeta llega a purgarse', () => {
+        freeze('2026-09-18T10:00:00Z')
+        const decision = holderImagePurgeDecision([booking({
+            status: 'pending', payment_status: 'pending', created_at: '2026-05-01T10:00:00Z',
+        })])
+        assert.equal(decision.due, true, 'no se queda retenida para siempre')
+        assert.equal(decision.purgeDay, DIA_100)
+    })
+
     it('sin reservas no se puede situar el plazo', () => {
         freeze('2030-01-01T10:00:00Z')
         assert.deepEqual(holderImagePurgeDecision([]), { purgeDay: '', due: false, reason: 'no_bookings' })
@@ -440,7 +505,10 @@ describe('Ruta /api/admin/retention/documents', () => {
     const silenced = { error: console.error, info: console.info, warn: console.warn }
 
     /** Columnas de constancia de la migración 20261110, para simular la base ya migrada */
-    const audit = { identity_images_purged_at: null, identity_images_purged_count: null, legal_data_purged_at: null }
+    const audit = {
+    identity_images_reviewed_at: null, identity_images_purged_at: null,
+    identity_images_purged_count: null, legal_data_purged_at: null,
+}
 
     const vieja = (extra: Row = {}): Row => ({
         id: B_VIEJA, user_id: CLIENTE, status: 'completed', payment_status: 'paid',
@@ -661,6 +729,7 @@ describe('Ruta /api/admin/retention/documents', () => {
 
         assert.equal(res.status, 409)
         assert.deepEqual(res.json.missing, [
+            'bookings.identity_images_reviewed_at',
             'bookings.identity_images_purged_at',
             'bookings.identity_images_purged_count',
             'bookings.legal_data_purged_at',
@@ -670,6 +739,67 @@ describe('Ruta /api/admin/retention/documents', () => {
         assert.deepEqual(fake.storagePaths('documents'), [...FOTOS_RESERVA, ...FOTOS_TITULAR, ...AJENA].sort())
         assert.equal(fake.requests.filter(r => r.method === 'DELETE').length, 0)
         assert.deepEqual(fake.writesTo('bookings'), [])
+    })
+
+    /**
+     * El 409 tiene que ser ALCANZABLE en una base sin migrar, que es el único caso para el que
+     * existe. La comprobación del esquema iba DESPUÉS de las consultas de candidatas, y esas
+     * filtraban por las columnas de constancia: en PostgREST real eso es un 42703 y la ruta
+     * respondía 500 sin nombrar la migración (hallazgo de `seguridad-auditor` y `qa-verificador`,
+     * 2026-11-12). El fake trata `is(<columna ausente>, null)` como coincidencia, así que el 409
+     * pasaba sin funcionar: lo que se comprueba aquí es la PETICIÓN, que es donde se veía.
+     */
+    it('en una base sin migrar no filtra por las columnas que no existen: el 409 es alcanzable', async () => {
+        freeze('2026-09-18T10:00:00Z')
+        fake.tables.bookings = [{
+            id: B_VIEJA, user_id: CLIENTE, status: 'completed', payment_status: 'paid',
+            start_date: '2026-06-03', end_date: DEVOLUCION, customer_name: 'Ana Pérez',
+        }]
+        await send()
+
+        const consultas = fake.requests.filter(r => r.path === '/rest/v1/bookings' && r.method === 'GET')
+        assert.ok(consultas.length > 0)
+        for (const consulta of consultas) {
+            assert.equal(consulta.query.get('identity_images_reviewed_at'), null, 'no se filtra por una columna que no existe')
+            assert.equal(consulta.query.get('legal_data_purged_at'), null)
+        }
+        // Y el testigo del esquema es una lectura sin filtros, que es lo que sí se puede hacer
+        assert.ok(consultas.some(c => [...c.query.keys()].every(k => ['select', 'limit'].includes(k))),
+            'hay una lectura de testigo sin ningún filtro')
+    })
+
+    /**
+     * `filterPurged` dependía de que TODO estuviera listo, así que si lo único que faltaba era la
+     * tabla del registro la consulta dejaba de filtrar y la simulación exageraba lo que queda por
+     * purgar (hallazgo C-2 de `seguridad-auditor`). Las columnas son lo único que decide si se puede
+     * filtrar por ellas.
+     */
+    it('si solo falta la tabla del registro, las consultas siguen filtrando por las columnas', async () => {
+        freeze('2026-09-18T10:00:00Z')
+        // Una reserva ya revisada: con el filtro no es candidata; sin él, se contaría otra vez
+        fake.tables.bookings = [vieja({ identity_images_reviewed_at: '2026-09-18T08:00:00Z' })]
+        fake.failures.table = 'retention_purge_log'
+        fake.failures.method = 'GET'
+
+        const res = await send()
+        assert.equal(res.status, 200)
+        assert.equal(res.json.schema.columnsReady, true, 'las columnas están')
+        assert.equal(res.json.schema.ready, false, 'pero falta la tabla del registro')
+        assert.deepEqual(res.json.schema.missing, ['la tabla retention_purge_log'])
+
+        const candidatas = fake.requests.filter(r => r.path === '/rest/v1/bookings' && r.query.get('order'))
+        assert.equal(candidatas.filter(c => c.query.get('identity_images_reviewed_at') === 'is.null').length, 2,
+            'sigue filtrando: faltar el registro no cambia qué columnas existen')
+        assert.equal(res.json.reviewed, 0, 'y la simulación no exagera lo que queda')
+    })
+
+    it('con la base migrada sí filtra, y el filtro es `reviewed`, no `purged`', async () => {
+        freeze('2026-09-18T10:00:00Z')
+        await send()
+        const candidatas = fake.requests.filter(r => r.path === '/rest/v1/bookings' && r.query.get('order'))
+        assert.equal(candidatas.filter(c => c.query.get('identity_images_reviewed_at') === 'is.null').length, 2)
+        assert.equal(candidatas.filter(c => c.query.get('identity_images_purged_at')).length, 0,
+            'una reserva revisada cuya cuenta conserva la carpeta nunca llega a «purgada»: filtrar por esa no terminaría')
     })
 
     it('sin la tabla del registro también responde 409: purgar sin poder registrarlo no vale', async () => {
@@ -701,7 +831,7 @@ describe('Ruta /api/admin/retention/documents', () => {
     it('con la constancia aplicada, una base lista no avisa de nada', async () => {
         freeze('2026-09-18T10:00:00Z')
         const res = await send()
-        assert.deepEqual(res.json.schema, { ready: true, verified: true, missing: [] })
+        assert.deepEqual(res.json.schema, { ready: true, columnsReady: true, verified: true, missing: [] })
     })
 
     /* -------------------------------------------------------------- */
@@ -758,7 +888,7 @@ describe('Ruta /api/admin/retention/documents', () => {
     /* La purga termina el trabajo                                     */
     /* -------------------------------------------------------------- */
 
-    it('cada plazo tiene su propia consulta, ordenada y sin lo ya purgado', async () => {
+    it('cada plazo tiene su propia consulta, ordenada y sin lo ya resuelto', async () => {
         freeze('2026-09-18T10:00:00Z')
         await send()
         const consultas = fake.requests.filter(r => r.path === '/rest/v1/bookings' && r.method === 'GET')
@@ -766,10 +896,95 @@ describe('Ruta /api/admin/retention/documents', () => {
         assert.equal(candidatas.length, 4, 'imágenes y datos legales, cada uno con y sin end_date')
         for (const consulta of candidatas) {
             assert.equal(consulta.query.get('order'), 'end_date.asc,id.asc', 'orden estable: sin él, lo que se revisa no es lo que se borra')
-            assert.equal(consulta.query.get('limit'), '50')
+            // Una fila más que el tope: es lo que permite saber si quedan candidatas sin inventarse
+            assert.equal(consulta.query.get('limit'), '51')
         }
-        assert.equal(candidatas.filter(c => c.query.get('identity_images_purged_at') === 'is.null').length, 2)
+        assert.equal(candidatas.filter(c => c.query.get('identity_images_reviewed_at') === 'is.null').length, 2)
         assert.equal(candidatas.filter(c => c.query.get('legal_data_purged_at') === 'is.null').length, 2)
+    })
+
+    it('`truncated` solo es true si de verdad quedan candidatas sin revisar', async () => {
+        freeze('2026-09-18T10:00:00Z')
+        const unaMas = (i: number): Row => ({
+            id: `aaaaaaaa-0000-4000-8000-${String(i).padStart(12, '0')}`,
+            user_id: OTRO, status: 'completed', payment_status: 'paid',
+            start_date: '2026-06-03', end_date: DEVOLUCION, ...audit,
+        })
+
+        // Exactamente el tope: no queda ninguna fuera, así que `truncated` tiene que ser false
+        fake.tables.bookings = Array.from({ length: 5 }, (_, i) => unaMas(i))
+        const justas = await send({ limit: 5 })
+        assert.equal(justas.json.reviewed, 5)
+        assert.equal(justas.json.truncated, false, 'con exactamente `limit` candidatas no sobra ninguna')
+        assert.equal(justas.json.truncatedWarning, undefined)
+
+        // Una más que el tope: ahora sí
+        fake.tables.bookings.push(unaMas(5))
+        const sobra = await send({ limit: 5 })
+        assert.equal(sobra.json.reviewed, 5, 'solo se revisan las del tope')
+        assert.equal(sobra.json.truncated, true)
+        assert.match(sobra.json.truncatedWarning, /hasta que "truncated" sea false/)
+    })
+
+    it('cuando ninguna candidata puede avanzar, el aviso NO manda repetir en bucle', async () => {
+        freeze('2026-09-18T10:00:00Z')
+        // Seis reservas vencidas sin cliente: no se pueden marcar nunca y vuelven en cada pasada
+        fake.tables.bookings = Array.from({ length: 6 }, (_, i) => ({
+            id: `bbbbbbbb-0000-4000-8000-${String(i).padStart(12, '0')}`,
+            user_id: null, status: 'completed', payment_status: 'paid',
+            start_date: '2026-06-03', end_date: DEVOLUCION, ...audit,
+        }))
+
+        const res = await send({ confirm: true, limit: 5 })
+        assert.equal(res.json.truncated, true)
+        assert.equal(res.json.stalled.length, 5, 'las cinco revisadas están bloqueadas')
+        assert.deepEqual(res.json.stalledReasons, { no_user: 5 })
+        assert.match(res.json.stalledWarning, /repetir la purga NO las arregla/)
+        assert.match(res.json.truncatedWarning, /NINGUNA de las revisadas puede avanzar/)
+        assert.doesNotMatch(res.json.truncatedWarning, /hasta que "truncated" sea false/)
+        assert.equal(res.json.sealed, 0)
+    })
+
+    it('por la ruta: una `pending` abandonada no salva el DNI de un tercero de su carpeta', async () => {
+        freeze('2026-09-18T10:00:00Z')
+        // La carpeta del titular guarda una `second_dni_back_*` suelta: es de OTRA persona
+        fake.tables.bookings.push({
+            id: B_FUTURA, user_id: CLIENTE, status: 'pending', payment_status: 'pending',
+            start_date: '2028-06-01', end_date: '2028-06-08',
+            created_at: '2026-05-01T10:00:00Z', notes: null, ...audit,
+        })
+
+        const res = await send({ confirm: true })
+        assert.equal(res.status, 200)
+        const [holder] = res.json.holders
+        assert.equal(holder.due, true, 'la reserva sin pagar no retiene la carpeta')
+        assert.deepEqual(fake.storagePaths('documents'), [...AJENA].sort(),
+            'incluida la foto suelta del segundo conductor, que es de un tercero')
+    })
+
+    it('y una `pending` viva sí la retiene', async () => {
+        freeze('2026-09-18T10:00:00Z')
+        fake.tables.bookings.push({
+            id: B_FUTURA, user_id: CLIENTE, status: 'pending', payment_status: 'pending',
+            start_date: '2028-06-01', end_date: '2028-06-08',
+            created_at: '2026-09-18T09:30:00Z', notes: null, ...audit,
+        })
+        const res = await send({ confirm: true })
+        assert.equal(res.json.holders[0].due, false)
+        assert.ok(FOTOS_TITULAR.every(p => fake.storagePaths('documents').includes(p)))
+    })
+
+    it('una cuenta con una reserva viva sin fechas sale en `stalled`, no solo en `holders`', async () => {
+        freeze('2026-09-18T10:00:00Z')
+        fake.tables.bookings.push({
+            id: B_FUTURA, user_id: CLIENTE, status: 'confirmed', payment_status: 'paid',
+            start_date: null, end_date: null, ...audit,
+        })
+        const res = await send({ confirm: true })
+        assert.equal(res.json.holders[0].reason, 'undatable_booking')
+        assert.deepEqual(res.json.stalled.map((s: any) => s.reason), ['holder_undatable'])
+        assert.match(res.json.stalledWarning, /holder_undatable: 1/)
+        assert.equal(res.json.sealed, 0, 'y no se marca nada')
     })
 
     it('con más candidatas de 100 días que el tope, los datos legales se purgan igual', async () => {
@@ -866,6 +1081,52 @@ describe('Ruta /api/admin/retention/documents', () => {
         assert.equal(row().identity_images_purged_at, null, 'y la reserva no se sella: falta mirar la cuenta')
     })
 
+    /**
+     * Una reserva que quedó REVISADA y no purgada (porque su cuenta conservaba la carpeta del
+     * titular) ya no es candidata del barrido general. La forma de cerrarla cuando la cuenta se
+     * purga es pedirla a propósito con `bookingId` + `userId`: así el sello de «purgada» no se queda
+     * en NULL para siempre.
+     */
+    it('una reserva ya revisada se puede cerrar como purgada pidiéndola con `bookingId` y `userId`', async () => {
+        freeze('2026-09-18T10:00:00Z')
+        // Reserva viva por delante: la vencida queda revisada y la carpeta de cuenta se conserva
+        fake.tables.bookings.push({
+            id: B_FUTURA, user_id: CLIENTE, status: 'confirmed', payment_status: 'paid',
+            start_date: '2027-06-01', end_date: '2027-06-08', ...audit,
+        })
+        await send({ confirm: true })
+        assert.ok(row().identity_images_reviewed_at, 'revisada')
+        assert.equal(row().identity_images_purged_at, null, 'pero no purgada')
+
+        // Pasa el plazo de la cuenta entera y se pide esa reserva con su cliente
+        mock.timers.reset()
+        freeze('2027-09-16T10:00:00Z')
+        const cierre = await send({ bookingId: B_VIEJA, userId: CLIENTE, confirm: true })
+        assert.equal(cierre.status, 200)
+        assert.equal(cierre.json.holders[0].due, true)
+        assert.ok(row().identity_images_purged_at, 'ahora sí queda purgada del todo')
+        assert.deepEqual(fake.storagePaths('documents'), [...AJENA].sort())
+    })
+
+    it('`userId` tiene que ser un UUID, igual que `bookingId`', async () => {
+        freeze('2026-09-18T10:00:00Z')
+        // `scope_user_id` es de tipo uuid y la carpeta de Storage es el id de la cuenta:
+        // `isSafeSegment` dejaba pasar cualquier texto sin barras
+        // La cadena vacía también: antes era falsa, se colaba como «sin filtro de cliente» y
+        // ampliaba el alcance a toda la base registrándolo en blanco (hallazgo QA-RET-11)
+        for (const userId of ['no-soy-un-uuid', 'contracts', '..', `${CLIENTE} `, '']) {
+            const res = await send({ userId, confirm: true })
+            assert.equal(res.status, 400, `«${userId}» no puede pasar`)
+            assert.equal(res.json.error, 'Cliente no válido')
+        }
+        assert.deepEqual(fake.storagePaths('documents'), [...FOTOS_RESERVA, ...FOTOS_TITULAR, ...AJENA].sort())
+
+        // No pasar la clave sigue siendo el barrido general: eso no cambia
+        const general = await send()
+        assert.equal(general.status, 200)
+        assert.equal(general.json.scope.userId, null)
+    })
+
     it('con `bookingId` y `userId` juntos sí se incluye la carpeta de cuenta', async () => {
         freeze('2026-09-18T10:00:00Z')
         const res = await send({ bookingId: B_VIEJA, userId: CLIENTE, confirm: true })
@@ -876,20 +1137,133 @@ describe('Ruta /api/admin/retention/documents', () => {
     })
 
     /* -------------------------------------------------------------- */
+    /* Sonda de sello: no se borra nada si no se puede dejar constancia */
+    /* -------------------------------------------------------------- */
+
+    /** Tumba los `PATCH` a `bookings` a partir del enésimo (1 = el primero de todos) */
+    const tumbarSello = (desde: number) => {
+        const instalado = globalThis.fetch
+        let n = 0
+        globalThis.fetch = (async (input: RequestInfo | URL, init?: RequestInit) => {
+            const req = input instanceof Request ? input : new Request(input, init)
+            if (req.method === 'PATCH' && new URL(req.url).pathname === '/rest/v1/bookings') {
+                n++
+                if (n >= desde) {
+                    // Lo que responde PostgREST cuando el trigger rechaza la escritura
+                    return new Response(
+                        JSON.stringify({ code: '42501', message: 'No autorizado a modificar la constancia de purga' }),
+                        { status: 403, headers: { 'content-type': 'application/json' } }
+                    )
+                }
+            }
+            return instalado(req)
+        }) as typeof fetch
+        return () => { globalThis.fetch = instalado }
+    }
+
+    /**
+     * El fallo que hacía destructiva la comprobación funcional de la migración: los archivos se
+     * borraban ANTES de sellar, así que un trigger mal calibrado dejaba las fotos borradas, un
+     * `sealed: 0` y un 200 sin ningún aviso. Mi «falla cerrado» era falso (hallazgo de
+     * `seguridad-auditor`, 2026-11-12).
+     */
+    it('si no se puede escribir la constancia, responde 409 y NO borra ni un archivo', async () => {
+        freeze('2026-09-18T10:00:00Z')
+        const restaurar = tumbarSello(1)
+        const res = await send({ confirm: true })
+        restaurar()
+
+        assert.equal(res.status, 409)
+        assert.equal(res.json.sealProbe, 'failed')
+        assert.match(res.json.error, /No se ha borrado nada/)
+        assert.match(res.json.error, /SET LOCAL ROLE service_role/, 'y dice qué hacer')
+        assert.match(res.json.error, /protect_bookings_retention_columns/)
+        assert.deepEqual(res.json.summary, { files: 0, columns: 0, bookings: 0, holders: 0 })
+
+        assert.deepEqual(fake.storagePaths('documents'), [...FOTOS_RESERVA, ...FOTOS_TITULAR, ...AJENA].sort(),
+            'Storage intacto: es lo que antes se perdía')
+        assert.equal(fake.requests.filter(r => r.method === 'DELETE').length, 0)
+        assert.deepEqual(fake.tables.retention_purge_log, [])
+    })
+
+    it('la sonda no deja rastro cuando sale bien', async () => {
+        freeze('2026-09-18T10:00:00Z')
+        const res = await send({ confirm: true })
+        assert.equal(res.json.sealProbe, 'ok')
+        // El recuento acaba con el valor de verdad, no con el -1 de la prueba
+        assert.equal(row().identity_images_purged_count, 3)
+
+        // Y la prueba fue un cambio REAL de valor: el trigger solo salta con IS DISTINCT FROM, así
+        // que un patch idéntico no probaría nada
+        const sonda = fake.requests.filter(r =>
+            r.method === 'PATCH' && r.path === '/rest/v1/bookings' &&
+            typeof (r.body as any)?.identity_images_purged_count === 'number' &&
+            (r.body as any).identity_images_purged_count < 0)
+        assert.equal(sonda.length, 1, 'una sola escritura con un recuento imposible')
+        assert.equal((sonda[0].body as any).identity_images_purged_count, -1)
+    })
+
+    it('sin nada que borrar no hace falta sonda: no se escribe de más', async () => {
+        freeze('2026-09-18T10:00:00Z')
+        fake.storageObjects.documents = []
+        const res = await send({ confirm: true })
+        assert.equal(res.json.sealProbe, 'skipped')
+        assert.equal(res.json.summary.files, 0)
+        assert.ok(res.json.sealed > 0, 'y aun así se deja constancia de la revisión')
+    })
+
+    it('si el sello falla después de la sonda, lo dice: no se puede quedar en un 200 callado', async () => {
+        freeze('2026-09-18T10:00:00Z')
+        // La sonda son los dos primeros PATCH; el tercero es el sello de la reserva
+        const restaurar = tumbarSello(3)
+        const res = await send({ confirm: true })
+        restaurar()
+
+        assert.equal(res.status, 200)
+        assert.equal(res.json.sealProbe, 'ok', 'la sonda pasó')
+        assert.ok(res.json.summary.files > 0, 'y los archivos sí se borraron')
+        assert.equal(res.json.sealed, 0)
+        assert.deepEqual(res.json.sealFailed, [B_VIEJA])
+        assert.match(res.json.sealWarning, /sin poder dejar constancia/)
+        assert.match(res.json.sealWarning, new RegExp(B_VIEJA))
+        assert.match(res.json.sealWarning, /volverán a salir como candidatas/)
+        // Lo borrado sí consta en el registro de la ejecución, que es la otra constancia
+        assert.equal(fake.tables.retention_purge_log.length, 1)
+        assert.ok((fake.tables.retention_purge_log[0].seal_failed as string[]).includes(B_VIEJA))
+    })
+
+    /* -------------------------------------------------------------- */
     /* Lo que no se reconoce: ni se borra ni se repite su nombre       */
     /* -------------------------------------------------------------- */
 
-    it('no repite el nombre completo de un archivo que no reconoce', async () => {
+    /**
+     * Ni un trozo del nombre. La versión anterior recortaba a 10 caracteres, y eso seguía bastando
+     * para entregar un DNI entero: `12345678Z.jpg` tiene 9 caracteres antes del punto (hallazgo de
+     * `seguridad-auditor`, 2026-11-12).
+     */
+    it('no devuelve ningún trozo del nombre de un archivo que no reconoce', async () => {
         freeze('2026-09-18T10:00:00Z')
-        // Un archivo subido a mano puede llevar datos personales en el propio nombre
-        fake.seedStorage('documents', [`${CLIENTE}/dni-de-ana-perez-garcia.jpg`])
-        const res = await send()
+        // Dos casos: un nombre con apellidos y un DNI, que es el que cabía entero en 10 caracteres
+        fake.seedStorage('documents', [`${CLIENTE}/dni-de-ana-perez-garcia.jpg`, `${CLIENTE}/12345678Z.jpg`])
+        const res = await send({ confirm: true })
 
         const titular = res.json.folders.find((f: any) => f.scope === 'holder_images')
-        assert.equal(titular.unknown, 1, 'se dice cuántos hay')
-        assert.deepEqual(titular.unknownSample, ['dni-de-ana…'], 'y el nombre solo recortado')
+        assert.equal(titular.unknown, 2, 'se dice cuántos hay')
+        assert.deepEqual(titular.unknownExtensions, ['.jpg'], 'y de qué tipo son')
+        assert.deepEqual(titular.unknownLengths, [13, 27], 'y por qué longitud encontrarlos en Storage')
+        assert.equal(titular.unknownSample, undefined, 'ya no se devuelve ninguna muestra del nombre')
+
         const texto = JSON.stringify(res.json)
-        assert.ok(!texto.includes('ana-perez-garcia'), 'el nombre completo no aparece en la respuesta')
+        assert.ok(!texto.includes('ana-perez'), 'ni un apellido')
+        assert.ok(!texto.includes('12345678'), 'ni un DNI, ni recortado')
+        assert.ok(!texto.includes('dni-de'), 'ni el principio del nombre')
+
+        // Y tampoco llega al registro de cumplimiento, que es lo que se guarda para siempre
+        const registrado = JSON.stringify(fake.tables.retention_purge_log)
+        assert.ok(!registrado.includes('12345678'), 'el registro tampoco guarda nada de esos nombres')
+        assert.ok(!registrado.includes('ana-perez'))
+        // Los dos archivos extraños siguen en Storage: no se reconocen, no se borran
+        assert.ok(fake.storagePaths('documents').includes(`${CLIENTE}/12345678Z.jpg`))
     })
 
     /* -------------------------------------------------------------- */
@@ -937,13 +1311,23 @@ describe('Migración 20261110: lo que tiene que decir antes de aplicarse', () =>
         assert.match(sql, /CREATE TRIGGER protect_bookings_retention_columns/)
     })
 
-    it('toda función SECURITY DEFINER fija su search_path', () => {
-        const definers = sql.split('CREATE OR REPLACE FUNCTION').slice(1)
-        assert.ok(definers.length > 0)
-        for (const body of definers) {
-            assert.match(body, /SECURITY DEFINER/)
-            assert.match(body, /SET search_path = public/)
-        }
+    it('toda función fija su search_path', () => {
+        const funciones = sql.split('CREATE OR REPLACE FUNCTION').slice(1)
+        assert.ok(funciones.length > 0)
+        for (const body of funciones) assert.match(body, /SET search_path = public/)
+    })
+
+    /**
+     * El trigger es SECURITY INVOKER a propósito. Con DEFINER, `current_user` dentro de la función es
+     * su DUEÑO (postgres) y no el rol que escribe: la comprobación de rol mentía y dejaba pasar
+     * cualquier escritura sin JWT, pg_cron incluido (hallazgo de `seguridad-auditor` y
+     * `qa-verificador`, 2026-11-12).
+     */
+    it('el trigger de la constancia NO es SECURITY DEFINER, y dice por qué', () => {
+        const codigo = sql.replace(/^\s*--.*$/gm, '')
+        assert.match(codigo, /CREATE OR REPLACE FUNCTION public\.protect_bookings_retention_columns\(\)[\s\S]*?SECURITY INVOKER/)
+        assert.doesNotMatch(codigo, /SECURITY DEFINER/)
+        assert.match(sql, /current_user` es el DUEÑO de la función|current_user` es el dueño de la función/)
     })
 
     it('trae matriz de permisos, comprobación y cómo revertir', () => {
@@ -964,15 +1348,40 @@ describe('Migración 20261110: lo que tiene que decir antes de aplicarse', () =>
         assert.match(codigo, /DROP POLICY IF EXISTS retention_purge_log_admin_insert/, 'y retira la que hubiera')
     })
 
-    it('el sello de purga solo lo puede poner el rol service_role, ni un admin con su sesión', () => {
+    it('el sello solo lo puede poner service_role: lista positiva, sin excepciones', () => {
         const codigo = sql.replace(/^\s*--.*$/gm, '')
-        assert.match(codigo, /= 'service_role'/)
+        assert.match(codigo, /v_role = 'service_role' OR current_user::text = 'service_role'/)
         assert.doesNotMatch(codigo, /is_privileged_writer/, 'eximir a todo escritor privilegiado incluiría a cualquier admin')
-        assert.match(codigo, /NOT IN \('authenticated', 'anon'\)/, 'una sesión SQL directa sí puede corregir a mano')
+        // La exención por «no hay JWT» dejaba pasar a pg_cron y a cualquier sesión sin claims
+        assert.doesNotMatch(codigo, /NOT IN \('authenticated'/, 'nada de denylists: solo la lista positiva')
+        assert.doesNotMatch(codigo, /session_user/, 'session_user es `authenticator` con PostgREST: no sirve')
+        assert.match(sql, /SET LOCAL ROLE service_role;/, 'y se dice cómo corregir una fila a mano')
+    })
+
+    it('la constancia tiene DOS marcas, y la migración explica que no son lo mismo', () => {
+        assert.match(sql, /ADD COLUMN IF NOT EXISTS identity_images_reviewed_at/)
+        assert.match(sql, /`reviewed` y `purged` NO son lo mismo/)
+        assert.match(sql, /bookings_identity_images_not_reviewed_idx/, 'el índice va por el filtro real')
+        assert.match(sql, /DROP INDEX IF EXISTS public\.bookings_identity_images_not_purged_idx/, 'y retira el anterior')
     })
 
     it('el registro guarda el alcance con el que se lanzó la purga', () => {
         for (const column of ['scope_booking_id', 'scope_user_id', 'scope_limit', 'scope_truncated', 'candidates_reviewed', 'holder_folders_included']) {
+            assert.match(sql, new RegExp(`\\b${column}\\b`), `falta ${column} en retention_purge_log`)
+        }
+    })
+
+    it('avisa de que una función SECURITY DEFINER de service_role abriría el trigger', () => {
+        assert.match(sql, /no crear NUNCA una función SECURITY DEFINER cuyo dueño sea `service_role`/i)
+        assert.match(sql, /prosecdef AND pg_get_userbyid\(p\.proowner\) = 'service_role'/, 'con la consulta para comprobarlo')
+    })
+
+    it('la comprobación funcional ya no es una apuesta: la sonda va antes del primer borrado', () => {
+        assert.match(sql, /sealProbe/)
+        assert.match(sql, /NO BORRA NADA/)
+        assert.match(sql, /sealWarning/)
+        assert.match(sql, /closedByHolder/)
+        for (const column of ['seal_failed', 'closed_by_holder']) {
             assert.match(sql, new RegExp(`\\b${column}\\b`), `falta ${column} en retention_purge_log`)
         }
     })

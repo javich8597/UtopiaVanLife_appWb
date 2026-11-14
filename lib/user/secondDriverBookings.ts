@@ -103,3 +103,12 @@ export function formatTripRange(startDate: string, endDate: string): string {
   }
   return `del ${start.d} de ${MONTHS[start.m - 1]} de ${start.y} al ${end.d} de ${MONTHS[end.m - 1]} de ${end.y}`
 }
+
+/**
+ * ¿Pueden viajar las fotos del 2º conductor? Solo si el interruptor está activo y el titular
+ * confirmó que ha informado a esa persona (no tiene cuenta y no le escribimos nosotros: art. 14
+ * RGPD). Es una garantía de la pantalla, no de la ruta: la ruta no recibe esa confirmación.
+ */
+export function mayUploadSecondDriverPhotos(hasSecondDriver: boolean, informed: boolean): boolean {
+  return hasSecondDriver && informed
+}

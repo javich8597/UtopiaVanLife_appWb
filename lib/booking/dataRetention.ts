@@ -1,3 +1,4 @@
+import { isAbandonedPending, type StatusBookingLike } from '../admin/bookingStatus'
 import { DOCUMENT_PREFIXES, documentsMatching, type StoredFile } from '../admin/documents'
 import { SECOND_DRIVER_DOCUMENT_PREFIXES } from '../admin/secondDriverDocuments'
 import { bookingReturnDay, dateOrNull, isLiveBooking, madridDay } from './secondDriver'
@@ -25,8 +26,9 @@ import { bookingReturnDay, dateOrNull, isLiveBooking, madridDay } from './second
  * Lo que este módulo NO decide (y hace falta saber antes de confiar en él):
  *   - Las fotos del TITULAR viven en `documents/<cliente>/`, una sola carpeta para TODAS sus
  *     reservas: no se pueden borrar por reserva. Ver `holderImagePurgeDecision`.
- *   - Los datos de identidad del PERFIL (`public.users`) también son de la cuenta, no de la reserva:
- *     este módulo los sitúa (`accountLegalPurgeDecision`) pero la purga no los toca.
+ *   - Los datos de identidad del PERFIL (`public.users`) son de la cuenta, no de la reserva, y no
+ *     caducan: se conservan mientras exista la cuenta (decisión de Javier, 2026-11-11), y la cuenta
+ *     solo se borra si el cliente lo pide (2026-11-12). Ese borrado NO existe todavía.
  *   - Las fotos de entregas y del estado del vehículo están en otros buckets (`handovers`,
  *     `vehicle-docs`) y no entran: su finalidad es otra (daños y reclamaciones).
  */
@@ -202,9 +204,18 @@ export interface HolderImagePurgeDecision {
  * aplicar el plazo reserva a reserva borraría el DNI que todavía hace falta para la reserva
  * siguiente de ese mismo cliente. El plazo de la carpeta es el de la ÚLTIMA reserva que cuenta.
  *
- * Qué reservas cuentan: las vivas (`pending`, `confirmed`, `active`, `completed`). Una cancelada no
- * alarga nada, porque ese viaje no se hizo. Si la cuenta solo tiene reservas muertas se usan esas,
- * para que la carpeta llegue a purgarse en vez de quedarse para siempre.
+ * Qué reservas cuentan: las vivas (`pending`, `confirmed`, `active`, `completed`) MENOS las
+ * `pending` abandonadas. Una cancelada no alarga nada, porque ese viaje no se hizo. Si la cuenta solo
+ * tiene reservas que no cuentan se usan todas, para que la carpeta llegue a purgarse en vez de
+ * quedarse para siempre.
+ *
+ * Las `pending` abandonadas (`isAbandonedPending`: sin pagar, sin aviso de cobro y pasada la hora de
+ * gracia de Redsys) quedan fuera a propósito. Si contaran, cualquiera podría empezar una reserva con
+ * fechas lejanas, no pagarla nunca y empujar indefinidamente la conservación de esa carpeta: entre
+ * esas fotos están las `second_*` antiguas sueltas, que son de UN TERCERO, y su DNI sobreviviría a
+ * sus 100 días por una reserva ajena que nadie pagó (hallazgo de `seguridad-auditor`, 2026-11-12).
+ * Una `pending` sin `created_at` no se puede situar y sigue contando: conservar de más es el error
+ * reversible.
  *
  * Si alguna reserva que cuenta no tiene fechas, no se purga: `undatable_booking`, para revisarlo a
  * mano. Es el mismo criterio que el plazo de subida, que tampoco sitúa una reserva sin fechas.
@@ -216,7 +227,7 @@ export function holderImagePurgeDecision(
     const all = (bookings || []).filter(booking => booking && typeof booking === 'object')
     if (all.length === 0) return { purgeDay: '', due: false, reason: 'no_bookings' }
 
-    const live = all.filter(isLiveBooking)
+    const live = all.filter(booking => isLiveBooking(booking) && !isAbandonedPending(booking as StatusBookingLike, now))
     const counted = live.length > 0 ? live : all
 
     if (counted.some(booking => !bookingReturnDay(booking))) {
@@ -232,14 +243,22 @@ export function holderImagePurgeDecision(
 
 /**
  * Los DATOS LEGALES del perfil (`public.users`: nombre, DNI, fecha de nacimiento, dirección,
- * teléfono, carnet…) también son de la cuenta y no de la reserva, y su plazo NO está decidido:
- * vaciar el perfil es, de hecho, borrar la cuenta, y eso lo decide Javier aparte.
+ * teléfono, carnet…) NO tienen plazo: se conservan mientras exista la cuenta (decisión de Javier,
+ * 2026-11-11). Son de la cuenta y no de la reserva, y vaciarlos sería borrar la cuenta, que es otra
+ * cosa y la pide el cliente.
  *
- * Aquí NO hay ninguna función para eso a propósito. Había una (`accountLegalPurgeDecision`) que solo
- * ejercitaban los tests, y un ayudante exportado que nadie llama parece código vivo y no lo es
- * (hallazgo de `seguridad-auditor`, 2026-11-10). Cuando Javier decida el plazo del perfil, se
- * escribe entonces: sería `holderImagePurgeDecision` con `legalDataPurgeDay` en lugar de
- * `identityImagePurgeDay`.
+ * Así que aquí NO hay ninguna función para eso, y no por falta de decisión: no hay nada que purgar.
+ * Lo que los 3 años del RD 933/2021 cierran es el registro de viajeros DE LA RESERVA
+ * (`legalDataPurgePatch`), no la ficha del cliente.
+ *
+ * La cuenta SOLO se borra a petición del cliente (decisión de Javier, 2026-11-12), y ese borrado no
+ * está implementado en ningún sitio: hoy «mientras exista la cuenta» es, de hecho, indefinido. Lo
+ * que falta está FUERA de este módulo (una vía de supresión del art. 17 RGPD), y cuando se haga
+ * tendrá que dejar vivo el registro de viajeros de las reservas que no hayan cumplido sus 3 años,
+ * porque eso lo obliga el RD 933/2021 y se lo lleva `legalDataPurgePatch` cuando le toque.
+ *
+ * Había un ayudante (`accountLegalPurgeDecision`) que solo ejercitaban los tests, y uno exportado
+ * que nadie llama parece código vivo y no lo es (hallazgo de `seguridad-auditor`, 2026-11-10).
  */
 
 /* -------------------------------------------------------------------------- */
@@ -289,26 +308,36 @@ export function storagePaths(folder: string, names: readonly string[]): string[]
     return names.map(name => `${folder}/${name}`)
 }
 
-/** Cuántos caracteres de un nombre no reconocido se pueden repetir en una respuesta */
-export const UNKNOWN_NAME_SAMPLE_LENGTH = 10
+export interface UnknownFilesReport {
+    count: number
+    /** Extensiones distintas, en minúsculas y ordenadas; '' para un nombre sin extensión */
+    extensions: string[]
+    /** Longitudes distintas de los nombres, ordenadas: para reconocer el archivo en Storage */
+    lengths: number[]
+}
 
 /**
- * Cómo se informa de los archivos que la purga NO reconoce, sin repetir sus nombres.
+ * Cómo se informa de los archivos que la purga NO reconoce, SIN devolver ningún trozo de su nombre.
  *
- * Un archivo subido a mano puede llevar datos personales en el propio nombre («dni-ana-perez.jpg»),
- * y la respuesta de la ruta los reproducía enteros (hallazgo de `seguridad-auditor`, 2026-11-10).
- * Se devuelve el recuento y, como mucho, tres nombres recortados, lo justo para reconocer el tipo de
- * archivo y poder ir a mirarlo en Storage.
+ * Un archivo subido a mano puede llevar datos personales en el propio nombre, y el nombre es dato
+ * personal igual que su contenido. La primera versión los devolvía enteros, y la segunda recortaba a
+ * 10 caracteres, que seguía siendo suficiente para entregar un DNI completo: `12345678Z.jpg` tiene 9
+ * caracteres antes del punto (hallazgo de `seguridad-auditor`, 2026-11-12).
+ *
+ * Con el recuento, las extensiones y las longitudes se revisa igual: quien mire la carpeta en Storage
+ * sabe cuántos archivos extraños hay y de qué tipo, y los encuentra por longitud. Nada de esto se
+ * puede volver a convertir en el nombre.
  */
-export function describeUnknownNames(
-    names: readonly string[] | null | undefined,
-    maxSamples = 3
-): { count: number; sample: string[] } {
+export function describeUnknownNames(names: readonly string[] | null | undefined): UnknownFilesReport {
     const list = (names || []).filter(name => typeof name === 'string' && name.length > 0)
+    const extension = (name: string) => {
+        const dot = name.lastIndexOf('.')
+        return dot > 0 ? name.slice(dot).toLowerCase() : ''
+    }
     return {
         count: list.length,
-        sample: list.slice(0, maxSamples).map(name =>
-            name.length > UNKNOWN_NAME_SAMPLE_LENGTH ? `${name.slice(0, UNKNOWN_NAME_SAMPLE_LENGTH)}…` : name),
+        extensions: [...new Set(list.map(extension))].sort(),
+        lengths: [...new Set(list.map(name => name.length))].sort((a, b) => a - b),
     }
 }
 
@@ -421,8 +450,19 @@ export function legalDataPurgeColumns(booking: unknown): string[] {
 /* Constancia de lo purgado                                                    */
 /* -------------------------------------------------------------------------- */
 
-/** Columnas de constancia que añade `20261110_document_retention_policy.sql` a `bookings` */
+/**
+ * Columnas de constancia que añade `20261110_document_retention_policy.sql` a `bookings`.
+ *
+ * `identity_images_reviewed_at` y `identity_images_purged_at` dicen cosas DISTINTAS, y confundirlas
+ * fue un hallazgo de `seguridad-auditor` (2026-11-12):
+ *   - `reviewed`: esta reserva ya se revisó y de SU subcarpeta no queda nada. Es lo que hace que la
+ *     consulta de candidatas avance y el barrido termine.
+ *   - `purged`: además, de esta reserva no queda NINGUNA imagen de identidad en el bucket, ni
+ *     siquiera en la carpeta de cuenta del titular. Solo se puede afirmar cuando esa carpeta también
+ *     se ha purgado; si se conserva por otra reserva viva, la reserva queda `reviewed` y no `purged`.
+ */
 export const RETENTION_AUDIT_COLUMNS = [
+    'identity_images_reviewed_at',
     'identity_images_purged_at',
     'identity_images_purged_count',
     'legal_data_purged_at',

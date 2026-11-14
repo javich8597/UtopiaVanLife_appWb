@@ -3,7 +3,7 @@
 import React, { useState, useEffect, useRef } from 'react'
 import { Link, usePathname, useRouter } from '@/i18n/routing'
 import {
-  Menu, X, Globe, Home, Search, Plus, CalendarX2, Truck, ShieldCheck, Package, Clock, LogOut,
+  Menu, X, Globe, Home, Search, Plus, CalendarX2, Truck, ShieldCheck, Package, Clock, LogOut, Mail,
 } from 'lucide-react'
 import AdminNavClient, { AdminNavCounts, currentSectionLabel, isNavItemActive, navItems } from './AdminNavClient'
 import AdminSidebarFooterClient, { signOutAdmin } from './AdminSidebarFooterClient'
@@ -234,6 +234,17 @@ export default function AdminResponsiveShell({ userEmail, counts = {}, initialTh
                     <span className="admin-pop__title">{userEmail || 'Administrador'}</span>
                     <span className="admin-pop__sub">Administrador</span>
                   </div>
+                  <a
+                    href="https://webmail.dondominio.com/"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="admin-pop__item"
+                    role="menuitem"
+                    onClick={() => setIsUserOpen(false)}
+                  >
+                    <span className="admin-pop__item-icon"><Mail size={16} /></span>
+                    Correo corporativo
+                  </a>
                   <Link href="/" target="_blank" className="admin-pop__item" role="menuitem">
                     <span className="admin-pop__item-icon"><Globe size={16} /></span>
                     Ver la web pública

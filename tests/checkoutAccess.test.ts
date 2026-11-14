@@ -5,6 +5,7 @@ import {
     buildVerifiedBooking,
     CHECKOUT_ACCESS_COOKIE,
     createCheckoutAccessCookie,
+    createCheckoutAccessToken,
     createCheckoutNoAccessCookie,
     expiredCheckoutAccessCookie,
     hasCheckoutAccess,
@@ -46,13 +47,21 @@ describe('Acceso tras el pago', () => {
         assert.equal(hasCheckoutAccess(ORDER, token(), minutesLater(5)), true)
     })
 
-    it('la cookie no es legible desde JavaScript y solo viaja a las API', () => {
+    it('genera un token de acceso firmado equivalente al de la cookie', () => {
+        const rawToken = createCheckoutAccessToken(ORDER, NOW)!
+        assert.ok(rawToken)
+        assert.equal(hasCheckoutAccess(ORDER, rawToken, minutesLater(5)), true)
+        const cookie = createCheckoutAccessCookie(ORDER, NOW)!
+        assert.equal(cookie.value, rawToken)
+    })
+
+    it('la cookie no es legible desde JavaScript y viaja a toda la web', () => {
         const cookie = createCheckoutAccessCookie(ORDER, NOW)!
 
         assert.equal(cookie.name, CHECKOUT_ACCESS_COOKIE)
         assert.equal(cookie.options.httpOnly, true)
         assert.equal(cookie.options.sameSite, 'lax')
-        assert.equal(cookie.options.path, '/api')
+        assert.equal(cookie.options.path, '/')
     })
 
     it('no sirve para otro pedido', () => {
@@ -105,7 +114,7 @@ describe('Acceso tras el pago', () => {
         assert.equal(expired.name, CHECKOUT_ACCESS_COOKIE)
         assert.equal(expired.value, '')
         assert.equal(expired.options.maxAge, 0)
-        assert.equal(expired.options.path, '/api')
+        assert.equal(expired.options.path, '/')
     })
 
     it('sin clave de servidor no concede acceso', () => {

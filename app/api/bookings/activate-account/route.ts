@@ -52,7 +52,12 @@ export async function POST(request: NextRequest) {
 
         const supabase = await createServerClient()
         const supabaseAdmin = getSupabaseAdmin()
-        const accessCookie = request.cookies.get(CHECKOUT_ACCESS_COOKIE)?.value
+        const accessCookie =
+            request.cookies.get(CHECKOUT_ACCESS_COOKIE)?.value ||
+            request.nextUrl.searchParams.get('access')?.trim() ||
+            request.nextUrl.searchParams.get('accessToken')?.trim() ||
+            (typeof body.access === 'string' ? body.access.trim() : '') ||
+            (typeof body.accessToken === 'string' ? body.accessToken.trim() : '')
 
         let targetUserId = await resolveCheckoutUploadOwner(supabaseAdmin, orderId, accessCookie)
 

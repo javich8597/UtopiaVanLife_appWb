@@ -1,6 +1,7 @@
 'use client'
 
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
+import Link from 'next/link'
 import { useLocale } from 'next-intl'
 import {
     Lock,
@@ -14,12 +15,15 @@ import {
     UserCheck,
     MapPin,
     Sparkles,
+    Eye,
+    EyeOff,
 } from 'lucide-react'
 import { Step5Customer, WizardCamper, Step1Data, Step2Data, Step3Data, Step4Data, BookingPassenger, DepositOption } from './types'
 import { validateStep5, validateDriverAge, validateDrivingLicense } from './types'
 import { formatPhoneWithPrefix } from '@/lib/driverDocuments'
 import { formatPrice, SECOND_DRIVER_RATE_PER_DAY } from '@/lib/pricing/engine'
 import DatePicker from '@/components/ui/DatePicker'
+import { createClient as createBrowserClient } from '@/lib/supabase/client'
 
 interface Step5CheckoutProps {
     camper: WizardCamper
@@ -75,6 +79,29 @@ export default function Step5Checkout({
     const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({})
     const [submitError, setSubmitError] = useState<string | null>(null)
     const [isSubmitting, setIsSubmitting] = useState(false)
+    const [sessionEmail, setSessionEmail] = useState<string | null>(null)
+    const [showPassword, setShowPassword] = useState(false)
+
+    useEffect(() => {
+        let isMounted = true
+        const supabase = createBrowserClient()
+        supabase.auth
+            .getUser()
+            .then(({ data }) => {
+                if (!isMounted) return
+                if (data?.user?.email) {
+                    setSessionEmail(data.user.email)
+                }
+            })
+            .catch(() => {
+                // Sin sesión activa o error de autenticación
+            })
+        return () => {
+            isMounted = false
+        }
+    }, [])
+
+    const needsPassword = !sessionEmail || sessionEmail.toLowerCase() !== (customer.email || '').trim().toLowerCase()
 
     const maxPax = camper.specs?.seats || (camper.slug === 'space' ? 2 : 3)
     const currentTravelersCount = customer.travelersCount || step1.pax || 1
@@ -249,7 +276,7 @@ export default function Step5Checkout({
             ...customer,
             depositOption: currentDeposit,
         }
-        const validation = validateStep5(normalizedCustomerForValidation, maxPax)
+        const validation = validateStep5(normalizedCustomerForValidation, maxPax, { requirePassword: needsPassword })
         if (!validation.isValid) {
             setFieldErrors(validation.errors)
             const firstErrorKey = Object.keys(validation.errors)[0]
@@ -287,6 +314,7 @@ export default function Step5Checkout({
                 customer: {
                     fullName: customer.fullName.trim(),
                     email: customer.email.trim().toLowerCase(),
+                    password: needsPassword && customer.password ? customer.password : undefined,
                     phone: formattedPhone,
                     dniNie: customer.dniNie.trim().toUpperCase(),
                     birthDate: customer.birthDate,
@@ -565,6 +593,49 @@ export default function Step5Checkout({
                                 <span className="field-hint">Coordinación de entrega y asistencia en ruta 16h</span>
                             )}
                         </div>
+
+                        {/* Password for Customer Account / Login */}
+                        {needsPassword && (
+                            <div className="form-field password-field">
+                                <label htmlFor="input-password" className="field-label">
+                                    Contraseña para tu cuenta de cliente *
+                                </label>
+                                <div className="password-input-wrapper">
+                                    <input
+                                        id="input-password"
+                                        type={showPassword ? 'text' : 'password'}
+                                        autoComplete="new-password"
+                                        className={`field-input password-input ${fieldErrors.password ? 'field-input--error' : ''}`}
+                                        placeholder="Mínimo 8 caracteres"
+                                        value={customer.password || ''}
+                                        onChange={(e) => handleInputChange('password', e.target.value)}
+                                        disabled={isSubmitting}
+                                        required
+                                    />
+                                    <button
+                                        type="button"
+                                        className="password-toggle-btn"
+                                        onClick={() => setShowPassword(!showPassword)}
+                                        tabIndex={-1}
+                                        aria-label={showPassword ? 'Ocultar contraseña' : 'Ver contraseña'}
+                                    >
+                                        {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                                    </button>
+                                </div>
+                                {fieldErrors.password ? (
+                                    <span className="field-error-text">{fieldErrors.password}</span>
+                                ) : (
+                                    <span className="field-hint">
+                                        Con tu email y esta contraseña accederás a tu reserva, contrato y factura. Si ya tienes cuenta en Utopia Van Life, introduce tu contraseña actual.
+                                    </span>
+                                )}
+                                <div className="password-recovery-row">
+                                    <Link href="/auth/recuperar" className="password-recovery-link" target="_blank" rel="noopener noreferrer">
+                                        ¿Olvidaste tu contraseña?
+                                    </Link>
+                                </div>
+                            </div>
+                        )}
                     </div>
                 </div>
 
@@ -1610,6 +1681,65 @@ export default function Step5Checkout({
                     display: block;
                 }
 
+                /* Password Field & Recovery */
+                .password-field {
+                    grid-column: span 2;
+                }
+
+                .password-input-wrapper {
+                    position: relative;
+                    display: flex;
+                    align-items: center;
+                    width: 100%;
+                }
+
+                .password-input {
+                    width: 100%;
+                    padding-right: 44px;
+                }
+
+                .password-toggle-btn {
+                    position: absolute;
+                    right: 0;
+                    top: 0;
+                    bottom: 0;
+                    width: 44px;
+                    height: 100%;
+                    min-height: 44px;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    background: transparent;
+                    border: none;
+                    color: var(--gray-500);
+                    cursor: pointer;
+                    transition: color 0.15s ease;
+                    touch-action: manipulation;
+                }
+
+                .password-toggle-btn:hover {
+                    color: var(--black-matte);
+                }
+
+                .password-recovery-row {
+                    display: flex;
+                    justify-content: flex-end;
+                    margin-top: 2px;
+                }
+
+                .password-recovery-link {
+                    font-size: 11.5px;
+                    font-weight: 500;
+                    color: var(--forest-green);
+                    text-decoration: underline;
+                    text-underline-offset: 3px;
+                    transition: color 0.15s ease;
+                }
+
+                .password-recovery-link:hover {
+                    color: var(--forest-green-light);
+                }
+
                 /* Legal Consent Card */
                 .legal-consent-card {
                     background: var(--wz-surface);
@@ -1752,7 +1882,8 @@ export default function Step5Checkout({
                         grid-template-columns: 1fr;
                         gap: 10px;
                     }
-                    .form-field--span-2 {
+                    .form-field--span-2,
+                    .password-field {
                         grid-column: span 1;
                     }
                     .phone-field-row {

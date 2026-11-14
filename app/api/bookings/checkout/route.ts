@@ -39,6 +39,56 @@ import {
     normalizeDriverText,
 } from '@/lib/driverDocuments'
 
+function cleanHostname(val?: string): string | null {
+    if (!val) return null
+    return val.trim().toLowerCase().replace(/^https?:\/\//, '').replace(/\/.*$/, '')
+}
+
+export function isAllowedOriginHostname(hostname: string): boolean {
+    const host = hostname.toLowerCase()
+    if (
+        host === 'utopiavanlife.es' ||
+        host === 'www.utopiavanlife.es' ||
+        host === 'utopiavanlife.com' ||
+        host === 'www.utopiavanlife.com'
+    ) {
+        return true
+    }
+
+    const vercelUrl = cleanHostname(process.env.VERCEL_URL)
+    if (vercelUrl && host === vercelUrl) {
+        return true
+    }
+
+    const branchUrl = cleanHostname(process.env.VERCEL_BRANCH_URL)
+    if (branchUrl && host === branchUrl) {
+        return true
+    }
+
+    if (process.env.NODE_ENV !== 'production') {
+        if (host === 'localhost' || host === '127.0.0.1') {
+            return true
+        }
+    }
+
+    return false
+}
+
+export function resolveSafeAppUrl(req: Request, fallbackAppUrl: string): string {
+    const originHeader = req.headers.get('origin')
+    if (originHeader) {
+        try {
+            const url = new URL(originHeader)
+            if (isAllowedOriginHostname(url.hostname)) {
+                return originHeader.replace(/\/$/, '')
+            }
+        } catch {
+            // fallback
+        }
+    }
+    return fallbackAppUrl.replace(/\/$/, '')
+}
+
 // La regla del documento vive en `lib/booking/checkoutRules.ts` para que el backoffice no tenga que
 // copiarla: importar una ruta de Next desde el panel arrastra la ruta entera. Se reexporta porque
 // los tests y el resto del flujo la importan desde aquí
@@ -312,6 +362,9 @@ export async function POST(req: Request) {
         const customerEmail = normalizeEmail(cust.email || body.customerEmail || body.email)
         const rawPhone = String(cust.phone || body.customerPhone || body.phone || '')
         const rawDni: unknown = cust.dniNie || cust.dni || body.customerDni || body.dniNie || body.dni || ''
+        const rawPassword = typeof cust.password === 'string'
+            ? cust.password
+            : (typeof body.password === 'string' ? body.password : undefined)
 
         const rawAddress = joinAddressParts([
             cust.address || body.customerAddress || body.address,
@@ -539,9 +592,19 @@ export async function POST(req: Request) {
 
         const session = await createServerClient()
         const { data: { user: sessionUser } } = await session.auth.getUser()
+        const hasSession = isSessionOf(sessionUser, customerEmail)
+
+        if (!hasSession && rawPassword !== undefined) {
+            if (rawPassword.length < 8 || rawPassword.length > 128) {
+                return NextResponse.json({ error: 'La contraseña debe tener entre 8 y 128 caracteres.' }, { status: 400 })
+            }
+        }
+
+        const userProvidedPassword = Boolean(!hasSession && typeof rawPassword === 'string' && rawPassword.length >= 8 && rawPassword.length <= 128)
+        const customerPassword = userProvidedPassword ? rawPassword : `Utopia_${crypto.randomBytes(12).toString("hex")}_2026!`
 
         // El límite cuenta por email, que escribe cualquiera: al titular con sesión no le afecta
-        if (!isSessionOf(sessionUser, customerEmail) && await hasTooManyOpenBookings(supabase, customerEmail)) {
+        if (!hasSession && await hasTooManyOpenBookings(supabase, customerEmail)) {
             return NextResponse.json(
                 { error: 'Hay varias reservas sin pagar con este email. Inicia sesión para continuar, espera unos minutos o escríbenos.' },
                 { status: 429 }
@@ -703,7 +766,9 @@ export async function POST(req: Request) {
                 birthDate: rawBirthDate || null,
                 licenseIssueDate: rawLicenseIssueDate || null,
             },
-        }, `Utopia_${crypto.randomBytes(12).toString("hex")}_2026!`)
+            userProvidedPassword,
+            serverSupabase: session,
+        }, customerPassword)
 
         if (customer.rejection !== undefined) {
             return NextResponse.json({ error: customer.rejection }, { status: 400 })
@@ -713,15 +778,36 @@ export async function POST(req: Request) {
             if (accountCreated) await retireAccount(supabase, userId)
         }
 
+        // Si se concedió acceso y el usuario proporcionó contraseña (y no tenía sesión activa),
+        // iniciamos sesión automáticamente en el cliente SSR para que las cookies de sesión queden establecidas.
+        if (grantAccess && userProvidedPassword && !hasSession) {
+            try {
+                await session.auth.signInWithPassword({
+                    email: customerEmail,
+                    password: customerPassword,
+                })
+            } catch (signInErr) {
+                console.warn('Checkout: no se pudo iniciar sesión SSR automáticamente:', signInErr)
+            }
+        }
+
         // 8. Generar identificador de pedido único de Redsys (12 caracteres) y su formulario de pago,
         // que ya no depende de nada más: a partir de aquí la reserva está validada
         const orderId = generateRedsysOrderId()
+        const access = grantAccess ? createCheckoutAccessCookie(orderId) : createCheckoutNoAccessCookie()
+
+        const redsysConfig = getRedsysConfig()
+        const resolvedAppUrl = resolveSafeAppUrl(req, redsysConfig.appUrl)
+
         const redsysFormData = createRedsysPaymentForm({
             amount: breakdown.payableTotal,
             orderId,
             description: `1x Camper ${camper.name || camperSlug.toUpperCase()} - Utopia Van Life`,
             customerName: customerName || 'Cliente Utopia',
             locale: isRedsysLocale(body.locale) ? body.locale : 'es',
+            accessToken: grantAccess && access ? access.value : undefined,
+        }, {
+            appUrl: resolvedAppUrl,
         })
 
         // 9. Insertar bloqueo provisional de 15 minutos en blocked_dates
@@ -810,7 +896,6 @@ export async function POST(req: Request) {
 
         // Permite recuperar los datos de la reserva a la vuelta de Redsys, que llega sin sesión.
         // Quien no tiene acceso recibe una cookie igual pero inútil: la respuesta no dice si el email tenía cuenta
-        const access = grantAccess ? createCheckoutAccessCookie(orderId) : createCheckoutNoAccessCookie()
         if (access) response.cookies.set(access.name, access.value, access.options)
 
         return response

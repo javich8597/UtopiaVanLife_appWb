@@ -74,7 +74,7 @@ export function buildClientBookingEmailHtml(params: BookingEmailParams): string 
               </div>
               <h1 style="margin:0 0 12px;font-size:22px;line-height:1.3;color:#FFFFFF;">¡Hola ${customerName}, tus fechas ya están bloqueadas!</h1>
               <p style="margin:0 0 24px;font-size:15px;line-height:1.6;color:#94A3B8;">
-                Hemos recibido correctamente el pago de tu reserva a través de Redsys. Nuestro equipo revisará tu documentación para confirmar formalmente tu entrega en Mallorca.
+                Hemos recibido correctamente el pago de tu reserva a través de Redsys. Tus fechas ya están 100% bloqueadas en nuestro calendario y tu camper queda reservada para tu experiencia en Mallorca.
               </p>
 
               <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="background-color:#0B0C0E;border:1px solid #262930;border-radius:12px;margin-bottom:24px;">
@@ -106,8 +106,21 @@ export function buildClientBookingEmailHtml(params: BookingEmailParams): string 
                 </tr>
               </table>
 
+              <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="background-color:#16191E;border-left:4px solid #CCA053;border-radius:8px;margin-bottom:24px;">
+                <tr>
+                  <td style="padding:16px 20px;">
+                    <div style="font-size:12px;letter-spacing:1px;font-weight:700;color:#CCA053;text-transform:uppercase;margin-bottom:6px;">
+                      Documentación del conductor
+                    </div>
+                    <p style="margin:0;font-size:14px;line-height:1.6;color:#CBD5E1;">
+                      Si aún no has terminado de subir las fotos de tu DNI y carnet de conducir en la pantalla de confirmación, puedes hacerlo en cualquier momento desde tu área privada en la sección <strong>&ldquo;Mis Documentos / Datos&rdquo;</strong> para que nuestro equipo valide la reserva y active tu contrato oficial de alquiler.
+                    </p>
+                  </td>
+                </tr>
+              </table>
+
               <p style="margin:0 0 20px;font-size:14px;line-height:1.6;color:#CBD5E1;">
-                Puedes entrar a tu área privada con tu email (<strong>${escapeHtml(params.customerEmail)}</strong>) y la contraseña que has configurado tras el pago, o pulsar este botón para acceder directamente:
+                Puedes acceder en cualquier momento a tu área privada (<strong>/dashboard</strong>) con tu email (<strong>${escapeHtml(params.customerEmail)}</strong>) y la contraseña que has creado durante tu reserva, o pulsar este botón para entrar directamente:
               </p>
 
               <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="margin-bottom:24px;">

@@ -141,6 +141,7 @@ export default function BookingWizardClient({
         email: '',
         phone: '',
         phoneCountryCode: '+34',
+        password: '',
         depositOption: initialDepositOption,
         passengers: Array.from({ length: Math.max(0, initialPaxCount - 1) }, () => ({
             fullName: '',
@@ -306,6 +307,8 @@ export default function BookingWizardClient({
         const timer = setTimeout(() => {
             try {
                 const storageKey = `${DRAFT_STORAGE_PREFIX}${activeCamper.slug}`
+                const safeStep5 = { ...step5 }
+                delete safeStep5.password
                 const draft = {
                     version: 2,
                     timestamp: Date.now(),
@@ -315,7 +318,7 @@ export default function BookingWizardClient({
                     step2,
                     step3,
                     step4,
-                    step5,
+                    step5: safeStep5,
                 }
                 sessionStorage.setItem(storageKey, JSON.stringify(draft))
 
@@ -383,6 +386,8 @@ export default function BookingWizardClient({
             try {
                 // Copiar borrador actual a la nueva clave de modelo para mantener continuidad
                 const newStorageKey = `${DRAFT_STORAGE_PREFIX}${newCamper.slug}`
+                const safeStep5 = { ...step5 }
+                delete safeStep5.password
                 const draft = {
                     version: 2,
                     timestamp: Date.now(),
@@ -392,7 +397,7 @@ export default function BookingWizardClient({
                     step2,
                     step3,
                     step4,
-                    step5,
+                    step5: safeStep5,
                 }
                 sessionStorage.setItem(newStorageKey, JSON.stringify(draft))
 

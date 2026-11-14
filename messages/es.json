@@ -249,10 +249,10 @@
     "newsletterSubmit": "Quiero unirme"
   },
   "CheckoutSuccess": {
-    "emailAccessTitle": "Completa tus datos desde tu email",
-    "emailAccessBody": "Te hemos enviado un email a la dirección de la reserva con un enlace de acceso. Entra con ese enlace para completar tus datos y subir tu documentación.",
-    "emailAccessHelp": "Si no lo ves en unos minutos, revisa la carpeta de spam. Si sigue sin llegar, pide un enlace nuevo con el mismo email o escríbenos por WhatsApp.",
-    "emailAccessRecover": "Pedir un enlace nuevo",
+    "emailAccessTitle": "Accede para completar tus datos",
+    "emailAccessBody": "Tu pago ha sido recibido correctamente. Para proteger tu privacidad, accede a tu área privada con tu email y la contraseña que creaste durante la reserva para completar tus datos y subir tu documentación.",
+    "emailAccessHelp": "También te hemos enviado un correo de confirmación con el resumen de tu viaje. Si no recuerdas tu contraseña o necesitas ayuda, puedes recuperarla o escribirnos por WhatsApp.",
+    "emailAccessRecover": "Recuperar acceso",
     "confirmingTitle": "Confirmando tu pago...",
     "confirmingBody": "Estamos esperando la confirmación del banco. Suele tardar unos segundos. No cierres esta página ni vuelvas a pagar.",
     "delayedTitle": "Tu pago aún no está confirmado",

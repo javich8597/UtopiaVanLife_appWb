@@ -158,6 +158,20 @@ export function installFakeSupabase(initial: Record<string, Row[]> = {}) {
 
     function auth(req: RecordedRequest): Response {
         if (req.path === '/auth/v1/user') return sessionUser ? json(confirmed(sessionUser)) : json({ message: 'sin sesión' }, 401)
+        if (req.path.startsWith('/auth/v1/token') && req.method === 'POST') {
+            const { email, password } = (req.body || {}) as Row
+            const user = authUsers.find(u => u.email?.toLowerCase() === email?.toLowerCase())
+            if (!user || (user.password && user.password !== password)) {
+                return json({ error: 'invalid_grant', error_description: 'Invalid login credentials' }, 400)
+            }
+            return json({
+                access_token: 'token-de-test',
+                token_type: 'bearer',
+                expires_in: 3600,
+                refresh_token: 'refresco-de-test',
+                user: confirmed(user),
+            })
+        }
         if (req.path === '/auth/v1/admin/users' && req.method === 'POST') {
             const { email, user_metadata } = req.body as Row
             if (authUsers.some(u => u.email === email)) {

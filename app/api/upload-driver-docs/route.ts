@@ -72,7 +72,9 @@ export async function POST(request: NextRequest) {
     // Tras pagar en Redsys el cliente llega a /checkout/success sin sesión. El número de pedido viaja
     // en la URL y no demuestra nada: hace falta la cookie que recibe quien creó su cuenta en ese checkout.
     let targetUserId: string | null = sessionUser?.id || null
-    const accessCookie = request.cookies.get(CHECKOUT_ACCESS_COOKIE)?.value
+    const accessCookie = request.cookies.get(CHECKOUT_ACCESS_COOKIE)?.value ||
+      request.nextUrl.searchParams.get('access') ||
+      request.nextUrl.searchParams.get('accessToken')
 
     if (!targetUserId) {
       targetUserId = await resolveCheckoutUploadOwner(

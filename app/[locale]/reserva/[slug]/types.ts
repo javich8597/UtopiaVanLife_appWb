@@ -121,6 +121,7 @@ export interface Step5Customer {
     email: string
     phone: string
     phoneCountryCode?: string // ej. "+34", "+33", "+49"
+    password?: string
     depositOption?: DepositOption // 'standard_2000' | 'flex_1000'
     address: string
     city: string
@@ -400,13 +401,16 @@ export function step5HasSecondDriver(
  * Borrador del paso 5 recuperado de sessionStorage, normalizado: los borradores anteriores a
  * `travelersCount` llegan sin ese campo y el resumen contaba un 2º conductor distinto del que se
  * cobra. El número de viajeros del paso 1 es el que manda.
+ * La contraseña NUNCA se persiste ni restaura en borradores por seguridad.
  */
 export function normalizeStep5Draft<T extends Partial<Step5Customer>>(
     draft: T,
     paxFromStep1: number
-): T & { travelersCount: number } {
+): T & { travelersCount: number; password: string } {
     const travelers = Number(draft?.travelersCount) || Number(paxFromStep1) || 1
-    return { ...draft, travelersCount: Math.max(1, Math.floor(travelers)) }
+    const restDraft = { ...(draft || {}) } as any
+    delete restDraft.password
+    return { ...restDraft, travelersCount: Math.max(1, Math.floor(travelers)), password: '' }
 }
 
 /**
@@ -429,7 +433,8 @@ export function validateSecondDriverLicenseId(value: string | undefined | null):
 
 export function validateStep5(
     data: Step5Customer,
-    maxCamperBerths: number = 4
+    maxCamperBerths: number = 4,
+    options?: { requirePassword?: boolean }
 ): { isValid: boolean; errors: Record<string, string> } {
     const errors: Record<string, string> = {}
 
@@ -463,6 +468,21 @@ export function validateStep5(
     const phoneCheck = validatePhone(data.phone, data.phoneCountryCode)
     if (!phoneCheck.isValid) {
         errors.phone = phoneCheck.error!
+    }
+
+    const pwd = typeof data.password === 'string' ? data.password : ''
+    if (options?.requirePassword) {
+        if (!pwd || pwd.length < 8) {
+            errors.password = 'La contraseña debe tener al menos 8 caracteres para acceder a tu reserva'
+        } else if (pwd.length > 128) {
+            errors.password = 'La contraseña no puede superar los 128 caracteres'
+        }
+    } else if (pwd.length > 0) {
+        if (pwd.length < 8) {
+            errors.password = 'La contraseña debe tener al menos 8 caracteres para acceder a tu reserva'
+        } else if (pwd.length > 128) {
+            errors.password = 'La contraseña no puede superar los 128 caracteres'
+        }
     }
 
     if (data.depositOption !== undefined && data.depositOption !== 'standard_2000' && data.depositOption !== 'flex_1000') {

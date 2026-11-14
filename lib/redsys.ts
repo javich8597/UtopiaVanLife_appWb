@@ -14,6 +14,7 @@ export interface RedsysOrderRequest {
     description?: string
     customerName?: string
     locale?: string
+    accessToken?: string
 }
 
 export interface RedsysFormData {
@@ -269,6 +270,34 @@ export function isRedsysSuccess(responseCode?: string | number): boolean {
     return !isNaN(codeNum) && codeNum >= 0 && codeNum <= 99
 }
 
+function isSafeRedsysAppUrl(candidateUrl?: string): boolean {
+    if (!candidateUrl) return false
+    try {
+        const parsed = new URL(candidateUrl)
+        const hostname = parsed.hostname.toLowerCase()
+        if (
+            hostname === 'utopiavanlife.es' ||
+            hostname === 'www.utopiavanlife.es' ||
+            hostname === 'utopiavanlife.com' ||
+            hostname === 'www.utopiavanlife.com'
+        ) {
+            return true
+        }
+        if (process.env.VERCEL_URL && hostname === process.env.VERCEL_URL.toLowerCase()) {
+            return true
+        }
+        if (process.env.VERCEL_BRANCH_URL && hostname === process.env.VERCEL_BRANCH_URL.toLowerCase()) {
+            return true
+        }
+        if (process.env.NODE_ENV !== 'production' && (hostname === 'localhost' || hostname === '127.0.0.1')) {
+            return true
+        }
+        return false
+    } catch {
+        return false
+    }
+}
+
 /**
  * Prepares the complete form data required to redirect the client to Redsys TPV
  */
@@ -276,7 +305,8 @@ export function createRedsysPaymentForm(
     orderReq: RedsysOrderRequest,
     customConfig?: Partial<RedsysConfig>
 ): RedsysFormData {
-    const config = { ...getRedsysConfig(), ...customConfig }
+    const serverConfig = getRedsysConfig()
+    const config = { ...serverConfig, ...customConfig }
 
     if (!isValidRedsysOrderId(orderReq.orderId)) {
         throw new Error(`Identificador de pedido Redsys inválido: "${orderReq.orderId}". Debe tener entre 4 y 12 caracteres alfanuméricos y comenzar por 4 dígitos numéricos.`)
@@ -287,6 +317,14 @@ export function createRedsysPaymentForm(
 
     const langPrefix = orderReq.locale ? `/${orderReq.locale}` : ''
 
+    const successUrl = orderReq.accessToken
+        ? `${config.appUrl}${langPrefix}/checkout/success?order=${orderReq.orderId}&access=${encodeURIComponent(orderReq.accessToken)}`
+        : `${config.appUrl}${langPrefix}/checkout/success?order=${orderReq.orderId}`
+
+    const merchantUrlBase = (customConfig?.appUrl && isSafeRedsysAppUrl(customConfig.appUrl))
+        ? customConfig.appUrl.replace(/\/$/, '')
+        : serverConfig.appUrl
+
     const merchantParametersObj: Record<string, any> = {
         DS_MERCHANT_AMOUNT: amountInCents,
         DS_MERCHANT_ORDER: orderReq.orderId,
@@ -294,8 +332,8 @@ export function createRedsysPaymentForm(
         DS_MERCHANT_CURRENCY: '978', // EUR
         DS_MERCHANT_TRANSACTIONTYPE: '0', // Autorización
         DS_MERCHANT_TERMINAL: config.terminal,
-        DS_MERCHANT_MERCHANTURL: `${config.appUrl}/api/webhooks/redsys`,
-        DS_MERCHANT_URLOK: `${config.appUrl}${langPrefix}/checkout/success?order=${orderReq.orderId}`,
+        DS_MERCHANT_MERCHANTURL: `${merchantUrlBase}/api/webhooks/redsys`,
+        DS_MERCHANT_URLOK: successUrl,
         DS_MERCHANT_URLKO: `${config.appUrl}${langPrefix}/checkout/error?order=${orderReq.orderId}`,
     }
 

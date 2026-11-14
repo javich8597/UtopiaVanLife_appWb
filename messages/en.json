@@ -249,10 +249,10 @@
     "newsletterSubmit": "I want to join"
   },
   "CheckoutSuccess": {
-    "emailAccessTitle": "Complete your details from your email",
-    "emailAccessBody": "We have sent an access link to the email address on your booking. Use that link to complete your details and upload your documents.",
-    "emailAccessHelp": "If you cannot see it within a few minutes, check your spam folder. If it still has not arrived, request a new link with the same email or message us on WhatsApp.",
-    "emailAccessRecover": "Request a new link",
+    "emailAccessTitle": "Log in to complete your details",
+    "emailAccessBody": "Your payment has been received successfully. To protect your privacy, log in to your private area with your email and the password created during booking to complete your details and upload your documents.",
+    "emailAccessHelp": "We have also sent a confirmation email with your trip summary. If you cannot remember your password or need help, you can recover access or message us on WhatsApp.",
+    "emailAccessRecover": "Recover access",
     "confirmingTitle": "Confirming your payment...",
     "confirmingBody": "We are waiting for confirmation from the bank. This usually takes a few seconds. Do not close this page or pay again.",
     "delayedTitle": "Your payment is not confirmed yet",

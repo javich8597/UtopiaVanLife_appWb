@@ -181,6 +181,9 @@ describe('Configuración SMTP DonDominio y plantillas HTML', () => {
         assert.ok(clientHtml.includes('06/12/2026'))
         assert.ok(clientHtml.includes('950,50 €'))
         assert.ok(clientHtml.includes('https://utopiavanlife.com/es/dashboard'))
+        assert.ok(clientHtml.includes('tus fechas ya están bloqueadas'))
+        assert.ok(clientHtml.includes('contraseña que has creado durante tu reserva'))
+        assert.ok(clientHtml.includes('Mis Documentos / Datos'))
         assert.ok(!clientHtml.includes('<script>alert(1)</script>'))
 
         const adminHtml = buildAdminBookingNotificationHtml(params)

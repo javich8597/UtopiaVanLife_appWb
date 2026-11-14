@@ -24,19 +24,27 @@ const cookieOptions = (maxAge: number) => ({
     httpOnly: true,
     secure: process.env.NODE_ENV === 'production',
     sameSite: 'lax' as const,
-    path: '/api',
+    path: '/',
     maxAge,
 })
 
-/** Cookie para el navegador que acaba de crear el pedido. Sin clave de servidor no se concede acceso. */
-export function createCheckoutAccessCookie(orderId: string, now: Date = new Date()) {
+/** Token de acceso firmado para el pedido. Sin clave de servidor no se concede acceso. */
+export function createCheckoutAccessToken(orderId: string, now: Date = new Date()): string | null {
     const secret = process.env.SUPABASE_SERVICE_ROLE_KEY
-    if (!secret) return null
+    if (!secret || !orderId) return null
 
     const expiresAt = now.getTime() + ACCESS_MINUTES * 60 * 1000
+    return `${expiresAt}.${sign(orderId, expiresAt, secret)}`
+}
+
+/** Cookie para el navegador que acaba de crear el pedido. Sin clave de servidor no se concede acceso. */
+export function createCheckoutAccessCookie(orderId: string, now: Date = new Date()) {
+    const token = createCheckoutAccessToken(orderId, now)
+    if (!token) return null
+
     return {
         name: CHECKOUT_ACCESS_COOKIE,
-        value: `${expiresAt}.${sign(orderId, expiresAt, secret)}`,
+        value: token,
         options: cookieOptions(ACCESS_MINUTES * 60),
     }
 }

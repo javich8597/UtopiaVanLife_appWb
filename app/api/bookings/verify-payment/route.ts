@@ -1,7 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getSupabaseAdmin } from '@/lib/supabase/admin'
 import { createClient } from '@/lib/supabase/server'
-import { buildVerifiedBooking, CHECKOUT_ACCESS_COOKIE, checkoutCookieOwner } from '@/lib/checkoutAccess'
+import { buildVerifiedBooking, CHECKOUT_ACCESS_COOKIE, hasCheckoutAccess, VerifiableProfile } from '@/lib/checkoutAccess'
+import { clientIp, registerVerifyPaymentAttempt } from '@/lib/booking/checkoutRateLimit'
 import {
     getRedsysConfig,
     verifyRedsysSignature,
@@ -31,9 +32,18 @@ async function processPaymentVerification(params: {
     merchantParameters?: string | null
     signature?: string | null
     accessCookie?: string | null
+    ip?: string | null
 }): Promise<NextResponse<VerifyPaymentResult>> {
     try {
-        const { signatureVersion, merchantParameters, signature, accessCookie } = params
+        const { signatureVersion, merchantParameters, signature, accessCookie, ip } = params
+
+        if (!registerVerifyPaymentAttempt(ip ?? null)) {
+            return NextResponse.json(
+                { success: false, isPaid: false, booking: null, error: 'Demasiadas comprobaciones de pago. Espera unos minutos.' },
+                { status: 429 }
+            )
+        }
+
         let orderId = params.orderId || null
 
         const config = getRedsysConfig()
@@ -112,15 +122,21 @@ async function processPaymentVerification(params: {
         // Conocer el número de pedido no basta: viaja en la URL de vuelta de Redsys
         let details: Parameters<typeof buildVerifiedBooking>[2] = null
 
-        if (await isBookingOwnerSession(booking.user_id)) {
-            const { data: profile } = await supabase
-                .from('users')
-                .select('driver_license_id, driver_license_issue_date, driver_license_expiry_date, birth_date')
-                .eq('id', booking.user_id)
-                .maybeSingle()
+        const isOwner = await isBookingOwnerSession(booking.user_id)
+        const hasAccess = Boolean(orderId && hasCheckoutAccess(orderId, accessCookie) && booking.payment_status === 'paid')
+        const canViewVerifiedBooking = isOwner || hasAccess
+
+        if (canViewVerifiedBooking) {
+            let profile: VerifiableProfile | null = null
+            if (booking.user_id) {
+                const { data } = await supabase
+                    .from('users')
+                    .select('driver_license_id, driver_license_issue_date, driver_license_expiry_date, birth_date')
+                    .eq('id', booking.user_id)
+                    .maybeSingle()
+                profile = data || null
+            }
             details = { profile }
-        } else if (await checkoutCookieOwner(supabase, booking, orderId, accessCookie)) {
-            details = { profile: null }
         }
 
         const isPaid = booking.payment_status === 'paid'
@@ -148,13 +164,15 @@ export async function GET(req: NextRequest) {
     const signatureVersion = searchParams.get('Ds_SignatureVersion') || searchParams.get('signatureVersion')
     const merchantParameters = searchParams.get('Ds_MerchantParameters') || searchParams.get('merchantParameters')
     const signature = searchParams.get('Ds_Signature') || searchParams.get('signature')
+    const access = searchParams.get('access') || searchParams.get('accessToken') || req.cookies.get(CHECKOUT_ACCESS_COOKIE)?.value
 
     return processPaymentVerification({
         orderId,
         signatureVersion,
         merchantParameters,
         signature,
-        accessCookie: req.cookies.get(CHECKOUT_ACCESS_COOKIE)?.value,
+        accessCookie: access,
+        ip: clientIp(req.headers),
     })
 }
 
@@ -163,6 +181,7 @@ export async function POST(req: NextRequest) {
     let signatureVersion: string | null = null
     let merchantParameters: string | null = null
     let signature: string | null = null
+    let access: string | null = null
 
     const contentType = req.headers.get('content-type') || ''
 
@@ -172,6 +191,7 @@ export async function POST(req: NextRequest) {
         signatureVersion = body.Ds_SignatureVersion || body.signatureVersion || null
         merchantParameters = body.Ds_MerchantParameters || body.merchantParameters || null
         signature = body.Ds_Signature || body.signature || null
+        access = body.access || body.accessToken || null
     } else {
         try {
             const formData = await req.formData()
@@ -179,17 +199,22 @@ export async function POST(req: NextRequest) {
             signatureVersion = (formData.get('Ds_SignatureVersion') as string) || null
             merchantParameters = (formData.get('Ds_MerchantParameters') as string) || null
             signature = (formData.get('Ds_Signature') as string) || null
+            access = (formData.get('access') as string) || (formData.get('accessToken') as string) || null
         } catch {
             const searchParams = req.nextUrl.searchParams
             orderId = searchParams.get('order') || searchParams.get('orderId') || null
             signatureVersion = searchParams.get('Ds_SignatureVersion') || null
             merchantParameters = searchParams.get('Ds_MerchantParameters') || null
             signature = searchParams.get('Ds_Signature') || null
+            access = searchParams.get('access') || searchParams.get('accessToken') || null
         }
     }
 
     if (!orderId && req.nextUrl.searchParams.has('order')) {
         orderId = req.nextUrl.searchParams.get('order')
+    }
+    if (!access) {
+        access = req.nextUrl.searchParams.get('access') || req.nextUrl.searchParams.get('accessToken') || req.cookies.get(CHECKOUT_ACCESS_COOKIE)?.value || null
     }
 
     return processPaymentVerification({
@@ -197,6 +222,7 @@ export async function POST(req: NextRequest) {
         signatureVersion,
         merchantParameters,
         signature,
-        accessCookie: req.cookies.get(CHECKOUT_ACCESS_COOKIE)?.value,
+        accessCookie: access,
+        ip: clientIp(req.headers),
     })
 }

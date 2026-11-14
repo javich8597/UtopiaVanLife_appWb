@@ -97,10 +97,10 @@
     "bookNow": "Book Now"
   },
   "CheckoutSuccess": {
-    "emailAccessTitle": "Complétez vos informations depuis votre e-mail",
-    "emailAccessBody": "Nous avons envoyé un lien d'accès à l'adresse e-mail de votre réservation. Utilisez ce lien pour compléter vos informations et envoyer vos documents.",
-    "emailAccessHelp": "Si vous ne le voyez pas d'ici quelques minutes, vérifiez vos courriers indésirables. S'il n'arrive toujours pas, demandez un nouveau lien avec le même e-mail ou écrivez-nous sur WhatsApp.",
-    "emailAccessRecover": "Demander un nouveau lien",
+    "emailAccessTitle": "Connectez-vous pour compléter vos informations",
+    "emailAccessBody": "Votre paiement a été reçu avec succès. Pour protéger votre vie privée, connectez-vous à votre espace privé avec votre e-mail et le mot de passe créé lors de la réservation afin de compléter vos informations et d'importer vos documents.",
+    "emailAccessHelp": "Nous vous avons également envoyé un e-mail de confirmation avec le récapitulatif de votre voyage. Si vous avez oublié votre mot de passe ou avez besoin d'aide, vous pouvez récupérer votre accès ou nous écrire sur WhatsApp.",
+    "emailAccessRecover": "Récupérer l'accès",
     "confirmingTitle": "Confirmation de votre paiement...",
     "confirmingBody": "Nous attendons la confirmation de la banque. Cela prend généralement quelques secondes. Ne fermez pas cette page et ne payez pas une seconde fois.",
     "delayedTitle": "Votre paiement n'est pas encore confirmé",

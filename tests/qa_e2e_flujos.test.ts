@@ -43,7 +43,7 @@ describe('QA punta a punta', () => {
 
             const order = json.orderId
             const form = redsysForm(json.formData.merchantParameters)
-            assert.match(form.DS_MERCHANT_URLOK, new RegExp(`/de/checkout/success\\?order=${order}$`))
+            assert.match(form.DS_MERCHANT_URLOK, new RegExp(`/de/checkout/success\\?order=${order}(?:&access=.*)?$`))
             assert.match(form.DS_MERCHANT_URLKO, new RegExp(`/de/checkout/error\\?order=${order}$`))
             assert.equal(form.DS_MERCHANT_AMOUNT, String(cents(json.breakdown.payableTotal)))
 
@@ -61,8 +61,8 @@ describe('QA punta a punta', () => {
             const back = await flows.verify(order, jar)
             assert.equal(back.json.isPaid, true)
             assert.ok(back.json.booking.id, 'con cookie y pagada, la página tiene datos para el formulario')
-            // N5: con solo la cookie no salen datos del perfil; la fecha se rellena en el formulario
-            assert.equal(back.json.booking.driverLicenseIssueDate, null)
+            // Con acceso y pagada, devuelve los datos pre-rellenados de la reserva y del perfil
+            assert.equal(back.json.booking.driverLicenseIssueDate, '2015-01-01')
 
             const sent = await flows.upload(successPageForm(), jar, order)
             assert.equal(sent.status, 200)

@@ -134,10 +134,10 @@
     "ctaContactBtn": "Kontakt aufnehmen"
   },
   "CheckoutSuccess": {
-    "emailAccessTitle": "Vervollständige deine Daten über deine E-Mail",
-    "emailAccessBody": "Wir haben einen Zugangslink an die E-Mail-Adresse deiner Buchung geschickt. Öffne diesen Link, um deine Daten zu vervollständigen und deine Dokumente hochzuladen.",
-    "emailAccessHelp": "Wenn du sie nach einigen Minuten nicht siehst, prüfe deinen Spam-Ordner. Ist sie immer noch nicht angekommen, fordere mit derselben E-Mail-Adresse einen neuen Link an oder schreib uns per WhatsApp.",
-    "emailAccessRecover": "Neuen Link anfordern",
+    "emailAccessTitle": "Melde dich an, um deine Daten zu vervollständigen",
+    "emailAccessBody": "Deine Zahlung ist erfolgreich eingegangen. Um deine Privatsphäre zu schützen, melde dich in deinem Kundenbereich mit deiner E-Mail-Adresse und dem bei der Buchung erstellten Passwort an, um deine Daten zu vervollständigen und deine Dokumente hochzuladen.",
+    "emailAccessHelp": "Wir haben dir außerdem eine Bestätigungs-E-Mail mit deiner Reiseübersicht geschickt. Wenn du dein Passwort vergessen hast oder Hilfe benötigst, kannst du deinen Zugang wiederherstellen oder uns per WhatsApp schreiben.",
+    "emailAccessRecover": "Zugang wiederherstellen",
     "confirmingTitle": "Deine Zahlung wird bestätigt...",
     "confirmingBody": "Wir warten auf die Bestätigung der Bank. Das dauert meist nur wenige Sekunden. Schließe diese Seite nicht und zahle nicht erneut.",
     "delayedTitle": "Deine Zahlung ist noch nicht bestätigt",

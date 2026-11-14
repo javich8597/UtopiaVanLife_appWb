@@ -98,36 +98,42 @@ describe('Ruta verify-payment: datos personales', () => {
         assertNoPersonalData((await verify(`${access.name}=${access.value}`)).text)
     })
 
-    it('el navegador que hizo la reserva recupera sus datos para el formulario', async () => {
+    it('el navegador que hizo la reserva recupera sus datos y perfil para el formulario', async () => {
         row = { ...bookingRow, user_id: 'u1' }
         const access = createCheckoutAccessCookie(ORDER)!
 
         const { status, json } = await verify(`${access.name}=${access.value}`)
 
         assert.equal(status, 200)
+        assert.equal(json.booking.id, 'b1')
         assert.equal(json.booking.customerDni, '12345678Z')
         assert.equal(json.booking.customerAddress, 'Calle Mayor 1')
+        assert.equal(json.booking.birthDate, '1985-02-02')
+        assert.equal(json.booking.driverLicenseIssueDate, '2015-01-01')
     })
 
-    it('con solo la cookie no devuelve los datos del perfil', async () => {
+    it('acepta el token de acceso desde el parámetro query access sin cookie', async () => {
         row = { ...bookingRow, user_id: 'u1' }
         const access = createCheckoutAccessCookie(ORDER)!
 
-        const { text, json } = await verify(`${access.name}=${access.value}`)
+        const res = await GET(new NextRequest(`http://localhost/api/bookings/verify-payment?order=${ORDER}&access=${access.value}`))
+        const json = await res.json()
 
-        assert.equal(json.booking.birthDate, null)
-        assert.equal(json.booking.driverLicenseIssueDate, null)
-        assert.ok(!text.includes('1985-02-02'))
-        assert.ok(!text.includes('2015-01-01'))
+        assert.equal(res.status, 200)
+        assert.equal(json.booking.id, 'b1')
+        assert.equal(json.booking.customerDni, '12345678Z')
+        assert.equal(json.booking.birthDate, '1985-02-02')
     })
 
-    it('la cookie deja de valer cuando la documentación ya se envió o se aprobó', async () => {
+    it('incluso si el usuario ya tenía verification_status de un viaje anterior, permite ver la reserva pagada', async () => {
         row = { ...bookingRow, user_id: 'u1' }
         const access = createCheckoutAccessCookie(ORDER)!
 
         for (const status of ['pending_validation', 'verified', 'approved']) {
             verificationStatus = status
-            assertNoPersonalData((await verify(`${access.name}=${access.value}`)).text)
+            const { json } = await verify(`${access.name}=${access.value}`)
+            assert.equal(json.booking.id, 'b1')
+            assert.equal(json.booking.customerDni, '12345678Z')
         }
         verificationStatus = 'not_submitted'
     })

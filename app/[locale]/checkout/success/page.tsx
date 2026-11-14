@@ -45,7 +45,19 @@ function SuccessContent() {
   const router = useRouter()
   const searchParams = useSearchParams()
   const orderId = searchParams.get('order') || searchParams.get('orderId') || searchParams.get('payment_intent') || ''
+  const [accessToken] = useState(() => searchParams.get('access') || searchParams.get('accessToken') || '')
   const redirectStatus = searchParams.get('redirect_status') || 'succeeded'
+
+  // Higiene de seguridad: retirar el token de acceso de la barra de direcciones tras capturarlo
+  useEffect(() => {
+    if (typeof window === 'undefined') return
+    const currentUrl = new URL(window.location.href)
+    if (currentUrl.searchParams.has('access') || currentUrl.searchParams.has('accessToken')) {
+      currentUrl.searchParams.delete('access')
+      currentUrl.searchParams.delete('accessToken')
+      window.history.replaceState(null, '', currentUrl.toString())
+    }
+  }, [])
 
   const whatsappNumber = process.env.NEXT_PUBLIC_WHATSAPP_NUMBER || '34611560916'
   const whatsappText = encodeURIComponent(
@@ -114,6 +126,7 @@ function SuccessContent() {
       try {
         const queryParams = new URLSearchParams()
         if (orderId) queryParams.set('order', orderId)
+        if (accessToken) queryParams.set('access', accessToken)
         
         const dsSigVer = searchParams.get('Ds_SignatureVersion')
         const dsParams = searchParams.get('Ds_MerchantParameters')
@@ -180,7 +193,7 @@ function SuccessContent() {
       isMounted = false
       clearTimeout(retryTimer)
     }
-  }, [orderId])
+  }, [orderId, accessToken])
 
   // Step 2: Files
   const [dniFront, setDniFront] = useState<File | null>(null)
@@ -243,10 +256,16 @@ function SuccessContent() {
     setIsActivatingAccount(true)
 
     try {
-      const response = await fetch(`/api/bookings/activate-account?order=${encodeURIComponent(orderId)}`, {
+      const activateUrl = accessToken
+        ? `/api/bookings/activate-account?order=${encodeURIComponent(orderId)}&access=${encodeURIComponent(accessToken)}`
+        : `/api/bookings/activate-account?order=${encodeURIComponent(orderId)}`
+      const response = await fetch(activateUrl, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ password: accountPassword }),
+        body: JSON.stringify({
+          password: accountPassword,
+          ...(accessToken ? { access: accessToken } : {}),
+        }),
       })
       const json = await response.json().catch(() => ({}))
 
@@ -329,7 +348,10 @@ function SuccessContent() {
       // El pedido va en la URL: el servidor comprueba el acceso antes de leer las fotos
       let response: Response
       try {
-        response = await fetch(`/api/upload-driver-docs?order=${encodeURIComponent(orderId)}`, {
+        const uploadUrl = accessToken
+          ? `/api/upload-driver-docs?order=${encodeURIComponent(orderId)}&access=${encodeURIComponent(accessToken)}`
+          : `/api/upload-driver-docs?order=${encodeURIComponent(orderId)}`
+        response = await fetch(uploadUrl, {
           method: 'POST',
           body: formData
         })

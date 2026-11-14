@@ -23,7 +23,8 @@ export default function PrivacyPage() {
           <section className="legal-section">
             <h2 className="legal-heading">1. Responsable del Tratamiento</h2>
             <p className="legal-text">
-              Utopia Van Life S.L., con domicilio en Palma de Mallorca (Islas Baleares), es el responsable del tratamiento de los datos personales facilitados a través de esta plataforma web.
+              <strong>Utopia Van Life S.L.</strong>, con CIF B24902637 y domicilio en San Sebastián de los Reyes (Madrid), es el responsable del tratamiento de los datos personales facilitados a través de esta plataforma web. Puedes escribirnos a{' '}
+              <a href="mailto:info@utopiavanlife.com" className="legal-link">info@utopiavanlife.com</a> para cualquier cuestión relacionada con tus datos. Son los mismos datos de identificación que figuran en el contrato de alquiler.
             </p>
           </section>
 
@@ -54,7 +55,7 @@ export default function PrivacyPage() {
                 <strong>Datos del registro de viajeros:</strong> los datos de identificación que estamos obligados a registrar y comunicar a las autoridades conforme al Real Decreto 933/2021 (nombre, documento de identidad, datos del permiso de conducir y datos de los acompañantes) se conservan <strong>3 años desde la devolución del vehículo</strong>, que es el plazo que fija el artículo 5.3 de esa norma, y después se suprimen de la reserva.
               </li>
               <li>
-                <strong>Contrato de alquiler firmado y tu firma:</strong> son la prueba de la relación contractual, así que no podemos indicarte aquí un plazo cerrado. Te indicamos el criterio que aplicamos: los conservamos mientras puedan derivarse responsabilidades del contrato y durante los plazos de conservación mercantil, contable y fiscal que nos obligan como empresa, que son más largos que los 3 años anteriores. En el contrato figuran también el nombre y el documento del segundo conductor autorizado, si lo hubo.
+                <strong>Contrato de alquiler firmado y tu firma:</strong> se conservan <strong>6 años desde la devolución del vehículo</strong>. Ese es el plazo de conservación de los contratos y sus justificantes que nos impone el artículo 30 del Código de Comercio, y el contrato firmado es la prueba de lo que acordamos contigo. En el contrato figuran también el nombre y el documento del segundo conductor autorizado, si lo hubo.
               </li>
               <li>
                 <strong>Facturación y justificantes de pago:</strong> se conservan durante los plazos de conservación contable, mercantil y fiscal que nos obligan, con independencia de que tu cuenta siga existiendo.
@@ -69,7 +70,7 @@ export default function PrivacyPage() {
             <h2 className="legal-heading">4. Cómo Pedir el Borrado de tu Cuenta</h2>
             <p className="legal-text">
               Para pedir que borremos tu cuenta, escríbenos a{' '}
-              <a href="mailto:hola@utopiavanlife.com" className="legal-link">hola@utopiavanlife.com</a>{' '}
+              <a href="mailto:info@utopiavanlife.com" className="legal-link">info@utopiavanlife.com</a>{' '}
               desde la dirección de correo de tu cuenta, o indicándonos cómo podemos identificarte. No necesitas motivar la solicitud.
             </p>
             <p className="legal-text">
@@ -81,7 +82,7 @@ export default function PrivacyPage() {
             <ul className="legal-list">
               <li><strong>El registro de viajeros de tus reservas que aún no hayan cumplido 3 años</strong> desde la devolución del vehículo: nos obliga a conservarlo el Real Decreto 933/2021 y no podemos adelantar ese plazo. Se suprime en cuanto los 3 años se cumplen.</li>
               <li><strong>La facturación y los justificantes de pago</strong> de tus reservas, durante los plazos contables, mercantiles y fiscales que nos obligan.</li>
-              <li><strong>El contrato de alquiler firmado</strong>, con el criterio explicado en el apartado anterior.</li>
+              <li><strong>El contrato de alquiler firmado y tu firma</strong>, hasta que se cumplan los <strong>6 años</strong> desde la devolución del vehículo que exige el artículo 30 del Código de Comercio.</li>
             </ul>
             <p className="legal-text">
               El propio RGPD prevé esta limitación cuando el tratamiento sigue siendo necesario para cumplir una obligación legal o para la defensa de reclamaciones (artículo 17.3, letras b y e). Mientras conservemos esos datos por ese motivo, no los usamos para ninguna otra finalidad: ni para contactar contigo, ni para enviarte comunicaciones comerciales, ni para ningún análisis.
@@ -99,9 +100,9 @@ export default function PrivacyPage() {
               <li><strong>Qué datos tratamos:</strong> tu nombre y apellidos, tu documento de identidad, el número y las fechas de tu permiso de conducir, tu fecha de nacimiento y las fotografías de ambos documentos.</li>
               <li><strong>Para qué:</strong> autorizarte como conductor en el contrato de alquiler, comprobar que cumples los requisitos de edad y antigüedad del permiso que exige la póliza del seguro, y cumplir el registro de viajeros del Real Decreto 933/2021.</li>
               <li><strong>Base jurídica:</strong> el cumplimiento de la obligación legal del Real Decreto 933/2021 y nuestro interés legítimo en comprobar que quien conduce el vehículo cumple las condiciones de la póliza (artículo 6.1, letras c y f, del RGPD).</li>
-              <li><strong>Cuánto tiempo:</strong> las fotografías de tus documentos se eliminan a los 100 días de la devolución del vehículo y los datos del registro de viajeros a los 3 años, en los mismos términos del apartado 3. Tu nombre y tu documento figuran además en el contrato de alquiler firmado, que se conserva con el criterio explicado en ese mismo apartado.</li>
+              <li><strong>Cuánto tiempo:</strong> las fotografías de tus documentos se eliminan a los 100 días de la devolución del vehículo y los datos del registro de viajeros a los 3 años, en los mismos términos del apartado 3. Tu nombre y tu documento figuran además en el contrato de alquiler firmado, que se conserva <strong>6 años desde la devolución del vehículo</strong> por el artículo 30 del Código de Comercio: ese es el plazo más largo que afecta a tus datos, aunque tú no hayas contratado nada con nosotros. Durante ese tiempo el contrato solo se usa como prueba de la relación contractual.</li>
               <li><strong>Tus derechos:</strong> son los mismos que se describen en el apartado siguiente y puedes ejercerlos directamente ante nosotros, sin pasar por el titular de la reserva, escribiendo a{' '}
-                <a href="mailto:hola@utopiavanlife.com" className="legal-link">hola@utopiavanlife.com</a>.
+                <a href="mailto:info@utopiavanlife.com" className="legal-link">info@utopiavanlife.com</a>.
               </li>
             </ul>
           </section>
@@ -110,7 +111,7 @@ export default function PrivacyPage() {
             <h2 className="legal-heading">6. Tus Derechos</h2>
             <p className="legal-text">
               De conformidad con el Reglamento General de Protección de Datos (RGPD) y la LOPDGDD, puedes ejercer en cualquier momento tus derechos de acceso, rectificación, supresión, limitación del tratamiento, portabilidad y oposición remitiendo tu solicitud a{' '}
-              <a href="mailto:hola@utopiavanlife.com" className="legal-link">hola@utopiavanlife.com</a>. Responderemos a cualquiera de estas solicitudes en el plazo de un mes, prorrogable dos meses más en los términos del apartado 4.
+              <a href="mailto:info@utopiavanlife.com" className="legal-link">info@utopiavanlife.com</a>. Responderemos a cualquiera de estas solicitudes en el plazo de un mes, prorrogable dos meses más en los términos del apartado 4.
             </p>
             <p className="legal-text">
               Si consideras que no hemos atendido correctamente tu solicitud, puedes presentar una reclamación ante la Agencia Española de Protección de Datos ({' '}

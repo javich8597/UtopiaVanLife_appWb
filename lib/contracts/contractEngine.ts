@@ -1,6 +1,7 @@
 import { bookingSecondDriver, sameDocument } from '../booking/secondDriver'
 import type { DepositOption } from '../pricing/types'
 import { validateDriverLicense } from './licenseValidator'
+import { CONTRACT_RETENTION_PARAGRAPHS, CONTRACT_RETENTION_SUMMARY } from './retentionTerms'
 
 export interface CamperModelSpecs {
   modelKey: 'neo' | 'space' | 'general'
@@ -554,7 +555,9 @@ export function getOfficialContractArticles(): ContractArticle[] {
         'Responsable del tratamiento: UTOPIA VAN LIFE S.L., CIF: B24902637, Domicilio: C/ Cristo de los Remedios nº2, Planta 0, Puerta 2, 28703, San Sebastián de los Reyes, Madrid, España. Email: info@utopiavanlife.com, Teléfono: 611 560 916.',
         'Finalidad del tratamiento: Gestionar solicitudes de información, tramitar reservas y servicios contratados, gestionar pagos y facturación, enviar comunicaciones relacionadas con el servicio contratado, enviar comunicaciones comerciales (siempre que exista consentimiento), garantizar la seguridad del servicio y prevenir usos indebidos o fraudulentos, y cumplir obligaciones legales.',
         'Legitimación: La base legal para el tratamiento es: ejecución de contrato, consentimiento del usuario, cumplimiento de obligaciones legales e interés legítimo del responsable (seguridad, prevención de fraude y protección de activos).',
-        'Conservación de los datos: Los datos se conservarán durante la relación contractual, durante los plazos legales aplicables (fiscales, contables, etc.) y mientras no se solicite su supresión cuando proceda.',
+        // Los plazos se escriben en `retentionTerms.ts` para que el contrato, el PDF, la pantalla de
+        // firma y la política de privacidad digan lo mismo (decisión de Javier, 2026-11-14).
+        ...CONTRACT_RETENTION_PARAGRAPHS,
         'Destinatarios: Los datos podrán ser comunicados a entidades financieras (como CaixaBank) para la gestión de pagos, proveedores tecnológicos necesarios para la prestación del servicio (hosting, plataforma web, herramientas de gestión), herramientas de análisis como Google Analytics y administraciones públicas cuando sea obligatorio. Algunos proveedores pueden estar ubicados fuera del EEE, aplicándose las garantías adecuadas conforme al RGPD.',
         'Derechos del usuario: El usuario puede ejercer sus derechos de acceso, rectificación, supresión, limitación, oposición y portabilidad, así como retirar el consentimiento en cualquier momento, contactando en: info@utopiavanlife.com.',
         'Seguridad: UTOPIA VAN LIFE S.L. aplica medidas técnicas y organizativas adecuadas para garantizar la seguridad, confidencialidad e integridad de los datos personales.'
@@ -720,7 +723,7 @@ export function generateContractData(
     telefono: lessor.phone,
     finalidad: 'Gestionar reservas, servicios contratados, facturación, comunicaciones del servicio y seguridad contractual.',
     legitimacion: 'Ejecución del contrato de alquiler, consentimiento, cumplimiento legal e interés legítimo.',
-    conservacion: 'Durante la relación contractual y los plazos legales aplicables (fiscales, contables y de tráfico).',
+    conservacion: CONTRACT_RETENTION_SUMMARY,
     destinatarios: 'Entidades financieras (CaixaBank), proveedores tecnológicos (hosting, plataforma), analítica y autoridades públicas competentes.',
     derechos: `Acceso, rectificación, supresión, limitación, oposición y portabilidad dirigiéndose a ${lessor.email}.`,
     contacto: lessor.email

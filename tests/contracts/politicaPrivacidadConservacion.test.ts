@@ -5,6 +5,10 @@ import {
     IDENTITY_IMAGE_RETENTION_DAYS,
     LEGAL_DATA_RETENTION_YEARS,
 } from '../../lib/booking/dataRetention'
+import {
+    CONTRACT_RETENTION_PARAGRAPHS,
+    SIGNED_CONTRACT_RETENTION_YEARS,
+} from '../../lib/contracts/retentionTerms'
 
 /**
  * Art. 13.2.a RGPD: la política de privacidad tiene que decir el plazo de conservación de cada dato,
@@ -60,18 +64,89 @@ describe('política de privacidad: conservación y supresión', () => {
         )
     })
 
-    it('no inventa ningún plazo para el contrato firmado: solo el criterio', () => {
-        for (const prohibido of ['4 años', '5 años', '6 años', '10 años', '15 años']) {
+    /**
+     * Javier cerró el plazo del contrato firmado el 2026-11-14: 6 años desde la devolución, por el
+     * art. 30 del Código de Comercio. Hasta entonces la página solo podía publicar el criterio.
+     * Ahora tiene que publicar el número Y la razón: un plazo sin norma detrás no se defiende.
+     */
+    it('publica los 6 años del contrato firmado con la norma que los sostiene', () => {
+        assert.equal(SIGNED_CONTRACT_RETENTION_YEARS, 6, 'decisión de Javier 2026-11-14')
+        assert.match(
+            privacidad,
+            new RegExp(`${SIGNED_CONTRACT_RETENTION_YEARS} años(</strong>)? desde la devolución`),
+            'el plazo del contrato firmado va con número, no con criterio'
+        )
+        assert.match(privacidad, /art[íi]culo 30 del Código de Comercio/i, 'la razón del plazo, en una línea')
+        assert.ok(
+            !/criterio que aplicamos/i.test(privacidad),
+            'ya no se publica un criterio para el contrato: hay plazo cerrado'
+        )
+        for (const prohibido of ['4 años', '5 años', '10 años', '15 años']) {
             assert.ok(
                 !privacidad.includes(prohibido),
-                `la política no puede afirmar "${prohibido}": el plazo del contrato lo decide Javier`
+                `la política no puede afirmar "${prohibido}": el plazo decidido es de ${SIGNED_CONTRACT_RETENTION_YEARS} años`
             )
         }
-        assert.match(privacidad, /criterio que aplicamos/i, 'art. 13.2.a permite publicar el criterio')
+    })
+
+    /**
+     * El contrato (art. 31), su PDF y esta página los lee el mismo cliente. La redacción difiere
+     * porque la política le habla en segunda persona, pero los NÚMEROS y las NORMAS no pueden
+     * diferir: eso sería información contradictoria del art. 13.2.a del RGPD.
+     */
+    it('dice los mismos plazos y las mismas normas que el artículo 31 del contrato', () => {
+        const contrato = CONTRACT_RETENTION_PARAGRAPHS.join(' ')
+        for (const comun of [
+            `${IDENTITY_IMAGE_RETENTION_DAYS} días`,
+            `${LEGAL_DATA_RETENTION_YEARS} años`,
+            `${SIGNED_CONTRACT_RETENTION_YEARS} años`,
+            'Real Decreto 933/2021',
+            'Código de Comercio',
+            'segundo conductor autorizado',
+        ]) {
+            assert.ok(contrato.includes(comun), `el artículo 31 del contrato debe decir "${comun}"`)
+            assert.ok(privacidad.includes(comun), `la política debe decir lo mismo que el contrato: "${comun}"`)
+        }
+    })
+
+    /**
+     * Los 6 años son, además, el plazo real de los datos de un TERCERO que nunca contrató nada: su
+     * nombre y su documento viven en el contrato archivado. El apartado del 2º conductor tiene que
+     * decir ese número, no remitir a un criterio.
+     */
+    it('da al segundo conductor el número de años que su nombre sigue en el contrato', () => {
+        const apartado = privacidad.split('Si te Han Autorizado como Segundo Conductor')[1] || ''
+        assert.ok(apartado.length > 0, 'el apartado del 2º conductor tiene que seguir ahí')
+        assert.match(
+            apartado,
+            new RegExp(`${SIGNED_CONTRACT_RETENTION_YEARS} años desde la devolución`),
+            'el tercero tiene que leer su plazo, no un criterio'
+        )
+        assert.match(apartado, /art[íi]culo 30 del Código de Comercio/i)
+    })
+
+    /**
+     * El responsable del tratamiento lo fija el contrato, que es el documento con valor jurídico:
+     * UTOPIA VAN LIFE S.L., CIF B24902637, San Sebastián de los Reyes (Madrid), info@. La política
+     * decía «domicilio en Palma de Mallorca» y daba un correo que no usa nadie más (`hola@`), así que
+     * la misma empresa se identificaba de dos formas distintas (confirmado por Javier, 2026-11-14).
+     */
+    it('identifica al responsable con los datos del contrato, no con otros', () => {
+        assert.match(privacidad, /B24902637/, 'el CIF no figuraba en la política')
+        assert.match(privacidad, /San Sebastián de los Reyes/)
+        assert.ok(
+            !/Palma de Mallorca|Islas Baleares/.test(privacidad),
+            'el domicilio del responsable es la sede fiscal, no la zona de operación'
+        )
+        assert.ok(
+            !privacidad.includes('hola@utopiavanlife.com'),
+            'el contrato, el PDF, la plantilla y el panel usan info@: la política no puede usar otro'
+        )
+        assert.match(privacidad, /info@utopiavanlife\.com/)
     })
 
     it('explica cómo se pide el borrado y en qué plazo se atiende (art. 12.3)', () => {
-        assert.match(privacidad, /hola@utopiavanlife\.com/)
+        assert.match(privacidad, /info@utopiavanlife\.com/)
         assert.match(privacidad, /plazo máximo de un mes/i)
         assert.match(privacidad, /dos meses/i, 'la prórroga del art. 12.3 hay que anunciarla')
         assert.match(privacidad, /art[íi]culo 12\.3/i)

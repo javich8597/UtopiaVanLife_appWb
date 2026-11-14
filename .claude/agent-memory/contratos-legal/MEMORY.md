@@ -1,4 +1,5 @@
 - [Pendientes de aprobación de Javier](project_pendientes-aprobacion-javier.md) — fianza vs franquicia, devolución, modalidad en el contrato y prueba de la firma
 - [2º conductor en el contrato](project_contrato-2o-conductor.md) — la identidad sale del perfil y el importe de la reserva: pueden no coincidir
-- [Plazos de conservación de datos](project_conservacion-datos-plazos.md) — los cuatro plazos de Javier y qué parte de la mecánica aún no corre
+- [Plazos de conservación de datos](project_conservacion-datos-plazos.md) — los cuatro plazos ya cerrados, dónde se escriben una vez y qué no se ejecuta aún
+- [Textos legales con su norma](feedback_textos-legales-con-su-norma.md) — cada plazo con su norma en una línea; coherencia de fondo, no redacción idéntica
 - [Fuentes del marco legal](reference_marco-legal-fuentes.md) — BOE y RGPD con offsets comprobados; cómo leer el RGPD cuando EUR-Lex no sirve
